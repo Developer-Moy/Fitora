@@ -11,6 +11,12 @@
 
 ---
 
+## 🎨 Base UI Design & Layout Reference
+
+![Fitora Base Design Reference](docs/design-reference.png)
+
+---
+
 ## 🌟 Core Features & Modules
 
 - 🏋️ **Real-Time Gym Timer & Exercise Tracker**: Live bidirectional synchronization of active rest timers and workout progress across multiple devices via Socket.IO.
@@ -47,6 +53,8 @@
 ```
 Fitora/
 ├── client/                 # Next.js Frontend Application
+│   ├── public/             # Static Assets & Design Reference
+│   │   └── design-reference.png
 │   ├── src/
 │   │   ├── app/            # Next.js App Router pages
 │   │   ├── components/     # UI Components
@@ -72,6 +80,8 @@ Fitora/
 │   ├── .env.example        # Environment Variables Template
 │   └── package.json
 │
+├── docs/                   # Documentation Assets & Design Specs
+│   └── design-reference.png
 ├── package.json            # Root Workspace Script Runner (concurrently)
 ├── .gitignore              # Root Git Ignore Policy
 └── README.md               # Project Documentation
