@@ -140,15 +140,13 @@ export default function GymTimer({
 
   const handleStartPause = () => {
     triggerAudioFeedback(isRunning ? 440 : 880);
-    setIsRunning((prev) => {
-      const next = !prev;
-      if (next) {
-        toast.success("Timer started", { id: "timer-status" });
-      } else {
-        toast("Timer paused", { icon: "⏸️", id: "timer-status" });
-      }
-      return next;
-    });
+    if (!isRunning) {
+      setIsRunning(true);
+      toast.success(seconds > 0 ? "Timer resumed" : "Timer started", { id: "timer-status" });
+    } else {
+      setIsRunning(false);
+      toast("Timer paused", { icon: "⏸️", id: "timer-status" });
+    }
   };
 
   const handleStop = () => {
@@ -210,58 +208,33 @@ export default function GymTimer({
       toast.success("🎉 All target sets completed! Great workout!", { duration: 4000 });
     }
     setSeconds(0);
-    setIsRunning(true);
+    setIsRunning(false);
   };
 
   const handleResetDailyGymTime = () => {
-    toast((t) => (
-      <div className="flex flex-col gap-2">
-        <span className="font-semibold text-xs text-white">Reset today&apos;s full gym time?</span>
-        <div className="flex items-center gap-2 mt-1">
-          <button
-            onClick={() => {
-              setTotalGymSeconds(0);
-              saveDailyGymTime(0);
-              toast.dismiss(t.id);
-              toast.success("Today's gym time reset to 00:00:00");
-            }}
-            className="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-3 py-1 rounded-lg"
-          >
-            Confirm
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs px-3 py-1 rounded-lg"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    ), { duration: 5000, id: "confirm-reset-day" });
+    setTotalGymSeconds(0);
+    saveDailyGymTime(0);
+    toast.success("Today's gym time reset to 00:00:00", { id: "reset-day" });
   };
 
   const handleToggleSync = () => {
-    setIsSynced((p) => {
-      const next = !p;
-      if (next) {
-        toast.success("Realtime Sync connected", { id: "sync-status" });
-      } else {
-        toast("Offline mode active", { icon: "⚡", id: "sync-status" });
-      }
-      return next;
-    });
+    if (!isSynced) {
+      setIsSynced(true);
+      toast.success("Realtime Sync connected", { id: "sync-status" });
+    } else {
+      setIsSynced(false);
+      toast("Offline mode active", { icon: "⚡", id: "sync-status" });
+    }
   };
 
   const handleToggleSound = () => {
-    setSoundEnabled((p) => {
-      const next = !p;
-      if (next) {
-        toast("Audio cues enabled", { icon: "🔔", id: "sound-status" });
-      } else {
-        toast("Audio cues muted", { icon: "🔕", id: "sound-status" });
-      }
-      return next;
-    });
+    if (!soundEnabled) {
+      setSoundEnabled(true);
+      toast("Audio cues enabled", { icon: "🔔", id: "sound-status" });
+    } else {
+      setSoundEnabled(false);
+      toast("Audio cues muted", { icon: "🔕", id: "sound-status" });
+    }
   };
 
   // Circular progress calculation (60s loop)
