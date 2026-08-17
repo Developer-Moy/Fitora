@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@heroui/react": "^3.2.4",
+    "@react-aria/utils": "^3.34.1",
     "clsx": "^2.1.1",
     "framer-motion": "^13.1.0",
     "lucide-react": "^0.400.0",
