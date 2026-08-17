@@ -1,113 +1,133 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FileX, Menu } from 'lucide-react';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownPopover,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/react";
+import {
+  FiChevronDown,
+  FiUser,
+  FiBell,
+  FiSettings,
+  FiLogOut,
+} from "react-icons/fi";
 
-const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Dashboard', href: '/dashboard/user/workout' },
-    { name: 'About Us', href: '/about' },
-    { name: 'Doctors', href: '/doctors' },
-    { name: 'Contact', href: '/contact' },
+const NAV_LINKS = [
+  { label: "Dashboard", href: "/" },
+  { label: "Plans", href: "/plans" },
+  { label: "Trainers", href: "/trainers" },
+  { label: "Community", href: "/community" },
 ];
 
 export default function Navbar() {
-    const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
 
-    const toggleMenu = () => setIsOpen((prev) => !prev);
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-3.5 bg-black/80 backdrop-blur-md border-b border-white/[0.05]">
+      {/* ── Logo ── */}
+      <Link href="/" className="flex items-center gap-2 select-none group">
+        <img
+          src="/logo.svg"
+          alt="Fitora logo"
+          className="w-6 h-6 object-contain group-hover:scale-105 transition-transform duration-200"
+        />
+        <span className="text-white font-bold text-lg tracking-wide">
+          Fitora
+        </span>
+      </Link>
 
-    return (
-        <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/80">
-            <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-                {/* Brand Logo */}
-                <Link href="/" className="flex items-center gap-2 text-xl font-bold text-blue-600 dark:text-blue-400">
-                    <span>Fitora</span>
-                </Link>
-
-                {/* Desktop Navigation Links */}
-                <nav className="hidden items-center gap-8 md:flex">
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.name}
-                            href={link.href}
-                            className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                        >
-                            {link.name}
-                        </Link>
-                    ))}
-                </nav>
-
-                {/* Desktop Call to Action */}
-                <div className="hidden items-center gap-4 md:flex">
-                    <Link
-                        href="/login"
-                        className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                    >
-                        Log In
-                    </Link>
-                    <Link
-                        href="/register"
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                    >
-                        Get Started
-                    </Link>
-                </div>
-
-                {/* Mobile Menu Toggle Button */}
-                <button
-                    type="button"
-                    onClick={toggleMenu}
-                    aria-label="Toggle navigation menu"
-                    className="rounded-lg p-2 text-gray-700 hover:bg-gray-100 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-800 md:hidden"
-                >
-                    {isOpen ? <FileX className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </button>
-            </div>
-
-            {/* Mobile Animated Dropdown */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.25, ease: 'easeInOut' }}
-                        className="overflow-hidden border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 md:hidden"
-                    >
-                        <div className="flex flex-col gap-4 px-4 pb-6 pt-2">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.name}
-                                    href={link.href}
-                                    onClick={() => setIsOpen(false)}
-                                    className="text-base font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                                >
-                                    {link.name}
-                                </Link>
-                            ))}
-
-                            <div className="mt-2 flex flex-col gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
-                                <Link
-                                    href="/login"
-                                    onClick={() => setIsOpen(false)}
-                                    className="w-full text-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                                >
-                                    Log In
-                                </Link>
-                                <Link
-                                    href="/register"
-                                    onClick={() => setIsOpen(false)}
-                                    className="w-full text-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                                >
-                                    Get Started
-                                </Link>
-                            </div>
-                        </div>
-                    </motion.div>
+      {/* ── Nav Links ── */}
+      <ul className="hidden md:flex items-center gap-8">
+        {NAV_LINKS.map(({ label, href }) => {
+          const isActive = pathname === href;
+          return (
+            <li key={href}>
+              <Link
+                href={href}
+                className={`relative py-1 text-sm font-medium transition-colors duration-200 block ${
+                  isActive
+                    ? "text-red-500 font-semibold"
+                    : "text-white/70 hover:text-white"
+                }`}
+              >
+                {label}
+                {isActive && (
+                  <span className="absolute -bottom-2 left-0 right-0 h-[2px] bg-red-600 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
                 )}
-            </AnimatePresence>
-        </header>
-    );
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* ── Hero UI & React Icons Dropdown ── */}
+      <div>
+        <Dropdown>
+          <DropdownTrigger className="outline-none">
+            <button className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-emerald-500/50 bg-emerald-950/20 hover:bg-emerald-900/30 transition-all duration-200">
+              {/* Notification dot */}
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black animate-pulse" />
+
+              <span className="text-sm font-medium text-white/90">
+                Account
+              </span>
+
+              {/* Avatar image */}
+              <div className="w-6 h-6 rounded-full overflow-hidden border border-white/20">
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+                  alt="User Avatar"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <FiChevronDown className="text-white/60 text-xs" />
+            </button>
+          </DropdownTrigger>
+
+          <DropdownPopover placement="bottom end" className="p-1 rounded-xl bg-[#111] border border-white/10 shadow-2xl min-w-[200px]">
+            <DropdownMenu aria-label="Account Actions">
+              <DropdownItem className="px-3 py-2 border-b border-white/10 pointer-events-none">
+                <p className="font-semibold text-white text-sm">Moloy Paul</p>
+                <p className="text-xs text-white/40">moloy@fitora.dev</p>
+              </DropdownItem>
+
+              <DropdownItem className="px-3 py-2 text-sm text-white/80 hover:text-white rounded-lg cursor-pointer">
+                <div className="flex items-center gap-2.5">
+                  <FiUser className="text-white/40" />
+                  <span>Profile</span>
+                </div>
+              </DropdownItem>
+
+              <DropdownItem className="px-3 py-2 text-sm text-white/80 hover:text-white rounded-lg cursor-pointer">
+                <div className="flex items-center gap-2.5">
+                  <FiBell className="text-white/40" />
+                  <span>Notifications</span>
+                </div>
+              </DropdownItem>
+
+              <DropdownItem className="px-3 py-2 text-sm text-white/80 hover:text-white rounded-lg cursor-pointer">
+                <div className="flex items-center gap-2.5">
+                  <FiSettings className="text-white/40" />
+                  <span>Settings</span>
+                </div>
+              </DropdownItem>
+
+              <DropdownItem className="px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg cursor-pointer border-t border-white/10 mt-1">
+                <div className="flex items-center gap-2.5">
+                  <FiLogOut />
+                  <span>Log Out</span>
+                </div>
+              </DropdownItem>
+            </DropdownMenu>
+          </DropdownPopover>
+        </Dropdown>
+      </div>
+    </nav>
+  );
 }
