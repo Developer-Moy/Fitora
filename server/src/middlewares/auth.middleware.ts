@@ -28,7 +28,7 @@ export const authMiddleware = (
     }
     const [schema, token] = authHeader.split(" ");
 
-    if(schema! == "Bearer" || !token ) {
+    if (schema !== "Bearer" || !token) {
       return res.status(401).json({
         success: false,
         message: "Invalid authorization format",
