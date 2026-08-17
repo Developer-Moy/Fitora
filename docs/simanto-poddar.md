@@ -27,3 +27,8 @@ These two sections provide personalized experiences within **Fitora**. The **AI 
 **Branch:** `simanto-poddar`
 
 **Branch Link:** [View My Branch](https://github.com/Developer-Moy/Fitora/tree/simanto-poddar)
+
+### 17-Aug-26
+
+#### Build user input form for meal chart generation
+#### Create MealPlan Mongoose schema
