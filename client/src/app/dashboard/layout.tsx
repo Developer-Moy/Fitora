@@ -51,7 +51,7 @@ export default function DashboardLayout({
             </div>
           </div>
 
-          {/* Right Controls: Notifications & User Identity */}
+          {/* Right Controls: Notifications */}
           <div className="flex items-center gap-3">
             {/* Notifications Button */}
             <button
@@ -61,21 +61,6 @@ export default function DashboardLayout({
               <Bell className="h-5 w-5" />
               <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
             </button>
-
-            {/* User Profile Header Chip */}
-            <div className="flex items-center gap-3 border-l border-white/[0.08] pl-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 font-bold text-white text-sm shadow-md shadow-red-950/50">
-                M
-              </div>
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-bold leading-tight text-white">
-                  Moloy Paul
-                </p>
-                <p className="text-xs text-red-400 font-medium">
-                  Pro Athlete
-                </p>
-              </div>
-            </div>
           </div>
         </header>
 
