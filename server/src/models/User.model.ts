@@ -7,6 +7,7 @@ export interface IUser extends Document {
   role: "user" | "admin";
 }
 
+
 const userSchema = newSchema<IUser>(
   {
     name: {
