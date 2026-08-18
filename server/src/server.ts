@@ -3,8 +3,9 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDB } from './config/db.js';
-import { setupSocketHandlers } from './sockets/index.js';
+import { connectDB } from './config/db';
+import { setupSocketHandlers } from './sockets/index';
+import aiRoutes from './routes/ai.routes';
 
 dotenv.config();
 
@@ -28,6 +29,9 @@ app.use(express.json());
 app.get('/', (req: Request, res: Response) => {
   res.send('Fitora Server Running');
 });
+
+// Register API Routes
+app.use('/api/ai', aiRoutes);
 
 // Initialize Socket.IO handlers
 setupSocketHandlers(io);
