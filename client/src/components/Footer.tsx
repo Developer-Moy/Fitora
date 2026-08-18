@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FaFacebookF, FaInstagram, FaXTwitter, FaYoutube } from "react-icons/fa6";
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  // Hide footer inside /dashboard routes matching design reference
+  if (pathname?.startsWith("/dashboard")) {
+    return null;
+  }
   return (
     <footer className="relative bg-gradient-to-r from-red-950/20 via-[#0a0a0a] to-emerald-950/20 border-t border-white/[0.08] text-white pt-12 pb-8 px-8 mt-20">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 items-start">

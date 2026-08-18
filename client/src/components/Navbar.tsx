@@ -27,6 +27,11 @@ const NAV_LINKS = [
 export default function Navbar() {
   const pathname = usePathname();
 
+  // Hide top navbar inside /dashboard routes matching design reference
+  if (pathname?.startsWith("/dashboard")) {
+    return null;
+  }
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-3.5 bg-black/80 backdrop-blur-md border-b border-white/[0.05]">
       {/* ── Logo ── */}
