@@ -147,6 +147,7 @@ export default function StopwatchPage() {
           )}
 
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {POPULAR_EXERCISES.map((ex) => (
             {exercises.map((ex) => (
               <button
                 key={ex}

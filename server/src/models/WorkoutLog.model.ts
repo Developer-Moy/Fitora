@@ -1,6 +1,10 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IWorkoutLog extends Document {
+  userId: mongoose.Types.ObjectId;
+  exerciseName: string;
+  setsCount: number;
+  repsCount: number;
   userId?: mongoose.Types.ObjectId | string;
   exerciseName: string;
   setsCount: number;
@@ -17,6 +21,9 @@ export interface IWorkoutLog extends Document {
 const WorkoutLogSchema: Schema = new Schema(
   {
     userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
       type: Schema.Types.Mixed,
       ref: "User",
       required: false,

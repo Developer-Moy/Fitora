@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import { setupSocketHandlers } from './sockets/index.js';
+import mealChartRoutes from './routes/mealChart.routes.js';
 import apiRouter from './routes/index.js';
 
 dotenv.config();
@@ -25,6 +26,10 @@ const io = new SocketIOServer(server, {
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
+// API Routes
+app.use('/api', mealChartRoutes);
+
+// Root API Route
 // Root Health Check Route
 app.get('/', (req: Request, res: Response) => {
   res.json({
