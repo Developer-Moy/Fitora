@@ -30,5 +30,10 @@ These two sections provide personalized experiences within **Fitora**. The **AI 
 
 ### 17-Aug-26
 
-#### Build user input form for meal chart generation
-#### Create MealPlan Mongoose schema
+* Build user input form for meal chart generation
+
+* Create MealPlan Mongoose schema
+
+### 18-Aug-26
+
+* Pulled the latest changes from the development branch into my (simanto-poddar) and resolved the issues/conflicts found on my side.

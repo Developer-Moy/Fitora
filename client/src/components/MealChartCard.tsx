@@ -129,8 +129,8 @@ function Section({
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4">
                     <div
                         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-xl sm:h-13 sm:w-13 sm:text-2xl transition-transform duration-300 hover:scale-105 ${teal
-                            ? "border-cyan-400/40 bg-gradient-to-br from-cyan-500/20 via-cyan-400/10 to-teal-500/20 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-                            : "border-rose-500/40 bg-gradient-to-br from-rose-500/20 via-rose-400/10 to-amber-500/20 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.3)]"
+                            ? "border-cyan-400/40 bg-linear-to-br from-cyan-500/20 via-cyan-400/10 to-teal-500/20 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+                            : "border-rose-500/40 bg-linear-to-br from-rose-500/20 via-rose-400/10 to-amber-500/20 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.3)]"
                             }`}
                     >
                         {icon}
@@ -162,8 +162,8 @@ function Section({
 
             <Separator
                 className={`mb-5 h-px sm:mb-6 ${teal
-                    ? "bg-gradient-to-r from-cyan-500/40 via-teal-500/20 to-transparent"
-                    : "bg-gradient-to-r from-rose-500/40 via-amber-500/20 to-transparent"
+                    ? "bg-linear-to-r from-cyan-500/40 via-teal-500/20 to-transparent"
+                    : "bg-linear-to-r from-rose-500/40 via-amber-500/20 to-transparent"
                     }`}
             />
 
@@ -393,7 +393,7 @@ export function MealChartCard() {
                                     <Select.Indicator />
                                 </Select.Trigger>
 
-                                <Select.Popover className="border border-slate-700/80 bg-slate-950/95 backdrop-blur-xl shadow-2xl rounded-2xl p-1.5 z-50 min-w-[200px]">
+                                <Select.Popover className="border border-slate-700/80 bg-slate-950/95 backdrop-blur-xl shadow-2xl rounded-2xl p-1.5 z-50 min-w-50">
                                     <ListBox
                                         aria-label="Gender options"
                                         className="bg-transparent text-slate-100 space-y-1 [&_.list-box-item]:text-slate-100 [&_.list-box-item[data-focused=true]]:bg-cyan-500/15 [&_.list-box-item[data-focused=true]]:text-cyan-200 [&_.list-box-item[data-selected=true]]:bg-cyan-500/20 [&_.list-box-item[data-selected=true]]:text-cyan-300 [&_.list-box-item]:rounded-xl [&_.list-box-item]:px-3 [&_.list-box-item]:py-2.5 [&_.list-box-item]:transition-colors [&_.list-box-item]:cursor-pointer"
@@ -957,7 +957,7 @@ export function MealChartCard() {
                         <Button
                             onPress={handleGenerate}
                             size="lg"
-                            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-size-[200%_200%] font-black uppercase tracking-wider text-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.45)] hover:shadow-[0_0_45px_rgba(34,211,238,0.7)] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
+                            className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-linear-to-r from-cyan-400 via-teal-300 to-emerald-400 bg-size-[200%_200%] font-black uppercase tracking-wider text-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.45)] hover:shadow-[0_0_45px_rgba(34,211,238,0.7)] transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
                         >
                             <FaWandMagicSparkles size={18} />
                             <span>Generate Meal Chart</span>
