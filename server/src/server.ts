@@ -6,6 +6,9 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import { setupSocketHandlers } from './sockets/index.js';
 
+// Routes import
+import dashboardStatisticSummary from './routes/user.routes.js';
+
 dotenv.config();
 
 const app = express();
@@ -23,6 +26,9 @@ const io = new SocketIOServer(server, {
 // Middleware
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+
+// Routes
+app.use('/api/dashboard', dashboardStatisticSummary);
 
 // Root API Route
 app.get('/', (req: Request, res: Response) => {
