@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import { setupSocketHandlers } from './sockets/index.js';
+import apiRouter from './routes/index.js';
 
 dotenv.config();
 
@@ -24,20 +25,27 @@ const io = new SocketIOServer(server, {
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// Root API Route
+// Root Health Check Route
 app.get('/', (req: Request, res: Response) => {
-  res.send('Fitora Server Running');
+  res.json({
+    status: 'online',
+    message: 'Fitora Server API Running',
+    version: '1.0.0'
+  });
 });
+
+// API Routes
+app.use('/api', apiRouter);
 
 // Initialize Socket.IO handlers
 setupSocketHandlers(io);
 
 // Start server and connect database
 const startServer = async () => {
-  await connectDB();
   server.listen(PORT, () => {
     console.log(`[Fitora Server] Running on http://localhost:${PORT}`);
   });
+  await connectDB();
 };
 
 startServer();

@@ -25,6 +25,7 @@ const POPULAR_EXERCISES = [
 ];
 
 export default function StopwatchPage() {
+  const [exercises, setExercises] = useState(POPULAR_EXERCISES);
   const [selectedExercise, setSelectedExercise] = useState("Bench Press");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customExercise, setCustomExercise] = useState("");
@@ -54,6 +55,7 @@ export default function StopwatchPage() {
     e.preventDefault();
     if (customExercise.trim()) {
       const name = customExercise.trim();
+      setExercises((prev) => (prev.includes(name) ? prev : [name, ...prev]));
       setSelectedExercise(name);
       setCustomExercise("");
       setShowCustomInput(false);
@@ -145,7 +147,7 @@ export default function StopwatchPage() {
           )}
 
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {POPULAR_EXERCISES.map((ex) => (
+            {exercises.map((ex) => (
               <button
                 key={ex}
                 type="button"
