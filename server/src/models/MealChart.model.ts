@@ -35,7 +35,7 @@ export interface IMealStructureData {
 }
 
 export interface IMealPlan {
-  userId?: Schema.Types.ObjectId;
+  userId?: string;
   profile: IUserProfileData;
   goals: IGoalsLifestyleData;
   dietary: IDietaryPreferencesData;
@@ -101,8 +101,7 @@ const MealStructureSchema = new Schema<IMealStructureData>(
 export const MealPlanSchema = new Schema<IMealPlanDocument>(
   {
     userId: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: false,
     },
     profile: {

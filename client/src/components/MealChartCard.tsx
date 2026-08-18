@@ -8,10 +8,8 @@ import {
     Description,
     Input,
     Label,
-    ListBox,
     Radio,
     RadioGroup,
-    Select,
     Separator,
     TextArea,
 } from "@heroui/react";
@@ -190,6 +188,8 @@ function FieldLabel({
 }
 
 export function MealChartCard() {
+    const TEMP_USER_ID = "507f1f77bcf86cd799439011"; // TODO: Remove fake userId after auth implementation
+
     const [profile, setProfile] = useState<UserProfileData>(
         EMPTY_FORM.profile,
     );
@@ -202,7 +202,7 @@ export function MealChartCard() {
     );
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-    const handleGenerate = useCallback(() => {
+    const handleGenerate = useCallback(async () => {
         const errors: string[] = [];
 
         if (!profile.age || profile.age < 1) {
@@ -260,10 +260,40 @@ export function MealChartCard() {
             structure,
         };
 
-        console.log(
-            "Meal Planner user input:",
-            JSON.stringify(formData, null, 2),
-        );
+        const payload = {
+            userId: TEMP_USER_ID,
+            ...formData,
+        };
+
+
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/meal-charts`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error("Failed to save meal plan");
+            }
+
+            toast.success("Meal planner data saved successfully!");
+
+            console.log("Saved meal plan:");
+        } catch (error) {
+            console.error("Meal planner error:");
+
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to save meal planner data",
+            );
+        }
     }, [profile, goals, dietary, structure]);
 
     const hasCustomGoal =
@@ -371,49 +401,29 @@ export function MealChartCard() {
                                 Gender
                             </FieldLabel>
 
-                            <Select
-                                aria-label="Gender"
-                                placeholder="Select your gender"
-                                value={profile.gender || null}
-                                onChange={(value) => {
-                                    setProfile({
-                                        ...profile,
-                                        gender: value
-                                            ? (String(value) as Gender)
-                                            : "",
-                                    });
-                                }}
-                            >
-                                <Select.Trigger className="w-full rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition-all duration-200 hover:border-cyan-500/50 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20">
-                                    <div className="flex min-w-0 flex-1 items-center gap-2.5">
-                                        <FaVenusMars className="shrink-0 text-slate-500" />
-                                        <Select.Value />
-                                    </div>
-
-                                    <Select.Indicator />
-                                </Select.Trigger>
-
-                                <Select.Popover className="border border-slate-700/80 bg-slate-950/95 backdrop-blur-xl shadow-2xl rounded-2xl p-1.5 z-50 min-w-50">
-                                    <ListBox
-                                        aria-label="Gender options"
-                                        className="bg-transparent text-slate-100 space-y-1 [&_.list-box-item]:text-slate-100 [&_.list-box-item[data-focused=true]]:bg-cyan-500/15 [&_.list-box-item[data-focused=true]]:text-cyan-200 [&_.list-box-item[data-selected=true]]:bg-cyan-500/20 [&_.list-box-item[data-selected=true]]:text-cyan-300 [&_.list-box-item]:rounded-xl [&_.list-box-item]:px-3 [&_.list-box-item]:py-2.5 [&_.list-box-item]:transition-colors [&_.list-box-item]:cursor-pointer"
-                                        selectionMode="single"
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs font-semibold text-slate-400 mr-1">
+                                    Quick Select:
+                                </span>
+                                {GENDERS.map((g) => (
+                                    <button
+                                        key={g}
+                                        type="button"
+                                        onClick={() =>
+                                            setProfile({
+                                                ...profile,
+                                                gender: g,
+                                            })
+                                        }
+                                        className={`rounded-xl border px-3.5 py-2 text-xs font-bold transition-all duration-200 active:scale-95 ${profile.gender === g
+                                            ? "border-cyan-400/60 bg-cyan-500/20 text-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.3)] scale-[1.02]"
+                                            : "border-slate-700/60 bg-slate-950/50 text-slate-400 hover:border-cyan-500/40 hover:text-slate-200"
+                                            }`}
                                     >
-                                        {GENDERS.map((g) => (
-                                            <ListBox.Item
-                                                key={g}
-                                                id={g}
-                                                textValue={g}
-                                            >
-                                                <Label className="font-medium text-sm">
-                                                    {g}
-                                                </Label>
-                                                <ListBox.ItemIndicator />
-                                            </ListBox.Item>
-                                        ))}
-                                    </ListBox>
-                                </Select.Popover>
-                            </Select>
+                                        {g}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Current Weight */}
@@ -514,48 +524,29 @@ export function MealChartCard() {
                                 Fitness Goal
                             </FieldLabel>
 
-                            <Select
-                                aria-label="Fitness goal"
-                                placeholder="Select your fitness goal"
-                                value={goals.fitnessGoal || null}
-                                onChange={(value) => {
-                                    setGoals({
-                                        ...goals,
-                                        fitnessGoal: value ? String(value) : "",
-                                    });
-                                }}
-                            >
-                                <Select.Trigger className="w-full rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition-all duration-200 hover:border-rose-500/50 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20">
-                                    <Select.Value />
-                                    <Select.Indicator />
-                                </Select.Trigger>
-
-                                <Select.Popover className="border border-slate-700/80 bg-slate-950/95 backdrop-blur-xl shadow-2xl rounded-2xl p-1.5 z-50">
-                                    <ListBox
-                                        aria-label="Fitness goal options"
-                                        className="bg-transparent text-slate-100 space-y-1 [&_.list-box-item]:text-slate-100 [&_.list-box-item[data-focused=true]]:bg-rose-500/15 [&_.list-box-item[data-focused=true]]:text-rose-200 [&_.list-box-item[data-selected=true]]:bg-rose-500/20 [&_.list-box-item[data-selected=true]]:text-rose-300 [&_.list-box-item]:rounded-xl [&_.list-box-item]:px-3 [&_.list-box-item]:py-2.5 [&_.list-box-item]:transition-colors [&_.list-box-item]:cursor-pointer"
-                                        selectionMode="single"
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs font-semibold text-slate-400 mr-1">
+                                    Quick Select:
+                                </span>
+                                {FITNESS_GOALS.map((g) => (
+                                    <button
+                                        key={g.value}
+                                        type="button"
+                                        onClick={() =>
+                                            setGoals({
+                                                ...goals,
+                                                fitnessGoal: g.value,
+                                            })
+                                        }
+                                        className={`rounded-xl border px-3.5 py-2 text-xs font-bold transition-all duration-200 active:scale-95 ${goals.fitnessGoal === g.value
+                                            ? "border-rose-400/60 bg-rose-500/20 text-rose-300 shadow-[0_0_14px_rgba(244,63,94,0.3)] scale-[1.02]"
+                                            : "border-slate-700/60 bg-slate-950/50 text-slate-400 hover:border-rose-500/40 hover:text-slate-200"
+                                            }`}
                                     >
-                                        {FITNESS_GOALS.map((g) => (
-                                            <ListBox.Item
-                                                key={g.value}
-                                                id={g.value}
-                                                textValue={g.value}
-                                            >
-                                                <Label className="text-slate-100 font-semibold text-sm">
-                                                    {g.value}
-                                                </Label>
-
-                                                <Description className="text-[11px] text-slate-400 mt-0.5">
-                                                    {g.description}
-                                                </Description>
-
-                                                <ListBox.ItemIndicator />
-                                            </ListBox.Item>
-                                        ))}
-                                    </ListBox>
-                                </Select.Popover>
-                            </Select>
+                                        {g.value}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Activity Level */}
@@ -567,50 +558,29 @@ export function MealChartCard() {
                                 Activity Level
                             </FieldLabel>
 
-                            <Select
-                                aria-label="Activity level"
-                                placeholder="Select your activity level"
-                                value={goals.activityLevel || null}
-                                onChange={(value) => {
-                                    setGoals({
-                                        ...goals,
-                                        activityLevel: value
-                                            ? String(value)
-                                            : "",
-                                    });
-                                }}
-                            >
-                                <Select.Trigger className="w-full rounded-2xl border border-slate-700/70 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 outline-none transition-all duration-200 hover:border-rose-500/50 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20">
-                                    <Select.Value />
-                                    <Select.Indicator />
-                                </Select.Trigger>
-
-                                <Select.Popover className="border border-slate-700/80 bg-slate-950/95 backdrop-blur-xl shadow-2xl rounded-2xl p-1.5 z-50">
-                                    <ListBox
-                                        aria-label="Activity level options"
-                                        className="bg-transparent text-slate-100 space-y-1 [&_.list-box-item]:text-slate-100 [&_.list-box-item[data-focused=true]]:bg-rose-500/15 [&_.list-box-item[data-focused=true]]:text-rose-200 [&_.list-box-item[data-selected=true]]:bg-rose-500/20 [&_.list-box-item[data-selected=true]]:text-rose-300 [&_.list-box-item]:rounded-xl [&_.list-box-item]:px-3 [&_.list-box-item]:py-2.5 [&_.list-box-item]:transition-colors [&_.list-box-item]:cursor-pointer"
-                                        selectionMode="single"
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs font-semibold text-slate-400 mr-1">
+                                    Quick Select:
+                                </span>
+                                {ACTIVITY_LEVELS.map((a) => (
+                                    <button
+                                        key={a.value}
+                                        type="button"
+                                        onClick={() =>
+                                            setGoals({
+                                                ...goals,
+                                                activityLevel: a.value,
+                                            })
+                                        }
+                                        className={`rounded-xl border px-3.5 py-2 text-xs font-bold transition-all duration-200 active:scale-95 ${goals.activityLevel === a.value
+                                            ? "border-rose-400/60 bg-rose-500/20 text-rose-300 shadow-[0_0_14px_rgba(244,63,94,0.3)] scale-[1.02]"
+                                            : "border-slate-700/60 bg-slate-950/50 text-slate-400 hover:border-rose-500/40 hover:text-slate-200"
+                                            }`}
                                     >
-                                        {ACTIVITY_LEVELS.map((a) => (
-                                            <ListBox.Item
-                                                key={a.value}
-                                                id={a.value}
-                                                textValue={a.value}
-                                            >
-                                                <Label className="text-slate-100 font-semibold text-sm">
-                                                    {a.value}
-                                                </Label>
-
-                                                <Description className="text-[11px] text-slate-400 mt-0.5">
-                                                    {a.description}
-                                                </Description>
-
-                                                <ListBox.ItemIndicator />
-                                            </ListBox.Item>
-                                        ))}
-                                    </ListBox>
-                                </Select.Popover>
-                            </Select>
+                                        {a.value}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Custom Goal */}
