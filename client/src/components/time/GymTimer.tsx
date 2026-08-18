@@ -66,6 +66,34 @@ export default function GymTimer({
       // ignore
     }
   }, []);
+  const getTodayKey = useCallback(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return `fitora_daily_gym_time_${today}`;
+  }, []);
+
+  // Total Gym Time for today (starts at 00:00:00, loaded from localStorage for today's full day)
+  const [totalGymSeconds, setTotalGymSeconds] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const saved = localStorage.getItem(`fitora_daily_gym_time_${today}`);
+      return saved ? parseInt(saved, 10) || 0 : 0;
+    } catch {
+      return 0;
+    }
+  });
+
+  // Save today's accumulated gym time
+  const saveDailyGymTime = useCallback(
+    (secs: number) => {
+      try {
+        localStorage.setItem(getTodayKey(), secs.toString());
+      } catch {
+        // ignore
+      }
+    },
+    [getTodayKey]
+  );
 
   // Synthesized Web Audio beep generator
   const triggerAudioFeedback = useCallback(
@@ -117,6 +145,7 @@ export default function GymTimer({
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isRunning, triggerAudioFeedback, saveDailyGymTime]);
+  }, [isRunning, saveDailyGymTime]);
 
   // Formatter for HH:MM:SS
   const formatTime = (totalSec: number) => {
@@ -264,6 +293,10 @@ export default function GymTimer({
 
             {/* Center Area: Big Digital Stopwatch Readout + Circular Progress Ring */}
             <div className="md:col-span-6 flex flex-col items-center justify-center">
+              <div className="text-[11px] font-semibold text-emerald-400/90 uppercase tracking-widest mb-1 flex items-center gap-1.5 bg-emerald-950/40 border border-emerald-800/30 px-3 py-0.5 rounded-full">
+                <Dumbbell className="w-3 h-3 text-emerald-400" />
+                <span>{exerciseName}</span>
+              </div>
               <TimeDisplay
                 seconds={seconds}
                 currentSet={currentSet}

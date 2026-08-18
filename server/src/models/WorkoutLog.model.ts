@@ -5,6 +5,15 @@ export interface IWorkoutLog extends Document {
   exerciseName: string;
   setsCount: number;
   repsCount: number;
+  userId?: mongoose.Types.ObjectId | string;
+  exerciseName: string;
+  setsCount: number;
+  repsCount: number;
+  weight?: number;
+  durationMinutes?: number;
+  caloriesBurned?: number;
+  notes?: string;
+  date?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -15,6 +24,10 @@ const WorkoutLogSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      type: Schema.Types.Mixed,
+      ref: "User",
+      required: false,
+      default: "guest_user",
       index: true,
     },
     exerciseName: {
@@ -26,11 +39,38 @@ const WorkoutLogSchema: Schema = new Schema(
       type: Number,
       required: true,
       default: 1,
+      min: 1,
     },
     repsCount: {
       type: Number,
       required: true,
       default: 10,
+      min: 1,
+    },
+    weight: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    durationMinutes: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    caloriesBurned: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    notes: {
+      type: String,
+      required: false,
+      trim: true,
+      default: "",
+    },
+    date: {
+      type: Date,
+      default: Date.now,
     },
   },
   {
