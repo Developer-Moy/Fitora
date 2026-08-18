@@ -8,6 +8,9 @@ import { setupSocketHandlers } from './sockets/index.js';
 import mealChartRoutes from './routes/mealChart.routes.js';
 import apiRouter from './routes/index.js';
 
+// Routes import
+import dashboardStatisticSummary from './routes/user.routes.js';
+
 dotenv.config();
 
 const app = express();
@@ -26,6 +29,8 @@ const io = new SocketIOServer(server, {
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
+// Routes
+app.use('/api/dashboard', dashboardStatisticSummary);
 // API Routes
 app.use('/api', mealChartRoutes);
 
