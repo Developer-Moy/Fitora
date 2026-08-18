@@ -27,3 +27,27 @@ These two sections provide personalized experiences within **Fitora**. The **AI 
 **Branch:** `simanto-poddar`
 
 **Branch Link:** [View My Branch](https://github.com/Developer-Moy/Fitora/tree/simanto-poddar)
+
+## 17-Aug-26
+
+* Build user input form for meal chart generation
+
+* Create MealPlan Mongoose schema
+
+## 18-Aug-26
+
+* Pulled the latest changes from the development branch into my (`simanto-poddar`) branch and resolved the issues/conflicts found on my side.
+
+### Meal Chart API Implementation
+
+* Implemented the Meal Chart API endpoints:
+
+  * `GET /api/meal-charts?userId={userId}` — Fetch meal charts for a specific user.
+  * `POST /api/meal-charts` — Create and save a meal plan.
+* The `GET /api/meal-charts` endpoint requires a `userId` query parameter.
+
+### Client Environment Variables
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```

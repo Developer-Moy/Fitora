@@ -27,6 +27,11 @@ const NAV_LINKS = [
 export default function Navbar() {
   const pathname = usePathname();
 
+  // Hide top navbar inside /dashboard routes matching design reference
+  if (pathname?.startsWith("/dashboard")) {
+    return null;
+  }
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-3.5 bg-black/80 backdrop-blur-md border-b border-white/[0.05]">
       {/* ── Logo ── */}
@@ -88,6 +93,24 @@ export default function Navbar() {
 
               <FiChevronDown className="text-white/60 text-xs" />
             </button>
+          <DropdownTrigger className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-emerald-500/50 bg-emerald-950/20 hover:bg-emerald-900/30 transition-all duration-200 outline-none cursor-pointer">
+            {/* Notification dot */}
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black animate-pulse" />
+
+            <span className="text-sm font-medium text-white/90">
+              Account
+            </span>
+
+            {/* Avatar image */}
+            <div className="w-6 h-6 rounded-full overflow-hidden border border-white/20">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
+                alt="User Avatar"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            <FiChevronDown className="text-white/60 text-xs" />
           </DropdownTrigger>
 
           <DropdownPopover placement="bottom end" className="p-1 rounded-xl bg-[#111] border border-white/10 shadow-2xl min-w-[200px]">

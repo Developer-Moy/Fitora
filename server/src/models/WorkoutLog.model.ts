@@ -1,104 +1,82 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-interface IWorkoutSet {
-    reps: number;
-    weight: number;
-    rpe?: number;
+export interface IWorkoutLog extends Document {
+  userId: mongoose.Types.ObjectId;
+  exerciseName: string;
+  setsCount: number;
+  repsCount: number;
+  userId?: mongoose.Types.ObjectId | string;
+  exerciseName: string;
+  setsCount: number;
+  repsCount: number;
+  weight?: number;
+  durationMinutes?: number;
+  caloriesBurned?: number;
+  notes?: string;
+  date?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export interface IWorkout extends Document {
-    userId: mongoose.Types.ObjectId;
-    exercises: {
-        exerciseId: mongoose.Types.ObjectId;
-        exerciseName: string;
-        sets: IWorkoutSet[];
-    }[];
-    duration: number;
-    caloriesBurned: number;
-    completedAt: Date;
-    completed: boolean;
-}
-
-const workoutSetSchema = new Schema<IWorkoutSet>(
-    {
-        reps: {
-            type: Number,
-            required: true,
-            min: 1,
-        },
-
-        weight: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-
-        rpe: {
-            type: Number,
-            min: 1,
-            max: 10,
-        },
+const WorkoutLogSchema: Schema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      type: Schema.Types.Mixed,
+      ref: "User",
+      required: false,
+      default: "guest_user",
+      index: true,
     },
-    { _id: false }
-);
-
-const workoutSchema = new Schema<IWorkout>(
-    {
-        userId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-            index: true,
-        },
-
-        exercises: [
-            {
-                exerciseId: {
-                    type: Schema.Types.ObjectId,
-                    ref: "Exercise",
-                    required: true,
-                },
-
-                exerciseName: {
-                    type: String,
-                    required: true,
-                },
-
-                sets: {
-                    type: [workoutSetSchema],
-                    required: true,
-                },
-            },
-        ],
-
-        duration: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-
-        caloriesBurned: {
-            type: Number,
-            required: true,
-            min: 0,
-        },
-
-        completedAt: {
-            type: Date,
-            default: Date.now,
-        },
-
-        completed: {
-            type: Boolean,
-            default: true,
-        },
+    exerciseName: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    {
-        timestamps: true,
-    }
+    setsCount: {
+      type: Number,
+      required: true,
+      default: 1,
+      min: 1,
+    },
+    repsCount: {
+      type: Number,
+      required: true,
+      default: 10,
+      min: 1,
+    },
+    weight: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    durationMinutes: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    caloriesBurned: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+    notes: {
+      type: String,
+      required: false,
+      trim: true,
+      default: "",
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    timestamps: true,
+  }
 );
 
-export const Workout = mongoose.model<IWorkout>(
-    "Workout",
-    workoutSchema
-);
+export const WorkoutLog = mongoose.model<IWorkoutLog>("WorkoutLog", WorkoutLogSchema);
+export default WorkoutLog;
