@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION: Gym Timer & Workout Tracker Section
-// DEVELOPER: Puskor Roy
-// TASK: Full-width gym timer preview with quick-start CTA and exercise tracker teaser
 
 import StopwatchPage from "../time/stopwatch";
 
