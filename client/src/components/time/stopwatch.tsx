@@ -62,55 +62,69 @@ export default function StopwatchPage() {
       toast.success(`Custom exercise added: ${name}`);
     }
   };
+return (
+  <div className="min-h-screen w-full bg-[#0b0c0e] text-white flex flex-col overflow-x-hidden selection:bg-emerald-500 selection:text-black ">
 
-  return (
-    <div className="min-h-screen bg-[#0b0c0e] text-white flex flex-col selection:bg-emerald-500 selection:text-black">
- 
-      {/* Main Content Arena */}
-      <main className="flex-1 flex flex-col items-center justify-center py-6 px-2 max-w-6xl w-full mx-auto">
-        {/* Exercise Switcher Chips */}
-        <div className="w-full max-w-4xl px-4 mb-6">
-          <div className="flex items-center justify-between flex-wrap gap-y-1 mb-2">
-            <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-emerald-400" /> Current Exercise:{" "}
-              <strong className="text-white font-bold text-sm ml-1">
-                {selectedExercise}
-              </strong>
-            </span>
+    <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+
+      {/* Exercise Switcher */}
+      <section className="w-full max-w-4xl mx-auto mb-4 sm:mb-6">
+
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+
+          <span className="text-[11px] sm:text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+
+            <span>Current Exercise:</span>
+
+            <strong className="text-white font-bold text-xs sm:text-sm ml-1 truncate">
+              {selectedExercise}
+            </strong>
+          </span>
+
+          <button
+            onClick={() => setShowCustomInput((p) => !p)}
+            className="self-start sm:self-auto text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Custom
+          </button>
+        </div>
+
+        {/* Custom Exercise */}
+        {showCustomInput && (
+          <form
+            onSubmit={handleAddCustomExercise}
+            className="flex flex-col sm:flex-row gap-2 mb-3"
+          >
+            <input
+              type="text"
+              placeholder="Enter exercise name..."
+              value={customExercise}
+              onChange={(e) => setCustomExercise(e.target.value)}
+              className="w-full min-w-0 bg-[#12141a] border border-emerald-700/50 rounded-xl px-3 py-2 sm:py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-400"
+              autoFocus
+            />
+
             <button
-              onClick={() => setShowCustomInput((p) => !p)}
-              className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+              type="submit"
+              className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold px-5 py-2 sm:py-1.5 rounded-xl cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" /> Custom
+              Set
             </button>
-          </div>
+          </form>
+        )}
 
-          {showCustomInput && (
-            <form onSubmit={handleAddCustomExercise} className="flex gap-2 mb-3">
-              <input
-                type="text"
-                placeholder="Enter exercise name (e.g. Bicep Curls)..."
-                value={customExercise}
-                onChange={(e) => setCustomExercise(e.target.value)}
-                className="bg-[#12141a] border border-emerald-700/50 rounded-xl px-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-400 flex-1"
-                autoFocus
-              />
-              <button
-                type="submit"
-                className="bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold px-4 py-1.5 rounded-xl cursor-pointer"
-              >
-                Set
-              </button>
-            </form>
-          )}
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {/* Exercise Chips */}
+        <div className="w-full overflow-hidden">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none touch-pan-x">
             {exercises.map((ex) => (
               <button
                 key={ex}
                 type="button"
                 onClick={() => handleSelectExercise(ex)}
-                className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-medium transition border cursor-pointer ${
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 sm:px-3.5 rounded-xl text-[11px] sm:text-xs font-medium transition border cursor-pointer ${
                   selectedExercise === ex
                     ? "bg-emerald-950/80 text-emerald-300 border-emerald-500/60 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
                     : "bg-[#12141a] hover:bg-[#191d26] text-zinc-400 border-[#232836]"
@@ -121,14 +135,18 @@ export default function StopwatchPage() {
             ))}
           </div>
         </div>
+      </section>
 
-        {/* The Exact HUD Gym Stopwatch Component starting from 00:00:00 */}
+      {/* Timer */}
+      <section className="w-full min-w-0">
         <GymTimer
           key={selectedExercise}
           exerciseName={selectedExercise}
           defaultSets={targetSets}
         />
-      </main>
-    </div>
-  );
+      </section>
+
+    </main>
+  </div>
+);
 }

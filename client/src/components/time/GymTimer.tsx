@@ -245,7 +245,7 @@ export default function GymTimer({
     seconds === 0 ? 0 : (seconds % 60) * (100 / 60);
 
   return (
-    <div className="w-full flex flex-col items-center">
+    <div className="w-full flex flex-col items-center ">
       {/* Main HUD Card */}
       <div className="relative w-full max-w-4xl px-2 sm:px-4 py-6 sm:py-8 flex flex-col items-center">
         {/* Ambient Backlight Glow */}

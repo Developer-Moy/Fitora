@@ -32,7 +32,7 @@ export const GymSessionCard: React.FC<GymSessionCardProps> = ({
   }
 
   return (
-    <div className="bg-[#122319]/90 border border-emerald-800/40 rounded-2xl px-4 py-3 w-full shadow-inner backdrop-blur-md flex flex-col gap-1.5">
+    <div className="bg-[#122319]/90 border border-emerald-800/40 rounded-2xl px-4 py-3 w-full shadow-inner backdrop-blur-md flex flex-col gap-1.5 border-green-700">
       {/* Total Gym Time Row */}
       <div className="flex items-center gap-2 text-xs text-zinc-200 font-mono">
         <span className="relative flex h-2.5 w-2.5">
