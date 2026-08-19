@@ -42,17 +42,21 @@ export default function GymTimer({
     return `fitora_daily_gym_time_${today}`;
   }, []);
 
-  // Total Gym Time for today (starts at 00:00:00, loaded from localStorage for today's full day)
-  const [totalGymSeconds, setTotalGymSeconds] = useState<number>(() => {
-    if (typeof window === "undefined") return 0;
+  // Total Gym Time for today (starts at 0, loaded from localStorage after mount to avoid SSR/hydration mismatch)
+  const [totalGymSeconds, setTotalGymSeconds] = useState<number>(0);
+
+  useEffect(() => {
     try {
       const today = new Date().toISOString().slice(0, 10);
       const saved = localStorage.getItem(`fitora_daily_gym_time_${today}`);
-      return saved ? parseInt(saved, 10) || 0 : 0;
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed)) setTotalGymSeconds(parsed);
+      }
     } catch {
-      return 0;
+      // ignore
     }
-  });
+  }, []);
 
   // Save today's accumulated gym time
   const saveDailyGymTime = useCallback(
