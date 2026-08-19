@@ -951,7 +951,7 @@ export interface MealChartCardProps {
   category?: string;
 }
 
-export default function MealChartCard({
+export default function MealChartCardDisplay({
   title = "High Protein Muscle Fuel",
   caloriesTotal = 650,
   proteinGrams = 48,

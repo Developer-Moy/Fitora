@@ -67,5 +67,45 @@ export default function Home() {
         </section>
       </main>
     </>
+"use client";
+
+import HeroSection from "@/components/home/HeroSection";
+import AiTrainerSection from "@/components/home/AiTrainerSection";
+import GymTimerSection from "@/components/home/GymTimerSection";
+import CalculatorSection from "@/components/home/CalculatorSection";
+import MealChartSection from "@/components/home/MealChartSection";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HOMEPAGE — /
+// Layout: Full-width sections stacked vertically (no side-by-side grid layout)
+//
+// SECTION MAP:
+// 1. HeroSection        → Alfaaz Ahmed
+// 2. AiTrainerSection   → Moloy Paul
+// 3. GymTimerSection    → Puskor Roy
+// 4. CalculatorSection  → Simanto Paul
+// 5. MealChartSection   → Simanto Poddar
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-[#0b0c0e] text-white">
+
+      {/* Section 1: Hero Banner — Alfaaz Ahmed */}
+      <HeroSection />
+
+      {/* Section 2: AI Trainer Chat — Moloy Paul */}
+      <AiTrainerSection />
+
+      {/* Section 3: Gym Timer & Workout Preview — Puskor Roy */}
+      <GymTimerSection />
+
+      {/* Section 4: BMI & Nutrition Calculator — Simanto Paul */}
+      <CalculatorSection />
+
+      {/* Section 5: Premium Meal Chart & Ads — Simanto Poddar */} {/*  Ads  <-- Postponed as per updated schedule. */}
+      <MealChartSection />
+
+    </main>
   );
 }

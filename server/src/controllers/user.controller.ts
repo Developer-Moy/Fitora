@@ -1,29 +1,39 @@
-import { Workout } from "../models/WorkoutLog.model";
 import { Request, Response } from "express";
+import WorkoutLog from "../models/WorkoutLog.model";
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id;
+    const userId = (req as any).user?.id || (req.query.userId as string) || "guest_user";
 
-    const workouts = await Workout.find({
+    const workouts = await WorkoutLog.find({
       userId,
-      completed: true,
     });
 
     const workoutCount = workouts.length;
 
     const burnedCalories = workouts.reduce(
-      (total, workout) => total + workout.caloriesBurned,
+      (total: number, workout: any) => total + (workout.caloriesBurned || 0),
       0
     );
 
-    res.status(200).json({
-      workoutCount,
-      burnedCalories,
+    return res.status(200).json({
+      success: true,
+      data: {
+        workoutCount,
+        burnedCalories,
+        totalHours: Math.round((workouts.reduce((total: number, workout: any) => total + (workout.durationMinutes || 0), 0) / 60) * 10) / 10,
+      },
     });
-  } catch (error) {
-    res.status(500).json({
+  } catch (error: any) {
+    console.error("Error in getDashboardStats controller:", error);
+    return res.status(500).json({
+      success: false,
       message: "Failed to fetch dashboard statistics",
+      error: error.message || "Internal Server Error",
     });
   }
+};
+
+export default {
+  getDashboardStats,
 };
