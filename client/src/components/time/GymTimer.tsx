@@ -27,9 +27,6 @@ export default function GymTimer({
   // Active set stopwatch (starts at 00:00:00)
   const [seconds, setSeconds] = useState<number>(0);
 
-  // Total Gym Time for today (starts at 00:00:00, loaded from localStorage for today's full day)
-  const [totalGymSeconds, setTotalGymSeconds] = useState<number>(0);
-
   const [currentSet, setCurrentSet] = useState<number>(1);
   const [totalSets, setTotalSets] = useState<number>(defaultSets);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -40,32 +37,6 @@ export default function GymTimer({
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Storage key for today's full day gym time
-  const getTodayKey = () => {
-    const today = new Date().toISOString().slice(0, 10);
-    return `fitora_daily_gym_time_${today}`;
-  };
-
-  // Load today's accumulated gym time on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(getTodayKey());
-      if (saved) {
-        setTotalGymSeconds(parseInt(saved, 10) || 0);
-      }
-    } catch {
-      // localStorage not accessible
-    }
-  }, []);
-
-  // Save today's accumulated gym time
-  const saveDailyGymTime = useCallback((secs: number) => {
-    try {
-      localStorage.setItem(getTodayKey(), secs.toString());
-    } catch {
-      // ignore
-    }
-  }, []);
   const getTodayKey = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
     return `fitora_daily_gym_time_${today}`;
@@ -145,7 +116,6 @@ export default function GymTimer({
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isRunning, triggerAudioFeedback, saveDailyGymTime]);
-  }, [isRunning, saveDailyGymTime]);
 
   // Formatter for HH:MM:SS
   const formatTime = (totalSec: number) => {
