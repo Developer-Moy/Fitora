@@ -27,12 +27,12 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
   onToggleSound,
 }) => {
   return (
-    <div className="flex items-center justify-center gap-3 sm:gap-4 flex-wrap">
+    <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
       {/* Stop Button */}
       <button
         type="button"
         onClick={onStop}
-        className="bg-[#241317] hover:bg-[#34161c] text-[#ff4d6d] border border-[#521c25] rounded-xl px-6 py-2.5 text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,77,109,0.1)] cursor-pointer"
+        className="bg-[#241317] hover:bg-[#34161c] text-[#ff4d6d] border border-[#521c25] rounded-xl px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 flex items-center gap-1.5 shadow-[0_0_15px_rgba(255,77,109,0.1)] cursor-pointer"
       >
         <RotateCcw className="w-4 h-4" />
         <span>Stop</span>
@@ -42,7 +42,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
       <button
         type="button"
         onClick={onStartPause}
-        className={`rounded-xl px-8 py-2.5 text-sm font-bold tracking-wide transition-all duration-200 transform active:scale-95 flex items-center gap-2 text-white shadow-lg cursor-pointer ${
+        className={`rounded-xl px-6 sm:px-8 py-2 sm:py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 transform active:scale-95 flex items-center gap-2 text-white shadow-lg cursor-pointer ${
           isRunning
             ? "bg-[#d90429] hover:bg-[#ef233c] shadow-[0_0_20px_rgba(217,4,41,0.5)]"
             : "bg-[#e61e38] hover:bg-[#ff2b47] shadow-[0_0_25px_rgba(230,30,56,0.6)]"
@@ -66,7 +66,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
         <button
           type="button"
           onClick={onNextSet}
-          className="bg-[#132219] hover:bg-[#1a3325] text-emerald-400 border border-emerald-700/50 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
+          className="bg-[#132219] hover:bg-[#1a3325] text-emerald-400 border border-emerald-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
           title="Complete current set & start next"
         >
           <CheckCircle2 className="w-4 h-4" />
@@ -78,7 +78,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
       <button
         type="button"
         onClick={onToggleSound}
-        className="bg-[#181a1f] hover:bg-[#22262e] text-zinc-400 hover:text-white border border-[#2b313d] rounded-xl p-2.5 transition cursor-pointer"
+        className="bg-[#181a1f] hover:bg-[#22262e] text-zinc-400 hover:text-white border border-[#2b313d] rounded-xl p-2 sm:p-2.5 transition cursor-pointer"
         title={soundEnabled ? "Mute sound cues" : "Unmute sound cues"}
       >
         {soundEnabled ? (

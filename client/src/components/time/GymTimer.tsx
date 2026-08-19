@@ -247,16 +247,34 @@ export default function GymTimer({
   return (
     <div className="w-full flex flex-col items-center">
       {/* Main HUD Card */}
-      <div className="relative w-full max-w-4xl px-4 py-8 flex flex-col items-center">
+      <div className="relative w-full max-w-4xl px-2 sm:px-4 py-6 sm:py-8 flex flex-col items-center">
         {/* Ambient Backlight Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[220px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[160px] sm:w-[340px] sm:h-[220px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Inner Card Container */}
-        <div className="relative z-20 w-full bg-[#121417]/95 backdrop-blur-xl border border-[#222831] rounded-3xl p-5 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex flex-col justify-between min-h-[220px]">
-          {/* Top Section: Left Widget | Center Digits | Right Widget */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-            {/* Left Box: Total Gym Time */}
-            <div className="md:col-span-3 flex justify-center md:justify-start">
+        <div className="relative z-20 w-full bg-[#121417]/95 backdrop-blur-xl border border-[#222831] rounded-3xl p-4 sm:p-5 md:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex flex-col justify-between min-h-[220px]">
+          
+          {/* ── Mobile: Stack center then side cards ── */}
+          {/* Center Area: Exercise label + Time Display */}
+          <div className="flex flex-col items-center justify-center">
+            <div className="text-[11px] font-semibold text-emerald-400/90 uppercase tracking-widest mb-1 flex items-center gap-1.5 bg-emerald-950/40 border border-emerald-800/30 px-3 py-0.5 rounded-full">
+              <Dumbbell className="w-3 h-3 text-emerald-400" />
+              <span className="truncate max-w-[200px] sm:max-w-none">{exerciseName}</span>
+            </div>
+            <TimeDisplay
+              seconds={seconds}
+              currentSet={currentSet}
+              totalSets={totalSets}
+              progressPercent={progressPercent}
+              formatTime={formatTime}
+              onPrevSet={() => setCurrentSet((p) => Math.max(1, p - 1))}
+              onNextSet={() => setCurrentSet((p) => Math.min(totalSets, p + 1))}
+            />
+          </div>
+
+          {/* Side Info Cards: shown in a row below timer on mobile, beside it on md+ */}
+          <div className="flex flex-row items-stretch justify-center gap-3 mt-4 md:hidden flex-wrap">
+            <div className="flex-1 min-w-0">
               <GymSessionCard
                 totalSeconds={totalGymSeconds}
                 isSynced={isSynced}
@@ -264,26 +282,29 @@ export default function GymTimer({
                 variant="left"
               />
             </div>
-
-            {/* Center Area: Big Digital Stopwatch Readout + Circular Progress Ring */}
-            <div className="md:col-span-6 flex flex-col items-center justify-center">
-              <div className="text-[11px] font-semibold text-emerald-400/90 uppercase tracking-widest mb-1 flex items-center gap-1.5 bg-emerald-950/40 border border-emerald-800/30 px-3 py-0.5 rounded-full">
-                <Dumbbell className="w-3 h-3 text-emerald-400" />
-                <span>{exerciseName}</span>
-              </div>
-              <TimeDisplay
-                seconds={seconds}
-                currentSet={currentSet}
-                totalSets={totalSets}
-                progressPercent={progressPercent}
-                formatTime={formatTime}
-                onPrevSet={() => setCurrentSet((p) => Math.max(1, p - 1))}
-                onNextSet={() => setCurrentSet((p) => Math.min(totalSets, p + 1))}
+            <div className="flex-1 min-w-0">
+              <GymSessionCard
+                totalSeconds={totalGymSeconds}
+                isSynced={isSynced}
+                onToggleSync={handleToggleSync}
+                formatGymTime={formatGymTime}
+                variant="right"
               />
             </div>
+          </div>
 
-            {/* Right Box: Total Gym Time + Realtime Sync */}
-            <div className="md:col-span-3 flex justify-center md:justify-end">
+          {/* Desktop 3-column layout: side cards + center — hidden on mobile */}
+          <div className="hidden md:grid grid-cols-12 gap-4 items-center absolute inset-x-7 top-1/2 -translate-y-1/2 pointer-events-none">
+            <div className="col-span-3 flex justify-start pointer-events-auto">
+              <GymSessionCard
+                totalSeconds={totalGymSeconds}
+                isSynced={isSynced}
+                formatGymTime={formatGymTime}
+                variant="left"
+              />
+            </div>
+            <div className="col-span-6" />
+            <div className="col-span-3 flex justify-end pointer-events-auto">
               <GymSessionCard
                 totalSeconds={totalGymSeconds}
                 isSynced={isSynced}
@@ -297,7 +318,7 @@ export default function GymTimer({
           {/* Thin Divider */}
           <div className="w-full h-px bg-gradient-to-r from-transparent via-[#2a303c] to-transparent my-4" />
 
-          {/* Bottom Action Controls: Stop, Start/Pause, Next Set, Sound */}
+          {/* Bottom Action Controls */}
           <TimerControls
             isRunning={isRunning}
             seconds={seconds}
@@ -313,7 +334,7 @@ export default function GymTimer({
       </div>
 
       {/* Auxiliary Settings & Quick Controls */}
-      <div className="w-full max-w-4xl px-4 grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+      <div className="w-full max-w-4xl px-2 sm:px-4 grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
         {/* Set Configuration */}
         <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 flex flex-col justify-between">
           <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
@@ -375,7 +396,7 @@ export default function GymTimer({
 
       {/* Completed Sets History Log */}
       {completedSets.length > 0 && (
-        <div className="w-full max-w-4xl px-4 mt-6">
+        <div className="w-full max-w-4xl px-2 sm:px-4 mt-6">
           <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4">
             <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2 mb-3">
               <TimerIcon className="w-4 h-4 text-emerald-400" /> Today&apos;s Logged Sets (Part by Part)
@@ -384,7 +405,7 @@ export default function GymTimer({
               {completedSets.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between bg-[#181a1f] border border-[#242832] rounded-xl px-4 py-2 text-xs"
+                  className="flex items-center justify-between flex-wrap gap-y-1 bg-[#181a1f] border border-[#242832] rounded-xl px-3 sm:px-4 py-2 text-xs"
                 >
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-emerald-950 border border-emerald-600/40 text-emerald-400 flex items-center justify-center font-bold text-[10px]">
@@ -392,7 +413,7 @@ export default function GymTimer({
                     </span>
                     <span className="font-medium text-white">Set {item.set}</span>
                   </div>
-                  <div className="flex items-center gap-4 font-mono text-zinc-300">
+                  <div className="flex items-center gap-2 sm:gap-4 font-mono text-zinc-300 flex-wrap">
                     <span>
                       Duration: <strong className="text-white">{formatTime(item.duration)}</strong>
                     </span>

@@ -20,7 +20,7 @@ export const GymSessionCard: React.FC<GymSessionCardProps> = ({
 }) => {
   if (variant === "left") {
     return (
-      <div className="bg-[#122319]/90 border border-emerald-800/40 rounded-2xl px-4 py-3 min-w-[140px] sm:min-w-[160px] shadow-inner backdrop-blur-md">
+      <div className="bg-[#122319]/90 border border-emerald-800/40 rounded-2xl px-4 py-3 w-full shadow-inner backdrop-blur-md">
         <div className="text-[11px] font-medium text-emerald-400/80 tracking-wide uppercase">
           Total Gym Time
         </div>
@@ -32,7 +32,7 @@ export const GymSessionCard: React.FC<GymSessionCardProps> = ({
   }
 
   return (
-    <div className="bg-[#122319]/90 border border-emerald-800/40 rounded-2xl px-4 py-3 min-w-[180px] sm:min-w-[200px] shadow-inner backdrop-blur-md flex flex-col gap-1.5">
+    <div className="bg-[#122319]/90 border border-emerald-800/40 rounded-2xl px-4 py-3 w-full shadow-inner backdrop-blur-md flex flex-col gap-1.5">
       {/* Total Gym Time Row */}
       <div className="flex items-center gap-2 text-xs text-zinc-200 font-mono">
         <span className="relative flex h-2.5 w-2.5">
