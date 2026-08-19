@@ -34,9 +34,10 @@ export default function Home() {
       {/* Section 4: BMI & Nutrition Calculator — Simanto Paul */}
       <CalculatorSection />
 
-      {/* Section 5: Premium Meal Chart & Ads — Simanto Poddar */} {/*  Ads  <-- Postponed as per updated schedule. */}
+      {/* Section 5: Premium Meal Chart & Ads — Simanto Poddar */}
       <MealChartSection />
 
     </main>
   );
 }
+
