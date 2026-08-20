@@ -54,5 +54,5 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 
 ## 19-Aug-26
 
-*Build User Registration page.
-*Build Premium Meal Chart section (homepage).
+* Build User Registration page.
+* Build Premium Meal Chart section (homepage).

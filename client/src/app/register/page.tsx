@@ -61,7 +61,7 @@ export default function RegistrationPage() {
         setIsLoading(true);
 
         try {
-            await signUp.email({
+            const { data, error } = await signUp.email({
                 email: formData.email,
                 password: formData.password,
                 name: formData.name,
@@ -72,6 +72,15 @@ export default function RegistrationPage() {
                 name: string;
                 preference: string;
             });
+
+            if (error) {
+                const message =
+                    error.message || "Failed to create account. Please try again.";
+
+                toast.error(message);
+                setValidationErrors([message]);
+                return;
+            }
 
             toast.success("Account created successfully!");
 
