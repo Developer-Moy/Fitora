@@ -1,14 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GymTimer } from "@/components/time";
-import Link from "next/link";
 import toast from "react-hot-toast";
 import {
-  Dumbbell,
   Maximize2,
   Minimize2,
-  ChevronLeft,
   Zap,
   Plus,
 } from "lucide-react";
@@ -32,17 +29,19 @@ export default function StopwatchPage({ showSetHistory = true }: { showSetHistor
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [targetSets] = useState(5);
 
+  // Keep isFullscreen in sync when user presses Esc or browser exits fullscreen
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
-      toast("Entered Fullscreen", { icon: "⛶", id: "fullscreen" });
+      toast("Entered Fullscreen — press Esc to exit", { icon: "⛶", id: "fullscreen" });
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-        setIsFullscreen(false);
-        toast("Exited Fullscreen", { icon: "⛶", id: "fullscreen" });
-      }
+      document.exitFullscreen?.().catch(() => {});
     }
   };
 
@@ -83,13 +82,30 @@ return (
             </strong>
           </span>
 
-          <button
-            onClick={() => setShowCustomInput((p) => !p)}
-            className="self-start sm:self-auto text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Custom
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCustomInput((p) => !p)}
+              className="self-start sm:self-auto text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Custom
+            </button>
+
+            {/* Fullscreen Toggle */}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border transition cursor-pointer
+                bg-[#12141a] hover:bg-[#1a1e28] text-zinc-400 hover:text-white border-[#232836] hover:border-emerald-700/60"
+            >
+              {isFullscreen ? (
+                <><Minimize2 className="w-3.5 h-3.5 text-emerald-400" /><span className="hidden sm:inline">Exit Full</span></>
+              ) : (
+                <><Maximize2 className="w-3.5 h-3.5 text-zinc-400" /><span className="hidden sm:inline">Fullscreen</span></>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Custom Exercise */}

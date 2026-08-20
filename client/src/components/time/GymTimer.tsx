@@ -36,6 +36,8 @@ export default function GymTimer({
   const [completedSets, setCompletedSets] = useState<
     Array<{ set: number; duration: number; timestamp: string }>
   >([]);
+  // null = free-running stopwatch, number = target duration in seconds
+  const [targetSeconds, setTargetSeconds] = useState<number | null>(null);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -123,6 +125,51 @@ export default function GymTimer({
     };
   }, [isRunning, triggerAudioFeedback, saveDailyGymTime]);
 
+  // Target-duration alarm: when seconds reaches targetSeconds, alarm + auto-stop
+  useEffect(() => {
+    if (targetSeconds === null || !isRunning) return;
+    if (seconds >= targetSeconds) {
+      // Stop the timer
+      setIsRunning(false);
+      setTargetSeconds(null);
+      // Multi-beep alarm
+      if (soundEnabled && typeof window !== "undefined") {
+        try {
+          const AudioContextClass =
+            window.AudioContext ||
+            (window as unknown as { webkitAudioContext: typeof AudioContext })
+              .webkitAudioContext;
+          if (AudioContextClass) {
+            const ctx = new AudioContextClass();
+            [0, 0.18, 0.36, 0.54].forEach((offset, i) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = "sine";
+              osc.frequency.setValueAtTime(i < 3 ? 880 : 1100, ctx.currentTime + offset);
+              gain.gain.setValueAtTime(0.25, ctx.currentTime + offset);
+              gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + offset + 0.15);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(ctx.currentTime + offset);
+              osc.stop(ctx.currentTime + offset + 0.15);
+            });
+          }
+        } catch { /* ignore */ }
+      }
+      // Log the completed set
+      const formatted = formatTime(seconds);
+      const newEntry = {
+        set: currentSet,
+        duration: seconds,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setCompletedSets((prev) => [newEntry, ...prev]);
+      toast.success(`⏰ Time's up! Set ${currentSet} done (${formatted})`, { duration: 4000, id: "target-alarm" });
+      setSeconds(0);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seconds, targetSeconds, isRunning]);
+
   // Formatter for HH:MM:SS
   const formatTime = (totalSec: number) => {
     const hrs = Math.floor(totalSec / 3600);
@@ -157,6 +204,7 @@ export default function GymTimer({
   const handleStop = () => {
     triggerAudioFeedback(350);
     setIsRunning(false);
+    setTargetSeconds(null);
     if (seconds > 0) {
       // Log completed set
       const formatted = formatTime(seconds);
@@ -186,6 +234,7 @@ export default function GymTimer({
 
   const handleNextSet = () => {
     triggerAudioFeedback(950);
+    setTargetSeconds(null);
     if (seconds > 0) {
       const formatted = formatTime(seconds);
       const newEntry = {
@@ -222,6 +271,19 @@ export default function GymTimer({
     toast.success("Today's gym time reset to 00:00:00", { id: "reset-day" });
   };
 
+  // Set a target duration; clicking the same target again clears it (toggle)
+  const handleSetTarget = (amount: number) => {
+    const isDeselecting = targetSeconds === amount;
+    setTargetSeconds(isDeselecting ? null : amount);
+    setSeconds(0);
+    setIsRunning(false);
+    if (isDeselecting) {
+      toast("Target cleared", { icon: "⏱️", id: "set-target" });
+    } else {
+      toast(`Target: ${amount}s — press Start`, { icon: "⏱️", id: "set-target" });
+    }
+  };
+
   const handleToggleSync = () => {
     if (!isSynced) {
       setIsSynced(true);
@@ -242,9 +304,10 @@ export default function GymTimer({
     }
   };
 
-  // Circular progress calculation (60s loop)
-  const progressPercent =
-    seconds === 0 ? 0 : (seconds % 60) * (100 / 60);
+  // Progress: if a target is set, show % toward that target; otherwise loop per 60s
+  const progressPercent = targetSeconds
+    ? Math.min(100, (seconds / targetSeconds) * 100)
+    : seconds === 0 ? 0 : (seconds % 60) * (100 / 60);
 
   return (
     <div className="w-full flex flex-col items-center ">
@@ -327,10 +390,12 @@ export default function GymTimer({
             currentSet={currentSet}
             totalSets={totalSets}
             soundEnabled={soundEnabled}
+            targetSeconds={targetSeconds}
             onStartPause={handleStartPause}
             onStop={handleStop}
             onNextSet={handleNextSet}
             onToggleSound={handleToggleSound}
+            onSetTarget={handleSetTarget}
           />
         </div>
       </div>
