@@ -63,7 +63,7 @@ export default function StopwatchPage() {
     }
   };
 return (
-  <div className="min-h-screen w-full bg-[#0b0c0e] text-white flex flex-col overflow-x-hidden selection:bg-emerald-500 selection:text-black ">
+  <div className="min-h-screen w-full rounded-2xl  bg-[#090a0d] text-white flex flex-col overflow-x-hidden selection:bg-emerald-500 selection:text-black ">
 
     <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
 
