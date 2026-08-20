@@ -5,7 +5,7 @@ import StopwatchPage from '../../components/time/stopwatch';
 
 const Watch = () => {
   return (
-    <div>
+    <div  className=" md:m-10">
       <StopwatchPage/>
     </div>
   );
