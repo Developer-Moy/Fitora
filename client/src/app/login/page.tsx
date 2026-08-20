@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, LogIn, Dumbbell } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
+import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -21,7 +23,7 @@ export default function LoginPage() {
         const newErrors: { email?: string; password?: string } = {};
 
         // Email validation
-        if (!email) {
+        if (!email.trim()) {
             newErrors.email = "Email address is required";
         } else if (!/\S+@\S+\.\S+/.test(email)) {
             newErrors.email = "Please enter a valid email address";
@@ -30,8 +32,8 @@ export default function LoginPage() {
         // Password validation
         if (!password) {
             newErrors.password = "Password is required";
-        } else if (password.length < 8) {
-            newErrors.password = "Password must be at least 8 characters long";
+        } else if (password.length < 6) {
+            newErrors.password = "Password must be at least 6 characters long";
         }
 
         setErrors(newErrors);
@@ -41,35 +43,66 @@ export default function LoginPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Trigger validation check before proceeding
+        // 1. Client-side Form Validation
         if (!validateForm()) {
+            toast.error("Please fix the errors in the form before submitting.");
             return;
         }
 
         setIsLoading(true);
 
+        // 2. Submit Credentials via centralized better-auth client
         try {
-            const response = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
+            const { data, error } = await authClient.signIn.email({
+                email,
+                password,
             });
 
-            if (response.ok) {
-                // Redirect to dashboard upon successful login
-                router.push("/dashboard");
+            if (error) {
+                toast.error(error.message || "Invalid email or password. Please try again.");
+                setIsLoading(false);
+                return;
             }
-        } catch (error) {
-            console.error("Login request error:", error);
-        } finally {
+
+            // 3. Success Notification & Redirection
+            toast.success("Welcome back! Redirecting to your dashboard...");
+            setTimeout(() => {
+                router.push("/dashboard");
+            }, 1000);
+
+        } catch (err: any) {
+            toast.error(err?.message || "An unexpected error occurred. Please try again.");
             setIsLoading(false);
         }
     };
 
     return (
         <div className="relative min-h-[calc(100vh-3rem)] w-full flex items-center justify-center bg-[#050B14] text-[#F4F7F2] overflow-hidden px-4 py-12">
+            {/* Toast Notification Container */}
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    style: {
+                        background: "#0A1220",
+                        color: "#F4F7F2",
+                        border: "1px solid #1E293B",
+                        fontSize: "13px",
+                        borderRadius: "12px",
+                    },
+                    success: {
+                        iconTheme: {
+                            primary: "#00E6A8",
+                            secondary: "#050B14",
+                        },
+                    },
+                    error: {
+                        iconTheme: {
+                            primary: "#EF4444",
+                            secondary: "#F4F7F2",
+                        },
+                    },
+                }}
+            />
 
             {/* Background Glow Elements */}
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#00F2FE]/10 rounded-full blur-[140px] pointer-events-none" />
@@ -174,7 +207,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full h-12 mt-2 rounded-xl font-black text-sm bg-gradient-to-r from-[#00F2FE] to-[#00E6A8] text-[#050B14] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,242,254,0.3)] hover:shadow-[0_0_35px_rgba(0,242,254,0.6)] hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 disabled:opacity-50"
+                        className="w-full h-12 mt-2 rounded-xl font-black text-sm bg-gradient-to-r from-[#00F2FE] to-[#00E6A8] text-[#050B14] flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,242,254,0.3)] hover:shadow-[0_0_35px_rgba(0,242,254,0.6)] hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 cursor-pointer"
                     >
                         {isLoading ? (
                             <div className="w-5 h-5 border-2 border-[#050B14] border-t-transparent rounded-full animate-spin" />
