@@ -24,7 +24,7 @@ const POPULAR_EXERCISES = [
   "Leg Press",
 ];
 
-export default function StopwatchPage() {
+export default function StopwatchPage({ showSetHistory = true }: { showSetHistory?: boolean }) {
   const [exercises, setExercises] = useState(POPULAR_EXERCISES);
   const [selectedExercise, setSelectedExercise] = useState("Bench Press");
   const [showCustomInput, setShowCustomInput] = useState(false);
@@ -143,6 +143,7 @@ return (
           key={selectedExercise}
           exerciseName={selectedExercise}
           defaultSets={targetSets}
+          showSetHistory={showSetHistory}
         />
       </section>
 

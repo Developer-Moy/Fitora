@@ -10,6 +10,7 @@ import { TimerControls } from "./TimerControls";
 export interface GymTimerProps {
   exerciseName?: string;
   defaultSets?: number;
+  showSetHistory?: boolean;
   onSetComplete?: (stats: {
     set: number;
     duration: number;
@@ -20,6 +21,7 @@ export interface GymTimerProps {
 export default function GymTimer({
   exerciseName = "Bench Press",
   defaultSets = 5,
+  showSetHistory = true,
   onSetComplete,
 }: GymTimerProps) {
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -394,8 +396,8 @@ export default function GymTimer({
         </div>
       </div>
 
-      {/* Completed Sets History Log */}
-      {completedSets.length > 0 && (
+      {/* Completed Sets History Log — only shown on full /stopwatch route */}
+      {showSetHistory && completedSets.length > 0 && (
         <div className="w-full max-w-4xl px-2 sm:px-4 mt-6">
           <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4">
             <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2 mb-3">
