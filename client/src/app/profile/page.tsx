@@ -1,17 +1,17 @@
 "use client";
-import { Award, dumbbell, Calender, CheckCircle2, Flame, Mail, Scale, Target, Trophy, TrendingDown, User, } from "lucide-react";
+import { Award, Dumbbell, Calendar, CheckCircle2, Flame, Mail, Scale, Target, Trophy, TrendingDown, User, } from "lucide-react";
 
 const achievements = [
     {
         title: "First Workout Logged",
         description: "Completed your first workout",
-        icon: "",
+        icon: "💪",
         unlocked: true,
     },
     {
         title: "100k KG LIfted",
         description: "Lifted a total of 100000 KG",
-        icon: dumbbell,
+        icon: Dumbbell,
         unlocked: true,
     },
     {
@@ -29,7 +29,7 @@ const achievements = [
     {
         title: "Consistency King",
         description: "Stay active for 30 days",
-        icon: "",
+        icon: "👑",
         unlocked: false,
     },
     {
@@ -122,7 +122,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Calender className="h-4 w-4" />
+                <Calendar className="h-4 w-4" />
                 Member since June 2026
               </div>
             </div>
@@ -253,6 +253,57 @@ export default function ProfilePage() {
             </div>
           </section>
         </div>
+
+         {/* Goal History */}
+        <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <div className="mb-8">
+            <h2 className="text-xl font-bold">Goal History</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Track your previous target weight milestones.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Timeline line */}
+            <div className="absolute left-3.75 top-2 h-[calc(100%-16px)] w-px bg-slate-700" />
+
+            <div className="space-y-8">
+              {goalHistory.map((goal, index) => (
+                <div key={goal.date} className="relative flex gap-5">
+                  {/* Timeline icon */}
+                  <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-green-500/30 bg-green-500/10 text-green-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+
+                  <div className="flex-1 rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-xs text-slate-500">{goal.date}</p>
+
+                        <div className="mt-1 flex items-center gap-2">
+                          <Scale className="h-4 w-4 text-blue-400" />
+
+                          <h3 className="font-semibold">
+                            Target Weight: {goal.target}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <span className="w-fit rounded-full bg-green-500/10 px-3 py-1 text-xs font-medium text-green-400">
+                        {goal.status}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 text-sm text-slate-400">
+                      {goal.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
       </div>
     </main>
     )
