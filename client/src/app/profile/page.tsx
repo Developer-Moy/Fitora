@@ -231,7 +231,11 @@ export default function ProfilePage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-2xl">
-                      {achievement.icon}
+                      {typeof achievement.icon === "string" ? (
+                        achievement.icon
+                      ) : (
+                        <achievement.icon className="h-6 w-6 text-emerald-400" />
+                      )}
                     </div>
 
                     <div className="min-w-0">
