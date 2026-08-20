@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
-import { Dumbbell, Flame, Timer as TimerIcon, RotateCcw } from "lucide-react";
+import { Dumbbell, Flame, Timer as TimerIcon, RotateCcw, Trash2, Award, Sparkles } from "lucide-react";
 import { GymSessionCard } from "./GymSessionCard";
 import { TimeDisplay } from "./TimeDisplay";
 import { TimerControls } from "./TimerControls";
@@ -125,14 +125,23 @@ export default function GymTimer({
     };
   }, [isRunning, triggerAudioFeedback, saveDailyGymTime]);
 
-  // Target-duration alarm: when seconds reaches targetSeconds, alarm + auto-stop
+  // Target-duration countdown warning cues & final alarm
   useEffect(() => {
     if (targetSeconds === null || !isRunning) return;
+
+    const remaining = targetSeconds - seconds;
+
+    // Warning beeps at 3, 2, 1 seconds left
+    if (remaining > 0 && remaining <= 3) {
+      triggerAudioFeedback(580, "sine", 0.08);
+    }
+
+    // Target reached -> multi-beep alarm & auto-stop
     if (seconds >= targetSeconds) {
-      // Stop the timer
       setIsRunning(false);
       setTargetSeconds(null);
-      // Multi-beep alarm
+
+      // Multi-beep completion alarm
       if (soundEnabled && typeof window !== "undefined") {
         try {
           const AudioContextClass =
@@ -141,21 +150,24 @@ export default function GymTimer({
               .webkitAudioContext;
           if (AudioContextClass) {
             const ctx = new AudioContextClass();
-            [0, 0.18, 0.36, 0.54].forEach((offset, i) => {
+            [0, 0.16, 0.32, 0.48].forEach((offset, i) => {
               const osc = ctx.createOscillator();
               const gain = ctx.createGain();
               osc.type = "sine";
-              osc.frequency.setValueAtTime(i < 3 ? 880 : 1100, ctx.currentTime + offset);
+              osc.frequency.setValueAtTime(i < 3 ? 880 : 1200, ctx.currentTime + offset);
               gain.gain.setValueAtTime(0.25, ctx.currentTime + offset);
-              gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + offset + 0.15);
+              gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + offset + 0.14);
               osc.connect(gain);
               gain.connect(ctx.destination);
               osc.start(ctx.currentTime + offset);
-              osc.stop(ctx.currentTime + offset + 0.15);
+              osc.stop(ctx.currentTime + offset + 0.14);
             });
           }
-        } catch { /* ignore */ }
+        } catch {
+          // ignore
+        }
       }
+
       // Log the completed set
       const formatted = formatTime(seconds);
       const newEntry = {
@@ -164,10 +176,13 @@ export default function GymTimer({
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
       setCompletedSets((prev) => [newEntry, ...prev]);
-      toast.success(`⏰ Time's up! Set ${currentSet} done (${formatted})`, { duration: 4000, id: "target-alarm" });
+      toast.success(`⏰ Time's up! Set ${currentSet} logged (${formatted})`, {
+        duration: 4000,
+        id: "target-alarm",
+      });
       setSeconds(0);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seconds, targetSeconds, isRunning]);
 
   // Formatter for HH:MM:SS
@@ -190,7 +205,7 @@ export default function GymTimer({
       .padStart(2, "0")}`;
   };
 
-  const handleStartPause = () => {
+  const handleStartPause = useCallback(() => {
     triggerAudioFeedback(isRunning ? 440 : 880);
     if (!isRunning) {
       setIsRunning(true);
@@ -199,9 +214,9 @@ export default function GymTimer({
       setIsRunning(false);
       toast("Timer paused", { icon: "⏸️", id: "timer-status" });
     }
-  };
+  }, [isRunning, seconds, triggerAudioFeedback]);
 
-  const handleStop = () => {
+  const handleStop = useCallback(() => {
     triggerAudioFeedback(350);
     setIsRunning(false);
     setTargetSeconds(null);
@@ -230,7 +245,7 @@ export default function GymTimer({
       toast("Stopwatch reset to 00:00:00", { icon: "🔄", id: "stop-reset" });
     }
     setSeconds(0);
-  };
+  }, [currentSet, onSetComplete, seconds, totalGymSeconds, triggerAudioFeedback]);
 
   const handleNextSet = () => {
     triggerAudioFeedback(950);
@@ -246,7 +261,12 @@ export default function GymTimer({
         }),
       };
       setCompletedSets((prev) => [newEntry, ...prev]);
-      toast.success(`Set ${currentSet} completed (${formatted})! Ready for Set ${Math.min(totalSets, currentSet + 1)}`);
+      toast.success(
+        `Set ${currentSet} completed (${formatted})! Ready for Set ${Math.min(
+          totalSets,
+          currentSet + 1
+        )}`
+      );
 
       if (onSetComplete) {
         onSetComplete({
@@ -278,10 +298,47 @@ export default function GymTimer({
     setSeconds(0);
     setIsRunning(false);
     if (isDeselecting) {
-      toast("Target cleared", { icon: "⏱️", id: "set-target" });
+      toast("Rest target cleared", { icon: "⏱️", id: "set-target" });
     } else {
-      toast(`Target: ${amount}s — press Start`, { icon: "⏱️", id: "set-target" });
+      toast(`Rest target set: ${amount}s — press Start`, { icon: "⏱️", id: "set-target" });
     }
+  };
+
+  const handleClearHistory = () => {
+    if (completedSets.length === 0) return;
+    setCompletedSets([]);
+    toast.success("Logged sets history cleared", { id: "clear-history" });
+  };
+
+  const handleFinishWorkout = () => {
+    triggerAudioFeedback(1050, "sine", 0.3);
+    setIsRunning(false);
+    setTargetSeconds(null);
+    setSeconds(0);
+    toast.custom(
+      (t) => (
+        <div
+          className={`${
+            t.visible ? "animate-enter" : "animate-leave"
+          } max-w-md w-full bg-[#121a15] border border-emerald-500/50 shadow-2xl rounded-2xl pointer-events-auto flex flex-col p-4 text-white`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+              <Award className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-white flex items-center gap-1.5">
+                Workout Session Complete! <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+              </p>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Logged {completedSets.length} sets for {exerciseName}
+              </p>
+            </div>
+          </div>
+        </div>
+      ),
+      { duration: 5000 }
+    );
   };
 
   const handleToggleSync = () => {
@@ -304,26 +361,64 @@ export default function GymTimer({
     }
   };
 
-  // Progress: if a target is set, show % toward that target; otherwise loop per 60s
+  // Keyboard Shortcuts: Space = Start/Pause, Escape = Stop
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+      if (e.code === "Space") {
+        e.preventDefault();
+        handleStartPause();
+      } else if (e.code === "Escape") {
+        e.preventDefault();
+        handleStop();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleStartPause, handleStop]);
+
+  // Progress calculation
   const progressPercent = targetSeconds
     ? Math.min(100, (seconds / targetSeconds) * 100)
-    : seconds === 0 ? 0 : (seconds % 60) * (100 / 60);
+    : seconds === 0
+    ? 0
+    : (seconds % 60) * (100 / 60);
+
+  // Average set duration in seconds
+  const avgSetDurationSecs =
+    completedSets.length > 0
+      ? Math.round(
+          completedSets.reduce((acc, curr) => acc + curr.duration, 0) /
+            completedSets.length
+        )
+      : 0;
 
   return (
-    <div className="w-full flex flex-col items-center ">
+    <div className="w-full flex flex-col items-center">
       {/* Main HUD Card */}
-      <div className="relative w-full max-w-4xl px-2 sm:px-4 py-6 sm:py-8 flex flex-col items-center">
+      <div className="relative w-full max-w-4xl px-2 sm:px-4 py-4 sm:py-6 flex flex-col items-center">
         {/* Ambient Backlight Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[160px] sm:w-[340px] sm:h-[220px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[180px] sm:w-[400px] sm:h-[260px] rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
+            isRunning
+              ? targetSeconds
+                ? "bg-amber-500/20 scale-110"
+                : "bg-emerald-500/20 scale-110"
+              : "bg-emerald-500/10 scale-95"
+          }`}
+        />
 
         {/* Inner Card Container */}
-        <div className="relative z-20 w-full bg-[#121417]/95 backdrop-blur-xl border border-[#222831] rounded-3xl p-4 sm:p-5 md:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex flex-col justify-between min-h-[220px]">
-          
-          {/* ── Mobile: Stack center then side cards ── */}
+        <div className="relative z-20 w-full bg-[#121417]/95 backdrop-blur-xl border border-[#222831] rounded-3xl p-4 sm:p-6 md:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex flex-col justify-between min-h-[220px]">
           {/* Center Area: Exercise label + Time Display */}
           <div className="flex flex-col items-center justify-center">
-            <div className="text-[11px] font-semibold text-emerald-400/90 uppercase tracking-widest mb-1 flex items-center gap-1.5 bg-emerald-950/40 border border-emerald-800/30 px-3 py-0.5 rounded-full">
-              <Dumbbell className="w-3 h-3 text-emerald-400" />
+            <div className="text-[11px] font-semibold text-emerald-400/90 uppercase tracking-widest mb-1 flex items-center gap-1.5 bg-emerald-950/40 border border-emerald-800/30 px-3.5 py-1 rounded-full">
+              <Dumbbell className="w-3.5 h-3.5 text-emerald-400" />
               <span className="truncate max-w-[200px] sm:max-w-none">{exerciseName}</span>
             </div>
             <TimeDisplay
@@ -331,18 +426,21 @@ export default function GymTimer({
               currentSet={currentSet}
               totalSets={totalSets}
               progressPercent={progressPercent}
+              targetSeconds={targetSeconds}
+              isRunning={isRunning}
               formatTime={formatTime}
               onPrevSet={() => setCurrentSet((p) => Math.max(1, p - 1))}
               onNextSet={() => setCurrentSet((p) => Math.min(totalSets, p + 1))}
             />
           </div>
 
-          {/* Side Info Cards: shown in a row below timer on mobile, beside it on md+ */}
+          {/* Side Info Cards: shown in a row below timer on mobile */}
           <div className="flex flex-row items-stretch justify-center gap-3 mt-4 md:hidden flex-wrap">
             <div className="flex-1 min-w-0">
               <GymSessionCard
                 totalSeconds={totalGymSeconds}
                 isSynced={isSynced}
+                onClearGymTime={handleResetDailyGymTime}
                 formatGymTime={formatGymTime}
                 variant="left"
               />
@@ -358,12 +456,13 @@ export default function GymTimer({
             </div>
           </div>
 
-          {/* Desktop 3-column layout: side cards + center — hidden on mobile */}
+          {/* Desktop 3-column layout: side cards positioned in sides */}
           <div className="hidden md:grid grid-cols-12 gap-4 items-center absolute inset-x-7 top-1/2 -translate-y-1/2 pointer-events-none">
             <div className="col-span-3 flex justify-start pointer-events-auto">
               <GymSessionCard
                 totalSeconds={totalGymSeconds}
                 isSynced={isSynced}
+                onClearGymTime={handleResetDailyGymTime}
                 formatGymTime={formatGymTime}
                 variant="left"
               />
@@ -391,11 +490,13 @@ export default function GymTimer({
             totalSets={totalSets}
             soundEnabled={soundEnabled}
             targetSeconds={targetSeconds}
+            completedSetsCount={completedSets.length}
             onStartPause={handleStartPause}
             onStop={handleStop}
             onNextSet={handleNextSet}
             onToggleSound={handleToggleSound}
             onSetTarget={handleSetTarget}
+            onFinishWorkout={handleFinishWorkout}
           />
         </div>
       </div>
@@ -403,25 +504,25 @@ export default function GymTimer({
       {/* Auxiliary Settings & Quick Controls */}
       <div className="w-full max-w-4xl px-2 sm:px-4 grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
         {/* Set Configuration */}
-        <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 flex flex-col justify-between">
+        <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 flex flex-col justify-between shadow-md">
           <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
             <Dumbbell className="w-4 h-4 text-emerald-400" /> Target Sets ({totalSets})
           </div>
-          <div className="flex items-center justify-between gap-2 bg-[#181a1f] border border-[#2a303d] rounded-xl px-3 py-1.5">
-            <span className="text-xs text-zinc-400">Sets Goal:</span>
+          <div className="flex items-center justify-between gap-2 bg-[#181a1f] border border-[#2a303d] rounded-xl px-3 py-2">
+            <span className="text-xs text-zinc-400">Target Sets Goal:</span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setTotalSets((p) => Math.max(1, p - 1))}
-                className="w-6 h-6 rounded bg-[#242730] hover:bg-[#2f3340] text-zinc-200 flex items-center justify-center text-xs font-bold cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-[#242730] hover:bg-[#2f3340] text-zinc-200 flex items-center justify-center text-sm font-bold cursor-pointer transition active:scale-95"
               >
                 -
               </button>
-              <span className="font-mono font-bold text-white text-sm">{totalSets}</span>
+              <span className="font-mono font-bold text-white text-sm px-1">{totalSets}</span>
               <button
                 type="button"
                 onClick={() => setTotalSets((p) => Math.min(20, p + 1))}
-                className="w-6 h-6 rounded bg-[#242730] hover:bg-[#2f3340] text-zinc-200 flex items-center justify-center text-xs font-bold cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-[#242730] hover:bg-[#2f3340] text-zinc-200 flex items-center justify-center text-sm font-bold cursor-pointer transition active:scale-95"
               >
                 +
               </button>
@@ -430,10 +531,10 @@ export default function GymTimer({
         </div>
 
         {/* Workout Stats / Summary & Daily Reset */}
-        <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 flex flex-col justify-between">
+        <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 flex flex-col justify-between shadow-md">
           <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center justify-between mb-2">
             <span className="flex items-center gap-1.5">
-              <Flame className="w-4 h-4 text-rose-500" /> Today&apos;s Full Workout
+              <Flame className="w-4 h-4 text-rose-500" /> Today&apos;s Workout Stats
             </span>
             <button
               type="button"
@@ -444,17 +545,23 @@ export default function GymTimer({
               <RotateCcw className="w-3 h-3" /> Reset Day
             </button>
           </div>
-          <div className="flex items-center justify-between text-xs text-zinc-300">
-            <div>
+          <div className="grid grid-cols-3 gap-2 text-xs text-zinc-300">
+            <div className="bg-[#181a1f] p-2 rounded-xl border border-[#242832]">
               <span className="text-zinc-500 block text-[10px]">SETS DONE</span>
               <span className="font-mono font-bold text-white text-sm">
-                {completedSets.length} Sets
+                {completedSets.length}
               </span>
             </div>
-            <div>
-              <span className="text-zinc-500 block text-[10px]">TOTAL EST. KCAL</span>
+            <div className="bg-[#181a1f] p-2 rounded-xl border border-[#242832]">
+              <span className="text-zinc-500 block text-[10px]">AVG SET</span>
               <span className="font-mono font-bold text-emerald-400 text-sm">
-                {Math.round((totalGymSeconds / 60) * 6.5)} kcal
+                {avgSetDurationSecs > 0 ? `${avgSetDurationSecs}s` : "--"}
+              </span>
+            </div>
+            <div className="bg-[#181a1f] p-2 rounded-xl border border-[#242832]">
+              <span className="text-zinc-500 block text-[10px]">EST. KCAL</span>
+              <span className="font-mono font-bold text-amber-400 text-sm">
+                {Math.round((totalGymSeconds / 60) * 6.5)}
               </span>
             </div>
           </div>
@@ -464,11 +571,21 @@ export default function GymTimer({
       {/* Completed Sets History Log — only shown on full /stopwatch route */}
       {showSetHistory && completedSets.length > 0 && (
         <div className="w-full max-w-4xl px-2 sm:px-4 mt-6">
-          <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4">
-            <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2 mb-3">
-              <TimerIcon className="w-4 h-4 text-emerald-400" /> Today&apos;s Logged Sets (Part by Part)
+          <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 shadow-lg">
+            <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center justify-between mb-3">
+              <span className="flex items-center gap-2">
+                <TimerIcon className="w-4 h-4 text-emerald-400" /> Today&apos;s Logged Sets
+              </span>
+              <button
+                type="button"
+                onClick={handleClearHistory}
+                className="text-[11px] text-zinc-500 hover:text-rose-400 flex items-center gap-1 transition cursor-pointer"
+                title="Clear all logged sets"
+              >
+                <Trash2 className="w-3 h-3" /> Clear History
+              </button>
             </div>
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
               {completedSets.map((item, idx) => (
                 <div
                   key={idx}
