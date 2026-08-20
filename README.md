@@ -4,10 +4,13 @@
 [![Express.js](https://img.shields.io/badge/Express.js-4-lightgrey?style=flat-square&logo=express)](https://expressjs.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-green?style=flat-square&logo=mongodb)](https://mongoosejs.com/)
-[![Socket.IO](https://img.shields.io/badge/Socket.IO-4.7-black?style=flat-square&logo=socket.io)](https://socket.io/)
+[![Better Auth](https://img.shields.io/badge/Better_Auth-1.7-black?style=flat-square)](https://better-auth.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live_Demo-000000?style=flat-square&logo=vercel)](https://fitora-fitness.vercel.app)
 
-**Fitora** is a full-stack, real-time fitness planner platform designed for health enthusiasts and individuals committed to achieving peak physical fitness. Powered by Next.js, Express, Mongoose ODM, and Socket.IO bidirectional web-sockets, Fitora provides seamless real-time workout tracking, AI-assisted training, and nutrition analytics.
+**Fitora** is a full-stack, real-time fitness planner platform designed for health enthusiasts and individuals committed to achieving peak physical fitness. Powered by Next.js 16, Node.js, Mongoose ODM, Better Auth, and Socket.IO bidirectional web-sockets, Fitora provides seamless real-time workout tracking, AI-assisted training, and nutrition analytics.
+
+🌐 **Live Demo Application**: [https://fitora-fitness.vercel.app](https://fitora-fitness.vercel.app)
 
 ---
 
@@ -17,26 +20,26 @@
 
 ---
 
-## 🌟 Core Features & Modules
+## 🌟 Core Modules & Standalone Pages
 
-- 🏋️ **Real-Time Gym Timer & Exercise Tracker**: Live bidirectional synchronization of active rest timers and workout progress across multiple devices via Socket.IO.
-- 🤖 **AI Chat & AI Trainer**: Instant real-time feedback, routine adjustments, and personalized workout suggestions without page reloads.
-- 📊 **Dashboard & Analytics**: Comprehensive overview of personal health metrics, goal progress, and historical logs.
-- 🥗 **Nutrition & BMI Calculator**: Instant calculation of Body Mass Index, TDEE, and schema-validated macronutrient splits.
-- 🎯 **Set Goal & Habit Tracker**: Set and track personalized daily and weekly fitness milestones.
-- 👑 **User Management & Premium Membership**: Role-based access control (Standard vs. Premium tiers).
-- 🍽️ **Premium Meal Charts**: Custom nutritional charts and meal plans for premium subscribers.
-- 📢 **Gym-Related Ads & System Alerts**: Real-time broadcast alerts for achievements, ads, and membership status updates.
+- 🏋️ **Real-Time Gym Timer HUD (`/stopwatch`)**: Fullscreen distraction-free rest timer with exercise selector chips, quick rest add buttons (+30s, +60s), and automated Web Audio alerts.
+- 🤖 **AI Coach Studio (`/dashboard/user/ai-coach`)**: Full-screen AI Studio layout featuring quick prompt chips ("Chest & Push Split", "Calculate Protein Macros", "DOMS Recovery", "Progressive Overload"), 1-click clipboard export, and real-time typing animation.
+- 📊 **Metric & BMI Calculator (`/calculator`)**: Dynamic height/weight sliders with real-time BMI, BMR, and TDEE macro gauge visualizations.
+- 🥗 **Nutrition & Diet Tracker (`/dashboard/user/nutrition`)**: Dynamic 2,400 kcal progress bar, category filterable meal cards (Breakfast, Lunch, Dinner, Snacks).
+- 🏆 **User Profile & Milestones (`/profile`)**: Fitness streak counter (🔥 12-day streak), earned achievement badges ("100k KG Lifted", "Streak Champion"), and completed goal history.
+- 💎 **Membership & Pricing Plans (`/plans`)**: 3-tier membership model (Free, Pro $19.99/mo, VIP Elite $39.99/mo) with monthly/annual 20% discount billing toggle, comparison table, and FAQ accordion.
+- 🔐 **Authentication Flow (`/login` & `/register`)**: Glassmorphism UI with form validation, toast feedback, and Better Auth integration.
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend (`/client`)
-- **Framework**: Next.js 16 (App Router)
+- **Framework**: Next.js 16 (App Router / Turbopack)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS v4, HeroUI, Framer Motion
 - **Icons**: Lucide React
+- **Auth & Utilities**: Better Auth, React Fast Marquee, React Hot Toast
 - **Realtime**: Socket.IO Client
 
 ### Backend (`/server`)
@@ -44,7 +47,7 @@
 - **Database**: MongoDB with Mongoose ODM
 - **Language**: TypeScript (`tsx` engine)
 - **Realtime**: Socket.IO Server
-- **Security & Config**: CORS, Dotenv
+- **Security & Config**: CORS, Dotenv, JWT Authentication
 
 ---
 
@@ -54,15 +57,20 @@
 Fitora/
 ├── client/                 # Next.js Frontend Application
 │   ├── public/             # Static Assets & Design Reference
-│   │   └── design-reference.png
 │   ├── src/
-│   │   ├── app/            # Next.js App Router pages
-│   │   ├── components/     # UI Components
+│   │   ├── app/            # Next.js App Router standalone pages
+│   │   │   ├── calculator/ # BMI & Macro Calculator Page
+│   │   │   ├── dashboard/  # User Dashboard & AI Coach Studio
+│   │   │   ├── login/      # Glassmorphism Login Page
+│   │   │   ├── plans/      # Membership Pricing Plans Page
+│   │   │   ├── profile/    # User Profile & Achievements Page
+│   │   │   ├── register/   # User Registration Page
+│   │   │   └── stopwatch/  # Fullscreen Gym Timer HUD
+│   │   ├── components/     # Reusable UI Components & Home Sections
 │   │   ├── context/        # React Context & Socket Providers
 │   │   ├── hooks/          # Custom Hooks (useSocket, useAuth, etc.)
-│   │   ├── services/       # API & Socket Services
-│   │   ├── types/          # Frontend TypeScript Interfaces
-│   │   └── utils/          # Helper Functions
+│   │   ├── lib/            # Auth Client & Utility Libraries
+│   │   └── types/          # Frontend TypeScript Interfaces
 │   ├── .env.example        # Environment Variables Template
 │   └── package.json
 │
@@ -74,14 +82,11 @@ Fitora/
 │   │   ├── models/         # Mongoose Schemas & ODM Models
 │   │   ├── routes/         # Express API Routes
 │   │   ├── services/       # Business Logic Services
-│   │   ├── sockets/        # Socket.IO Event Handlers
-│   │   ├── types/          # Backend TypeScript Interfaces
-│   │   └── utils/          # Helper Utilities
+│   │   └── sockets/        # Socket.IO Event Handlers
 │   ├── .env.example        # Environment Variables Template
 │   └── package.json
 │
 ├── docs/                   # Documentation Assets & Design Specs
-│   └── design-reference.png
 ├── package.json            # Root Workspace Script Runner (concurrently)
 ├── .gitignore              # Root Git Ignore Policy
 └── README.md               # Project Documentation
@@ -100,7 +105,7 @@ Fitora/
 
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Developer-Moy/Fitora.git
    cd Fitora
    ```
 
@@ -110,7 +115,7 @@ Fitora/
 
 3. **Install Dependencies**:
    ```bash
-   # Install root concurrently runner
+   # Install root runner
    npm install
 
    # Install client dependencies
