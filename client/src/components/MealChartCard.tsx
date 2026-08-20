@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { ReactNode } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import {
     Button,
     Description,
@@ -935,8 +935,6 @@ export function MealChartCard() {
                     </div>
                 </div>
             </div>
-
-            <Toaster />
         </main>
     );
 }
