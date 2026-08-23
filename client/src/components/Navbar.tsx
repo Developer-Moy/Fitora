@@ -72,12 +72,26 @@ export default function Navbar() {
       </ul>
 
       {/* ── Right Actions & Account Dropdown ── */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Live AI Engine Status Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-[11px] font-semibold text-emerald-400">
+        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-[11px] font-semibold text-emerald-400">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
           <span>AI Online</span>
         </div>
+
+        {/* Login & Register Action Buttons */}
+        <Link
+          href="/login"
+          className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-semibold text-white/90 hover:text-white transition-all cursor-pointer"
+        >
+          Login
+        </Link>
+        <Link
+          href="/register"
+          className="hidden sm:inline-flex px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white shadow-md shadow-red-950/50 transition-all cursor-pointer"
+        >
+          Register
+        </Link>
 
         <Dropdown>
           <DropdownTrigger className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-emerald-500/50 bg-emerald-950/20 hover:bg-emerald-900/30 transition-all duration-200 outline-none cursor-pointer">
