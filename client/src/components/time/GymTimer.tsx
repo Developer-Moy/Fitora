@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
-import { Dumbbell, Flame, Timer as TimerIcon, RotateCcw, Trash2, Award, Sparkles } from "lucide-react";
+import { Dumbbell, Flame, Timer as TimerIcon, RotateCcw, Trash2 } from "lucide-react";
 import { GymSessionCard } from "./GymSessionCard";
 import { TimeDisplay } from "./TimeDisplay";
 import { TimerControls } from "./TimerControls";
@@ -40,6 +40,7 @@ export default function GymTimer({
   const [targetSeconds, setTargetSeconds] = useState<number | null>(null);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const voiceAnnouncedRef = useRef<number | null>(null);
 
   const getTodayKey = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -102,19 +103,40 @@ export default function GymTimer({
     [soundEnabled]
   );
 
+  // Browser speech synthesis voice alert (Web Speech API)
+  const speakVoiceAlert = useCallback(
+    (text: string) => {
+      if (!soundEnabled || typeof window === "undefined") return;
+      try {
+        if (!("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        // Speech synthesis unavailable
+      }
+    },
+    [soundEnabled]
+  );
+
   // Main active timer interval (runs when user clicks Start)
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
-        // Increment total daily gym time
-        setTotalGymSeconds((prevTotal) => {
-          const nextTotal = prevTotal + 1;
-          saveDailyGymTime(nextTotal);
-          return nextTotal;
-        });
-
         // Increment current active set stopwatch
         setSeconds((prevSec) => prevSec + 1);
+
+        // Only count active exercise time toward Total Gym Time (exclude rest countdowns)
+        if (targetSeconds === null) {
+          setTotalGymSeconds((prevTotal) => {
+            const nextTotal = prevTotal + 1;
+            saveDailyGymTime(nextTotal);
+            return nextTotal;
+          });
+        }
       }, 1000);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -123,7 +145,7 @@ export default function GymTimer({
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isRunning, triggerAudioFeedback, saveDailyGymTime]);
+  }, [isRunning, targetSeconds, triggerAudioFeedback, saveDailyGymTime]);
 
   // Target-duration countdown warning cues & final alarm
   useEffect(() => {
@@ -136,10 +158,26 @@ export default function GymTimer({
       triggerAudioFeedback(580, "sine", 0.08);
     }
 
+    // Voice countdown at 3, 2, 1 seconds left (once per value)
+    if (
+      remaining > 0 &&
+      remaining <= 3 &&
+      voiceAnnouncedRef.current !== remaining
+    ) {
+      voiceAnnouncedRef.current = remaining;
+      speakVoiceAlert(String(remaining));
+    }
+
     // Target reached -> multi-beep alarm & auto-stop
     if (seconds >= targetSeconds) {
       setIsRunning(false);
       setTargetSeconds(null);
+
+      // Voice alert when rest timer hits zero (once per session)
+      if (voiceAnnouncedRef.current !== 0) {
+        voiceAnnouncedRef.current = 0;
+        speakVoiceAlert("Rest Over, start next set!");
+      }
 
       // Multi-beep completion alarm
       if (soundEnabled && typeof window !== "undefined") {
@@ -220,6 +258,7 @@ export default function GymTimer({
     triggerAudioFeedback(350);
     setIsRunning(false);
     setTargetSeconds(null);
+    voiceAnnouncedRef.current = null;
     if (seconds > 0) {
       // Log completed set
       const formatted = formatTime(seconds);
@@ -250,6 +289,7 @@ export default function GymTimer({
   const handleNextSet = () => {
     triggerAudioFeedback(950);
     setTargetSeconds(null);
+    voiceAnnouncedRef.current = null;
     if (seconds > 0) {
       const formatted = formatTime(seconds);
       const newEntry = {
@@ -297,6 +337,7 @@ export default function GymTimer({
     setTargetSeconds(isDeselecting ? null : amount);
     setSeconds(0);
     setIsRunning(false);
+    voiceAnnouncedRef.current = null;
     if (isDeselecting) {
       toast("Rest target cleared", { icon: "⏱️", id: "set-target" });
     } else {
@@ -308,37 +349,6 @@ export default function GymTimer({
     if (completedSets.length === 0) return;
     setCompletedSets([]);
     toast.success("Logged sets history cleared", { id: "clear-history" });
-  };
-
-  const handleFinishWorkout = () => {
-    triggerAudioFeedback(1050, "sine", 0.3);
-    setIsRunning(false);
-    setTargetSeconds(null);
-    setSeconds(0);
-    toast.custom(
-      (t) => (
-        <div
-          className={`${
-            t.visible ? "animate-enter" : "animate-leave"
-          } max-w-md w-full bg-[#121a15] border border-emerald-500/50 shadow-2xl rounded-2xl pointer-events-auto flex flex-col p-4 text-white`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
-              <Award className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-white flex items-center gap-1.5">
-                Workout Session Complete! <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-              </p>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                Logged {completedSets.length} sets for {exerciseName}
-              </p>
-            </div>
-          </div>
-        </div>
-      ),
-      { duration: 5000 }
-    );
   };
 
   const handleToggleSync = () => {
@@ -490,13 +500,11 @@ export default function GymTimer({
             totalSets={totalSets}
             soundEnabled={soundEnabled}
             targetSeconds={targetSeconds}
-            completedSetsCount={completedSets.length}
             onStartPause={handleStartPause}
             onStop={handleStop}
             onNextSet={handleNextSet}
             onToggleSound={handleToggleSound}
             onSetTarget={handleSetTarget}
-            onFinishWorkout={handleFinishWorkout}
           />
         </div>
       </div>
