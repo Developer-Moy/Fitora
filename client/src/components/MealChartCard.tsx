@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import { useCallback, useState } from "react";
 import type { ReactNode } from "react";
 import toast from "react-hot-toast";
@@ -188,7 +189,9 @@ function FieldLabel({
 }
 
 export function MealChartCard() {
-    const TEMP_USER_ID = "507f1f77bcf86cd799439011"; // TODO: Remove fake userId after auth implementation
+    const { data: session } = authClient.useSession();
+    const user = session?.user;
+    const USER_ID = user?.id;
 
     const [profile, setProfile] = useState<UserProfileData>(
         EMPTY_FORM.profile,
@@ -261,7 +264,7 @@ export function MealChartCard() {
         };
 
         const payload = {
-            userId: TEMP_USER_ID,
+            userId: USER_ID,
             ...formData,
         };
 
