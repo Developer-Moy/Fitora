@@ -1,28 +1,6 @@
 "use client";
-
-import { useState } from "react";
-import {
-  Award,
-  Dumbbell,
-  Calendar,
-  CheckCircle2,
-  Flame,
-  Mail,
-  Scale,
-  Target,
-  Trophy,
-  TrendingDown,
-  X,
-} from "lucide-react";
-import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts";
+import { Award, Dumbbell, Calendar, CheckCircle2, Flame, Mail, Scale, Target, Trophy, TrendingDown, User, } from "lucide-react";
+import WorkoutHistory from "@/components/profile/WorkoutHistory";
 
 const achievements = [
   {
@@ -433,7 +411,7 @@ export default function ProfilePage() {
                       {typeof achievement.icon === "string" ? (
                         achievement.icon
                       ) : (
-                        <achievement.icon className="h-6 w-6" />
+                        <achievement.icon className="h-6 w-6 text-emerald-400" />
                       )}
                     </div>
 
@@ -456,7 +434,10 @@ export default function ProfilePage() {
           </section>
         </div>
 
-        {/* Goal History */}
+         {/* Workout History (from /api/workouts/log) */}
+         <WorkoutHistory />
+
+          {/* Goal History */}
         <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <div className="mb-8">
             <h2 className="text-xl font-bold">Goal History</h2>
