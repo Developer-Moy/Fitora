@@ -126,8 +126,8 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
           )}
         </button>
 
-        {/* Next Set Quick Action */}
-        {currentSet < totalSets && (
+        {/* Adaptive action: Log Set only when clock is at 00, else Next Set */}
+        {seconds !== 0 && currentSet < totalSets ? (
           <button
             type="button"
             onClick={onNextSet}
@@ -137,10 +137,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
             <CheckCircle2 className="w-4 h-4" />
             <span>Next Set</span>
           </button>
-        )}
-
-        {/* Quick Set Logger (only while timer is running) */}
-        {isRunning && (
+        ) : (
           <button
             type="button"
             onClick={onQuickLog}
