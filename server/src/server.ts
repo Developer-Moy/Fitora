@@ -10,6 +10,7 @@ import apiRouter from './routes/index.js';
 
 // Routes import
 import dashboardStatisticSummary from './routes/user.routes.js';
+import bmiRoutes from './routes/bmi.routes.js';
 
 dotenv.config();
 
@@ -33,6 +34,8 @@ app.use(express.json());
 app.use('/api/dashboard', dashboardStatisticSummary);
 // API Routes
 app.use('/api', mealChartRoutes);
+// BMI History API
+app.use('/api/bmi', bmiRoutes);
 
 // Root API Route
 // Root Health Check Route
