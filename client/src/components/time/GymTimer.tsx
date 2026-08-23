@@ -50,6 +50,9 @@ export default function GymTimer({
   const [targetSeconds, setTargetSeconds] = useState<number | null>(null);
   const [isLoggerOpen, setIsLoggerOpen] = useState<boolean>(false);
 
+  // Staged weight/reps from the Quick Set Logger — committed to history on Next Set / Stop
+  const [pendingLog, setPendingLog] = useState<{ weight: number; reps: number } | null>(null);
+
   const { data: authSession } = useSession();
   const authUserId = authSession?.user?.id;
 
@@ -253,15 +256,8 @@ export default function GymTimer({
         }
       }
 
-      // Log the completed set
-      const formatted = formatTime(seconds);
-      const newEntry = {
-        set: currentSet,
-        duration: seconds,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-      setCompletedSets((prev) => [newEntry, ...prev]);
-      toast.success(`⏰ Time's up! Set ${currentSet} logged (${formatted})`, {
+      // Rest time is not a set — do not log an entry here
+      toast.success(`⏰ Rest over — start your next set!`, {
         duration: 4000,
         id: "target-alarm",
       });
@@ -358,15 +354,38 @@ export default function GymTimer({
     setTargetSeconds(null);
     voiceAnnouncedRef.current = null;
 
+    // Rest time is not exercise — only genuine logged/timed sets count
+    const wasRestMode = targetSeconds !== null;
+
+    // Flush the staged quick-log (if any) into history before saving
+    let setsForSave = completedSets;
+    if (pendingLog) {
+      setsForSave = [
+        ...completedSets,
+        {
+          set: currentSet,
+          duration: seconds,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          weight: pendingLog.weight,
+          reps: pendingLog.reps,
+        },
+      ];
+      setCompletedSets(setsForSave);
+      setPendingLog(null);
+    }
+
     // Session complete -> persist to MongoDB exactly once
     void persistWorkoutLog({
-      sets: completedSets,
-      timedSeconds: seconds,
+      sets: setsForSave,
+      timedSeconds: wasRestMode ? 0 : seconds,
       totalSessionSeconds: sessionSeconds,
     });
     setSessionSeconds(0);
 
-    if (seconds > 0) {
+    if (!wasRestMode && seconds > 0) {
       // Log completed set
       const formatted = formatTime(seconds);
       const newEntry = {
@@ -377,7 +396,9 @@ export default function GymTimer({
           minute: "2-digit",
         }),
       };
-      setCompletedSets((prev) => [newEntry, ...prev]);
+      if (setsForSave === completedSets) {
+        setCompletedSets((prev) => [newEntry, ...prev]);
+      }
       toast.success(`Set ${currentSet} saved (${formatted})`);
 
       if (onSetComplete) {
@@ -391,13 +412,35 @@ export default function GymTimer({
       toast("Stopwatch reset to 00:00:00", { icon: "🔄", id: "stop-reset" });
     }
     setSeconds(0);
-  }, [completedSets, currentSet, onSetComplete, persistWorkoutLog, seconds, sessionSeconds, totalGymSeconds, triggerAudioFeedback]);
+  }, [completedSets, currentSet, onSetComplete, pendingLog, persistWorkoutLog, seconds, sessionSeconds, targetSeconds, totalGymSeconds, triggerAudioFeedback]);
 
   const handleNextSet = () => {
     triggerAudioFeedback(950);
+    // Rest time is not a set — skip logging if Next Set was pressed during rest
+    const wasRestMode = targetSeconds !== null;
     setTargetSeconds(null);
     voiceAnnouncedRef.current = null;
-    if (seconds > 0) {
+
+    // Commit the staged quick-log (if any) into history now
+    if (pendingLog) {
+      setCompletedSets((prev) => [
+        ...prev,
+        {
+          set: currentSet,
+          duration: seconds,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          weight: pendingLog.weight,
+          reps: pendingLog.reps,
+        },
+      ]);
+      toast.success(
+        `Set ${currentSet} added to history — ${pendingLog.weight}kg × ${pendingLog.reps}`
+      );
+      setPendingLog(null);
+    } else if (!wasRestMode && seconds > 0) {
       const formatted = formatTime(seconds);
       const newEntry = {
         set: currentSet,
@@ -432,28 +475,15 @@ export default function GymTimer({
     setIsRunning(false);
   };
 
-  // Quick Set Logger: save weight/reps for the current set without interrupting the timer
-  const handleQuickLogSave = useCallback(
-    ({ weight, reps }: { weight: number; reps: number }) => {
-      const newEntry = {
-        set: currentSet,
-        duration: seconds,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        weight,
-        reps,
-      };
-      setCompletedSets((prev) => [newEntry, ...prev]);
-      setIsLoggerOpen(false);
-      toast.success(
-        `Set ${currentSet} logged — ${weight}kg × ${reps} reps`,
-        { icon: "🏋️", id: "quick-log-save" }
-      );
-    },
-    [currentSet, seconds]
-  );
+  // Quick Set Logger: stage weight/reps for the current set (added to history on Next Set / Stop)
+  const handleQuickLogSave = ({ weight, reps }: { weight: number; reps: number }) => {
+    setPendingLog({ weight, reps });
+    setIsLoggerOpen(false);
+    toast.success(
+      `${weight}kg × ${reps} ready for Set ${currentSet} — click Next Set to add to history`,
+      { icon: "🏋️", id: "quick-log-save", duration: 4000 }
+    );
+  };
 
   const handleResetDailyGymTime = () => {
     setTotalGymSeconds(0);
