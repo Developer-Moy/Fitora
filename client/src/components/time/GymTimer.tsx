@@ -2,10 +2,14 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
-import { Dumbbell, Flame, Timer as TimerIcon, RotateCcw, Trash2, Award, Sparkles } from "lucide-react";
+import { Dumbbell, Flame, Timer as TimerIcon, RotateCcw, Trash2 } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
+import { createWorkoutLog } from "@/services/workoutService";
+import type { CreateWorkoutLogPayload } from "@/types/workout";
 import { GymSessionCard } from "./GymSessionCard";
 import { TimeDisplay } from "./TimeDisplay";
 import { TimerControls } from "./TimerControls";
+import QuickSetLogger from "./QuickSetLogger";
 
 export interface GymTimerProps {
   exerciseName?: string;
@@ -34,12 +38,27 @@ export default function GymTimer({
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [isSynced, setIsSynced] = useState<boolean>(true);
   const [completedSets, setCompletedSets] = useState<
-    Array<{ set: number; duration: number; timestamp: string }>
+    Array<{
+      set: number;
+      duration: number;
+      timestamp: string;
+      weight?: number;
+      reps?: number;
+    }>
   >([]);
   // null = free-running stopwatch, number = target duration in seconds
   const [targetSeconds, setTargetSeconds] = useState<number | null>(null);
+  const [isLoggerOpen, setIsLoggerOpen] = useState<boolean>(false);
+
+  // Staged weight/reps from the Quick Set Logger — committed to history on Next Set / Stop
+  const [pendingLog, setPendingLog] = useState<{ weight: number; reps: number } | null>(null);
+
+  const { data: authSession } = useSession();
+  const authUserId = authSession?.user?.id;
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const voiceAnnouncedRef = useRef<number | null>(null);
+  const minuteAlertedRef = useRef<number>(0);
 
   const getTodayKey = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -48,6 +67,10 @@ export default function GymTimer({
 
   // Total Gym Time for today (starts at 0, loaded from localStorage after mount to avoid SSR/hydration mismatch)
   const [totalGymSeconds, setTotalGymSeconds] = useState<number>(0);
+
+  // Current session duration (active + rest time since last Stop) used for the workout log
+  const [sessionSeconds, setSessionSeconds] = useState<number>(0);
+  const isSavingLogRef = useRef<boolean>(false);
 
   useEffect(() => {
     try {
@@ -102,19 +125,43 @@ export default function GymTimer({
     [soundEnabled]
   );
 
+  // Browser speech synthesis voice alert (Web Speech API)
+  const speakVoiceAlert = useCallback(
+    (text: string) => {
+      if (!soundEnabled || typeof window === "undefined") return;
+      try {
+        if (!("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        window.speechSynthesis.speak(utterance);
+      } catch {
+        // Speech synthesis unavailable
+      }
+    },
+    [soundEnabled]
+  );
+
   // Main active timer interval (runs when user clicks Start)
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
-        // Increment total daily gym time
-        setTotalGymSeconds((prevTotal) => {
-          const nextTotal = prevTotal + 1;
-          saveDailyGymTime(nextTotal);
-          return nextTotal;
-        });
+        // Track current session duration (active + rest time)
+        setSessionSeconds((prev) => prev + 1);
 
         // Increment current active set stopwatch
         setSeconds((prevSec) => prevSec + 1);
+
+        // Only count active exercise time toward Total Gym Time (exclude rest countdowns)
+        if (targetSeconds === null) {
+          setTotalGymSeconds((prevTotal) => {
+            const nextTotal = prevTotal + 1;
+            saveDailyGymTime(nextTotal);
+            return nextTotal;
+          });
+        }
       }, 1000);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -123,7 +170,32 @@ export default function GymTimer({
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isRunning, triggerAudioFeedback, saveDailyGymTime]);
+  }, [isRunning, targetSeconds, triggerAudioFeedback, saveDailyGymTime]);
+
+  // Inform the user at each completed minute of the active stopwatch (1 min, 2 min, ...)
+  useEffect(() => {
+    if (isRunning && targetSeconds === null && seconds > 0 && seconds % 60 === 0) {
+      const minutes = seconds / 60;
+      if (minuteAlertedRef.current < minutes) {
+        minuteAlertedRef.current = minutes;
+        speakVoiceAlert(
+          minutes === 1 ? "1 minute completed" : `${minutes} minutes completed`
+        );
+        toast.success(
+          minutes === 1
+            ? "⏱️ 1 minute completed! Keep going!"
+            : `⏱️ ${minutes} minutes completed! Keep going!`,
+          {
+            icon: "💪",
+            id: "minute-milestone",
+            duration: 4000,
+          }
+        );
+      }
+    }
+    if (seconds < 60) minuteAlertedRef.current = 0;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seconds, isRunning, targetSeconds]);
 
   // Target-duration countdown warning cues & final alarm
   useEffect(() => {
@@ -136,10 +208,26 @@ export default function GymTimer({
       triggerAudioFeedback(580, "sine", 0.08);
     }
 
+    // Voice countdown at 3, 2, 1 seconds left (once per value)
+    if (
+      remaining > 0 &&
+      remaining <= 3 &&
+      voiceAnnouncedRef.current !== remaining
+    ) {
+      voiceAnnouncedRef.current = remaining;
+      speakVoiceAlert(String(remaining));
+    }
+
     // Target reached -> multi-beep alarm & auto-stop
     if (seconds >= targetSeconds) {
       setIsRunning(false);
       setTargetSeconds(null);
+
+      // Voice alert when rest timer hits zero (once per session)
+      if (voiceAnnouncedRef.current !== 0) {
+        voiceAnnouncedRef.current = 0;
+        speakVoiceAlert("Rest Over, start next set!");
+      }
 
       // Multi-beep completion alarm
       if (soundEnabled && typeof window !== "undefined") {
@@ -168,15 +256,8 @@ export default function GymTimer({
         }
       }
 
-      // Log the completed set
-      const formatted = formatTime(seconds);
-      const newEntry = {
-        set: currentSet,
-        duration: seconds,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-      setCompletedSets((prev) => [newEntry, ...prev]);
-      toast.success(`⏰ Time's up! Set ${currentSet} logged (${formatted})`, {
+      // Rest time is not a set — do not log an entry here
+      toast.success(`⏰ Rest over — start your next set!`, {
         duration: 4000,
         id: "target-alarm",
       });
@@ -216,11 +297,95 @@ export default function GymTimer({
     }
   }, [isRunning, seconds, triggerAudioFeedback]);
 
+  // Persist the completed session to MongoDB via POST /api/workouts/log
+  const persistWorkoutLog = useCallback(
+    async (snapshot: {
+      sets: Array<{ weight?: number; reps?: number }>;
+      timedSeconds: number;
+      totalSessionSeconds: number;
+    }) => {
+      const { sets, timedSeconds, totalSessionSeconds } = snapshot;
+
+      const setsCount =
+        sets.length > 0 ? sets.length : timedSeconds > 0 ? 1 : 0;
+      if (setsCount === 0 || isSavingLogRef.current) return;
+
+      const totalReps = sets.reduce((acc, s) => acc + (s.reps ?? 0), 0);
+      const maxWeight = sets.reduce((max, s) => Math.max(max, s.weight ?? 0), 0);
+      const loggedSetsNotes = sets
+        .filter((s) => s.weight !== undefined && s.reps !== undefined)
+        .map((s) => `${s.weight}kg×${s.reps}`)
+        .join(", ");
+
+      const payload: CreateWorkoutLogPayload = {
+        exerciseName,
+        setsCount,
+        repsCount: totalReps > 0 ? totalReps : 1,
+        weight: maxWeight,
+        durationMinutes: Math.round(totalSessionSeconds / 60),
+        notes: loggedSetsNotes || "Timed session — weight/reps not tracked",
+        date: new Date().toISOString(),
+        ...(authUserId ? { userId: authUserId } : {}),
+      };
+
+      isSavingLogRef.current = true;
+      const loadingToastId = "workout-log-save";
+      toast.loading("Saving workout...", { id: loadingToastId });
+      try {
+        await createWorkoutLog(payload);
+        toast.success("Workout saved to your history 💪", { id: loadingToastId, duration: 4000 });
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to save workout log",
+          { id: loadingToastId, duration: 5000 }
+        );
+      } finally {
+        isSavingLogRef.current = false;
+      }
+    },
+    [authUserId, exerciseName]
+  );
+
   const handleStop = useCallback(() => {
     triggerAudioFeedback(350);
     setIsRunning(false);
     setTargetSeconds(null);
-    if (seconds > 0) {
+    voiceAnnouncedRef.current = null;
+
+    // Rest time is not exercise — only genuine logged/timed sets count
+    const wasRestMode = targetSeconds !== null;
+
+    // Flush the staged quick-log (if any) into history before saving
+    let setsForSave = completedSets;
+    if (pendingLog) {
+      setsForSave = [
+        ...completedSets,
+        {
+          set: currentSet,
+          duration: seconds,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          weight: pendingLog.weight,
+          reps: pendingLog.reps,
+        },
+      ];
+      setCompletedSets(setsForSave);
+      setPendingLog(null);
+    }
+
+    // Session complete -> persist to MongoDB exactly once
+    void persistWorkoutLog({
+      sets: setsForSave,
+      timedSeconds: wasRestMode ? 0 : seconds,
+      totalSessionSeconds: sessionSeconds,
+    });
+    setSessionSeconds(0);
+
+    if (!wasRestMode && seconds > 0) {
       // Log completed set
       const formatted = formatTime(seconds);
       const newEntry = {
@@ -231,7 +396,9 @@ export default function GymTimer({
           minute: "2-digit",
         }),
       };
-      setCompletedSets((prev) => [newEntry, ...prev]);
+      if (setsForSave === completedSets) {
+        setCompletedSets((prev) => [newEntry, ...prev]);
+      }
       toast.success(`Set ${currentSet} saved (${formatted})`);
 
       if (onSetComplete) {
@@ -245,12 +412,35 @@ export default function GymTimer({
       toast("Stopwatch reset to 00:00:00", { icon: "🔄", id: "stop-reset" });
     }
     setSeconds(0);
-  }, [currentSet, onSetComplete, seconds, totalGymSeconds, triggerAudioFeedback]);
+  }, [completedSets, currentSet, onSetComplete, pendingLog, persistWorkoutLog, seconds, sessionSeconds, targetSeconds, totalGymSeconds, triggerAudioFeedback]);
 
   const handleNextSet = () => {
     triggerAudioFeedback(950);
+    // Rest time is not a set — skip logging if Next Set was pressed during rest
+    const wasRestMode = targetSeconds !== null;
     setTargetSeconds(null);
-    if (seconds > 0) {
+    voiceAnnouncedRef.current = null;
+
+    // Commit the staged quick-log (if any) into history now
+    if (pendingLog) {
+      setCompletedSets((prev) => [
+        ...prev,
+        {
+          set: currentSet,
+          duration: seconds,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          weight: pendingLog.weight,
+          reps: pendingLog.reps,
+        },
+      ]);
+      toast.success(
+        `Set ${currentSet} added to history — ${pendingLog.weight}kg × ${pendingLog.reps}`
+      );
+      setPendingLog(null);
+    } else if (!wasRestMode && seconds > 0) {
       const formatted = formatTime(seconds);
       const newEntry = {
         set: currentSet,
@@ -285,6 +475,16 @@ export default function GymTimer({
     setIsRunning(false);
   };
 
+  // Quick Set Logger: stage weight/reps for the current set (added to history on Next Set / Stop)
+  const handleQuickLogSave = ({ weight, reps }: { weight: number; reps: number }) => {
+    setPendingLog({ weight, reps });
+    setIsLoggerOpen(false);
+    toast.success(
+      `${weight}kg × ${reps} ready for Set ${currentSet} — click Next Set to add to history`,
+      { icon: "🏋️", id: "quick-log-save", duration: 4000 }
+    );
+  };
+
   const handleResetDailyGymTime = () => {
     setTotalGymSeconds(0);
     saveDailyGymTime(0);
@@ -297,6 +497,7 @@ export default function GymTimer({
     setTargetSeconds(isDeselecting ? null : amount);
     setSeconds(0);
     setIsRunning(false);
+    voiceAnnouncedRef.current = null;
     if (isDeselecting) {
       toast("Rest target cleared", { icon: "⏱️", id: "set-target" });
     } else {
@@ -308,37 +509,6 @@ export default function GymTimer({
     if (completedSets.length === 0) return;
     setCompletedSets([]);
     toast.success("Logged sets history cleared", { id: "clear-history" });
-  };
-
-  const handleFinishWorkout = () => {
-    triggerAudioFeedback(1050, "sine", 0.3);
-    setIsRunning(false);
-    setTargetSeconds(null);
-    setSeconds(0);
-    toast.custom(
-      (t) => (
-        <div
-          className={`${
-            t.visible ? "animate-enter" : "animate-leave"
-          } max-w-md w-full bg-[#121a15] border border-emerald-500/50 shadow-2xl rounded-2xl pointer-events-auto flex flex-col p-4 text-white`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
-              <Award className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-white flex items-center gap-1.5">
-                Workout Session Complete! <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-              </p>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                Logged {completedSets.length} sets for {exerciseName}
-              </p>
-            </div>
-          </div>
-        </div>
-      ),
-      { duration: 5000 }
-    );
   };
 
   const handleToggleSync = () => {
@@ -361,12 +531,13 @@ export default function GymTimer({
     }
   };
 
-  // Keyboard Shortcuts: Space = Start/Pause, Escape = Stop
+  // Keyboard Shortcuts: Space = Start/Pause, Escape = Stop (disabled while Quick Set Logger is open)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
+        e.target instanceof HTMLTextAreaElement ||
+        isLoggerOpen
       ) {
         return;
       }
@@ -380,7 +551,7 @@ export default function GymTimer({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleStartPause, handleStop]);
+  }, [handleStartPause, handleStop, isLoggerOpen]);
 
   // Progress calculation
   const progressPercent = targetSeconds
@@ -490,13 +661,12 @@ export default function GymTimer({
             totalSets={totalSets}
             soundEnabled={soundEnabled}
             targetSeconds={targetSeconds}
-            completedSetsCount={completedSets.length}
             onStartPause={handleStartPause}
             onStop={handleStop}
             onNextSet={handleNextSet}
             onToggleSound={handleToggleSound}
             onSetTarget={handleSetTarget}
-            onFinishWorkout={handleFinishWorkout}
+            onQuickLog={() => setIsLoggerOpen(true)}
           />
         </div>
       </div>
@@ -596,6 +766,11 @@ export default function GymTimer({
                       {item.set}
                     </span>
                     <span className="font-medium text-white">Set {item.set}</span>
+                    {item.weight !== undefined && item.reps !== undefined && (
+                      <span className="rounded-full bg-emerald-500/10 border border-emerald-600/30 text-emerald-300 px-2 py-0.5 font-mono text-[10px] font-semibold">
+                        {item.weight}kg × {item.reps}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 sm:gap-4 font-mono text-zinc-300 flex-wrap">
                     <span>
@@ -609,6 +784,15 @@ export default function GymTimer({
           </div>
         </div>
       )}
+      {/* Quick Set Logger Modal */}
+      <QuickSetLogger
+        isOpen={isLoggerOpen}
+        exerciseName={exerciseName}
+        currentSet={currentSet}
+        totalSets={totalSets}
+        onClose={() => setIsLoggerOpen(false)}
+        onSave={handleQuickLogSave}
+      />
     </div>
   );
 }

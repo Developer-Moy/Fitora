@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Play, Pause, RotateCcw, Volume2, VolumeX, CheckCircle2, Timer, Flag } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, VolumeX, CheckCircle2, Timer, ClipboardList } from "lucide-react";
 
 interface TimerControlsProps {
   isRunning: boolean;
@@ -10,13 +10,12 @@ interface TimerControlsProps {
   totalSets: number;
   soundEnabled: boolean;
   targetSeconds: number | null;
-  completedSetsCount?: number;
   onStartPause: () => void;
   onStop: () => void;
   onNextSet: () => void;
   onToggleSound: () => void;
   onSetTarget: (amount: number) => void;
-  onFinishWorkout?: () => void;
+  onQuickLog: () => void;
 }
 
 const QUICK_TARGETS = [30, 60, 90] as const;
@@ -28,13 +27,12 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
   totalSets,
   soundEnabled,
   targetSeconds,
-  completedSetsCount = 0,
   onStartPause,
   onStop,
   onNextSet,
   onToggleSound,
   onSetTarget,
-  onFinishWorkout,
+  onQuickLog,
 }) => {
   // Remaining seconds when a target is active
   const remaining = targetSeconds !== null ? Math.max(0, targetSeconds - seconds) : null;
@@ -128,8 +126,8 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
           )}
         </button>
 
-        {/* Next Set Quick Action */}
-        {currentSet < totalSets && (
+        {/* Adaptive action: Log Set only when clock is at 00, else Next Set */}
+        {seconds !== 0 && currentSet < totalSets ? (
           <button
             type="button"
             onClick={onNextSet}
@@ -139,18 +137,15 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
             <CheckCircle2 className="w-4 h-4" />
             <span>Next Set</span>
           </button>
-        )}
-
-        {/* Finish Workout Action (shown after at least 1 set is logged) */}
-        {completedSetsCount > 0 && onFinishWorkout && (
+        ) : (
           <button
             type="button"
-            onClick={onFinishWorkout}
-            className="bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-600/40 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-            title="Finish and celebrate workout session"
+            onClick={onQuickLog}
+            className="bg-[#132219] hover:bg-[#1a3325] text-emerald-400 border border-emerald-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            title="Log weight & reps for the current set"
           >
-            <Flag className="w-4 h-4 text-emerald-400" />
-            <span>Finish</span>
+            <ClipboardList className="w-4 h-4" />
+            <span>Log Set</span>
           </button>
         )}
 

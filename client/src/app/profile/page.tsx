@@ -1,5 +1,6 @@
 "use client";
 import { Award, Dumbbell, Calendar, CheckCircle2, Flame, Mail, Scale, Target, Trophy, TrendingDown, User, } from "lucide-react";
+import WorkoutHistory from "@/components/profile/WorkoutHistory";
 
 const achievements = [
     {
@@ -258,7 +259,10 @@ export default function ProfilePage() {
           </section>
         </div>
 
-         {/* Goal History */}
+         {/* Workout History (from /api/workouts/log) */}
+         <WorkoutHistory />
+
+          {/* Goal History */}
         <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <div className="mb-8">
             <h2 className="text-xl font-bold">Goal History</h2>
