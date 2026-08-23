@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
 import { Dumbbell, Flame, Timer as TimerIcon, RotateCcw, Trash2 } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
+import { createWorkoutLog } from "@/services/workoutService";
+import type { CreateWorkoutLogPayload } from "@/types/workout";
 import { GymSessionCard } from "./GymSessionCard";
 import { TimeDisplay } from "./TimeDisplay";
 import { TimerControls } from "./TimerControls";
@@ -47,6 +50,9 @@ export default function GymTimer({
   const [targetSeconds, setTargetSeconds] = useState<number | null>(null);
   const [isLoggerOpen, setIsLoggerOpen] = useState<boolean>(false);
 
+  const { data: authSession } = useSession();
+  const authUserId = authSession?.user?.id;
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const voiceAnnouncedRef = useRef<number | null>(null);
   const minuteAlertedRef = useRef<number>(0);
@@ -58,6 +64,10 @@ export default function GymTimer({
 
   // Total Gym Time for today (starts at 0, loaded from localStorage after mount to avoid SSR/hydration mismatch)
   const [totalGymSeconds, setTotalGymSeconds] = useState<number>(0);
+
+  // Current session duration (active + rest time since last Stop) used for the workout log
+  const [sessionSeconds, setSessionSeconds] = useState<number>(0);
+  const isSavingLogRef = useRef<boolean>(false);
 
   useEffect(() => {
     try {
@@ -135,6 +145,9 @@ export default function GymTimer({
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
+        // Track current session duration (active + rest time)
+        setSessionSeconds((prev) => prev + 1);
+
         // Increment current active set stopwatch
         setSeconds((prevSec) => prevSec + 1);
 
@@ -288,11 +301,71 @@ export default function GymTimer({
     }
   }, [isRunning, seconds, triggerAudioFeedback]);
 
+  // Persist the completed session to MongoDB via POST /api/workouts/log
+  const persistWorkoutLog = useCallback(
+    async (snapshot: {
+      sets: Array<{ weight?: number; reps?: number }>;
+      timedSeconds: number;
+      totalSessionSeconds: number;
+    }) => {
+      const { sets, timedSeconds, totalSessionSeconds } = snapshot;
+
+      const setsCount =
+        sets.length > 0 ? sets.length : timedSeconds > 0 ? 1 : 0;
+      if (setsCount === 0 || isSavingLogRef.current) return;
+
+      const totalReps = sets.reduce((acc, s) => acc + (s.reps ?? 0), 0);
+      const maxWeight = sets.reduce((max, s) => Math.max(max, s.weight ?? 0), 0);
+      const loggedSetsNotes = sets
+        .filter((s) => s.weight !== undefined && s.reps !== undefined)
+        .map((s) => `${s.weight}kg×${s.reps}`)
+        .join(", ");
+
+      const payload: CreateWorkoutLogPayload = {
+        exerciseName,
+        setsCount,
+        repsCount: totalReps > 0 ? totalReps : 1,
+        weight: maxWeight,
+        durationMinutes: Math.round(totalSessionSeconds / 60),
+        notes: loggedSetsNotes || "Timed session — weight/reps not tracked",
+        date: new Date().toISOString(),
+        ...(authUserId ? { userId: authUserId } : {}),
+      };
+
+      isSavingLogRef.current = true;
+      const loadingToastId = "workout-log-save";
+      toast.loading("Saving workout...", { id: loadingToastId });
+      try {
+        await createWorkoutLog(payload);
+        toast.success("Workout saved to your history 💪", { id: loadingToastId, duration: 4000 });
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to save workout log",
+          { id: loadingToastId, duration: 5000 }
+        );
+      } finally {
+        isSavingLogRef.current = false;
+      }
+    },
+    [authUserId, exerciseName]
+  );
+
   const handleStop = useCallback(() => {
     triggerAudioFeedback(350);
     setIsRunning(false);
     setTargetSeconds(null);
     voiceAnnouncedRef.current = null;
+
+    // Session complete -> persist to MongoDB exactly once
+    void persistWorkoutLog({
+      sets: completedSets,
+      timedSeconds: seconds,
+      totalSessionSeconds: sessionSeconds,
+    });
+    setSessionSeconds(0);
+
     if (seconds > 0) {
       // Log completed set
       const formatted = formatTime(seconds);
@@ -318,7 +391,7 @@ export default function GymTimer({
       toast("Stopwatch reset to 00:00:00", { icon: "🔄", id: "stop-reset" });
     }
     setSeconds(0);
-  }, [currentSet, onSetComplete, seconds, totalGymSeconds, triggerAudioFeedback]);
+  }, [completedSets, currentSet, onSetComplete, persistWorkoutLog, seconds, sessionSeconds, totalGymSeconds, triggerAudioFeedback]);
 
   const handleNextSet = () => {
     triggerAudioFeedback(950);

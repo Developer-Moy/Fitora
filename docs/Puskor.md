@@ -25,3 +25,11 @@ GET	/api/workouts/:id	Get single exercise by ID
 GET	/api/workouts/log	Get logged workouts + summary stats
 POST	/api/workouts/log	Log a new workout session
 DELETE	/api/workouts/log/:id	Delete a log entry
+
+
+______________________________________________________________________
+
+
+Method	Endpoint	Purpose	Backend code
+POST	/api/workouts/log	Save completed session	server/src/routes/workout.routes.ts → createWorkoutLog
+GET	/api/workouts/log?userId=&limit=	Fetch history + summary	server/src/routes/workout.routes.ts → getWorkoutLogs
