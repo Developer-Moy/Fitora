@@ -14,6 +14,10 @@ import {
     Lock,
     CheckCircle2,
     Dumbbell,
+    Check,
+    Minus,
+    ChevronDown,
+    HelpCircle,
 } from "lucide-react";
 
 export default function PlansPage() {
@@ -23,6 +27,9 @@ export default function PlansPage() {
 
     // User Tier State
     const [userTier, setUserTier] = useState<string>("Free Tier");
+
+    // Accordion State for FAQ
+    const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
     // Modal Form State
     const [cardNumber, setCardNumber] = useState("");
@@ -76,6 +83,35 @@ export default function PlansPage() {
         },
     ];
 
+    const comparisonFeatures = [
+        { name: "Workout Logging", free: "Basic", pro: "Unlimited", vip: "Unlimited + Biometrics" },
+        { name: "AI Recovery Index", free: false, pro: true, vip: true },
+        { name: "Dynamic AI Routines", free: false, pro: true, vip: true },
+        { name: "Custom Nutrition Plans", free: false, pro: false, vip: true },
+        { name: "Multi-AI Fallback Engine", free: false, pro: true, vip: true },
+        { name: "1-on-1 AI Studio Coach", free: false, pro: false, vip: true },
+        { name: "Support Level", free: "Standard", pro: "Priority", vip: "24/7 VIP Direct" },
+    ];
+
+    const faqs = [
+        {
+            q: "Can I upgrade or downgrade my tier at any time?",
+            a: "Yes! You can instantly upgrade or switch your plan inside your account settings. Unused time on your previous tier will be automatically prorated.",
+        },
+        {
+            q: "How does the 14-day free trial work?",
+            a: "All paid plans come with a zero-risk 14-day trial. You won't be charged until the trial period ends, and you can cancel anytime with a single click.",
+        },
+        {
+            q: "What AI models power the Fitora AI Engine?",
+            a: "Fitora utilizes a high-availability multi-provider pipeline powered by Google Gemini Pro, Groq, and OpenAI models for ultra-fast, contextual training advice.",
+        },
+    ];
+
+    const toggleFaq = (index: number) => {
+        setOpenFaqIndex(openFaqIndex === index ? null : index);
+    };
+
     const handleSelectPlan = (name: string, price: string) => {
         if (price === "0.00" || price === "0") {
             toast.success("Free Tier active by default.");
@@ -85,13 +121,11 @@ export default function PlansPage() {
         setIsModalOpen(true);
     };
 
-    // Format Card Number (adds spaces every 4 digits)
     const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value.replace(/\D/g, "").slice(0, 16);
         setCardNumber(val.replace(/(.{4})/g, "$1 ").trim());
     };
 
-    // Format Expiry Date (MM/YY)
     const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value.replace(/\D/g, "").slice(0, 4);
         if (val.length >= 3) {
@@ -111,7 +145,6 @@ export default function PlansPage() {
 
         setIsProcessing(true);
 
-        // Simulate Payment Processing API
         setTimeout(() => {
             setIsProcessing(false);
             setIsSuccess(true);
@@ -157,12 +190,8 @@ export default function PlansPage() {
                             <User className="w-5 h-5" />
                         </div>
                         <div>
-                            <p className="text-xs text-[#94A3B8] font-medium">
-                                Logged in User
-                            </p>
-                            <h4 className="text-sm font-bold text-[#F4F7F2]">
-                                Athlete Account
-                            </h4>
+                            <p className="text-xs text-[#94A3B8] font-medium">Logged in User</p>
+                            <h4 className="text-sm font-bold text-[#F4F7F2]">Athlete Account</h4>
                         </div>
                     </div>
 
@@ -198,10 +227,7 @@ export default function PlansPage() {
 
                     {/* Billing Switch */}
                     <div className="pt-6 flex items-center justify-center gap-4">
-                        <span
-                            className={`text-xs font-bold uppercase ${!isAnnual ? "text-[#F4F7F2]" : "text-[#64748B]"
-                                }`}
-                        >
+                        <span className={`text-xs font-bold uppercase ${!isAnnual ? "text-[#F4F7F2]" : "text-[#64748B]"}`}>
                             Monthly
                         </span>
                         <button
@@ -213,10 +239,7 @@ export default function PlansPage() {
                                 className="w-5 h-5 rounded-full bg-gradient-to-r from-[#FF004D] to-[#E11D48]"
                             />
                         </button>
-                        <span
-                            className={`text-xs font-bold uppercase ${isAnnual ? "text-[#F4F7F2]" : "text-[#64748B]"
-                                }`}
-                        >
+                        <span className={`text-xs font-bold uppercase ${isAnnual ? "text-[#F4F7F2]" : "text-[#64748B]"}`}>
                             Annual (Save 20%)
                         </span>
                     </div>
@@ -240,10 +263,116 @@ export default function PlansPage() {
                     ))}
                 </div>
 
-                {/* Security Footer */}
+                {/* Trust Footer */}
                 <div className="mt-12 flex items-center gap-2 text-xs font-bold text-[#64748B] uppercase">
                     <ShieldCheck className="w-4 h-4 text-[#36D399]" />
                     <span>Instant Member Status Activation & Instant Access</span>
+                </div>
+
+                {/* Feature Comparison Matrix */}
+                <div className="w-full max-w-5xl mt-24">
+                    <div className="text-center mb-10">
+                        <h2 className="text-2xl sm:text-3xl font-black uppercase text-[#F4F7F2] tracking-tight">
+                            Compare Plan Features
+                        </h2>
+                        <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">
+                            Detailed breakdown of everything included in our tiers.
+                        </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-[#1E293B] bg-[#0A1220]/60 backdrop-blur-xl overflow-x-auto shadow-xl">
+                        <table className="w-full text-left text-sm text-[#A8B2AA]">
+                            <thead className="bg-[#060D18] border-b border-[#1E293B] text-xs uppercase tracking-wider text-[#F4F7F2]">
+                                <tr>
+                                    <th className="p-4 font-black">Features</th>
+                                    <th className="p-4 font-black text-center">Free</th>
+                                    <th className="p-4 font-black text-center text-[#FF004D]">Pro</th>
+                                    <th className="p-4 font-black text-center text-[#00F2FE]">VIP Elite</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#1E293B]/60 font-medium">
+                                {comparisonFeatures.map((row, idx) => (
+                                    <tr key={idx} className="hover:bg-[#1E293B]/20 transition-colors">
+                                        <td className="p-4 text-[#F4F7F2] font-semibold">{row.name}</td>
+                                        <td className="p-4 text-center">
+                                            {typeof row.free === "boolean" ? (
+                                                row.free ? <Check className="w-4 h-4 text-[#36D399] mx-auto" /> : <Minus className="w-4 h-4 text-[#475569] mx-auto" />
+                                            ) : (
+                                                row.free
+                                            )}
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            {typeof row.pro === "boolean" ? (
+                                                row.pro ? <Check className="w-4 h-4 text-[#FF004D] mx-auto" /> : <Minus className="w-4 h-4 text-[#475569] mx-auto" />
+                                            ) : (
+                                                row.pro
+                                            )}
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            {typeof row.vip === "boolean" ? (
+                                                row.vip ? <Check className="w-4 h-4 text-[#00F2FE] mx-auto" /> : <Minus className="w-4 h-4 text-[#475569] mx-auto" />
+                                            ) : (
+                                                row.vip
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Interactive FAQ Accordion */}
+                <div className="w-full max-w-4xl mt-24">
+                    <div className="text-center mb-10">
+                        <h2 className="text-2xl sm:text-3xl font-black uppercase text-[#F4F7F2] tracking-tight">
+                            Frequently Asked Questions
+                        </h2>
+                    </div>
+
+                    <div className="space-y-4">
+                        {faqs.map((faq, idx) => {
+                            const isOpen = openFaqIndex === idx;
+                            return (
+                                <div
+                                    key={idx}
+                                    className="rounded-2xl border border-[#1E293B] bg-[#0A1220]/60 backdrop-blur-xl overflow-hidden transition-colors"
+                                >
+                                    <button
+                                        onClick={() => toggleFaq(idx)}
+                                        className="w-full p-6 text-left flex items-center justify-between gap-4 cursor-pointer focus:outline-none"
+                                    >
+                                        <h3 className="text-base font-bold text-[#F4F7F2] flex items-center gap-2">
+                                            <HelpCircle className="w-4 h-4 text-[#00F2FE] shrink-0" />
+                                            {faq.q}
+                                        </h3>
+                                        <motion.div
+                                            animate={{ rotate: isOpen ? 180 : 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="text-[#64748B]"
+                                        >
+                                            <ChevronDown className="w-5 h-5" />
+                                        </motion.div>
+                                    </button>
+
+                                    <AnimatePresence>
+                                        {isOpen && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.3 }}
+                                            >
+                                                <div className="px-6 pb-6 pt-0 text-xs sm:text-sm text-[#94A3B8] leading-relaxed border-t border-[#1E293B]/40 mt-1 pt-4">
+                                                    {faq.a}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
 
             </div>
