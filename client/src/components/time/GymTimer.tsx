@@ -41,6 +41,7 @@ export default function GymTimer({
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const voiceAnnouncedRef = useRef<number | null>(null);
+  const minuteAlertedRef = useRef<number>(0);
 
   const getTodayKey = useCallback(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -146,6 +147,31 @@ export default function GymTimer({
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isRunning, targetSeconds, triggerAudioFeedback, saveDailyGymTime]);
+
+  // Inform the user at each completed minute of the active stopwatch (1 min, 2 min, ...)
+  useEffect(() => {
+    if (isRunning && targetSeconds === null && seconds > 0 && seconds % 60 === 0) {
+      const minutes = seconds / 60;
+      if (minuteAlertedRef.current < minutes) {
+        minuteAlertedRef.current = minutes;
+        speakVoiceAlert(
+          minutes === 1 ? "1 minute completed" : `${minutes} minutes completed`
+        );
+        toast.success(
+          minutes === 1
+            ? "⏱️ 1 minute completed! Keep going!"
+            : `⏱️ ${minutes} minutes completed! Keep going!`,
+          {
+            icon: "💪",
+            id: "minute-milestone",
+            duration: 4000,
+          }
+        );
+      }
+    }
+    if (seconds < 60) minuteAlertedRef.current = 0;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seconds, isRunning, targetSeconds]);
 
   // Target-duration countdown warning cues & final alarm
   useEffect(() => {
