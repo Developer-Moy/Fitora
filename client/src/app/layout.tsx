@@ -8,11 +8,47 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Fitora",
-  description: "Fitora Fitness Planner Platform",
+  title: {
+    default: "Fitora — AI-Powered Realtime Fitness Planner Platform",
+    template: "%s | Fitora Fitness",
+  },
+  description:
+    "Fitora is an AI-powered fitness planner platform providing real-time workout tracking, AI coach studio, BMI & nutrition calculators, and personalized meal planning.",
+  keywords: [
+    "Fitness Planner",
+    "AI Fitness Coach",
+    "Workout Timer",
+    "Nutrition Tracker",
+    "BMI Calculator",
+    "Next.js Fitness App",
+  ],
+  authors: [{ name: "Developer-Moy Team" }],
   icons: {
     icon: "/logo.svg",
     shortcut: "/logo.svg",
+  },
+  openGraph: {
+    title: "Fitora — AI-Powered Realtime Fitness Planner Platform",
+    description:
+      "Track your workouts in real time with audio gym timer, AI coaching, calorie calculator, and personalized meal plans.",
+    url: "https://fitora-fitness.vercel.app",
+    siteName: "Fitora Fitness",
+    images: [
+      {
+        url: "https://fitora-fitness.vercel.app/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Fitora Fitness Planner",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fitora — AI-Powered Fitness Planner",
+    description:
+      "Track workouts with real-time HUD, AI Coach studio, and nutrition analytics.",
   },
 };
 
