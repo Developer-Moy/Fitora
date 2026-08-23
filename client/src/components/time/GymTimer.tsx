@@ -6,6 +6,7 @@ import { Dumbbell, Flame, Timer as TimerIcon, RotateCcw, Trash2 } from "lucide-r
 import { GymSessionCard } from "./GymSessionCard";
 import { TimeDisplay } from "./TimeDisplay";
 import { TimerControls } from "./TimerControls";
+import QuickSetLogger from "./QuickSetLogger";
 
 export interface GymTimerProps {
   exerciseName?: string;
@@ -34,10 +35,17 @@ export default function GymTimer({
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [isSynced, setIsSynced] = useState<boolean>(true);
   const [completedSets, setCompletedSets] = useState<
-    Array<{ set: number; duration: number; timestamp: string }>
+    Array<{
+      set: number;
+      duration: number;
+      timestamp: string;
+      weight?: number;
+      reps?: number;
+    }>
   >([]);
   // null = free-running stopwatch, number = target duration in seconds
   const [targetSeconds, setTargetSeconds] = useState<number | null>(null);
+  const [isLoggerOpen, setIsLoggerOpen] = useState<boolean>(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const voiceAnnouncedRef = useRef<number | null>(null);
@@ -351,6 +359,29 @@ export default function GymTimer({
     setIsRunning(false);
   };
 
+  // Quick Set Logger: save weight/reps for the current set without interrupting the timer
+  const handleQuickLogSave = useCallback(
+    ({ weight, reps }: { weight: number; reps: number }) => {
+      const newEntry = {
+        set: currentSet,
+        duration: seconds,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        weight,
+        reps,
+      };
+      setCompletedSets((prev) => [newEntry, ...prev]);
+      setIsLoggerOpen(false);
+      toast.success(
+        `Set ${currentSet} logged — ${weight}kg × ${reps} reps`,
+        { icon: "🏋️", id: "quick-log-save" }
+      );
+    },
+    [currentSet, seconds]
+  );
+
   const handleResetDailyGymTime = () => {
     setTotalGymSeconds(0);
     saveDailyGymTime(0);
@@ -397,12 +428,13 @@ export default function GymTimer({
     }
   };
 
-  // Keyboard Shortcuts: Space = Start/Pause, Escape = Stop
+  // Keyboard Shortcuts: Space = Start/Pause, Escape = Stop (disabled while Quick Set Logger is open)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
         e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
+        e.target instanceof HTMLTextAreaElement ||
+        isLoggerOpen
       ) {
         return;
       }
@@ -416,7 +448,7 @@ export default function GymTimer({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleStartPause, handleStop]);
+  }, [handleStartPause, handleStop, isLoggerOpen]);
 
   // Progress calculation
   const progressPercent = targetSeconds
@@ -531,6 +563,7 @@ export default function GymTimer({
             onNextSet={handleNextSet}
             onToggleSound={handleToggleSound}
             onSetTarget={handleSetTarget}
+            onQuickLog={() => setIsLoggerOpen(true)}
           />
         </div>
       </div>
@@ -630,6 +663,11 @@ export default function GymTimer({
                       {item.set}
                     </span>
                     <span className="font-medium text-white">Set {item.set}</span>
+                    {item.weight !== undefined && item.reps !== undefined && (
+                      <span className="rounded-full bg-emerald-500/10 border border-emerald-600/30 text-emerald-300 px-2 py-0.5 font-mono text-[10px] font-semibold">
+                        {item.weight}kg × {item.reps}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 sm:gap-4 font-mono text-zinc-300 flex-wrap">
                     <span>
@@ -643,6 +681,15 @@ export default function GymTimer({
           </div>
         </div>
       )}
+      {/* Quick Set Logger Modal */}
+      <QuickSetLogger
+        isOpen={isLoggerOpen}
+        exerciseName={exerciseName}
+        currentSet={currentSet}
+        totalSets={totalSets}
+        onClose={() => setIsLoggerOpen(false)}
+        onSave={handleQuickLogSave}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Play, Pause, RotateCcw, Volume2, VolumeX, CheckCircle2, Timer } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, VolumeX, CheckCircle2, Timer, ClipboardList } from "lucide-react";
 
 interface TimerControlsProps {
   isRunning: boolean;
@@ -15,6 +15,7 @@ interface TimerControlsProps {
   onNextSet: () => void;
   onToggleSound: () => void;
   onSetTarget: (amount: number) => void;
+  onQuickLog: () => void;
 }
 
 const QUICK_TARGETS = [30, 60, 90] as const;
@@ -31,6 +32,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
   onNextSet,
   onToggleSound,
   onSetTarget,
+  onQuickLog,
 }) => {
   // Remaining seconds when a target is active
   const remaining = targetSeconds !== null ? Math.max(0, targetSeconds - seconds) : null;
@@ -134,6 +136,19 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Next Set</span>
+          </button>
+        )}
+
+        {/* Quick Set Logger (only while timer is running) */}
+        {isRunning && (
+          <button
+            type="button"
+            onClick={onQuickLog}
+            className="bg-[#132219] hover:bg-[#1a3325] text-emerald-400 border border-emerald-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            title="Log weight & reps for the current set"
+          >
+            <ClipboardList className="w-4 h-4" />
+            <span>Log Set</span>
           </button>
         )}
 
