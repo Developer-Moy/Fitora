@@ -1,5 +1,6 @@
 "use client";
 
+import WhyChooseUs from "@/components/home/WhyChooseUs";
 import MealChartSection from "@/components/home/MealChartSection";
 import TrainersSection from "@/components/home/TrainersSection";
 import Advertisement from "@/sections/Advertisement";
@@ -20,6 +21,8 @@ export default function Home() {
       {/* Alfaaz Ahmed Task: Build Your Body" Hero Banner & Live Stats Counter */}
       <HeroSection />
 
+      {/* Section 4: Why choose section — Simanto Paul */}
+      <WhyChooseUs />
       {/* Simanto Poddar Task: Premium Meal Chart Section */}
       <MealChartSection />
 
