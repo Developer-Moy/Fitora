@@ -22,10 +22,10 @@ export interface ReviewContent {
     rating: number;
     text: string;
 }
-export interface StarRatingProps {
+export interface StarRating {
     rating: number;
 }
-export interface ReviewCardProps {
+export interface ReviewCard {
     content: ReviewCard;
 }
 
@@ -87,7 +87,7 @@ const cardContent = {
 };
 
 
-const StarRating = ({ rating }) => {
+const StarRating = ({ rating }: ReviewContent) => {
   const fullStars = Math.floor(rating);
   const halfStar = rating % 1 !== 0;
   const emptyStars = 5 - Math.ceil(rating);
@@ -113,7 +113,7 @@ const StarRating = ({ rating }) => {
 };
 
 
-const ReviewCard = ({ content }) => (
+const ReviewCard = ({ content }: ReviewCard) => (
   <div className="bg-white p-6 rounded-2xl shadow-sm flex-1">
     <h3 className="text-xl font-semibold text-gray-900 mb-2">{content.name}</h3>
     <StarRating rating={content.rating} />
