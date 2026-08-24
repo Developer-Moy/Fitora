@@ -36,9 +36,6 @@ export default function Home() {
       {/* Section 3: Gym Timer & Workout Preview — Puskor Roy */}
       <GymTimerSection />
 
-      {/* Section 4: BMI & Nutrition Calculator — Simanto Paul */}
-      <CalculatorSection />
-
       {/* Section 5: Premium Meal Chart & Ads — Simanto Poddar */}
       <MealChartSection />
 
