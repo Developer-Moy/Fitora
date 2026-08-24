@@ -3,7 +3,6 @@
 import HeroSection from "@/components/home/HeroSection";
 import AiTrainerSection from "@/components/home/AiTrainerSection";
 import GymTimerSection from "@/components/home/GymTimerSection";
-import CalculatorSection from "@/components/home/CalculatorSection";
 import MealChartSection from "@/components/home/MealChartSection";
 import Advertisement from "@/sections/Advertisement";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
