@@ -1,161 +1,234 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownPopover,
-  DropdownMenu,
-  DropdownItem,
-} from "@heroui/react";
-import {
-  FiChevronDown,
-  FiUser,
-  FiBell,
+  FiSearch,
+  FiCreditCard,
+  FiHelpCircle,
   FiSettings,
-  FiLogOut,
+  FiChevronDown,
+  FiSidebar,
+  FiCheckCircle,
+  FiActivity,
+  FiClock,
+  FiMessageSquare,
 } from "react-icons/fi";
 
-const NAV_LINKS = [
+/* ── Main Menu Items (Mobile & Tablet Drawer) ── */
+const MENU_ITEMS = [
+  { label: "Chats", href: "/", icon: FiMessageSquare },
+  { label: "Manage subscription", href: "/plans", icon: FiCreditCard },
+  { label: "Updates & FAQ", href: "/#about", icon: FiHelpCircle },
+  { label: "Settings", href: "/profile", icon: FiSettings },
+];
+
+/* ── Collapsible "Chat list" Items ── */
+const CHAT_LIST = [
+  { label: "AI Coach Studio", href: "/dashboard/user/ai-coach", icon: Sparkles },
+  { label: "BMI Calculator", href: "/calculator", icon: FiActivity },
+  { label: "Gym Stopwatch", href: "/stopwatch", icon: FiClock },
+];
+
+/* ── Desktop / PC Horizontal Navigation Links (Centered in Middle) ── */
+const DESKTOP_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Calculator", href: "/calculator" },
-  { label: "Stopwatch", href: "/stopwatch" },
-  { label: "Plans", href: "/plans" },
-  { label: "Community", href: "/community" },
+  { label: "BMI Calculator", href: "/calculator" },
+  { label: "Gym Stopwatch", href: "/stopwatch" },
+  { label: "Membership Plans", href: "/plans" },
+  { label: "AI Coach Studio", href: "/dashboard/user/ai-coach" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [chatListOpen, setChatListOpen] = useState(true);
 
-  // Hide top navbar inside /dashboard routes matching design reference
   if (pathname?.startsWith("/dashboard")) {
     return null;
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-3.5 bg-black/80 backdrop-blur-md border-b border-white/5">
-      {/* ── Logo ── */}
-      <Link href="/" className="flex items-center gap-2 select-none group">
-        <img
-          src="/logo.svg"
-          alt="Fitora logo"
-          className="w-6 h-6 object-contain group-hover:scale-105 transition-transform duration-200"
-        />
-        <span className="text-white font-bold text-lg tracking-wide">
-          Fitora
-        </span>
-      </Link>
+    <>
+      {/* ── Navbar Container ── */}
+      <nav className="fixed top-0 left-0 right-0 z-[70] bg-black text-white border-b border-white/10 h-16 sm:h-20 flex items-center justify-between px-6 sm:px-10 lg:px-16 select-none">
+        
+        {/* Left: Brand Logo */}
+        <Link href="/" className="flex items-center gap-3 group select-none shrink-0">
+          <img
+            src="/logo.svg"
+            alt="Fitora logo"
+            className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
+          />
+          <div className="flex flex-col">
+            <span className="text-white font-black text-lg sm:text-xl tracking-wider uppercase leading-none font-sans">
+              FITORA
+            </span>
+            <span className="text-[9px] text-gray-400 font-bold tracking-[0.25em] uppercase">
+              GYM & AI
+            </span>
+          </div>
+        </Link>
 
-      {/* ── Nav Links ── */}
-      <ul className="hidden md:flex items-center gap-8">
-        {NAV_LINKS.map(({ label, href }) => {
-          const isActive = pathname === href;
-          return (
-            <li key={href}>
-              <Link
-                href={href}
-                className={`relative py-1 text-sm font-medium transition-colors duration-200 block ${
-                  isActive
-                    ? "text-red-500 font-semibold"
-                    : "text-white/70 hover:text-white"
-                }`}
-              >
-                {label}
-                {isActive && (
-                  <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-red-600 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                )}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+        {/* ── PC / Desktop Navigation (Perfectly Centered in Middle) ── */}
+        <ul className="hidden lg:flex items-center gap-6 xl:gap-9 absolute left-1/2 -translate-x-1/2">
+          {DESKTOP_LINKS.map(({ label, href }) => {
+            const isActive = pathname === href || (href === "/" && pathname === "/");
+            return (
+              <li key={label}>
+                <Link
+                  href={href}
+                  className={`text-xs xl:text-sm font-semibold transition-colors duration-200 whitespace-nowrap ${
+                    isActive
+                      ? "text-white font-extrabold"
+                      : "text-gray-300 hover:text-white"
+                  }`}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
 
-      {/* ── Right Actions & Account Dropdown ── */}
-      <div className="flex items-center gap-2.5">
-        {/* Live AI Engine Status Badge */}
-        <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/40 border border-emerald-500/30 text-[11px] font-semibold text-emerald-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-          <span>AI Online</span>
+        {/* ── Right Side Actions ── */}
+        <div className="flex items-center gap-4 shrink-0">
+          {/* PC Desktop CTA Button */}
+          <Link
+            href="/register"
+            className="hidden lg:block px-6 py-2.5 rounded-xl bg-white text-black font-extrabold text-sm hover:bg-gray-200 transition-all duration-200 shadow-md active:scale-95 cursor-pointer"
+          >
+            Join Now
+          </Link>
+
+          {/* Mobile & Tablet Hamburger Toggle Button (< 1024px) */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="text-white hover:text-gray-300 transition-colors duration-200 lg:hidden cursor-pointer shrink-0 p-2 rounded-xl bg-white/10 border border-white/20"
+            aria-label="Toggle Navigation Menu"
+          >
+            <FiSidebar className="w-5 h-5" />
+          </button>
         </div>
+      </nav>
 
-        {/* Login & Register Action Buttons */}
-        <Link
-          href="/login"
-          className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-semibold text-white/90 hover:text-white transition-all cursor-pointer"
+      {/* ── Mobile & Tablet Drawer (Visible ONLY on Mobile/Tablet < 1024px) ── */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 top-16 sm:top-20 z-[60] bg-black/80 backdrop-blur-md lg:hidden drawer-overlay-fade"
+          onClick={() => setMobileMenuOpen(false)}
         >
-          Login
-        </Link>
-        <Link
-          href="/register"
-          className="hidden sm:inline-flex px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white shadow-md shadow-red-950/50 transition-all cursor-pointer"
-        >
-          Register
-        </Link>
-
-        <Dropdown>
-          <DropdownTrigger className="relative flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-emerald-500/50 bg-emerald-950/20 hover:bg-emerald-900/30 transition-all duration-200 outline-none cursor-pointer">
-            {/* Notification dot */}
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black animate-pulse" />
-
-            <span className="text-sm font-medium text-white/90">Account</span>
-
-            {/* Avatar image */}
-            <div className="w-6 h-6 rounded-full overflow-hidden border border-white/20">
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
-                alt="User Avatar"
-                className="w-full h-full object-cover"
-              />
+          <div
+            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[360px] h-full bg-[#0E0F12] border-l border-white/10 flex flex-col drawer-slide-in shadow-2xl shadow-black/50"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* ── White Search Box at Top ── */}
+            <div className="px-4 pt-5 pb-2 shrink-0">
+              <div className="relative">
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white text-black text-sm font-medium placeholder:text-gray-400 outline-none border-0 shadow-sm"
+                />
+              </div>
             </div>
 
-            <FiChevronDown className="text-white/60 text-xs" />
-          </DropdownTrigger>
+            {/* ── Scrollable Menu Content ── */}
+            <div className="flex-1 overflow-y-auto px-4 pt-2 pb-4 space-y-1">
+              {/* Main Menu Items */}
+              {MENU_ITEMS.map(({ label, href, icon: Icon }) => {
+                const isActive = pathname === href || (href === "/" && pathname === "/");
+                return (
+                  <Link
+                    key={label}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm transition-all duration-150 ${
+                      isActive
+                        ? "bg-white/10 text-white font-bold"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <Icon className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-gray-500"}`} />
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
 
-          <DropdownPopover
-            placement="bottom end"
-            className="p-1 rounded-xl bg-[#111] border border-white/10 shadow-2xl min-w-50"
-          >
-            <DropdownMenu aria-label="Account Actions">
-              <DropdownItem className="px-3 py-2 border-b border-white/10 pointer-events-none">
-                <p className="font-semibold text-white text-sm">Moloy Paul</p>
-                <p className="text-xs text-white/40">moloy@fitora.dev</p>
-              </DropdownItem>
+              {/* Divider */}
+              <div className="h-px bg-white/10 my-3" />
 
-              <DropdownItem className="px-3 py-2 text-sm text-white/80 hover:text-white rounded-lg cursor-pointer">
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-2.5 w-full"
-                >
-                  <FiUser className="text-white/40" />
-                  <span>Profile</span>
-                </Link>
-              </DropdownItem>
+              {/* Collapsible Chat List */}
+              <button
+                onClick={() => setChatListOpen(!chatListOpen)}
+                className="flex items-center gap-2.5 text-xs font-semibold text-gray-500 hover:text-gray-300 px-4 py-2 w-full text-left transition-colors cursor-pointer"
+              >
+                <FiChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${chatListOpen ? "" : "-rotate-90"}`}
+                />
+                <span className="tracking-wide">Chat list</span>
+              </button>
 
-              <DropdownItem className="px-3 py-2 text-sm text-white/80 hover:text-white rounded-lg cursor-pointer">
-                <div className="flex items-center gap-2.5">
-                  <FiBell className="text-white/40" />
-                  <span>Notifications</span>
+              {chatListOpen && (
+                <div className="space-y-0.5">
+                  {CHAT_LIST.map(({ label, href, icon: ToolIcon }) => {
+                    const isActive = pathname === href;
+                    return (
+                      <Link
+                        key={label}
+                        href={href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm transition-all duration-150 ${
+                          isActive
+                            ? "bg-white/10 text-white font-semibold"
+                            : "text-gray-400 hover:text-white hover:bg-white/5"
+                        }`}
+                      >
+                        <ToolIcon className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-500"}`} />
+                        <span>{label}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
-              </DropdownItem>
+              )}
+            </div>
 
-              <DropdownItem className="px-3 py-2 text-sm text-white/80 hover:text-white rounded-lg cursor-pointer">
-                <div className="flex items-center gap-2.5">
-                  <FiSettings className="text-white/40" />
-                  <span>Settings</span>
-                </div>
-              </DropdownItem>
+            {/* ── Bottom: Profile + Upgrade ── */}
+            <div className="px-4 pb-6 space-y-3 shrink-0">
+              <div className="h-px bg-white/10" />
 
-              <DropdownItem className="px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg cursor-pointer border-t border-white/10 mt-1">
-                <div className="flex items-center gap-2.5">
-                  <FiLogOut />
-                  <span>Log Out</span>
+              {/* User Profile Row */}
+              <div className="flex items-center justify-between px-2 py-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-300 to-gray-600 flex items-center justify-center text-black font-black text-sm shrink-0">
+                    M
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white font-bold text-sm leading-tight truncate">Moloy Paul</p>
+                    <p className="text-[11px] text-gray-500 leading-tight truncate">moloy@fitora.dev</p>
+                  </div>
                 </div>
-              </DropdownItem>
-            </DropdownMenu>
-          </DropdownPopover>
-        </Dropdown>
-      </div>
-    </nav>
+                <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-white text-black shrink-0">
+                  PRO
+                </span>
+              </div>
+
+              {/* Upgraded to Pro — White Button */}
+              <Link
+                href="/plans"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-3 rounded-2xl bg-white text-black font-bold text-sm text-center flex items-center justify-center gap-2 hover:bg-gray-200 transition-all block shadow-sm"
+              >
+                <FiCheckCircle className="w-4 h-4" />
+                <span>Upgraded to Pro</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
