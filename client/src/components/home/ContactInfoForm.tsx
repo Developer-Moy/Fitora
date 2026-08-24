@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { FaFacebookF, FaInstagram, FaXTwitter, FaYoutube } from "react-icons/fa6";
-import { FiMapPin, FiClock, FiPhone, FiMail, FiSend, FiCheckCircle } from "react-icons/fi";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaXTwitter,
+  FaPinterestP,
+} from "react-icons/fa6";
+import { FiCheckCircle } from "react-icons/fi";
 
 export default function ContactInfoForm() {
   const [formData, setFormData] = useState({
@@ -25,230 +30,214 @@ export default function ContactInfoForm() {
   };
 
   return (
-    <section id="contact" className="w-full py-20 px-6 sm:px-10 lg:px-16 bg-black text-white border-t border-white/10 select-none">
+    <section
+      id="contact"
+      className="w-full py-16 sm:py-24 px-6 sm:px-10 lg:px-16 bg-white text-black select-none font-sans border-t border-gray-200"
+    >
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-        
-        {/* ── Left Column: Office Info & Mission ── */}
-        <div className="lg:col-span-6 space-y-8">
-          
-          {/* Main Headline */}
+        {/* ── Left Column: Office Info (Exact Match to Uploaded Image) ── */}
+        <div className="lg:col-span-6 space-y-8 lg:pr-6">
+          {/* Main Headline & Description */}
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold uppercase tracking-wider">
-              <FiSend className="w-3.5 h-3.5" />
-              <span>Contact Consultation</span>
-            </div>
-
-            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight leading-[1.1] text-white">
+            <h2 className="text-3xl sm:text-4xl xl:text-5xl font-black text-black tracking-tight leading-[1.15]">
               We are here for help you! To Shape Your Body.
             </h2>
 
-            <p className="text-gray-400 text-sm sm:text-base leading-relaxed max-w-lg">
-              At Fitora Gym Studio, our certified coaches and AI fitness systems are ready to help you reach your physical goals. Reach out today for a free consultation!
+            <p className="text-gray-600 text-sm sm:text-base leading-relaxed font-normal pt-2">
+              At Fitora, we are dedicated to helping athletes and fitness
+              enthusiasts across all 64 districts of Bangladesh achieve the body
+              of their dreams. Our expert trainers and AI engines create
+              personalized workout and nutrition plans.
             </p>
           </div>
 
-          {/* Info Details Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-            
-            {/* Address & Location */}
-            <div className="p-5 rounded-2xl bg-[#0E0F12] border border-white/10 space-y-2">
-              <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center">
-                <FiMapPin className="w-5 h-5" />
+          {/* 4 Details Sub-blocks (2x2 Grid) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-4">
+            {/* 1. Dhaka, Bangladesh (64 Districts) */}
+            <div className="space-y-2">
+              <h3 className="text-base sm:text-lg font-extrabold text-black tracking-wide">
+                Dhaka, Bangladesh
+              </h3>
+              {/* Black Accent Underline Bar */}
+              <div className="w-10 h-1 bg-black" />
+              <div className="text-xs sm:text-sm text-gray-600 leading-relaxed font-normal pt-1 space-y-0.5">
+                <p>Fitora Tower, Gulshan-2, Dhaka 1212</p>
+                <p className="font-semibold text-black/80">
+                  64 Branches in Bangladesh
+                </p>
               </div>
-              <h4 className="text-sm font-extrabold uppercase text-white tracking-wider">
-                Location
-              </h4>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Banashankari Stage II, Bengaluru, Karnataka 560070
-              </p>
             </div>
 
-            {/* Opening Hours */}
-            <div className="p-5 rounded-2xl bg-[#0E0F12] border border-white/10 space-y-2">
-              <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center">
-                <FiClock className="w-5 h-5" />
-              </div>
-              <h4 className="text-sm font-extrabold uppercase text-white tracking-wider">
+            {/* 2. Opening Hours */}
+            <div className="space-y-2">
+              <h3 className="text-base sm:text-lg font-extrabold text-black tracking-wide">
                 Opening Hours
-              </h4>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Mon to Fri: 7:30 AM &mdash; 1:00 AM
-              </p>
-            </div>
-
-            {/* Phone Number */}
-            <div className="p-5 rounded-2xl bg-[#0E0F12] border border-white/10 space-y-2">
-              <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center">
-                <FiPhone className="w-5 h-5" />
+              </h3>
+              {/* Black Accent Underline Bar */}
+              <div className="w-10 h-1 bg-black" />
+              <div className="text-xs sm:text-sm text-gray-600 leading-relaxed font-normal space-y-0.5 pt-1">
+                <p>Mon to Sat: 6:00 AM &mdash; 11:30 PM</p>
+                <p>24/7 AI Assistance Available</p>
               </div>
-              <h4 className="text-sm font-extrabold uppercase text-white tracking-wider">
-                Phone Number
-              </h4>
-              <p className="text-xs font-semibold text-white">
-                +91-999999-9999
-              </p>
             </div>
 
-            {/* Email Address */}
-            <div className="p-5 rounded-2xl bg-[#0E0F12] border border-white/10 space-y-2">
-              <div className="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center">
-                <FiMail className="w-5 h-5" />
+            {/* 3. Information */}
+            <div className="space-y-2">
+              <h3 className="text-base sm:text-lg font-extrabold text-black tracking-wide">
+                Information
+              </h3>
+              {/* Black Accent Underline Bar */}
+              <div className="w-10 h-1 bg-black" />
+              <div className="text-xs sm:text-sm text-gray-600 leading-relaxed font-normal space-y-0.5 pt-1">
+                <p>+880 1700-000000</p>
+                <p>support@fitora.com.bd</p>
               </div>
-              <h4 className="text-sm font-extrabold uppercase text-white tracking-wider">
-                Email Address
-              </h4>
-              <p className="text-xs text-gray-400">
-                fitflex@mymail.com
-              </p>
             </div>
 
-          </div>
-
-          {/* Social Links Bar */}
-          <div className="pt-2 space-y-3">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
-              Follow Us On Social Media
-            </p>
-            <div className="flex items-center gap-3">
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all"
-                aria-label="Facebook"
-              >
-                <FaFacebookF size={15} />
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all"
-                aria-label="Instagram"
-              >
-                <FaInstagram size={16} />
-              </a>
-              <a
-                href="https://x.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all"
-                aria-label="Twitter / X"
-              >
-                <FaXTwitter size={15} />
-              </a>
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all"
-                aria-label="YouTube"
-              >
-                <FaYoutube size={16} />
-              </a>
+            {/* 4. Follow Us On */}
+            <div className="space-y-2">
+              <h3 className="text-base sm:text-lg font-extrabold text-black tracking-wide">
+                Follow Us On
+              </h3>
+              {/* Black Accent Underline Bar (Replaces Red) */}
+              <div className="w-10 h-1 bg-black" />
+              <div className="flex items-center gap-3 pt-2">
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gray-100 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm"
+                  aria-label="Facebook"
+                >
+                  <FaFacebookF size={14} />
+                </a>
+                <a
+                  href="https://x.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gray-100 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm"
+                  aria-label="Twitter / X"
+                >
+                  <FaXTwitter size={14} />
+                </a>
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gray-100 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm"
+                  aria-label="Instagram"
+                >
+                  <FaInstagram size={15} />
+                </a>
+                <a
+                  href="https://pinterest.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gray-100 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm"
+                  aria-label="Pinterest"
+                >
+                  <FaPinterestP size={14} />
+                </a>
+              </div>
             </div>
           </div>
-
         </div>
 
-        {/* ── Right Column: Clean White Consultation Form Box ── */}
-        <div className="lg:col-span-6 bg-white text-black p-8 sm:p-10 rounded-3xl shadow-2xl space-y-6">
-          
-          <div className="space-y-2 border-b border-gray-200 pb-4">
-            <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-wider text-black">
+        {/* ── Right Column: Form Box (Exact Match to Uploaded Image in Light Gray Container) ── */}
+        <div className="lg:col-span-6 bg-[#F4F4F4] p-8 sm:p-12 rounded-none shadow-sm space-y-6">
+          <div className="space-y-2">
+            <h3 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
               Leave Us Your Info
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600 font-medium">
-              Fill out the form below to book your free trainer consultation.
-            </p>
+            {/* Black Accent Underline Bar (Replaces Red) */}
+            <div className="w-10 h-1 bg-black" />
           </div>
 
           {submitted ? (
-            <div className="p-6 rounded-2xl bg-black text-white text-center space-y-3 animate-in fade-in duration-300">
-              <FiCheckCircle className="w-10 h-10 text-white mx-auto" />
-              <h4 className="font-extrabold text-lg uppercase">Submission Received!</h4>
-              <p className="text-xs text-gray-300">
-                Thank you, {formData.fullName}. Our head coach will contact you at {formData.email} shortly.
+            <div className="p-6 bg-white text-black text-center space-y-3 border border-gray-300">
+              <FiCheckCircle className="w-10 h-10 text-black mx-auto" />
+              <h4 className="font-extrabold text-lg uppercase">
+                Submission Received!
+              </h4>
+              <p className="text-xs text-gray-600">
+                Thank you, {formData.fullName}. Our trainer will contact you
+                shortly.
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Full Name Input */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-extrabold uppercase text-gray-800 tracking-wider">
-                  Full Name <span className="text-red-600">*</span>
-                </label>
+              <div>
                 <input
                   type="text"
                   required
                   value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  placeholder="John Doe"
-                  className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-300 text-black text-sm outline-none focus:border-black transition-colors font-medium"
+                  onChange={(e) =>
+                    setFormData({ ...formData, fullName: e.target.value })
+                  }
+                  placeholder="Full Name *"
+                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium placeholder-gray-400"
                 />
               </div>
 
               {/* Email Address Input */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-extrabold uppercase text-gray-800 tracking-wider">
-                  Email Address <span className="text-red-600">*</span>
-                </label>
+              <div>
                 <input
                   type="email"
                   required
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="john@example.com"
-                  className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-300 text-black text-sm outline-none focus:border-black transition-colors font-medium"
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  placeholder="Email Address *"
+                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium placeholder-gray-400"
                 />
               </div>
 
               {/* Select Class Dropdown */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-extrabold uppercase text-gray-800 tracking-wider">
-                  Select Class / Training Goal
-                </label>
+              <div>
                 <select
                   value={formData.selectedClass}
-                  onChange={(e) => setFormData({ ...formData, selectedClass: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-300 text-black text-sm outline-none focus:border-black transition-colors font-medium cursor-pointer"
+                  onChange={(e) =>
+                    setFormData({ ...formData, selectedClass: e.target.value })
+                  }
+                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium text-gray-600 cursor-pointer"
                 >
-                  <option value="">Select your training goal...</option>
-                  <option value="bodybuilding">Hypertrophy & Bodybuilding</option>
+                  <option value="">Select Class</option>
+                  <option value="bodybuilding">
+                    Hypertrophy & Bodybuilding
+                  </option>
                   <option value="weightloss">Weight Loss & Fat Burn</option>
-                  <option value="ai-coaching">AI Personal Coaching</option>
-                  <option value="yoga">Yoga & Mobility Recovery</option>
+                  <option value="fitness">Personal Fitness Training</option>
+                  <option value="yoga">Yoga & Mobility</option>
                 </select>
               </div>
 
               {/* Comment Textarea */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-extrabold uppercase text-gray-800 tracking-wider">
-                  Comment / Message
-                </label>
+              <div>
                 <textarea
-                  rows={4}
+                  rows={5}
                   value={formData.comment}
-                  onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                  placeholder="Tell us about your fitness targets..."
-                  className="w-full px-4 py-3 rounded-xl bg-gray-100 border border-gray-300 text-black text-sm outline-none focus:border-black transition-colors font-medium resize-none"
+                  onChange={(e) =>
+                    setFormData({ ...formData, comment: e.target.value })
+                  }
+                  placeholder="Comment"
+                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium placeholder-gray-400 resize-none"
                 />
               </div>
 
-              {/* Pure White / Dark High Contrast SUBMIT NOW Button */}
-              <button
-                type="submit"
-                className="w-full py-4 rounded-xl bg-black hover:bg-gray-900 text-white font-black text-sm uppercase tracking-widest transition-all shadow-lg active:scale-95 cursor-pointer block text-center"
-              >
-                SUBMIT NOW
-              </button>
-
+              {/* SUBMIT NOW Button (Black / High Contrast as requested by user replacing Red) */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="px-8 py-3.5 bg-black hover:bg-gray-800 text-white font-extrabold text-xs uppercase tracking-widest transition-all cursor-pointer shadow-md block"
+                >
+                  SUBMIT NOW
+                </button>
+              </div>
             </form>
           )}
-
         </div>
-
       </div>
     </section>
   );

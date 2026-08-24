@@ -19,7 +19,7 @@ export default function Footer() {
       {/* ── Main Hero Footer Section (Compact Height + Dedicated Gym Image) ── */}
       <div className="relative py-10 sm:py-14 px-6 sm:px-10 lg:px-14 overflow-hidden">
         
-        {/* High Visibility Gym Background Image (Using image1.jpg.jpeg, NOT hero image) */}
+        {/* High Visibility Gym Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-[0.7] contrast-110 z-0 transition-all duration-300"
           style={{
@@ -55,15 +55,18 @@ export default function Footer() {
             <div className="lg:col-span-6 space-y-5 lg:pl-10 text-left lg:text-right flex flex-col lg:items-end justify-end">
               
               <p className="text-xs sm:text-sm text-gray-300 max-w-md font-medium leading-relaxed">
-                Achieve your peak physical potential with real-time workout tracking, AI coaching, and personalized nutrition plans. Master your strength today.
+                Bangladesh's premier AI fitness platform. Serving fitness enthusiasts across all 64 districts with real-time workout tracking, AI coaching, and custom nutrition.
               </p>
 
-              <div className="space-y-1">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+              <div className="space-y-0.5">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                   Where are we?
                 </p>
-                <p className="text-xs sm:text-sm font-semibold text-white max-w-xs">
-                  Banashankari Stage II, Bengaluru, Karnataka 560070
+                <p className="text-xs sm:text-sm font-semibold text-white">
+                  Fitora Tower, Gulshan-2, Dhaka 1212
+                </p>
+                <p className="text-xs sm:text-sm font-semibold text-white/80">
+                  64 Branches in Bangladesh
                 </p>
               </div>
 
@@ -161,7 +164,7 @@ export default function Footer() {
             <Link href="/terms" className="hover:text-white transition-colors">
               Terms of Use
             </Link>
-            <span>Designed by Developer-Moy</span>
+            <span>Design and Developed by DeveloperMoy</span>
           </div>
 
           {/* Right Side: FITORA Logo + Name */}
