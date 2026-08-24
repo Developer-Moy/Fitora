@@ -1,27 +1,36 @@
 "use client";
 
 import WhyChooseUs from "@/components/home/WhyChooseUs";
+import MealChartSection from "@/components/home/MealChartSection";
+import TrainersSection from "@/components/home/TrainersSection";
+import Advertisement from "@/sections/Advertisement";
+import ContactInfoForm from "@/components/home/ContactInfoForm";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HOMEPAGE — /
-// Layout: Full-width sections stacked vertically (no side-by-side grid layout)
-//
-// SECTION MAP:
-// 1. HeroSection        → Alfaaz Ahmed
-// 2. AiTrainerSection   → Moloy Paul
-// 3. GymTimerSection    → Puskor Roy
-// 4. CalculatorSection  → Simanto Paul
-// 5. MealChartSection   → Simanto Poddar
+// FITORA HOME PAGE — /
+// Assembled Team Sections:
+// - Simanto Poddar: MealChartSection, TrainersSection, Advertisement
+// - Developer-Moy: ContactInfoForm
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#0b0c0e] text-white">
+    <main className="min-h-screen bg-black text-white">
 
       {/* Section 4: Why choose section — Simanto Paul */}
       <WhyChooseUs />
+      {/* Simanto Poddar Task: Premium Meal Chart Section */}
+      <MealChartSection />
+
+      {/* Simanto Poddar Task: Coaches & Trainers Section */}
+      <TrainersSection />
+
+      {/* Simanto Poddar Task: Fitness Product Advertisement */}
+      <Advertisement />
+
+      {/* Developer-Moy Task: Consultation Contact Form */}
+      <ContactInfoForm />
 
     </main>
   );
 }
-

@@ -66,3 +66,8 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 
 * Add an interactive Water Hydration progress ring widget on the Nutrition Dashboard  (client\src\app\dashboard\user\nutrition\page.tsx)
 * Replace temp userId with authenticated session userId (client\src\components\MealChartCard.tsx)
+* Add advertisement schema and API route
+
+## 24-Aug-26
+
+* Build Coaches Mentor Banner & 6-Trainer Certification Photo Grid

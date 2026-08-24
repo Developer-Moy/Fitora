@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FiSend, FiCpu, FiUserCheck, FiZap, FiActivity, FiMessageSquare, FiTrendingUp } from "react-icons/fi";
+import { FiSend, FiCpu, FiZap, FiMessageSquare, FiTrendingUp } from "react-icons/fi";
 
 export interface ChatMessage {
   id: string;
@@ -72,12 +72,11 @@ const INITIAL_AI_TRAINER_MESSAGES: ChatMessage[] = [
   {
     id: "t4",
     sender: "system",
-    text: "🔥 System Alert: Targeted protein recommendation is 160g daily based on your active goals.",
+    text: "⚡ System Alert: Targeted protein recommendation is 160g daily based on your active goals.",
     timestamp: "10:05 AM",
   },
 ];
 
-// Helper to call backend API with fallback mock response
 async function fetchAiChatResponse(promptText: string, mode: "chat" | "trainer"): Promise<string> {
   try {
     const res = await fetch("http://localhost:5000/api/ai/chat", {
@@ -93,10 +92,9 @@ async function fetchAiChatResponse(promptText: string, mode: "chat" | "trainer")
       }
     }
   } catch (_error) {
-    // Silent catch, fallback to dynamic mock response below
+    // Silent fallback
   }
 
-  // Dynamic fallback responses based on prompt keyword matching
   const lower = promptText.toLowerCase();
   if (mode === "chat") {
     if (lower.includes("sleep") || lower.includes("recovery")) {
@@ -126,13 +124,11 @@ async function fetchAiChatResponse(promptText: string, mode: "chat" | "trainer")
 export default function AiTrainerSection() {
   const [activeTab, setActiveTab] = useState<"all" | "chat" | "trainer">("all");
 
-  // AI Chat Widget state
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_AI_CHAT_MESSAGES);
   const [chatInput, setChatInput] = useState("");
   const [isChatTyping, setIsChatTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // AI Trainer Widget state
   const [trainerMessages, setTrainerMessages] = useState<ChatMessage[]>(INITIAL_AI_TRAINER_MESSAGES);
   const [trainerInput, setTrainerInput] = useState("");
   const [isTrainerTyping, setIsTrainerTyping] = useState(false);
@@ -207,20 +203,20 @@ export default function AiTrainerSection() {
   };
 
   return (
-    <section id="ai-trainer" className="w-full py-20 px-4 sm:px-6 md:px-10 bg-[#0b0c0e] border-t border-white/[0.06]">
+    <section id="ai-trainer" className="w-full py-20 px-4 sm:px-6 md:px-10 bg-black border-t border-white/10">
       <div className="max-w-7xl mx-auto space-y-10">
         
         {/* Section Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
-            <FiCpu className="w-3.5 h-3.5 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold uppercase tracking-wider">
+            <FiCpu className="w-3.5 h-3.5 animate-pulse text-white" />
             <span>Your AI Fitness Coach</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
             Intelligent Fitness & Workout Studio
           </h2>
-          <p className="text-white/60 text-base sm:text-lg max-w-2xl mx-auto">
+          <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto">
             Get instant, personalized workout routines, nutrition macro targets, and recovery advice powered by Fitora AI.
           </p>
 
@@ -230,8 +226,8 @@ export default function AiTrainerSection() {
               onClick={() => setActiveTab("all")}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
                 activeTab === "all"
-                  ? "bg-white/10 text-white border border-white/20 shadow-md"
-                  : "text-white/50 hover:text-white hover:bg-white/[0.04]"
+                  ? "bg-white text-black font-extrabold shadow-md"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
             >
               Side-by-Side View
@@ -240,8 +236,8 @@ export default function AiTrainerSection() {
               onClick={() => setActiveTab("chat")}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
                 activeTab === "chat"
-                  ? "bg-emerald-600 text-white border border-emerald-500 shadow-lg shadow-emerald-950/40"
-                  : "text-white/50 hover:text-white hover:bg-white/[0.04]"
+                  ? "bg-white text-black font-extrabold shadow-md"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
             >
               <FiMessageSquare size={14} />
@@ -251,8 +247,8 @@ export default function AiTrainerSection() {
               onClick={() => setActiveTab("trainer")}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
                 activeTab === "trainer"
-                  ? "bg-red-600 text-white border border-red-500 shadow-lg shadow-red-950/40"
-                  : "text-white/50 hover:text-white hover:bg-white/[0.04]"
+                  ? "bg-white text-black font-extrabold shadow-md"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
               }`}
             >
               <FiZap size={14} />
@@ -261,7 +257,7 @@ export default function AiTrainerSection() {
           </div>
         </div>
 
-        {/* Dual Chat Widgets Container */}
+        {/* Dual Chat Widgets Container (Pure Black & White) */}
         <div
           className={`grid gap-8 ${
             activeTab === "all"
@@ -270,43 +266,40 @@ export default function AiTrainerSection() {
           }`}
         >
           
-          {/* ════════════════════════════════════════════════════════════════
-              WIDGET 1: AI Chat Assistant (General Fitness & Q&A)
-             ════════════════════════════════════════════════════════════════ */}
+          {/* WIDGET 1: AI Chat Assistant */}
           {(activeTab === "all" || activeTab === "chat") && (
-            <div className="bg-[#141416] border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col justify-between h-[540px] shadow-2xl relative overflow-hidden backdrop-blur-xl group hover:border-emerald-500/30 transition-all duration-300">
-              
+            <div className="bg-[#0E0F12] border border-white/15 rounded-3xl p-5 sm:p-6 flex flex-col justify-between h-[540px] shadow-2xl relative overflow-hidden backdrop-blur-xl group hover:border-white/30 transition-all duration-300">
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between pb-4 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
                     <FiMessageSquare size={20} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-white text-base">AI Fitness Assistant</h3>
-                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-semibold">
+                      <span className="px-2 py-0.5 rounded bg-white text-black text-[10px] font-extrabold">
                         General Q&A
                       </span>
                     </div>
-                    <p className="text-xs text-white/40">Recovery, sleep, hydration & wellness</p>
+                    <p className="text-xs text-gray-400">Recovery, sleep, hydration & wellness</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <div className="flex items-center gap-1.5 text-xs text-white bg-white/10 px-2.5 py-1 rounded-full border border-white/20">
+                  <span className="w-2 h-2 rounded-full bg-white animate-ping" />
                   <span>Online</span>
                 </div>
               </div>
 
               {/* Quick Prompt Chips */}
               <div className="py-2 flex items-center gap-2 overflow-x-auto scrollbar-none">
-                <span className="text-[11px] text-white/40 shrink-0 font-medium">Try:</span>
+                <span className="text-[11px] text-gray-400 shrink-0 font-medium">Try:</span>
                 {AI_CHAT_PROMPTS.map((prompt, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSendChat(prompt)}
-                    className="shrink-0 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-emerald-500/20 border border-white/[0.08] hover:border-emerald-500/30 text-white/70 hover:text-emerald-300 text-xs transition-all duration-200"
+                    className="shrink-0 px-3 py-1 rounded-full bg-white/5 hover:bg-white text-gray-300 hover:text-black border border-white/10 text-xs transition-all duration-200"
                   >
                     {prompt}
                   </button>
@@ -319,9 +312,9 @@ export default function AiTrainerSection() {
                   <div key={msg.id} className="space-y-1">
                     {msg.sender === "user" ? (
                       <div className="flex justify-end">
-                        <div className="bg-emerald-600 text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[85%] leading-relaxed shadow-md shadow-emerald-950/30">
+                        <div className="bg-white text-black font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[85%] leading-relaxed shadow-md">
                           {msg.text}
-                          <div className="text-[10px] text-emerald-200/60 text-right mt-1 font-normal">
+                          <div className="text-[10px] text-gray-600 text-right mt-1 font-normal">
                             {msg.timestamp}
                           </div>
                         </div>
@@ -331,11 +324,11 @@ export default function AiTrainerSection() {
                         <img
                           src={msg.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"}
                           alt="AI Avatar"
-                          className="w-7 h-7 rounded-full object-cover border border-emerald-400/50 mt-1 shrink-0"
+                          className="w-7 h-7 rounded-full object-cover border border-white/30 mt-1 shrink-0"
                         />
-                        <div className="bg-white/[0.06] border border-white/[0.08] text-white/90 text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl rounded-tl-none max-w-[85%] leading-relaxed shadow-md">
+                        <div className="bg-white/10 border border-white/10 text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl rounded-tl-none max-w-[85%] leading-relaxed shadow-md">
                           {msg.text}
-                          <div className="text-[10px] text-white/40 mt-1 font-normal">
+                          <div className="text-[10px] text-gray-400 mt-1 font-normal">
                             {msg.timestamp}
                           </div>
                         </div>
@@ -346,11 +339,11 @@ export default function AiTrainerSection() {
 
                 {isChatTyping && (
                   <div className="flex items-center gap-2">
-                    <div className="bg-emerald-950/40 border border-emerald-800/30 px-3.5 py-2 rounded-xl text-xs text-emerald-400 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" />
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce [animation-delay:0.4s]" />
-                      <span className="text-[11px] text-emerald-300 ml-1">AI Assistant is thinking...</span>
+                    <div className="bg-white/10 border border-white/20 px-3.5 py-2 rounded-xl text-xs text-white flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.4s]" />
+                      <span className="text-[11px] text-gray-300 ml-1">AI Assistant is thinking...</span>
                     </div>
                   </div>
                 )}
@@ -363,19 +356,19 @@ export default function AiTrainerSection() {
                   e.preventDefault();
                   handleSendChat();
                 }}
-                className="pt-3 border-t border-white/[0.06] flex items-center gap-2"
+                className="pt-3 border-t border-white/10 flex items-center gap-2"
               >
                 <input
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Ask any general fitness question..."
-                  className="flex-1 bg-white/[0.04] border border-white/[0.08] focus:border-emerald-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none transition-all duration-200"
+                  className="flex-1 bg-white/5 border border-white/10 focus:border-white rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none transition-all duration-200"
                 />
                 <button
                   type="submit"
                   disabled={!chatInput.trim()}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white flex items-center gap-2 text-sm font-semibold transition-all duration-200 shadow-lg shadow-emerald-950/40"
+                  className="px-4 py-2.5 rounded-xl bg-white text-black font-extrabold disabled:opacity-40 flex items-center gap-2 text-sm transition-all duration-200 shadow-md"
                 >
                   <FiSend size={15} />
                 </button>
@@ -383,30 +376,27 @@ export default function AiTrainerSection() {
             </div>
           )}
 
-          {/* ════════════════════════════════════════════════════════════════
-              WIDGET 2: AI Trainer Specialist (Workouts & Nutrition)
-             ════════════════════════════════════════════════════════════════ */}
+          {/* WIDGET 2: AI Workout Specialist */}
           {(activeTab === "all" || activeTab === "trainer") && (
-            <div className="bg-[#141416] border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col justify-between h-[540px] shadow-2xl relative overflow-hidden backdrop-blur-xl group hover:border-red-500/30 transition-all duration-300">
-              
+            <div className="bg-[#0E0F12] border border-white/15 rounded-3xl p-5 sm:p-6 flex flex-col justify-between h-[540px] shadow-2xl relative overflow-hidden backdrop-blur-xl group hover:border-white/30 transition-all duration-300">
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+              <div className="flex items-center justify-between pb-4 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white">
                     <FiZap size={20} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-white text-base">AI Workout & Macro Specialist</h3>
-                      <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 text-[10px] font-semibold">
+                      <span className="px-2 py-0.5 rounded bg-white text-black text-[10px] font-extrabold">
                         Coach Mode
                       </span>
                     </div>
-                    <p className="text-xs text-white/40">Exercise routines, sets, reps & meal plans</p>
+                    <p className="text-xs text-gray-400">Exercise routines, sets, reps & meal plans</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 text-xs text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20 font-semibold">
+                <div className="flex items-center gap-1 text-xs text-white bg-white/10 px-2.5 py-1 rounded-full border border-white/20 font-bold">
                   <FiTrendingUp size={13} />
                   <span>PRO AI</span>
                 </div>
@@ -414,12 +404,12 @@ export default function AiTrainerSection() {
 
               {/* Quick Prompt Chips */}
               <div className="py-2 flex items-center gap-2 overflow-x-auto scrollbar-none">
-                <span className="text-[11px] text-white/40 shrink-0 font-medium">Try:</span>
+                <span className="text-[11px] text-gray-400 shrink-0 font-medium">Try:</span>
                 {AI_TRAINER_PROMPTS.map((prompt, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSendTrainer(prompt)}
-                    className="shrink-0 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-red-500/20 border border-white/[0.08] hover:border-red-500/30 text-white/70 hover:text-red-300 text-xs transition-all duration-200"
+                    className="shrink-0 px-3 py-1 rounded-full bg-white/5 hover:bg-white text-gray-300 hover:text-black border border-white/10 text-xs transition-all duration-200"
                   >
                     {prompt}
                   </button>
@@ -432,16 +422,16 @@ export default function AiTrainerSection() {
                   <div key={msg.id} className="space-y-1">
                     {msg.sender === "user" ? (
                       <div className="flex justify-end">
-                        <div className="bg-red-600 text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[85%] leading-relaxed shadow-md shadow-red-950/30">
+                        <div className="bg-white text-black font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[85%] leading-relaxed shadow-md">
                           {msg.text}
-                          <div className="text-[10px] text-red-200/60 text-right mt-1 font-normal">
+                          <div className="text-[10px] text-gray-600 text-right mt-1 font-normal">
                             {msg.timestamp}
                           </div>
                         </div>
                       </div>
                     ) : msg.sender === "system" ? (
                       <div className="flex justify-center my-1">
-                        <div className="bg-red-950/60 border border-red-800/40 text-red-200 text-xs font-medium px-3.5 py-2 rounded-xl text-center max-w-[90%] shadow-md">
+                        <div className="bg-white/10 border border-white/20 text-white text-xs font-semibold px-3.5 py-2 rounded-xl text-center max-w-[90%] shadow-md">
                           {msg.text}
                         </div>
                       </div>
@@ -450,11 +440,11 @@ export default function AiTrainerSection() {
                         <img
                           src={msg.avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80"}
                           alt="AI Coach Avatar"
-                          className="w-7 h-7 rounded-full object-cover border border-red-400/50 mt-1 shrink-0"
+                          className="w-7 h-7 rounded-full object-cover border border-white/30 mt-1 shrink-0"
                         />
-                        <div className="bg-white/[0.06] border border-white/[0.08] text-white/90 text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl rounded-tl-none max-w-[85%] leading-relaxed shadow-md">
+                        <div className="bg-white/10 border border-white/10 text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl rounded-tl-none max-w-[85%] leading-relaxed shadow-md">
                           {msg.text}
-                          <div className="text-[10px] text-white/40 mt-1 font-normal">
+                          <div className="text-[10px] text-gray-400 mt-1 font-normal">
                             {msg.timestamp}
                           </div>
                         </div>
@@ -465,11 +455,11 @@ export default function AiTrainerSection() {
 
                 {isTrainerTyping && (
                   <div className="flex items-center gap-2">
-                    <div className="bg-red-950/40 border border-red-800/30 px-3.5 py-2 rounded-xl text-xs text-red-400 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce" />
-                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                      <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce [animation-delay:0.4s]" />
-                      <span className="text-[11px] text-red-300 ml-1">AI Coach is designing routine...</span>
+                    <div className="bg-white/10 border border-white/20 px-3.5 py-2 rounded-xl text-xs text-white flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.4s]" />
+                      <span className="text-[11px] text-gray-300 ml-1">AI Coach is designing routine...</span>
                     </div>
                   </div>
                 )}
@@ -482,19 +472,19 @@ export default function AiTrainerSection() {
                   e.preventDefault();
                   handleSendTrainer();
                 }}
-                className="pt-3 border-t border-white/[0.06] flex items-center gap-2"
+                className="pt-3 border-t border-white/10 flex items-center gap-2"
               >
                 <input
                   type="text"
                   value={trainerInput}
                   onChange={(e) => setTrainerInput(e.target.value)}
                   placeholder="Ask for workout routines or macro plans..."
-                  className="flex-1 bg-white/[0.04] border border-white/[0.08] focus:border-red-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none transition-all duration-200"
+                  className="flex-1 bg-white/5 border border-white/10 focus:border-white rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none transition-all duration-200"
                 />
                 <button
                   type="submit"
                   disabled={!trainerInput.trim()}
-                  className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white flex items-center gap-2 text-sm font-semibold transition-all duration-200 shadow-lg shadow-red-950/40"
+                  className="px-4 py-2.5 rounded-xl bg-white text-black font-extrabold disabled:opacity-40 flex items-center gap-2 text-sm transition-all duration-200 shadow-md"
                 >
                   <FiSend size={15} />
                 </button>
