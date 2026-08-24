@@ -1,5 +1,6 @@
 "use client";
 
+import HeroSection from "@/components/home/HeroSection";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
 import MealChartSection from "@/components/home/MealChartSection";
 import TrainersSection from "@/components/home/TrainersSection";
@@ -9,6 +10,7 @@ import ContactInfoForm from "@/components/home/ContactInfoForm";
 // ─────────────────────────────────────────────────────────────────────────────
 // FITORA HOME PAGE — /
 // Assembled Team Sections:
+// - Alfaaz Ahmed: HeroSection
 // - Simanto Paul: WhyChooseUs
 // - Simanto Poddar: MealChartSection, TrainersSection, Advertisement
 // - Developer-Moy: ContactInfoForm
@@ -17,6 +19,9 @@ import ContactInfoForm from "@/components/home/ContactInfoForm";
 export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white">
+
+      {/* Alfaaz Ahmed Task: Hero Section */}
+      <HeroSection />
 
       {/* Simanto Paul Task: Why Choose Us Section */}
       <WhyChooseUs />
