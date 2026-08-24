@@ -2,7 +2,7 @@ import Image from "next/image";
 
 const trainers = [
   {
-    src: "/Trainers&CoachesImg/Trainer1.png",
+    src: "/image4.jpg.jpeg",
     alt: "Alex Carter",
     name: "Alex Carter",
     mobileOrder: "order-2",
@@ -11,7 +11,7 @@ const trainers = [
     desktopSpan: "md:col-span-1",
   },
   {
-    src: "/Trainers&CoachesImg/Trainer2.png",
+    src: "/image5.jpg.jpeg",
     alt: "Ryan Mitchell",
     name: "Ryan Mitchell",
     mobileOrder: "order-1",
@@ -20,7 +20,7 @@ const trainers = [
     desktopSpan: "md:col-span-2",
   },
   {
-    src: "/Trainers&CoachesImg/Trainer3.png",
+    src: "/image6.jpg.jpeg",
     alt: "Daniel Brooks",
     name: "Daniel Brooks",
     mobileOrder: "order-3",
@@ -29,7 +29,7 @@ const trainers = [
     desktopSpan: "md:col-span-1",
   },
   {
-    src: "/Trainers&CoachesImg/Trainer4.png",
+    src: "/image7.jpg.jpeg",
     alt: "Ethan Parker",
     name: "Ethan Parker",
     mobileOrder: "order-4",
@@ -38,7 +38,7 @@ const trainers = [
     desktopSpan: "md:col-span-2",
   },
   {
-    src: "/Trainers&CoachesImg/Trainer5.png",
+    src: "/image8.jpg.jpeg",
     alt: "Michael Reed",
     name: "Michael Reed",
     mobileOrder: "order-5",
@@ -47,7 +47,7 @@ const trainers = [
     desktopSpan: "md:col-span-1",
   },
   {
-    src: "/Trainers&CoachesImg/Trainer6.png",
+    src: "/image9.jpg.jpeg",
     alt: "James Wilson",
     name: "James Wilson",
     mobileOrder: "order-6",
