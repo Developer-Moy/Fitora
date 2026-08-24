@@ -3,12 +3,12 @@ import Image from "next/image";
 const coachesData = {
     images: [
         {
-            src: "/Trainers&CoachesImg/Coache1.png",
+            src: "/Trainers&CoachesImg/Coache1.jpg",
             alt: "Fitness coach",
             className: "w-[38%]",
         },
         {
-            src: "/Trainers&CoachesImg/Coache2.png",
+            src: "/Trainers&CoachesImg/Coache2.jpg",
             alt: "Personal training coach",
             className: "flex-1",
         },
@@ -22,7 +22,7 @@ const coachesData = {
 const CoachesSection = () => {
     return (
         <section className="w-full bg-white py-12 md:py-16 lg:py-20">
-            <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 px-5 md:px-8 lg:flex-row lg:gap-16">
+            <div className="mx-auto flex max-w-7xl flex-col items-center gap-10 px-5 md:px-8 lg:flex-row lg:gap-16">
                 {/* Images */}
                 <div className="flex w-full items-center gap-3 sm:gap-4 lg:w-1/2">
                     {coachesData.images.map((image) => (
