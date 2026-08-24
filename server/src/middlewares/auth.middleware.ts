@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   user?: {
     userId: string;
     role: "user" | "admin";
@@ -12,6 +12,7 @@ interface JwtPayload {
   userId: string;
   role: "user" | "admin";
 }
+
 export const authMiddleware = (
   req: AuthRequest,
   res: Response,
@@ -20,12 +21,13 @@ export const authMiddleware = (
   try {
     const authHeader = req.headers.authorization;
 
-    if(!authHeader) {
+    if (!authHeader) {
       return res.status(401).json({
         success: false,
         message: "Authorization token is required",
       });
     }
+
     const [schema, token] = authHeader.split(" ");
 
     if (schema !== "Bearer" || !token) {
@@ -34,6 +36,7 @@ export const authMiddleware = (
         message: "Invalid authorization format",
       });
     }
+
     const jwtSecret = process.env.JWT_SECRET;
 
     if (!jwtSecret) {
@@ -42,6 +45,7 @@ export const authMiddleware = (
         message: "JWT secret is not configured",
       });
     }
+
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
 
     req.user = {
@@ -56,5 +60,4 @@ export const authMiddleware = (
       message: "Invalid or expired token",
     });
   }
-  
 };

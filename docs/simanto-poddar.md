@@ -54,5 +54,15 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 
 ## 19-Aug-26
 
-*Build User Registration page.
-*Build Premium Meal Chart section (homepage).
+* Build User Registration page.
+* Build Premium Meal Chart section (homepage).
+
+## 20-Aug-26
+
+* Update Nutrition page UI
+* Build Advertisement section (homepage)
+
+## 23-Aug-26
+
+* Add an interactive Water Hydration progress ring widget on the Nutrition Dashboard  (client\src\app\dashboard\user\nutrition\page.tsx)
+* Replace temp userId with authenticated session userId (client\src\components\MealChartCard.tsx)

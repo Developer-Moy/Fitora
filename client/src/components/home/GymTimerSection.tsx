@@ -12,8 +12,8 @@ export default function GymTimerSection() {
       {/* TODO: Puskor Roy — Build gym timer preview section */}
       {/* Show a preview of the GymTimer with a "Open Full Timer" CTA linking to /stopwatch */}
       {/* Add a workout stats strip below (e.g., workouts this week, calories burned) */}
-      <div className="w-full min-h-[400px] rounded-2xl border border-dashed border-red-500/20 flex items-center justify-center">
-      <StopwatchPage/>
+      <div className="w-full min-h-[400px] rounded-2xl  flex items-center justify-center">
+      <StopwatchPage showSetHistory={false} />
       </div>
     </section>
   );
