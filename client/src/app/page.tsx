@@ -1,5 +1,6 @@
 "use client";
 
+import WhyChooseUs from "@/components/home/WhyChooseUs";
 import MealChartSection from "@/components/home/MealChartSection";
 import TrainersSection from "@/components/home/TrainersSection";
 import Advertisement from "@/sections/Advertisement";
@@ -16,6 +17,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white">
 
+      {/* Section 4: Why choose section — Simanto Paul */}
+      <WhyChooseUs />
       {/* Simanto Poddar Task: Premium Meal Chart Section */}
       <MealChartSection />
 
