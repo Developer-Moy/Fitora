@@ -2,6 +2,11 @@ import { Router, Request, Response } from "express";
 import mongoose from "mongoose";
 import workoutRoutes from "./workout.routes";
 import aiRoutes from "./ai.routes";
+import authRoutes from "./auth.routes";
+import goalRoutes from "./goal.routes";
+import mealChartRoutes from "./mealChart.routes";
+import bmiRoutes from "./bmi.routes";
+import adRoutes from "./ad.routes";
 
 const apiRouter = Router();
 
@@ -21,7 +26,13 @@ apiRouter.get("/health", (req: Request, res: Response) => {
   });
 });
 
+// Mounted Central API Routes
 apiRouter.use("/workouts", workoutRoutes);
 apiRouter.use("/ai", aiRoutes);
+apiRouter.use("/auth", authRoutes);
+apiRouter.use("/goals", goalRoutes);
+apiRouter.use("/meal-charts", mealChartRoutes);
+apiRouter.use("/bmi", bmiRoutes);
+apiRouter.use("/ads", adRoutes);
 
 export default apiRouter;

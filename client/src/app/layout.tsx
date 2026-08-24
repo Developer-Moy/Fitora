@@ -59,7 +59,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-black text-white antialiased min-h-screen flex flex-col justify-between`}>
+      <body
+        className={`${inter.className} bg-black text-white antialiased min-h-screen flex flex-col justify-between overflow-x-hidden`}
+      >
         <Providers>
           <Navbar />
           <div className="pt-14 flex-1">{children}</div>

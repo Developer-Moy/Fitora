@@ -1,5 +1,29 @@
 "use client";
-import { Award, Dumbbell, Calendar, CheckCircle2, Flame, Mail, Scale, Target, Trophy, TrendingDown, User, } from "lucide-react";
+
+import { useState } from "react";
+import {
+  Award,
+  Dumbbell,
+  Calendar,
+  CheckCircle2,
+  Flame,
+  Mail,
+  Scale,
+  Target,
+  Trophy,
+  TrendingDown,
+  User,
+  X,
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 import WorkoutHistory from "@/components/profile/WorkoutHistory";
 
 const achievements = [
@@ -251,7 +275,7 @@ export default function ProfilePage() {
                       color: "#fff",
                     }}
                     labelStyle={{ color: "#94a3b8" }}
-                    formatter={(value) => [`${value} KG`, "Weight"]}
+                    formatter={(value: any) => [`${value} KG`, "Weight"]}
                   />
                   <Line
                     type="monotone"
@@ -310,7 +334,7 @@ export default function ProfilePage() {
                       color: "#fff",
                     }}
                     labelStyle={{ color: "#94a3b8" }}
-                    formatter={(value) => [`${value} days`, "Streak"]}
+                    formatter={(value: any) => [`${value} days`, "Streak"]}
                   />
                   <Line
                     type="monotone"
@@ -434,10 +458,10 @@ export default function ProfilePage() {
           </section>
         </div>
 
-         {/* Workout History (from /api/workouts/log) */}
-         <WorkoutHistory />
+        {/* Workout History (from /api/workouts/log) */}
+        <WorkoutHistory />
 
-          {/* Goal History */}
+        {/* Goal History */}
         <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
           <div className="mb-8">
             <h2 className="text-xl font-bold">Goal History</h2>
@@ -550,8 +574,8 @@ export default function ProfilePage() {
                 >
                   {[1, 2, 3, 4, 5, 6, 7].map((frequency) => (
                     <option key={frequency} value={frequency}>
-                      {frequency} {frequency === 1 ? "workout" : "workouts"}{" "}
-                      per week
+                      {frequency} {frequency === 1 ? "workout" : "workouts"} per
+                      week
                     </option>
                   ))}
                 </select>
