@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import HeroSection from "@/components/home/HeroSection";
@@ -40,6 +41,32 @@ export default function Home() {
 
       <Advertisement />
 
+=======
+
+import PricingAndReviews from "@/components/home/PricingAndReviews";
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-black text-white px-6 py-8 md:px-10 max-w-7xl mx-auto space-y-8">
+      {/* ── Top Section: Hero & AI Trainer ── */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Side: Hero Banner & Gym Card */}
+        <div className="lg:col-span-7 space-y-6">
+         
+        </div>
+
+       
+        
+      </section>
+
+      {/* ── Mid Section: Calculators & Tools (Simanto Paul's BMI Calculator) ── */}
+      <section className="grid grid-cols-1 gap-6 items-start pt-4 border-t border-white/8">
+        
+        <div className="md:col-span-6 lg:col-span-5">
+          <PricingAndReviews />
+        </div>
+      </section>
+>>>>>>> 81ade7d (JOIN TODAY Pricing & YOUR OPINIONS Reviews Slider)
     </main>
   );
 }
