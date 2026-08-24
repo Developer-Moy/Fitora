@@ -6,6 +6,7 @@ import GymTimerSection from "@/components/home/GymTimerSection";
 import CalculatorSection from "@/components/home/CalculatorSection";
 import MealChartSection from "@/components/home/MealChartSection";
 import Advertisement from "@/sections/Advertisement";
+import WhyChooseUs from "@/components/home/WhyChooseUs";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HOMEPAGE — /
@@ -25,6 +26,9 @@ export default function Home() {
 
       {/* Section 1: Hero Banner — Alfaaz Ahmed */}
       <HeroSection />
+
+      {/* Section 4: Why choose section — Simanto Paul */}
+      <WhyChooseUs />
 
       {/* Section 2: AI Trainer Chat — Moloy Paul */}
       <AiTrainerSection />
