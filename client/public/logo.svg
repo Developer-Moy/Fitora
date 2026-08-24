@@ -1,15 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-  <g fill="url(#fitora-red-grad)">
+  <g fill="#FFFFFF">
     <!-- Top Bar with smooth rounded corners -->
     <path d="M 28 22 C 26 16, 32 12, 42 12 L 80 12 C 86 12, 90 17, 85 23 L 78 30 C 74 32, 70 32 64 32 L 32 32 C 26 32, 26 27, 28 22 Z" />
     
     <!-- Lower Body: Middle Arm + Left Stem with rounded joints -->
     <path d="M 28 40 C 32 38, 38 38, 44 38 L 74 38 C 80 38, 84 43, 80 49 L 72 57 C 68 59, 64 59 56 59 L 40 59 C 34 59 30 64 26 73 L 15 91 C 12 95, 6 93, 7 87 L 16 61 C 19 50, 22 43, 28 40 Z" />
   </g>
-  <defs>
-    <linearGradient id="fitora-red-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ff2e55" />
-      <stop offset="100%" stop-color="#e11138" />
-    </linearGradient>
-  </defs>
 </svg>
