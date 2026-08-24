@@ -29,35 +29,33 @@ export default function TrainerCalloutBanner({
   return (
     <section
       aria-label="Fitness Trainer Callout"
-      className={`relative w-full overflow-hidden bg-black text-white min-h-[320px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[460px] flex items-center ${className}`}
+      className={`relative w-full overflow-hidden bg-black text-white min-h-[260px] sm:min-h-[300px] md:min-h-[340px] lg:min-h-[380px] xl:min-h-[420px] flex items-center ${className}`}
     >
-      {/* Background Image Layer with Top-Anchored Positioning */}
-      <div
-        className="absolute inset-0 bg-cover bg-no-repeat bg-[position:80%_top] sm:bg-[position:85%_top] md:bg-[position:88%_top] lg:bg-[position:90%_top] transition-transform duration-700"
-        style={{
-          backgroundImage: `url('${backgroundImage}')`,
-        }}
-      />
+      {/* Right-aligned Full Image Container with object-contain on wide screens to preserve 100% of the athlete */}
+      <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[75%] md:w-[65%] lg:w-[58%] xl:w-[52%] h-full flex justify-end pointer-events-none z-0">
+        <img
+          src={backgroundImage}
+          alt="Fitness Trainer with battle ropes"
+          className="h-full w-full object-cover sm:object-contain object-right"
+        />
+        {/* Smooth gradient blend into pure black on the left */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 sm:via-black/10 to-transparent" />
+      </div>
 
-      {/* Cinematic Gradient Overlays to match the reference banner */}
-      {/* Dark left vignette fading out towards the right athlete photo */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 md:via-black/70 to-transparent z-1" />
-      {/* Subtle top and bottom dark edge blending */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/60 z-1" />
-      {/* Soft warm/red ambient atmospheric glow */}
-      <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none z-1" />
+      {/* Atmospheric Ambient Glow */}
+      <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none z-0" />
 
       {/* Main Content Container */}
-      <div className="relative z-10 w-full mx-auto max-w-7xl px-6 py-12 sm:px-10 sm:py-16 md:py-20 lg:px-16 lg:py-24">
+      <div className="relative z-10 w-full mx-auto max-w-7xl px-6 py-10 sm:px-10 sm:py-14 md:py-16 lg:px-16 lg:py-20">
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="max-w-2xl flex flex-col items-start text-left"
+          className="max-w-xl flex flex-col items-start text-left"
         >
           {/* Main Headline */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white drop-shadow-md">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold tracking-tight text-white drop-shadow-lg leading-tight">
             {title}
           </h2>
 
@@ -76,13 +74,13 @@ export default function TrainerCalloutBanner({
           </div>
 
           {/* CTA Button Box */}
-          <div className="mt-7 sm:mt-9 relative group">
+          <div className="mt-6 sm:mt-8 relative group">
             {/* Subtle red accent outline offset layer */}
             <div className="absolute -inset-1 rounded-sm bg-gradient-to-r from-red-600 to-rose-600 opacity-30 blur-sm group-hover:opacity-70 group-hover:blur-md transition-all duration-300" />
             
             <Link
               href={buttonHref}
-              className="relative inline-flex items-center justify-center px-8 py-3.5 sm:px-10 sm:py-4 bg-[#ff0036] hover:bg-[#e00030] text-white font-bold text-sm sm:text-base uppercase tracking-wider transition-all duration-200 active:scale-[0.98] shadow-[0_4px_20px_rgba(255,0,54,0.45)] hover:shadow-[0_6px_30px_rgba(255,0,54,0.65)]"
+              className="relative inline-flex items-center justify-center px-7 py-3 sm:px-9 sm:py-3.5 bg-[#ff0036] hover:bg-[#e00030] text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 active:scale-[0.98] shadow-[0_4px_20px_rgba(255,0,54,0.45)] hover:shadow-[0_6px_30px_rgba(255,0,54,0.65)]"
             >
               {buttonText}
             </Link>
