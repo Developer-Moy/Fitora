@@ -1,10 +1,5 @@
 "use client";
 
-import HeroSection from "@/components/home/HeroSection";
-import AiTrainerSection from "@/components/home/AiTrainerSection";
-import GymTimerSection from "@/components/home/GymTimerSection";
-import MealChartSection from "@/components/home/MealChartSection";
-import Advertisement from "@/sections/Advertisement";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,22 +18,8 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#0b0c0e] text-white">
 
-      {/* Section 1: Hero Banner — Alfaaz Ahmed */}
-      <HeroSection />
-
       {/* Section 4: Why choose section — Simanto Paul */}
       <WhyChooseUs />
-
-      {/* Section 2: AI Trainer Chat — Moloy Paul */}
-      <AiTrainerSection />
-
-      {/* Section 3: Gym Timer & Workout Preview — Puskor Roy */}
-      <GymTimerSection />
-
-      {/* Section 5: Premium Meal Chart & Ads — Simanto Poddar */}
-      <MealChartSection />
-
-      <Advertisement />
 
     </main>
   );
