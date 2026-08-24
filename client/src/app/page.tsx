@@ -6,6 +6,7 @@ import MealChartSection from "@/components/home/MealChartSection";
 import TrainersSection from "@/components/home/TrainersSection";
 import Advertisement from "@/sections/Advertisement";
 import ContactInfoForm from "@/components/home/ContactInfoForm";
+import TrainerCalloutBanner from "@/components/home/TrainerCalloutBanner";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FITORA HOME PAGE — /
@@ -13,7 +14,7 @@ import ContactInfoForm from "@/components/home/ContactInfoForm";
 // - Alfaaz Ahmed: HeroSection
 // - Simanto Paul: WhyChooseUs
 // - Simanto Poddar: MealChartSection, TrainersSection, Advertisement
-// - Developer-Moy: ContactInfoForm
+// - Developer-Moy: ContactInfoForm, TrainerCalloutBanner
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -32,8 +33,13 @@ export default function Home() {
       {/* Simanto Poddar Task: Coaches & Trainers Section */}
       <TrainersSection />
 
+     
       {/* Simanto Poddar Task: Fitness Product Advertisement */}
       <Advertisement />
+
+       {/*puskor roy task: Fitness Trainer Callout Banner */}
+      <TrainerCalloutBanner />
+
 
       {/* Developer-Moy Task: Consultation Contact Form */}
       <ContactInfoForm />
