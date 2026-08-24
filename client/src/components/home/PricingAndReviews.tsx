@@ -1,10 +1,8 @@
-"use client"
+"use client";
 
-import { useState } from 'react';
-import { CircleCheckBig, Star, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState } from "react";
+import { CircleCheckBig, Star, ChevronLeft, ChevronRight } from "lucide-react";
 
-
-// Types Definition
 export type BillingCycle = "monthly" | "yearly";
 
 export interface PricingPlan {
@@ -18,76 +16,108 @@ export interface PricingPlan {
 }
 
 export interface ReviewContent {
-    name: string;
-    rating: number;
-    text: string;
+  name: string;
+  rating: number;
+  text: string;
 }
-export interface StarRating {
-    rating: number;
+
+export interface StarRatingProps {
+  rating: number;
 }
-export interface ReviewCard {
-    content: ReviewCard;
+
+export interface ReviewCardProps {
+  content: ReviewContent;
 }
 
 const plans = [
-    {
-        name: "Beginner Plan",
-        monthlyPrice: 10,
-        yearlyPrice: 100,
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Placeat, illo",
-        features: [
-            "Lorem ipsum dolor sit amet.",
-            "Lorem ipsum dolor sit amet.",
-            "Lorem ipsum dolor sit amet.",
-            "Lorem ipsum dolor sit amet.",
-        ],
-        featured: false,
-    },
-    {
-        name: "Premium Plan",
-        monthlyPrice: 15,
-        yearlyPrice: 150,
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Placeat, illo",
-        features: [
-            "Lorem ipsum dolor sit amet.",
-            "Lorem ipsum dolor sit amet.",
-            "Lorem ipsum dolor sit amet.",
-            "Lorem ipsum dolor sit amet.",
-        ],
-        featured: true,
-    },
-    {
-        name: "Pro Plan",
-        monthlyPrice: 20,
-        yearlyPrice: 200,
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Placeat, illo",
-        features: [
-            "Lorem ipsum dolor sit amet.",
-            "Lorem ipsum dolor sit amet.",
-            "Lorem ipsum dolor sit amet.",
-            "Lorem ipsum dolor sit amet.",
-        ],
-        featured: false,
-    },
+  {
+    id: "beginner",
+    name: "Beginner Plan",
+    monthlyPrice: 10,
+    yearlyPrice: 100,
+    description:
+      "Ideal for starting your fitness journey with basic equipment access.",
+    features: [
+      "Access to basic workout equipment",
+      "Locker room & shower access",
+      "Mobile app workout timer",
+      "Community forum support",
+    ],
+    featured: false,
+  },
+  {
+    id: "premium",
+    name: "Premium Plan",
+    monthlyPrice: 15,
+    yearlyPrice: 150,
+    description:
+      "Our most popular plan for dedicated athletes seeking AI guidance.",
+    features: [
+      "All Beginner Plan features",
+      "AI Personal Trainer Studio",
+      "Custom Macro & Meal Plans",
+      "24/7 Unlimited Gym Access",
+    ],
+    featured: true,
+  },
+  {
+    id: "pro",
+    name: "Pro Plan",
+    monthlyPrice: 20,
+    yearlyPrice: 200,
+    description: "Complete elite package with 1-on-1 coaching & sauna pass.",
+    features: [
+      "All Premium Plan features",
+      "1-on-1 Personal Master Coach",
+      "Sauna & Spa Recovery Pass",
+      "Custom Supplement Advice",
+    ],
+    featured: false,
+  },
 ];
-
 
 const avatars = [
-  { id: 1, src: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=256&auto=format&fit=crop', top: '-24px', left: '-24px', size: 'w-20 h-20', zIndex: 'z-10' },
-  { id: 2, src: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=256&auto=format&fit=crop', top: '32px', left: '80px', size: 'w-32 h-32', zIndex: 'z-0' },
-  { id: 3, src: 'https://images.unsplash.com/photo-1581382575275-97901c2635b7?q=80&w=256&auto=format&fit=crop', top: '112px', left: '-16px', size: 'w-24 h-24', zIndex: 'z-10' },
-  { id: 4, src: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?q=80&w=256&auto=format&fit=crop', top: '128px', left: '176px', size: 'w-28 h-28', zIndex: 'z-0' },
+  {
+    id: 1,
+    src: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+    size: "w-28 h-28",
+    top: "10%",
+    left: "30%",
+    zIndex: "z-30",
+  },
+  {
+    id: 2,
+    src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+    size: "w-20 h-20",
+    top: "0%",
+    left: "10%",
+    zIndex: "z-20",
+  },
+  {
+    id: 3,
+    src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+    size: "w-20 h-20",
+    top: "50%",
+    left: "60%",
+    zIndex: "z-20",
+  },
+  {
+    id: 4,
+    src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
+    size: "w-16 h-16",
+    top: "60%",
+    left: "15%",
+    zIndex: "z-10",
+  },
 ];
 
-
-const cardContent = {
-  name: 'Kerry Rohan',
+const cardContent: ReviewContent = {
+  name: "Kerry Rohan",
   rating: 4.5,
-  text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+  text: "Fitora transformed my workout routine completely. The AI coaching tips and workout timer helped me add 15kg to my bench press in 2 months!",
 };
 
-
-const StarRating = ({ rating }: ReviewContent) => {
+const StarRating = ({ rating }: StarRatingProps) => {
   const fullStars = Math.floor(rating);
   const halfStar = rating % 1 !== 0;
   const emptyStars = 5 - Math.ceil(rating);
@@ -106,15 +136,17 @@ const StarRating = ({ rating }: ReviewContent) => {
         </div>
       )}
       {[...Array(emptyStars)].map((_, i) => (
-        <Star key={`empty-${i}`} className="w-5 h-5 text-gray-300 fill-current" />
+        <Star
+          key={`empty-${i}`}
+          className="w-5 h-5 text-gray-300 fill-current"
+        />
       ))}
     </div>
   );
 };
 
-
-const ReviewCard = ({ content }: ReviewCard) => (
-  <div className="bg-white p-6 rounded-2xl shadow-sm flex-1">
+const ReviewCard = ({ content }: ReviewCardProps) => (
+  <div className="bg-white p-6 rounded-2xl shadow-sm flex-1 border border-gray-100">
     <h3 className="text-xl font-semibold text-gray-900 mb-2">{content.name}</h3>
     <StarRating rating={content.rating} />
     <p className="text-sm text-gray-600 leading-relaxed">{content.text}</p>
@@ -122,122 +154,117 @@ const ReviewCard = ({ content }: ReviewCard) => (
 );
 
 export default function PricingAndReviews() {
-    const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
+  const [billing, setBilling] = useState<BillingCycle>("yearly");
 
-    return (
-        <section className="w-full mx-auto bg-white px-6 py-20 md:px-10 lg:px-16">
-            {/* Plans  */}
-            <div>
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
-                    <div>
-                        <span className="text-gray-400 text-xs font-semibold tracking-wider block mb-1">
-                            Pricing plan
-                        </span>
-                        <h2 className="text-3xl font-black text-slate-800 tracking-wide">JOIN TODAY</h2>
-                    </div>
+  return (
+    <section className="w-full mx-auto bg-white px-6 py-20 md:px-10 lg:px-16 text-black select-none">
+      {/* Plans Section */}
+      <div>
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+          <div>
+            <span className="text-gray-400 text-xs font-semibold tracking-wider block mb-1">
+              PRICING PLAN
+            </span>
+            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+              JOIN TODAY
+            </h2>
+          </div>
 
-                    {/* Billing Toggle Switch  */}
+          {/* Toggle Switch */}
+          <div className="bg-gray-100 p-1 rounded-full flex items-center w-fit border border-gray-200">
+            <button
+              onClick={() => setBilling("monthly")}
+              className={`px-5 py-2 rounded-full text-xs font-bold transition-all ${
+                billing === "monthly"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBilling("yearly")}
+              className={`px-5 py-2 rounded-full text-xs font-bold transition-all ${
+                billing === "yearly"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              }`}
+            >
+              Yearly
+            </button>
+          </div>
+        </div>
 
-                    <div className="bg-white/80 backdrop-blur p-1 rounded-2xl flex items-center space-x-1 border border-gray-200/80 shadow-xs self-start md:self-auto">
-                        <button type="button" onClick={() => setBilling("monthly")}
-                            className={`px-5 py-2 text-xs font-bold rounded-xl transition-all ${billing === "monthly" ? "bg-zinc-800 text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>Monthly</button>
-                        <button type="button" onClick={() => setBilling("yearly")}
-                            className={`px-5 py-2 text-xs font-bold rounded-xl transition-all ${billing === "yearly" ? "bg-black text-white shadow-sm" : "text-gray-500 hover:text-gray-800"}`}>Yearly</button>
-                    </div>
+        {/* Pricing Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+          {plans.map((plan) => (
+            <div
+              key={plan.name}
+              className={`rounded-2xl p-8 flex flex-col justify-between transition-all duration-300 ${
+                plan.featured
+                  ? "bg-gray-900 text-white shadow-xl scale-105 z-10"
+                  : "bg-white text-gray-900 border border-gray-200 shadow-sm hover:shadow-md"
+              }`}
+            >
+              <div>
+                <h3 className="text-lg font-bold mb-2">{plan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-4">
+                  <span className="text-4xl font-extrabold">
+                    $
+                    {billing === "monthly"
+                      ? plan.monthlyPrice
+                      : plan.yearlyPrice}
+                  </span>
+                  <span
+                    className={`text-xs font-semibold ${plan.featured ? "text-gray-400" : "text-gray-500"}`}
+                  >
+                    / {billing === "monthly" ? "Month" : "Year"}
+                  </span>
                 </div>
+                <p
+                  className={`text-xs leading-relaxed mb-6 ${plan.featured ? "text-gray-300" : "text-gray-600"}`}
+                >
+                  {plan.description}
+                </p>
 
-                {/* Pricing Card  */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-                    {plans.map((plan) => {
-                        const currentPrice =
-                            billing === "monthly" ? plan.monthlyPrice : plan.yearlyPrice;
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center gap-3 text-xs font-medium"
+                    >
+                      <CircleCheckBig
+                        className={`w-4 h-4 shrink-0 ${plan.featured ? "text-white" : "text-gray-900"}`}
+                      />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-                        return (
-                            <div
-                                key={plan.name}
-                                className={`rounded-3xl p-7 flex flex-col justify-between transition-all duration-200 ${plan.featured
-                                        ? "bg-black/95 text-white shadow-2xl scale-[1.02]"
-                                        : "bg-white text-gray-800 shadow-sm border border-gray-100"
-                                    }`}
-                            >
-                                <div>
-                                    {/* Plan Name */}
-                                    <h3
-                                        className={`text-xs font-semibold mb-3 ${plan.featured ? "text-gray-300" : "text-gray-400"
-                                            }`}
-                                    >
-                                        {plan.name}
-                                    </h3>
-                                    {/* Dynamic Price Display */}
-                                    <div className="flex items-baseline mb-4">
-                                        <span
-                                            className={`text-3xl font-black tracking-tight ${plan.featured ? "text-white" : "text-slate-900"
-                                                }`}
-                                        >
-                                            ${currentPrice}
-                                        </span>
-                                        <span
-                                            className={`ml-1 text-xs font-bold ${plan.featured ? "text-gray-400" : "text-gray-500"
-                                                }`}
-                                        >
-                                            /{billing === "monthly" ? "Month" : "Year"}
-                                        </span>
-                                    </div>
-
-                                    {/* Plan Description */}
-                                    <p
-                                        className={`text-[11px] leading-relaxed mb-6 ${plan.featured ? "text-gray-300" : "text-gray-400"
-                                            }`}
-                                    >
-                                        {plan.description}
-                                    </p>
-
-                                    {/* Features List */}
-                                    <ul className="space-y-3.5 mb-8">
-                                        {plan.features.map((feature, fIdx) => (
-                                            <li
-                                                key={fIdx}
-                                                className="flex items-center space-x-2.5 text-xs font-semibold"
-                                            >
-                                                <CircleCheckBig className={`${plan.featured}`} />
-                                                <span
-                                                    className={
-                                                        plan.featured
-                                                            ? "text-gray-200"
-                                                            : "text-gray-500"
-                                                    }
-                                                >
-                                                    {feature}
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                {/* Choose Plan Button */}
-                                <button
-                                    type="button"
-                                    className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition-all active:scale-[0.98] ${plan.featured
-                                            ? "bg-white text-zinc-900 hover:bg-gray-100"
-                                            : "bg-black text-white hover:bg-[#323236]"
-                                        }`}
-                                >
-                                    Choose Plan
-                                </button>
-                            </div>
-                        );
-                    })}
-                </div>
+              <button
+                className={`w-full py-3 rounded-xl text-xs font-bold transition-all ${
+                  plan.featured
+                    ? "bg-white text-gray-900 hover:bg-gray-100"
+                    : "bg-gray-900 text-white hover:bg-gray-800"
+                }`}
+              >
+                Choose Plan
+              </button>
             </div>
+          ))}
+        </div>
+      </div>
 
-            {/* Reviews  */}
-
-            <div className="max-w-full mx-auto pt-16">
-                <span className="text-gray-400 text-xs font-semibold tracking-wider block mb-1">
-                            Reviews
-                        </span>
-        <h2 className="text-3xl font-bold text-gray-900 mb-10">YOUR OPINIONS</h2>
+      {/* Reviews Section */}
+      <div className="mt-24 pt-16 border-t border-gray-200">
+        <span className="text-gray-400 text-xs font-semibold tracking-wider block mb-1">
+          REVIEWS
+        </span>
+        <h2 className="text-3xl font-extrabold text-gray-900 mb-10 tracking-tight">
+          YOUR OPINIONS
+        </h2>
 
         <div className="flex flex-col md:flex-row items-center md:items-start gap-12">
           {/* Avatar Cluster */}
@@ -247,7 +274,7 @@ export default function PricingAndReviews() {
                 key={avatar.id}
                 src={avatar.src}
                 alt={`Avatar ${avatar.id}`}
-                className={`absolute rounded-full border-4 border-white object-cover ${avatar.size} ${avatar.zIndex}`}
+                className={`absolute rounded-full border-4 border-white object-cover shadow-md ${avatar.size} ${avatar.zIndex}`}
                 style={{ top: avatar.top, left: avatar.left }}
               />
             ))}
@@ -261,16 +288,15 @@ export default function PricingAndReviews() {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="mt-10 flex gap-4">
-          <button className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-600 text-white shadow-md transition hover:bg-gray-700">
+        <div className="mt-10 flex gap-4 justify-end">
+          <button className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-900 text-white shadow-md transition hover:bg-gray-800 cursor-pointer">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 text-gray-800 shadow-sm transition hover:bg-gray-300">
+          <button className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 text-gray-800 shadow-sm transition hover:bg-gray-300 cursor-pointer">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>
-        </section>
-
-    )
+    </section>
+  );
 }
