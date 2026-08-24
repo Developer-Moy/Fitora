@@ -29,11 +29,11 @@ export default function TrainerCalloutBanner({
   return (
     <section
       aria-label="Fitness Trainer Callout"
-      className={`relative w-full overflow-hidden bg-black text-white ${className}`}
+      className={`relative w-full overflow-hidden bg-black text-white min-h-[320px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[460px] flex items-center ${className}`}
     >
-      {/* Background Image Layer */}
+      {/* Background Image Layer with Top-Anchored Positioning */}
       <div
-        className="absolute inset-0 bg-cover bg-right sm:bg-center md:bg-right lg:bg-[center_right_10%] bg-no-repeat transition-transform duration-700 hover:scale-105"
+        className="absolute inset-0 bg-cover bg-no-repeat bg-[position:80%_top] sm:bg-[position:85%_top] md:bg-[position:88%_top] lg:bg-[position:90%_top] transition-transform duration-700"
         style={{
           backgroundImage: `url('${backgroundImage}')`,
         }}
@@ -43,12 +43,12 @@ export default function TrainerCalloutBanner({
       {/* Dark left vignette fading out towards the right athlete photo */}
       <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 md:via-black/70 to-transparent z-1" />
       {/* Subtle top and bottom dark edge blending */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 z-1" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/60 z-1" />
       {/* Soft warm/red ambient atmospheric glow */}
       <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none z-1" />
 
       {/* Main Content Container */}
-      <div className="relative z-10 mx-auto max-w-7xl px-6 py-14 sm:px-10 sm:py-20 md:py-24 lg:px-16 lg:py-28">
+      <div className="relative z-10 w-full mx-auto max-w-7xl px-6 py-12 sm:px-10 sm:py-16 md:py-20 lg:px-16 lg:py-24">
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
