@@ -573,12 +573,12 @@ export default function GymTimer({
     <div className="w-full flex flex-col items-center">
       {/* Main HUD Card */}
       <div className="relative w-full max-w-4xl px-2 sm:px-4 py-4 sm:py-6 flex flex-col items-center">
-        {/* Ambient Backlight Glow */}
-        <div
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[180px] sm:w-[400px] sm:h-[260px] rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
-            isRunning ? "bg-white/15 scale-110" : "bg-white/5 scale-95"
-          }`}
-        />
+        {/* Ambient Backlight Glow — only visible while timer is running */}
+        {isRunning && (
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[180px] sm:w-[400px] sm:h-[260px] rounded-full blur-3xl pointer-events-none transition-all duration-700 bg-white/15 scale-110"
+          />
+        )}
 
         {/* Inner Card Container */}
         <div className="relative z-20 w-full flex flex-col justify-between min-h-[220px] p-4 sm:p-6 md:p-7">
