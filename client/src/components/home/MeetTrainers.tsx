@@ -7,32 +7,32 @@ export default function MeetTrainers() {
     {
       name: "Marcus Vance",
       role: "Head Strength Coach",
-      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80",
+      image: "/image1.jpg.jpeg",
     },
     {
       name: "David Miller",
       role: "Bodybuilding Specialist",
-      image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=600&q=80",
+      image: "/image2.jpg.jpeg",
     },
     {
       name: "Alex Rivera",
       role: "Powerlifting Coach",
-      image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80",
+      image: "/image3.jpg.jpeg",
     },
     {
       name: "Jason Statham",
       role: "CrossFit & Conditioning",
-      image: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=600&q=80",
+      image: "/image4.jpg.jpeg",
     },
     {
       name: "Elena Rostova",
       role: "Mobility & Recovery Specialist",
-      image: "https://images.unsplash.com/photo-1548690312-e3b507d8c110?auto=format&fit=crop&w=600&q=80",
+      image: "/image6.jpg.jpeg",
     },
     {
       name: "Michael Sterling",
       role: "Certified Master Trainer",
-      image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=600&q=80",
+      image: "/image7.jpg.jpeg",
     },
   ];
 
