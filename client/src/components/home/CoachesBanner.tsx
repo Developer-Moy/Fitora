@@ -8,7 +8,7 @@ export default function CoachesBanner() {
   return (
     <section
       id="coaches"
-      className="w-full py-20 px-6 sm:px-10 lg:px-16 bg-black text-white select-none border-t border-white/10"
+      className="w-full py-20 sm:py-24 px-6 sm:px-10 lg:px-16 bg-black text-white select-none border-t border-white/10"
     >
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         {/* Left Side: 2 Rounded Coach Photos from Public Folder */}

@@ -7,7 +7,7 @@ export default function WhyChooseUs() {
   return (
     <section
       id="why-choose"
-      className="w-full py-20 px-6 sm:px-10 lg:px-16 bg-white text-black border-b border-gray-200 select-none"
+      className="w-full py-20 sm:py-24 px-6 sm:px-10 lg:px-16 bg-white text-black border-b border-gray-200 select-none"
     >
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         {/* ── Left Side: 3 Stacked Rounded Workout Images ── */}

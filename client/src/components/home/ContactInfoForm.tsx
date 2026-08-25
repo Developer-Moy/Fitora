@@ -33,7 +33,7 @@ export default function ContactInfoForm() {
   return (
     <section
       id="contact"
-      className="w-full py-16 sm:py-24 px-6 sm:px-10 lg:px-16 bg-white text-black select-none font-sans border-t border-gray-200"
+      className="w-full py-20 sm:py-24 px-6 sm:px-10 lg:px-16 bg-white text-black select-none font-sans border-t border-gray-200"
     >
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
         {/* ── Left Column: Office Info (Exact Match to Uploaded Image) ── */}
