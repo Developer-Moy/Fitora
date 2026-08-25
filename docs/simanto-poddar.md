@@ -82,3 +82,21 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 - Added hover overlays with trainer names and responsive ordering for mobile/tablet/desktop
 
 ## 25-Aug-26
+
+- `Fitora\client\src\app\meals\page.tsx`
+
+  - Built and structured the Meals page.
+  - Integrated meal data with the page layout.
+  - Added a responsive listing structure for meal cards.
+
+- `Fitora\client\src\components\Meal\MealCard.tsx`
+
+  - Created the reusable Meal Card component.
+  - Displays essential meal information.
+  - Added a **View Details** interaction for opening the meal details modal.
+
+- `Fitora\client\src\components\Meal\MealDetailsModal.tsx`
+
+  - Created the meal details modal.
+  - Displays detailed information such as **name, ingredients, calories, and description**.
+  - Designed the modal following Fitora's existing UI style.
