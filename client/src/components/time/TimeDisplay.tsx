@@ -44,17 +44,22 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
   };
 
   // Dynamic ring colors and glows (pure monochrome)
+  // Idle/stopped = dim gray, running = bright white with glow
   const ringStroke = isCountdownMode
     ? isWarning || isDone
       ? "#ffffff"
       : "#d4d4d4"
-    : "#ffffff";
+    : isRunning
+    ? "#ffffff"
+    : "#52525b";
 
   const ringGlow = isCountdownMode
     ? isWarning || isDone
       ? "drop-shadow(0 0 14px #ffffff) drop-shadow(0 0 28px rgba(255,255,255,0.55))"
       : "drop-shadow(0 0 12px #d4d4d4) drop-shadow(0 0 24px rgba(212,212,212,0.35))"
-    : "drop-shadow(0 0 10px rgba(255,255,255,0.85)) drop-shadow(0 0 22px rgba(255,255,255,0.35))";
+    : isRunning
+    ? "drop-shadow(0 0 10px rgba(255,255,255,0.85)) drop-shadow(0 0 22px rgba(255,255,255,0.35))"
+    : "none";
 
   const trackColor = "#262626";
 
@@ -75,6 +80,13 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
         className="absolute inset-0 w-full h-full -rotate-90"
         viewBox="0 0 250 250"
       >
+        {/* Solid black interior */}
+        <circle
+          cx="125"
+          cy="125"
+          r={radius + 5}
+          fill="#000000"
+        />
         {/* Background track circle */}
         <circle
           cx="125"
