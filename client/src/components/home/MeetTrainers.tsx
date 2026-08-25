@@ -37,50 +37,48 @@ export default function MeetTrainers() {
   ];
 
   return (
-    <div className="w-full bg-white">
-      <section
-        id="trainers"
-        className="w-full bg-black text-white rounded-t-[3rem] rounded-b-[3rem] py-16 sm:py-24 px-6 sm:px-10 lg:px-16 select-none border-t border-b border-white/10 shadow-2xl"
-      >
-        <div className="max-w-7xl mx-auto space-y-12">
-          {/* Header */}
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
-              Meet Our Trainers
-            </h2>
-            <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
-              Certified experts dedicated to helping you unlock your full athletic potential.
-            </p>
-          </div>
-
-          {/* 6 Photo Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {trainers.map((trainer, index) => (
-              <div
-                key={index}
-                className="group relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/15 bg-neutral-900 shadow-xl"
-              >
-                <img
-                  src={trainer.image}
-                  alt={trainer.name}
-                  className="w-full h-full object-cover filter brightness-90 contrast-105 group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
-
-                {/* Trainer Info Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 space-y-1 transform translate-y-2 group-hover:translate-y-0 transition-transform">
-                  <h4 className="text-lg font-black text-white uppercase tracking-wider">
-                    {trainer.name}
-                  </h4>
-                  <p className="text-xs font-semibold text-gray-300">
-                    {trainer.role}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+    <section
+      id="trainers"
+      className="w-full py-20 sm:py-24 px-6 sm:px-10 lg:px-16 bg-black text-white select-none border-t border-white/10"
+    >
+      <div className="max-w-7xl mx-auto space-y-12">
+        {/* Header */}
+        <div className="text-center space-y-3 max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
+            Meet Our Trainers
+          </h2>
+          <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
+            Certified experts dedicated to helping you unlock your full athletic potential.
+          </p>
         </div>
-      </section>
-    </div>
+
+        {/* 6 Photo Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {trainers.map((trainer, index) => (
+            <div
+              key={index}
+              className="group relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/15 bg-neutral-900 shadow-xl"
+            >
+              <img
+                src={trainer.image}
+                alt={trainer.name}
+                className="w-full h-full object-cover filter brightness-90 contrast-105 group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
+
+              {/* Trainer Info Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 space-y-1 transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                <h4 className="text-lg font-black text-white uppercase tracking-wider">
+                  {trainer.name}
+                </h4>
+                <p className="text-xs font-semibold text-gray-300">
+                  {trainer.role}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
