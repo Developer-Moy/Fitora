@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+
+  images: {
+    remotePatterns: [
+      {
+        hostname: "i.ibb.co.com",
+        protocol: "https",
+      }
+    ],
+  },
 };
 
 export default nextConfig;

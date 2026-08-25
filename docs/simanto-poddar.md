@@ -3,6 +3,7 @@
 ## 1. AI Meal Planning Assistant & Nutrition Dashboard (`/dashboard/user/nutrition`)
 
 The **AI Meal Planning Assistant** is an AI-powered feature that generates a personalized meal chart based on user parameters (calorie goal, dietary restrictions).
+
 - **Nutrition Dashboard**: Interactive Water Hydration progress ring widget, 2,400 kcal macro progress bar, and category filterable meal cards.
 - **Backend API**: Endpoints `GET /api/meal-charts` & `POST /api/meal-charts` with `MealPlan` Mongoose schema.
 
@@ -10,8 +11,11 @@ The **AI Meal Planning Assistant** is an AI-powered feature that generates a per
 
 Built the User Registration page and form layout with validation and session integration.
 
-## Note on Homepage Cleanup:
+## Note on Homepage Cleanup
+
 *(Previous temporary homepage sections — `MealChartSection`, `TrainersSection`, and `Advertisement` — were removed from `client/src/app/(main)/page.tsx` during the 1-to-1 design alignment to strictly follow the authoritative design reference `docs/fitora.png`)*.
+
+## 3. Healthy Meals Page (`/meals`)
 
 ---
 
@@ -29,28 +33,52 @@ Built the User Registration page and form layout with validation and session int
 
 ## Work Log & Progress Timeline
 
-### 17-Aug-26
-* Build user input form for meal chart generation
-* Create MealPlan Mongoose schema
+## 17-Aug-26
 
-### 18-Aug-26
-* Pulled the latest changes from the development branch into `simanto-poddar` branch and resolved conflicts
-* Implemented the Meal Chart API endpoints:
-  - `GET /api/meal-charts?userId={userId}`
-  - `POST /api/meal-charts`
+- Built comprehensive AI Meal Planner form (AIMealPlanner.tsx) with multi-step user input interface
+- Created TypeScript types for meal planning data (mealTypes.ts, mealData.ts)
+- Implemented form sections for user profile, goals, dietary preferences, and meal structure
 
-### 19-Aug-26
-* Build User Registration page (`/register`)
-* Build initial Meal Chart section
+## 18-Aug-26
 
-### 20-Aug-26
-* Update Nutrition page UI (`/dashboard/user/nutrition`)
-* Build Advertisement section component
+- Pulled the latest changes from the development branch into my (`simanto-poddar`) branch and resolved the issues/conflicts found on my side.
 
-### 23-Aug-26
-* Add interactive Water Hydration progress ring widget on Nutrition Dashboard (`client/src/app/dashboard/user/nutrition/page.tsx`)
-* Replace temp userId with authenticated session userId (`client/src/components/MealChartCard.tsx`)
-* Add advertisement schema and API route
+### Meal Chart API Implementation
 
-### 25-Aug-26
-* Homepage sections cleaned up to strictly follow 1-to-1 design mockup `docs/fitora.png`
+- Implemented the Meal Chart API endpoints:
+
+  - `GET /api/meal-charts?userId={userId}` — Fetch meal charts for a specific user.
+  - `POST /api/meal-charts` — Create and save a meal plan.
+- The `GET /api/meal-charts` endpoint requires a `userId` query parameter.
+
+### Client Environment Variables
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+```
+
+## 19-Aug-26
+
+- Built Premium Meal Chart section (MealChartSection.tsx) with 2x2 grid layout
+- Implemented meal preview cards with nutritional breakdown and calorie tracking
+- Added daily caloric goal progress bar with visual indicators
+
+## 20-Aug-26
+
+- Built Advertisement section (Advertisement.tsx) with featured ad and marquee carousel
+- Implemented responsive ad cards with hover effects and animations
+- Added fitness marketplace section with product categories (Equipment, Gym, Nutrition, Sportswear)
+
+## 23-Aug-26
+
+- Built interactive Water Hydration progress ring widget (HydrationTracker.tsx)
+- Implemented localStorage-based data persistence for daily tracking
+- Added celebration particle effects and confetti on goal completion
+
+## 24-Aug-26
+
+- Built Coaches section (Coaches.tsx) with responsive image layout and mentor-focused content
+- Implemented Meet Our Trainers section (Trainers.tsx) with a 6-trainer asymmetric gallery using the provided trainer images.
+- Added hover overlays with trainer names and responsive ordering for mobile/tablet/desktop
+
+## 25-Aug-26
