@@ -7,26 +7,26 @@ export default function MeetTrainers() {
     {
       name: "Marcus Vance",
       role: "Head Strength Coach",
-      image: "/image1.jpg.jpeg",
-    },
-    {
-      name: "Sarah Jenkins",
-      role: "CrossFit & Olympic Lifter",
-      image: "/image2.jpg.jpeg",
-    },
-    {
-      name: "David Miller",
-      role: "Bodybuilding Specialist",
       image: "/image3.jpg.jpeg",
     },
     {
+      name: "David Miller",
+      role: "Olympic Lifting Specialist",
+      image: "/image2.jpg.jpeg",
+    },
+    {
       name: "Alex Rivera",
-      role: "Outdoor Endurance Coach",
-      image: "/image4.jpg.jpeg",
+      role: "Bodybuilding Specialist",
+      image: "/image1.jpg.jpeg",
     },
     {
       name: "Jason Statham",
-      role: "Powerlifting Specialist",
+      role: "Deadlift & Powerlifting Coach",
+      image: "/image4.jpg.jpeg",
+    },
+    {
+      name: "Brandon Cole",
+      role: "Conditioning & Hypertrophy Coach",
       image: "/image6.jpg.jpeg",
     },
     {
