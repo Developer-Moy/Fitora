@@ -102,69 +102,33 @@ function Section({
     icon,
     title,
     description,
-    accent,
     children,
 }: SectionProps) {
-    const teal = accent === "teal";
-
     return (
-        <section
-            className={`card-premium relative overflow-hidden rounded-2xl sm:rounded-3xl border ${teal
-                ? "border-emerald-500/20 bg-slate-900/60 hover:border-emerald-500/35"
-                : "border-rose-500/20 bg-slate-900/60 hover:border-rose-500/35"
-                } backdrop-blur-xl p-4 sm:p-6 md:p-8 transition-all duration-300 shadow-xl shadow-slate-950/40`}
-        >
-            {/* Dynamic Ambient Background Glows */}
-            <div
-                className={`pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full blur-3xl transition-all duration-500 ${teal ? "bg-emerald-500/10" : "bg-rose-500/10"
-                    }`}
-            />
-            <div
-                className={`pointer-events-none absolute -left-20 -bottom-20 h-48 w-48 rounded-full blur-3xl transition-all duration-500 ${teal ? "bg-teal-500/5" : "bg-amber-500/5"
-                    }`}
-            />
-
-            <div className="relative mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-neutral-950 p-4 sm:p-6 md:p-8 transition-all duration-300 shadow-xl space-y-4">
+            <div className="relative mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                    <div
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-xl sm:h-13 sm:w-13 sm:text-2xl transition-transform duration-300 hover:scale-105 ${teal
-                            ? "border-emerald-400/40 bg-linear-to-br from-emerald-500/20 via-emerald-400/10 to-teal-500/20 text-emerald-300 shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-                            : "border-rose-500/40 bg-linear-to-br from-rose-500/20 via-rose-400/10 to-amber-500/20 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.3)]"
-                            }`}
-                    >
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white text-xl sm:h-12 sm:w-12">
                         {icon}
                     </div>
 
                     <div className="min-w-0 flex-1">
-                        <div
-                            className={`mb-1 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.2em] ${teal
-                                ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/25"
-                                : "bg-rose-500/10 text-rose-300 border border-rose-500/25"
-                                }`}
-                        >
+                        <div className="mb-1 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] bg-white text-black">
                             {step}
                         </div>
 
-                        <h2
-                            className={`text-lg font-black uppercase tracking-wide sm:text-xl md:text-2xl ${teal ? "text-gradient-hero" : "text-gradient-flame"
-                                }`}
-                        >
+                        <h2 className="text-lg font-black uppercase tracking-tight sm:text-xl md:text-2xl text-white">
                             {title}
                         </h2>
 
-                        <p className="mt-1 text-xs text-slate-400 sm:text-sm leading-relaxed">
+                        <p className="mt-1 text-xs text-white/50 sm:text-sm font-medium leading-relaxed">
                             {description}
                         </p>
                     </div>
                 </div>
             </div>
 
-            <Separator
-                className={`mb-5 h-px sm:mb-6 ${teal
-                    ? "bg-linear-to-r from-emerald-500/40 via-teal-500/20 to-transparent"
-                    : "bg-linear-to-r from-rose-500/40 via-amber-500/20 to-transparent"
-                    }`}
-            />
+            <div className="h-px w-full bg-white/10 mb-5" />
 
             <div className="grid gap-5 sm:gap-6">{children}</div>
         </section>

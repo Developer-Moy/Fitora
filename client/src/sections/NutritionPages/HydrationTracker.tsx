@@ -290,7 +290,7 @@ export default function HydrationTracker() {
                                 fill="transparent"
                                 strokeWidth="16"
                                 strokeLinecap="round"
-                                className="stroke-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                                className="stroke-white shadow-[0_0_20px_rgba(255,255,255,0.4)]"
                                 initial={{ strokeDasharray: ringCircumference, strokeDashoffset: ringCircumference }}
                                 animate={{
                                     strokeDashoffset: isLoaded ? strokeDashoffset : ringCircumference
@@ -303,8 +303,8 @@ export default function HydrationTracker() {
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
                             {!isLoaded ? (
                                 <div className="flex flex-col items-center gap-2 animate-pulse">
-                                    <div className="w-16 h-8 bg-slate-800 rounded-md"></div>
-                                    <div className="w-12 h-4 bg-slate-800 rounded-md"></div>
+                                    <div className="w-16 h-8 bg-neutral-800 rounded-md"></div>
+                                    <div className="w-12 h-4 bg-neutral-800 rounded-md"></div>
                                 </div>
                             ) : (
                                 <>
@@ -313,12 +313,12 @@ export default function HydrationTracker() {
                                         initial={{ scale: 0.9, opacity: 0.8 }}
                                         animate={{ scale: 1, opacity: 1 }}
                                         transition={{ duration: 0.3 }}
-                                        className="text-5xl font-bold text-slate-100 tracking-tight flex items-start"
+                                        className="text-5xl font-black text-white tracking-tight flex items-start"
                                     >
                                         {displayPercentage}
-                                        <span className="text-2xl text-slate-400 ml-0.5 mt-1">%</span>
+                                        <span className="text-2xl text-white/50 ml-0.5 mt-1">%</span>
                                     </motion.div>
-                                    <div className="text-sm font-medium text-slate-500 mt-1">
+                                    <div className="text-xs font-black uppercase text-white/40 tracking-wider mt-1">
                                         Complete
                                     </div>
                                 </>
@@ -331,12 +331,11 @@ export default function HydrationTracker() {
                 <div className="w-full flex flex-col items-center justify-center lg:mt-6 lg:pt-18">
                     {/* Outer Liters Display */}
                     <div className="mb-8 flex items-baseline justify-center gap-1.5 transition-opacity duration-300" style={{ opacity: isLoaded ? 1 : 0 }}>
-                        <span className="text-xl font-semibold text-slate-100">{displayIntakeL} L</span>
-                        <span className="text-slate-500 text-sm mx-0.5">/</span>
-                        <span className="text-lg font-medium text-slate-400">{displayGoalL} L</span>
+                        <span className="text-2xl font-black text-white">{displayIntakeL} L</span>
+                        <span className="text-white/40 text-sm mx-0.5">/</span>
+                        <span className="text-lg font-bold text-white/60">{displayGoalL} L</span>
                     </div>
 
-                    {/* Action Button & Subtext Area */}
                     <div className="min-h-22 flex flex-col items-center justify-start w-full">
                         <AnimatePresence mode="wait">
                             {isLoaded && isCompleted ? (
@@ -347,43 +346,28 @@ export default function HydrationTracker() {
                                     exit={{ opacity: 0, y: -10 }}
                                     className="flex flex-col items-center gap-2"
                                 >
-                                    <div className="flex items-center gap-2 px-6 py-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-400 font-medium">
-                                        <Trophy className="w-5 h-5" />
-                                        Goal Completed
-                                    </div>
-
-                                    <div className="text-sm font-medium text-emerald-400/70">
-                                        All done for today! 🎉
+                                    <div className="flex items-center gap-2 px-6 py-3.5 bg-white text-black rounded-full font-black text-xs uppercase tracking-wider shadow-xl">
+                                        <Trophy className="w-4 h-4 text-black" />
+                                        Hydration Goal Achieved!
                                     </div>
                                 </motion.div>
                             ) : (
-                                <motion.div
-                                    key="add-water"
+                                <motion.button
+                                    key="add-btn"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
-                                    className="flex flex-col items-center w-full"
+                                    onClick={handleAddWater}
+                                    disabled={!isLoaded}
+                                    className={cn(
+                                        "flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full font-black text-xs uppercase tracking-wider text-black bg-white hover:bg-gray-100 transition-all duration-200 shadow-xl cursor-pointer",
+                                        !isLoaded && "opacity-50 cursor-not-allowed"
+                                    )}
+                                    aria-label="Add 250ml water"
                                 >
-                                    <button
-                                        onClick={handleAddWater}
-                                        disabled={!isLoaded}
-                                        className={cn(
-                                            "flex items-center justify-center gap-2 w-full max-w-50 py-3.5 rounded-2xl font-semibold transition-all duration-300",
-                                            "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-                                            "hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]",
-                                            "active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-                                        )}
-                                        aria-label="Add 250 milliliters of water"
-                                    >
-                                        <FaGlassWaterDroplet className="w-4 h-5" />
-                                        +250ml Glass
-                                    </button>
-
-                                    <div className="text-sm font-medium text-slate-500 mt-3">
-                                        {remainingGlasses}{" "}
-                                        {remainingGlasses === 1 ? "glass" : "glasses"} remaining
-                                    </div>
-                                </motion.div>
+                                    <FaGlassWaterDroplet className="w-4 h-4 text-black" />
+                                    <span>+250ml Glass</span>
+                                </motion.button>
                             )}
                         </AnimatePresence>
                     </div>
