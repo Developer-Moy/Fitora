@@ -184,7 +184,7 @@ export default function HeroSection() {
       {/* ════════════════════════════════════════════════════════════
           STATS — White Strip (3 columns)
           ════════════════════════════════════════════════════════════ */}
-      <div id="stats" className="bg-white text-black py-12 sm:py-14 px-6">
+      <div id="stats" className="bg-white text-black pt-10 pb-4 sm:pt-12 sm:pb-6 px-6">
         <div className="max-w-2xl mx-auto grid grid-cols-3 divide-x divide-gray-200 text-center">
           <div className="flex flex-col items-center px-2 sm:px-4">
             <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black">

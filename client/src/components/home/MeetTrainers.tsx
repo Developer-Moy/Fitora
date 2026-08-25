@@ -48,7 +48,8 @@ export default function MeetTrainers() {
             Meet Our Trainers
           </h2>
           <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-            Certified experts dedicated to helping you unlock your full athletic potential.
+            Certified experts dedicated to helping you unlock your full athletic
+            potential.
           </p>
         </div>
 
