@@ -165,18 +165,18 @@ export default function HeroSection() {
           {/* ─── Z-40: Notch & Arrow Button ─── */}
           <div
             className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 flex justify-center items-end"
-            style={{ width: "220px", height: "75px" }}
+            style={{ width: "180px", height: "65px" }}
           >
             <svg
-              viewBox="0 -20 220 95"
-              className="w-[220px] h-[75px] text-white fill-current block"
+              viewBox="0 -16 180 91"
+              className="w-[180px] h-[65px] text-white fill-current block"
             >
-              <path d="M 0 75 C 44 75 54 55 54 30 A 56 56 0 0 1 166 30 C 166 55 176 75 220 75 Z" />
+              <path d="M 0 75 C 36 75 44 60 44 38 A 46 46 0 0 1 136 38 C 136 60 144 75 180 75 Z" />
             </svg>
             <a
               href="#stats"
               aria-label="Scroll Down"
-              className="absolute z-50 left-1/2 -translate-x-1/2 top-[6px] w-14 h-14 sm:w-15 sm:h-15 bg-black text-white rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-transform duration-300 cursor-pointer"
+              className="absolute z-50 left-1/2 -translate-x-1/2 top-[4px] w-13 h-13 sm:w-14 sm:h-14 bg-black text-white rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-transform duration-300 cursor-pointer"
             >
               <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </a>
