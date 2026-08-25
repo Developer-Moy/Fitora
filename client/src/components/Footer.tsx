@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube } from "react-icons/fa6";
-import { FiMapPin, FiArrowRight } from "react-icons/fi";
+import { FiArrowRight } from "react-icons/fi";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -16,183 +16,38 @@ export default function Footer() {
   return (
     <footer className="relative bg-black text-white select-none overflow-hidden border-t border-white/10">
       
-      {/* ── Main Hero Footer Section ── */}
-      <div className="relative py-10 sm:py-14 px-6 sm:px-10 lg:px-14 overflow-hidden">
+      {/* ── Main Compact Footer Section ── */}
+      <div className="relative py-8 sm:py-10 px-6 sm:px-10 lg:px-14 overflow-hidden">
         
         {/* High Visibility Gym Background Image */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-[0.7] contrast-110 z-0 transition-all duration-300"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-[0.4] contrast-110 z-0"
           style={{
             backgroundImage: "url('/image1.jpg.jpeg')",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/40 z-0" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/60 z-0" />
 
         {/* Content Container */}
-        <div className="relative z-10 max-w-7xl mx-auto space-y-10">
+        <div className="relative z-10 max-w-7xl mx-auto space-y-8">
           
-          {/* Top Row: Compact "GO FOR IT!" Typography + Gym Location & Mission */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+          {/* Row 1: Brand Headline & Newsletter Subscription */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/15">
             
-            {/* Left Column: Bold & Outlined "GO FOR IT!" Text */}
-            <div className="lg:col-span-6 font-black uppercase leading-[0.85] tracking-tighter text-5xl sm:text-7xl xl:text-[7.5rem]">
-              <div className="text-white">GO</div>
-              <div
-                className="text-transparent stroke-text"
-                style={{ WebkitTextStroke: "2px white" }}
-              >
-                FOR
-              </div>
-              <div
-                className="text-transparent stroke-text"
-                style={{ WebkitTextStroke: "2px white" }}
-              >
-                IT!
-              </div>
-            </div>
-
-            {/* Right Column: Mission Quote + Location Info + Directions Button */}
-            <div className="lg:col-span-6 space-y-5 lg:pl-10 text-left lg:text-right flex flex-col lg:items-end justify-end">
-              
-              <p className="text-xs sm:text-sm text-gray-300 max-w-md font-medium leading-relaxed">
-                Bangladesh's premier AI fitness platform. Serving fitness enthusiasts across all 64 districts with real-time workout tracking, AI coaching, and custom nutrition.
+            {/* Left: Compact "GO FOR IT!" + Subtitle */}
+            <div className="space-y-1">
+              <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white">
+                GO FOR IT! <span className="text-gray-400 font-serif italic text-2xl sm:text-3xl font-bold">#FitoraGym</span>
+              </h2>
+              <p className="text-xs text-gray-300 max-w-md font-medium">
+                Bangladesh's premier AI fitness platform across all 64 districts.
               </p>
-
-              <div className="space-y-0.5">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                  Where are we?
-                </p>
-                <p className="text-xs sm:text-sm font-semibold text-white">
-                  Fitora Tower, Gulshan-2, Dhaka 1212
-                </p>
-                <p className="text-xs sm:text-sm font-semibold text-white/80">
-                  64 Branches in Bangladesh
-                </p>
-              </div>
-
-              {/* Get Directions Button (Pure White Pill) */}
-              <a
-                href="https://maps.google.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white text-black font-extrabold text-xs hover:bg-gray-200 transition-all shadow-md active:scale-95 cursor-pointer w-fit"
-              >
-                <span>Get Directions</span>
-                <FiMapPin className="w-3.5 h-3.5 text-black" />
-              </a>
             </div>
 
-          </div>
-
-          {/* ── Middle Row: 3-Column Unique Non-Navbar Links Grid ── */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 py-8 border-t border-white/15">
-            
-            {/* Column 1: AI Workouts & Nutrition */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                AI Fitness Hubs
-              </h4>
-              <ul className="space-y-2 text-xs text-gray-300">
-                <li>
-                  <Link href="/dashboard/user/nutrition" className="hover:text-white transition-colors">AI Nutrition & Meal Chart</Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/user/workout" className="hover:text-white transition-colors">Workout Log Studio</Link>
-                </li>
-                <li>
-                  <Link href="/dashboard/user/recovery" className="hover:text-white transition-colors">Recovery & Stretch Hub</Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Column 2: Fitora Features */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                Fitora Highlights
-              </h4>
-              <ul className="space-y-2 text-xs text-gray-300">
-                <li>
-                  <Link href="/#why-choose" className="hover:text-white transition-colors">Why Choose Fitora</Link>
-                </li>
-                <li>
-                  <Link href="/#coaches" className="hover:text-white transition-colors">Coaches & Mentors</Link>
-                </li>
-                <li>
-                  <Link href="/#trainers" className="hover:text-white transition-colors">Certified Master Trainers</Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Column 3: Account & Locations */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                Account & Portal
-              </h4>
-              <ul className="space-y-2 text-xs text-gray-300">
-                <li>
-                  <Link href="/profile" className="hover:text-white transition-colors">User Profile & Badges</Link>
-                </li>
-                <li>
-                  <Link href="/register" className="hover:text-white transition-colors">Free Trial Sign Up</Link>
-                </li>
-                <li>
-                  <Link href="/login" className="hover:text-white transition-colors">User Login Portal</Link>
-                </li>
-                <li>
-                  <Link href="/#contact" className="hover:text-white transition-colors">Bangladesh 64 Branches</Link>
-                </li>
-              </ul>
-            </div>
-
-          </div>
-
-          {/* Bottom Social Media Icons & Newsletter Bar */}
-          <div className="pt-6 border-t border-white/15 flex flex-col md:flex-row items-center justify-between gap-6">
-            
-            {/* Social Media Icons */}
-            <div className="flex items-center gap-5">
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors"
-                aria-label="Instagram"
-              >
-                <FaInstagram size={18} />
-              </a>
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors"
-                aria-label="Facebook"
-              >
-                <FaFacebookF size={16} />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors"
-                aria-label="LinkedIn"
-              >
-                <FaLinkedinIn size={17} />
-              </a>
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors"
-                aria-label="YouTube"
-              >
-                <FaYoutube size={19} />
-              </a>
-            </div>
-
-            {/* Newsletter Subscription Bar */}
+            {/* Right: Newsletter Subscription Bar */}
             <form
               onSubmit={(e) => e.preventDefault()}
-              className="flex items-center gap-3 w-full md:w-auto max-w-md border-b border-white/30 pb-1.5 focus-within:border-white transition-colors"
+              className="flex items-center gap-3 w-full lg:w-auto max-w-md border-b border-white/30 pb-2 focus-within:border-white transition-colors"
             >
               <input
                 type="email"
@@ -210,22 +65,83 @@ export default function Footer() {
 
           </div>
 
+          {/* Row 2: 3-Column Compact Links & HQ Contact */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
+            
+            {/* Column 1: AI Fitness Hubs */}
+            <div className="space-y-2">
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-400">
+                AI Fitness Hubs
+              </h4>
+              <ul className="space-y-1.5 text-xs text-gray-300 font-medium">
+                <li>
+                  <Link href="/dashboard/user/nutrition" className="hover:text-white transition-colors">AI Nutrition & Meal Chart</Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/user/workout" className="hover:text-white transition-colors">Workout Log Studio</Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/user/recovery" className="hover:text-white transition-colors">Recovery & Stretch Hub</Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 2: Fitora Portal */}
+            <div className="space-y-2">
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-400">
+                Fitora Portal
+              </h4>
+              <ul className="space-y-1.5 text-xs text-gray-300 font-medium">
+                <li>
+                  <Link href="/profile" className="hover:text-white transition-colors">User Profile & Badges</Link>
+                </li>
+                <li>
+                  <Link href="/register" className="hover:text-white transition-colors">Free Trial Sign Up</Link>
+                </li>
+                <li>
+                  <Link href="/login" className="hover:text-white transition-colors">User Login Portal</Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Dhaka HQ & Socials */}
+            <div className="space-y-2">
+              <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-400">
+                Dhaka HQ & Socials
+              </h4>
+              <p className="text-xs text-white font-semibold">
+                Fitora Tower, Gulshan-2, Dhaka 1212 (64 Branches)
+              </p>
+              <div className="flex items-center gap-4 pt-1">
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors" aria-label="Instagram">
+                  <FaInstagram size={16} />
+                </a>
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors" aria-label="Facebook">
+                  <FaFacebookF size={15} />
+                </a>
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors" aria-label="LinkedIn">
+                  <FaLinkedinIn size={15} />
+                </a>
+                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors" aria-label="YouTube">
+                  <FaYoutube size={17} />
+                </a>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </div>
 
-      {/* ── Bottom Copyright Strip (Pure Black Theme) ── */}
-      <div className="bg-black border-t border-white/10 py-4 px-6 sm:px-10 lg:px-14">
+      {/* ── Bottom Copyright Strip ── */}
+      <div className="bg-black border-t border-white/10 py-3.5 px-6 sm:px-10 lg:px-14">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-400">
           
           {/* Left Side: Copyright & Developer Credit */}
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 font-medium">
             <span>FITORA GYM © {new Date().getFullYear()}</span>
-            <Link href="/privacy" className="hover:text-white transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="hover:text-white transition-colors">
-              Terms of Use
-            </Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms of Use</Link>
             <span>Design and Developed by DeveloperMoy</span>
           </div>
 
