@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ArrowUpRight } from "lucide-react";
 import {
   FiSearch,
   FiCreditCard,
@@ -27,7 +27,11 @@ const MENU_ITEMS = [
 
 /* ── Collapsible "Chat list" Items ── */
 const CHAT_LIST = [
-  { label: "AI Coach Studio", href: "/dashboard/user/ai-coach", icon: Sparkles },
+  {
+    label: "AI Coach Studio",
+    href: "/dashboard/user/ai-coach",
+    icon: Sparkles,
+  },
   { label: "BMI Calculator", href: "/calculator", icon: FiActivity },
   { label: "Gym Stopwatch", href: "/stopwatch", icon: FiClock },
 ];
@@ -54,9 +58,11 @@ export default function Navbar() {
     <>
       {/* ── Navbar Container ── */}
       <nav className="fixed top-0 left-0 right-0 z-[70] bg-black text-white border-b border-white/10 h-16 sm:h-20 flex items-center justify-between px-6 sm:px-10 lg:px-16 select-none">
-        
         {/* Left: Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group select-none shrink-0">
+        <Link
+          href="/"
+          className="flex items-center gap-3 group select-none shrink-0"
+        >
           <img
             src="/logo.svg"
             alt="Fitora logo"
@@ -75,7 +81,8 @@ export default function Navbar() {
         {/* ── PC / Desktop Navigation (Perfectly Centered in Middle) ── */}
         <ul className="hidden lg:flex items-center gap-6 xl:gap-9 absolute left-1/2 -translate-x-1/2">
           {DESKTOP_LINKS.map(({ label, href }) => {
-            const isActive = pathname === href || (href === "/" && pathname === "/");
+            const isActive =
+              pathname === href || (href === "/" && pathname === "/");
             return (
               <li key={label}>
                 <Link
@@ -98,9 +105,12 @@ export default function Navbar() {
           {/* PC Desktop CTA Button */}
           <Link
             href="/register"
-            className="hidden lg:block px-6 py-2.5 rounded-xl bg-white text-black font-extrabold text-sm hover:bg-gray-200 transition-all duration-200 shadow-md active:scale-95 cursor-pointer"
+            className="hidden lg:inline-flex group items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
           >
-            Join Now
+            <span>Join Now</span>
+            <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+              <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+            </span>
           </Link>
 
           {/* Mobile & Tablet Hamburger Toggle Button (< 1024px) */}
@@ -140,7 +150,8 @@ export default function Navbar() {
             <div className="flex-1 overflow-y-auto px-4 pt-2 pb-4 space-y-1">
               {/* Main Menu Items */}
               {MENU_ITEMS.map(({ label, href, icon: Icon }) => {
-                const isActive = pathname === href || (href === "/" && pathname === "/");
+                const isActive =
+                  pathname === href || (href === "/" && pathname === "/");
                 return (
                   <Link
                     key={label}
@@ -152,7 +163,9 @@ export default function Navbar() {
                         : "text-gray-400 hover:text-white hover:bg-white/5"
                     }`}
                   >
-                    <Icon className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-gray-500"}`} />
+                    <Icon
+                      className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-gray-500"}`}
+                    />
                     <span>{label}</span>
                   </Link>
                 );
@@ -187,7 +200,9 @@ export default function Navbar() {
                             : "text-gray-400 hover:text-white hover:bg-white/5"
                         }`}
                       >
-                        <ToolIcon className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-500"}`} />
+                        <ToolIcon
+                          className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-500"}`}
+                        />
                         <span>{label}</span>
                       </Link>
                     );
@@ -207,8 +222,12 @@ export default function Navbar() {
                     M
                   </div>
                   <div className="min-w-0">
-                    <p className="text-white font-bold text-sm leading-tight truncate">Moloy Paul</p>
-                    <p className="text-[11px] text-gray-500 leading-tight truncate">moloy@fitora.dev</p>
+                    <p className="text-white font-bold text-sm leading-tight truncate">
+                      Moloy Paul
+                    </p>
+                    <p className="text-[11px] text-gray-500 leading-tight truncate">
+                      moloy@fitora.dev
+                    </p>
                   </div>
                 </div>
                 <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-white text-black shrink-0">

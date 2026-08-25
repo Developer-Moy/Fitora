@@ -41,25 +41,24 @@ The platform enforces strict **Role-Based Access Control (RBAC)** across four di
 
 ### Visual Identity Principles
 * **Color Palette**: Pure Monochrome Black & White (`#000000` pitch black, `#FFFFFF` pure white, `#0E0F12` dark card containers, `#F4F4F4` light card containers). Zero red/emerald accent colors.
-* **Typography**: Heavy bold uppercase headlines (`font-black uppercase tracking-tight`), outlined stroke typography (`WebkitTextStroke: "2px white"`).
+* **Signature Button System**: Uniform `rounded-full` pill buttons with rotating `ArrowUpRight` (`↗`) round icon badges across all components.
+* **Zoom-Proof Layout**: Locked `max-w-7xl` container architecture preventing layout shift on browser zoom or 2K/4K ultra-wide screens.
+* **Typography**: Heavy bold uppercase headlines (`font-black uppercase tracking-tight`), Serif Italic Title Case headlines (`font-serif font-black italic`), outlined stroke typography (`WebkitTextStroke: "2px white"`).
 * **Brand Identity**: 
-  - **Logo**: Pitch-white flame icon (`fill="#FFFFFF"`).
+  - **Logo & Tagline**: FITORA GYM & AI with pitch-white flame icon (`/logo.svg`).
   - **Branch Network**: *Fitora Tower, Gulshan-2, Dhaka 1212* & *64 Branches in Bangladesh*.
   - **Developer Credit**: `Design and Developed by DeveloperMoy`.
 
 ### Header Navbar & Responsive Navigation
-* **Desktop View (`>= 1024px`)**: Solid pitch-black background with centered navigation links (`Home`, `BMI Calculator`, `Gym Stopwatch`, `Membership Plans`, `AI Coach Studio`) and a pure white rounded `"Join Now"` CTA button.
+* **Desktop View (`>= 1024px`)**: Solid pitch-black background with centered navigation links (`Home`, `BMI Calculator`, `Gym Stopwatch`, `Membership Plans`, `AI Coach Studio`) and a signature white rounded `"Join Now"` CTA button.
 * **Mobile & Tablet Drawer (`< 1024px`)**: Slide-in B&W menu drawer with top white search bar, collapsible Chat List, profile card, and Pro button.
 
 ### Assembled Homepage Section Flow (`app/(main)/page.tsx`)
-1. **`HeroSection`** (Alfaaz Ahmed) — *"Build Your Body"* banner + 3 live counter stats.
-2. **`WhyChooseUs`** (Simanto Paul) — Animated 3-photo workout layout & feature checklist.
-3. **`TrainerCalloutBanner`** (Puskor Roy) — *"Need a Fitness Trainer?"* callout banner.
-4. **`MealChartSection`** (Simanto Poddar) — Premium meal chart showcase.
-5. **`TrainersSection`** (Simanto Poddar) — Master coaches & trainers 6-photo grid.
-6. **`PricingAndReviews`** (Salauddin) — *"JOIN TODAY"* pricing plans ($10, $15, $20) & *"YOUR OPINIONS"* reviews slider.
-7. **`Advertisement`** (Simanto Poddar) — Dynamic gym product ad marquee.
-8. **`ContactInfoForm`** (DeveloperMoy) — 1-to-1 visual match *"Leave Us Your Info"* consultation contact form with Bangladesh 64 branches office info.
+1. **`HeroSection`** — *"Build Your Body"* headline, transparent athlete cutout (`/hero.png`), non-clipped SVG notch, left-middle details text, far-left bottom socials, right-middle *"See Packages"* button, and 3-column stats counter strip.
+2. **`WhyChooseUs`** — *"Why Choose Fitora?"* section with white background (`bg-white`), black text, 3 workout images, checklist, and signature *"Free Trial Today"* button.
+3. **`PricingSection`** — *"JOIN TODAY & SHAPE YOUR BODY"* 3-tier membership pricing cards (Basic Pass, Pro Athlete, VIP Ultimate), monthly/annual toggle, and signature CTA buttons.
+4. **`TrainerCalloutBanner`** — *"Need a Fitness Trainer?"* pitch-black callout banner with white phone text and signature *"PURCHASE NOW"* button.
+5. **`ContactInfoForm`** — *"We are here for help you! To Shape Your Body."* consultation contact form with Bangladesh 64 branches office info and signature *"SUBMIT NOW"* button.
 
 ---
 
@@ -128,4 +127,3 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
 - [ ] **User Management Table**: Filter by district, role (Free/Premium/Admin), subscription status, change user roles, suspend/activate accounts.
 - [ ] **Branch Network Manager**: Manage gym locations across 64 districts in Bangladesh.
 - [ ] **AI Model Parameters Control**: Monitor real-time Socket.IO chat tokens and AI response latency.
-

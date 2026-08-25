@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Phone } from "lucide-react";
+import { Phone, ArrowUpRight } from "lucide-react";
 
 interface TrainerCalloutBannerProps {
   title?: string;
@@ -31,7 +31,7 @@ export default function TrainerCalloutBanner({
       aria-label="Fitness Trainer Callout"
       className={`relative w-full overflow-hidden bg-black text-white min-h-[320px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[460px] flex items-center ${className}`}
     >
-      {/* Background Image Layer with Top-Anchored Positioning */}
+      {/* Background Image Layer */}
       <div
         className="absolute inset-0 bg-cover bg-no-repeat bg-[position:80%_top] sm:bg-[position:85%_top] md:bg-[position:88%_top] lg:bg-[position:90%_top] transition-transform duration-700"
         style={{
@@ -39,13 +39,10 @@ export default function TrainerCalloutBanner({
         }}
       />
 
-      {/* Cinematic Gradient Overlays to match the reference banner */}
-      {/* Dark left vignette fading out towards the right athlete photo */}
+      {/* Dark Vignette Gradient Overlays */}
       <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 md:via-black/70 to-transparent z-1" />
-      {/* Subtle top and bottom dark edge blending */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/60 z-1" />
-      {/* Soft warm/red ambient atmospheric glow */}
-      <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none z-1" />
+      <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none z-1" />
 
       {/* Main Content Container */}
       <div className="relative z-10 w-full mx-auto max-w-7xl px-6 py-12 sm:px-10 sm:py-16 md:py-20 lg:px-16 lg:py-24">
@@ -61,36 +58,36 @@ export default function TrainerCalloutBanner({
             {title}
           </h2>
 
-          {/* Contact / Phone Line */}
+          {/* Contact / Phone Line — White Text */}
           <div className="mt-3 sm:mt-4 flex items-center gap-2.5 text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-            <span className="text-[#ff0036] font-extrabold drop-shadow-[0_0_12px_rgba(255,0,54,0.4)]">
+            <span className="text-white font-extrabold drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
               {phoneLabel}
             </span>
             <a
               href={phoneLink}
-              className="text-white hover:text-red-200 transition-colors duration-200 inline-flex items-center gap-2 group"
+              className="text-white hover:text-gray-200 transition-colors duration-200 inline-flex items-center gap-2 group"
             >
               <span>{phoneNumber}</span>
-              <Phone className="w-5 h-5 text-[#ff0036] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
+              <Phone className="w-5 h-5 text-white opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
             </a>
           </div>
 
-          {/* CTA Button Box */}
-          <div className="mt-7 sm:mt-9 relative group">
-            {/* Subtle red accent outline offset layer */}
-            <div className="absolute -inset-1 rounded-sm bg-gradient-to-r from-red-600 to-rose-600 opacity-30 blur-sm group-hover:opacity-70 group-hover:blur-md transition-all duration-300" />
-            
+          {/* CTA Button Box — White Pill Button with ArrowUpRight Badge */}
+          <div className="mt-7 sm:mt-9">
             <Link
               href={buttonHref}
-              className="relative inline-flex items-center justify-center px-8 py-3.5 sm:px-10 sm:py-4 bg-[#ff0036] hover:bg-[#e00030] text-white font-bold text-sm sm:text-base uppercase tracking-wider transition-all duration-200 active:scale-[0.98] shadow-[0_4px_20px_rgba(255,0,54,0.45)] hover:shadow-[0_6px_30px_rgba(255,0,54,0.65)]"
+              className="group inline-flex items-center gap-2.5 bg-white text-black font-bold text-xs sm:text-sm px-6 sm:px-8 py-3.5 sm:py-4 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
             >
-              {buttonText}
+              <span>{buttonText}</span>
+              <span className="bg-black text-white w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              </span>
             </Link>
           </div>
         </motion.div>
       </div>
 
-      {/* Decorative Bottom subtle border */}
+      {/* Decorative Bottom border */}
       <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent z-10" />
     </section>
   );
