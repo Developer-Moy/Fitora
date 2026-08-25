@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { Search, Bell, Menu } from "lucide-react";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
+import { Bell, Menu, Search } from "lucide-react";
+import React, { useState } from "react";
 
 export default function DashboardLayout({
   children,
@@ -14,7 +14,6 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-red-500 selection:text-white">
-      {/* Client Sidebar Component */}
       <DashboardSidebar
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
@@ -24,9 +23,8 @@ export default function DashboardLayout({
 
       {/* Main Content Wrapper (Adjusts margin dynamically based on sidebar state) */}
       <div
-        className={`flex min-h-screen flex-col transition-all duration-300 ease-in-out ${
-          isCollapsed ? "lg:ml-20" : "lg:ml-64"
-        }`}
+        className={`flex min-h-screen flex-col transition-all duration-300 ease-in-out ${isCollapsed ? "lg:ml-20" : "lg:ml-64"
+          }`}
       >
         {/* Top Navbar Header */}
         <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b px-4 lg:px-8 bg-[#0b0c0e]/80 backdrop-blur-md border-white/[0.08]">

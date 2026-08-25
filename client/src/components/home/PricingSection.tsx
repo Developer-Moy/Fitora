@@ -59,7 +59,8 @@ export default function PricingSection() {
   return (
     <section
       id="pricing"
-      className="w-full py-20 px-6 sm:px-10 lg:px-16 bg-white text-black select-none border-t border-gray-200"
+      data-section="plans"
+      className="w-full py-20 sm:py-24 px-6 sm:px-10 lg:px-16 bg-white text-black select-none border-t border-gray-200"
     >
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Header */}

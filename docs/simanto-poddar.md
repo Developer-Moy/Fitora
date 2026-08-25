@@ -11,9 +11,8 @@ The **AI Meal Planning Assistant** is an AI-powered feature that generates a per
 
 Built the User Registration page and form layout with validation and session integration.
 
-## Note on Homepage Cleanup
-
-*(Previous temporary homepage sections — `MealChartSection`, `TrainersSection`, and `Advertisement` — were removed from `client/src/app/(main)/page.tsx` during the 1-to-1 design alignment to strictly follow the authoritative design reference `docs/fitora.png`)*.
+## Note on Homepage Cleanup:
+*(Previous temporary homepage sections — `Coaches / Meet Our Trainers` (`TrainersSection` / `MeetTrainers`), `MealChartSection`, and `Advertisement` — were removed from `client/src/app/(main)/page.tsx` during the 1-to-1 design alignment to strictly follow the authoritative design reference `docs/fitora.png`)*.
 
 ## 3. Healthy Meals Page (`/meals`)
 
@@ -97,6 +96,8 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 
 - `Fitora\client\src\components\Meal\MealDetailsModal.tsx`
 
-  - Created the meal details modal.
-  - Displays detailed information such as **name, ingredients, calories, and description**.
-  - Designed the modal following Fitora's existing UI style.
+### 24-Aug-26
+* Build Coaches Mentor Banner & 6-Trainer Certification Photo Grid (`Meet Our Trainers`)
+
+### 25-Aug-26
+* Homepage sections (`Meet Our Trainers`, `MealChartSection`, `Advertisement`) cleaned up to strictly follow 1-to-1 design mockup `docs/fitora.png`
