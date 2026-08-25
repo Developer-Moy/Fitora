@@ -9,6 +9,9 @@ import {
   Instagram,
   Youtube,
   MessageCircle,
+  Dumbbell,
+  Users,
+  Trophy,
 } from "lucide-react";
 
 const TikTokIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -182,33 +185,56 @@ export default function HeroSection() {
       </div>
 
       {/* ════════════════════════════════════════════════════════════
-          STATS — White Strip (3 columns)
+          STATS — Premium Card Grid with Icon Badges
           ════════════════════════════════════════════════════════════ */}
-      <div id="stats" className="bg-white text-black pt-10 pb-4 sm:pt-12 sm:pb-6 px-6">
-        <div className="max-w-2xl mx-auto grid grid-cols-3 divide-x divide-gray-200 text-center">
-          <div className="flex flex-col items-center px-2 sm:px-4">
-            <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black">
-              <CountUp end={105} />+
-            </span>
-            <span className="text-gray-500 font-semibold text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1">
-              Expert Trainers
-            </span>
+      <div
+        id="stats"
+        className="bg-white text-black py-10 sm:py-12 px-6 border-b border-gray-100"
+      >
+        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          {/* Stat 1 */}
+          <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
+                <CountUp end={105} />+
+              </span>
+              <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
+                Expert Trainers
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col items-center px-2 sm:px-4">
-            <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black">
-              <CountUp end={970} />+
-            </span>
-            <span className="text-gray-500 font-semibold text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1">
-              Member Joined
-            </span>
+
+          {/* Stat 2 */}
+          <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
+                <CountUp end={970} />+
+              </span>
+              <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
+                Members Joined
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col items-center px-2 sm:px-4">
-            <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black">
-              <CountUp end={135} />+
-            </span>
-            <span className="text-gray-500 font-semibold text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider mt-1">
-              Fitness Programs
-            </span>
+
+          {/* Stat 3 */}
+          <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
+                <CountUp end={135} />+
+              </span>
+              <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
+                Fitness Programs
+              </span>
+            </div>
           </div>
         </div>
       </div>
