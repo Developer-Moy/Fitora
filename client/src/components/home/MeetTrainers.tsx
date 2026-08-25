@@ -10,23 +10,23 @@ export default function MeetTrainers() {
       image: "/image1.jpg.jpeg",
     },
     {
-      name: "David Miller",
-      role: "Bodybuilding Specialist",
+      name: "Sarah Jenkins",
+      role: "CrossFit & Olympic Lifter",
       image: "/image2.jpg.jpeg",
     },
     {
-      name: "Alex Rivera",
-      role: "Powerlifting Coach",
+      name: "David Miller",
+      role: "Bodybuilding Specialist",
       image: "/image3.jpg.jpeg",
     },
     {
-      name: "Jason Statham",
-      role: "CrossFit & Conditioning",
+      name: "Alex Rivera",
+      role: "Outdoor Endurance Coach",
       image: "/image4.jpg.jpeg",
     },
     {
-      name: "Elena Rostova",
-      role: "Mobility & Recovery Specialist",
+      name: "Jason Statham",
+      role: "Powerlifting Specialist",
       image: "/image6.jpg.jpeg",
     },
     {
