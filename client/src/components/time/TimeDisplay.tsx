@@ -43,8 +43,8 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
     return `${mins.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  // Dynamic ring colors and glows (pure monochrome)
-  // Idle/stopped = dim gray, running = bright white with glow
+  // Dynamic ring colors (pure monochrome)
+  // Idle/stopped = dim gray, running = bright white
   const ringStroke = isCountdownMode
     ? isWarning || isDone
       ? "#ffffff"
@@ -53,28 +53,10 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
     ? "#ffffff"
     : "#52525b";
 
-  const ringGlow = isCountdownMode
-    ? isWarning || isDone
-      ? "drop-shadow(0 0 14px #ffffff) drop-shadow(0 0 28px rgba(255,255,255,0.55))"
-      : "drop-shadow(0 0 12px #d4d4d4) drop-shadow(0 0 24px rgba(212,212,212,0.35))"
-    : isRunning
-    ? "drop-shadow(0 0 10px rgba(255,255,255,0.85)) drop-shadow(0 0 22px rgba(255,255,255,0.35))"
-    : "none";
-
   const trackColor = "#262626";
 
   return (
     <div className="relative flex items-center justify-center w-[240px] h-[240px] xs:w-[270px] xs:h-[270px] sm:w-[310px] sm:h-[310px] my-2">
-      {/* Ambient pulse ring when running */}
-      {isRunning && (
-        <span
-          className={`absolute inset-0 rounded-full animate-ping opacity-[0.06] pointer-events-none ${
-            isCountdownMode && isWarning ? "bg-white" : "bg-zinc-300"
-          }`}
-          style={{ animationDuration: "2s" }}
-        />
-      )}
-
       {/* Glowing Circular Progress Ring */}
       <svg
         className="absolute inset-0 w-full h-full -rotate-90"
@@ -109,7 +91,6 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
           fill="transparent"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
-          style={{ filter: ringGlow }}
         />
       </svg>
 
