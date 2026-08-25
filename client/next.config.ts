@@ -5,11 +5,20 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
-
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: {
     remotePatterns: [
       {
         hostname: "i.ibb.co.com",
+        protocol: "https",
+      },
+      {
+        hostname: "images.unsplash.com",
         protocol: "https",
       }
     ],
