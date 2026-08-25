@@ -13,6 +13,7 @@ import {
   Users,
   Trophy,
 } from "lucide-react";
+import FloatingAiWidget from "@/components/home/FloatingAiWidget";
 
 const TikTokIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -66,27 +67,76 @@ export default function HeroSection() {
       {/* ════════════════════════════════════════════════════════════
           HERO CONTAINER — Locked Centered Layout (Zoom & Ultrawide Proof)
           ════════════════════════════════════════════════════════════ */}
-      <div className="relative w-full bg-black text-white overflow-hidden min-h-[380px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[520px]">
+      <div className="relative w-full bg-black text-white overflow-hidden min-h-[440px] sm:min-h-[480px] md:min-h-[500px] lg:min-h-[540px]">
         {/* ─── Centered max-w-7xl container to lock relative positions on Zoom & UltraWide ─── */}
-        <div className="relative w-full max-w-7xl mx-auto h-full min-h-[380px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[520px]">
+        <div className="relative w-full max-w-7xl mx-auto h-full min-h-[440px] sm:min-h-[480px] md:min-h-[500px] lg:min-h-[540px]">
           {/* ─── Z-10: "Build Your Body" Title Case Serif Italic Headline ─── */}
-          <div className="absolute z-10 top-4 sm:top-5 md:top-6 inset-x-0 flex justify-center pointer-events-none px-4">
+          <div className="absolute z-10 top-4 sm:top-6 md:top-7 inset-x-0 flex flex-col items-center pointer-events-none px-3 sm:px-4">
             <h1
               className="text-white leading-none whitespace-nowrap select-none tracking-tight text-center"
               style={{
                 fontFamily: "'Georgia', 'Times New Roman', serif",
                 fontWeight: 900,
                 fontStyle: "italic",
-                fontSize: "clamp(3rem, 7.5vw, 8rem)",
+                fontSize: "clamp(2rem, 8vw, 8rem)",
               }}
             >
               Build Your Body
             </h1>
+
+            {/* Mobile Social Icons centered directly under Build Your Body (No BG) */}
+            <div className="flex sm:hidden items-center justify-center gap-4 text-white/80 mt-2.5 pointer-events-auto">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors cursor-pointer"
+                aria-label="Facebook"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors cursor-pointer"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a
+                href="https://tiktok.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors cursor-pointer"
+                aria-label="TikTok"
+              >
+                <TikTokIcon className="w-4 h-4" />
+              </a>
+              <a
+                href="https://wa.me/8801700000000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors cursor-pointer"
+                aria-label="WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4" />
+              </a>
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors cursor-pointer"
+                aria-label="YouTube"
+              >
+                <Youtube className="w-4 h-4" />
+              </a>
+            </div>
           </div>
 
           {/* ─── Z-20: Athlete Cutout Image — Head overlapping text ─── */}
-          <div className="absolute z-20 inset-x-0 bottom-0 top-1 sm:top-2 flex items-end justify-center pointer-events-none overflow-hidden">
-            <div className="relative w-[380px] sm:w-[500px] md:w-[620px] lg:w-[720px] h-[96%] sm:h-full">
+          <div className="absolute z-20 inset-x-0 bottom-0 top-2 sm:top-3 flex items-end justify-center pointer-events-none overflow-hidden">
+            <div className="relative w-[340px] xs:w-[420px] sm:w-[520px] md:w-[640px] lg:w-[740px] h-[98%] sm:h-full">
               <Image
                 src="/hero.png"
                 alt="Bodybuilder Athlete Cutout"
@@ -99,9 +149,9 @@ export default function HeroSection() {
           </div>
 
           {/* ─── Z-30: Subtitle locked in LEFT-MIDDLE ─── */}
-          <div className="absolute z-30 left-4 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 max-w-[220px] sm:max-w-[250px]">
+          <div className="absolute z-30 left-3 xs:left-5 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 max-w-[140px] xs:max-w-[190px] sm:max-w-[260px]">
             <p
-              className="text-gray-200 text-xs sm:text-[13px] md:text-sm leading-[1.65]"
+              className="text-gray-200 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
               style={{ fontStyle: "italic" }}
             >
               Achieve your fitness goals with expert trainers, cutting-edge
@@ -110,61 +160,71 @@ export default function HeroSection() {
             </p>
           </div>
 
-          {/* ─── Z-30: Social Icons locked inside max-w-7xl at bottom left ─── */}
-          <div className="absolute z-30 left-4 sm:left-6 md:left-8 bottom-5 sm:bottom-6 flex items-center gap-3.5 text-white/80">
-            <Link
-              href="#"
-              className="hover:text-white transition-colors"
+          {/* ─── Z-30: Desktop Social Icons locked at bottom left (No BG) ─── */}
+          <div className="hidden sm:flex absolute z-30 left-6 md:left-8 bottom-6 items-center gap-3.5 text-white/80">
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors cursor-pointer"
               aria-label="Facebook"
             >
               <Facebook className="w-4 h-4" />
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-white transition-colors"
+            </a>
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors cursor-pointer"
               aria-label="Instagram"
             >
               <Instagram className="w-4 h-4" />
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-white transition-colors"
+            </a>
+            <a
+              href="https://tiktok.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors cursor-pointer"
               aria-label="TikTok"
             >
               <TikTokIcon className="w-4 h-4" />
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-white transition-colors"
+            </a>
+            <a
+              href="https://wa.me/8801700000000"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors cursor-pointer"
               aria-label="WhatsApp"
             >
               <MessageCircle className="w-4 h-4" />
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-white transition-colors"
+            </a>
+            <a
+              href="https://youtube.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors cursor-pointer"
               aria-label="YouTube"
             >
               <Youtube className="w-4 h-4" />
-            </Link>
+            </a>
           </div>
 
           {/* ─── Z-30: "See Packages" Button locked in RIGHT-MIDDLE ─── */}
-          <div className="absolute z-30 right-4 sm:right-6 md:right-8 top-1/2 -translate-y-1/2">
+          <div className="absolute z-30 right-3 xs:right-5 sm:right-6 md:right-8 top-1/2 -translate-y-1/2">
             <Link
               href="#pricing"
-              className="group inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
+              className="group inline-flex items-center gap-2 bg-white text-black font-bold text-[11px] xs:text-xs sm:text-sm px-3.5 py-2 sm:px-5 sm:py-3 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
             >
               <span>See Packages</span>
-              <span className="bg-black text-white w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+              <span className="bg-black text-white w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
                 <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
               </span>
             </Link>
           </div>
 
-          {/* ─── Z-40: Notch & Arrow Button ─── */}
+          {/* ─── Z-40: Notch SVG Background Arc ─── */}
           <div
-            className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 flex justify-center items-end"
+            className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 flex justify-center items-end pointer-events-none"
             style={{ width: "180px", height: "65px" }}
           >
             <svg
@@ -173,14 +233,10 @@ export default function HeroSection() {
             >
               <path d="M 0 75 C 36 75 44 60 44 38 A 46 46 0 0 1 136 38 C 136 60 144 75 180 75 Z" />
             </svg>
-            <a
-              href="#stats"
-              aria-label="Scroll Down"
-              className="absolute z-50 left-1/2 -translate-x-1/2 top-[4px] w-13 h-13 sm:w-14 sm:h-14 bg-black text-white rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-transform duration-300 cursor-pointer"
-            >
-              <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
-            </a>
           </div>
+
+          {/* Morphing Floating AI Widget (Anchored pixel-perfectly inside SVG Notch) */}
+          <FloatingAiWidget />
         </div>
       </div>
 
