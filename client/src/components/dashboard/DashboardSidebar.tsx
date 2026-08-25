@@ -144,10 +144,10 @@ export default function DashboardSidebar({
         {/* Header / Brand Logo */}
         <div className="relative flex h-16 items-center border-b border-white/[0.08]">
           <Link
-            href={isAdminDashboard ? "/dashboard/admin" : "/"}
+            href="/"
             className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${isCollapsed && !isMobileOpen
-                ? "w-full justify-center"
-                : "w-full px-5"
+              ? "w-full justify-center"
+              : "w-full px-5"
               }`}
             onClick={handleNavClick}
           >
@@ -161,8 +161,8 @@ export default function DashboardSidebar({
 
             <span
               className={`text-xl font-extrabold tracking-wider text-white whitespace-nowrap transition-opacity duration-200 ${showDetails
-                  ? "opacity-100"
-                  : "opacity-0 w-0 overflow-hidden pointer-events-none"
+                ? "opacity-100"
+                : "opacity-0 w-0 overflow-hidden pointer-events-none"
                 }`}
             >
               FITORA<span className="text-red-500">.</span>
@@ -173,8 +173,8 @@ export default function DashboardSidebar({
           <button
             onClick={() => setIsCollapsed((prev) => !prev)}
             className={`hidden lg:flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-[#141519] text-white/60 hover:text-white hover:border-red-500/50 shadow-md transition-all duration-200 z-10 ${isCollapsed
-                ? "absolute right-0 translate-x-1/2"
-                : "absolute right-3"
+              ? "absolute right-0 translate-x-1/2"
+              : "absolute right-3"
               }`}
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
@@ -203,8 +203,8 @@ export default function DashboardSidebar({
             <div key={group.category} className="space-y-1">
               <p
                 className={`px-3 text-[10px] font-extrabold tracking-widest text-white/40 uppercase whitespace-nowrap transition-opacity duration-200 ${showDetails
-                    ? "opacity-100"
-                    : "opacity-0 h-0 overflow-hidden pointer-events-none"
+                  ? "opacity-100"
+                  : "opacity-0 h-0 overflow-hidden pointer-events-none"
                   }`}
               >
                 {group.category}
@@ -221,8 +221,8 @@ export default function DashboardSidebar({
                     onClick={handleNavClick}
                     title={isCollapsed && !isMobileOpen ? item.name : undefined}
                     className={`group relative flex items-center transition-all duration-200 ${isActive
-                        ? "bg-red-600/15 text-red-500 font-bold border-l-2 border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.15)]"
-                        : "text-white/70 hover:bg-white/[0.05] hover:text-white"
+                      ? "bg-red-600/15 text-red-500 font-bold border-l-2 border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.15)]"
+                      : "text-white/70 hover:bg-white/[0.05] hover:text-white"
                       } ${isCollapsed && !isMobileOpen
                         ? "justify-center h-10 w-10 mx-auto rounded-xl"
                         : "gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold"
@@ -231,20 +231,20 @@ export default function DashboardSidebar({
                     <div className="flex h-5 w-5 shrink-0 items-center justify-center">
                       <Icon
                         className={`h-5 w-5 transition-colors ${isActive
-                            ? item.isAi
-                              ? "text-purple-400"
-                              : "text-red-500"
-                            : item.isAi
-                              ? "text-purple-400 group-hover:text-purple-300"
-                              : "text-white/60 group-hover:text-white"
+                          ? item.isAi
+                            ? "text-purple-400"
+                            : "text-red-500"
+                          : item.isAi
+                            ? "text-purple-400 group-hover:text-purple-300"
+                            : "text-white/60 group-hover:text-white"
                           }`}
                       />
                     </div>
 
                     <span
                       className={`flex-1 truncate whitespace-nowrap transition-opacity duration-200 ${showDetails
-                          ? "opacity-100"
-                          : "opacity-0 w-0 overflow-hidden pointer-events-none"
+                        ? "opacity-100"
+                        : "opacity-0 w-0 overflow-hidden pointer-events-none"
                         }`}
                     >
                       {item.name}
@@ -254,8 +254,8 @@ export default function DashboardSidebar({
                     {item.isAi && (
                       <span
                         className={`ml-auto rounded-full bg-purple-950/50 px-2 py-0.5 text-[10px] font-bold text-purple-400 border border-purple-800/40 flex items-center gap-1 transition-opacity duration-200 ${showDetails
-                            ? "opacity-100"
-                            : "opacity-0 w-0 overflow-hidden pointer-events-none"
+                          ? "opacity-100"
+                          : "opacity-0 w-0 overflow-hidden pointer-events-none"
                           }`}
                       >
                         <Sparkles className="w-2.5 h-2.5 animate-pulse" />
@@ -276,8 +276,8 @@ export default function DashboardSidebar({
         >
           <div
             className={`flex items-center gap-3 rounded-xl transition-all duration-200 ${isCollapsed && !isMobileOpen
-                ? "justify-center"
-                : "p-2.5 bg-[#141519] border border-white/[0.06]"
+              ? "justify-center"
+              : "p-2.5 bg-[#141519] border border-white/[0.06]"
               }`}
           >
             <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-red-500 text-white font-bold text-sm shadow-md shadow-red-950/50">
@@ -287,8 +287,8 @@ export default function DashboardSidebar({
 
             <div
               className={`flex-1 overflow-hidden whitespace-nowrap transition-opacity duration-200 ${showDetails
-                  ? "opacity-100"
-                  : "opacity-0 w-0 overflow-hidden pointer-events-none"
+                ? "opacity-100"
+                : "opacity-0 w-0 overflow-hidden pointer-events-none"
                 }`}
             >
               <p className="truncate text-sm font-bold text-white">
