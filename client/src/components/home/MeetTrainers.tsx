@@ -5,32 +5,32 @@ import React from "react";
 export default function MeetTrainers() {
   const trainers = [
     {
-      name: "Marcus Vance",
-      role: "Head Strength Coach",
+      name: "Elena Rostova", // Female (Row 1, Col 1)
+      role: "Strength & Conditioning Specialist",
       image: "/image3.jpg.jpeg",
     },
     {
-      name: "David Miller",
+      name: "David Miller", // Male (Row 1, Col 2)
       role: "Olympic Lifting Specialist",
       image: "/image2.jpg.jpeg",
     },
     {
-      name: "Alex Rivera",
-      role: "Bodybuilding Specialist",
+      name: "Sophia Thorne", // Female (Row 1, Col 3)
+      role: "Bodybuilding & Nutrition Coach",
       image: "/image1.jpg.jpeg",
     },
     {
-      name: "Jason Statham",
+      name: "Jason Statham", // Male (Row 2, Col 1)
       role: "Deadlift & Powerlifting Coach",
       image: "/image4.jpg.jpeg",
     },
     {
-      name: "Brandon Cole",
-      role: "Conditioning & Hypertrophy Coach",
+      name: "Maya Lin", // Female (Row 2, Col 2)
+      role: "Mobility & Flexibility Specialist",
       image: "/image6.jpg.jpeg",
     },
     {
-      name: "Michael Sterling",
+      name: "Chloe Bennet", // Female (Row 2, Col 3)
       role: "Certified Master Trainer",
       image: "/image7.jpg.jpeg",
     },
