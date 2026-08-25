@@ -57,7 +57,7 @@ export default function Navbar() {
   return (
     <>
       {/* ── Navbar Container ── */}
-      <nav className="fixed top-0 left-0 right-0 z-[70] bg-black text-white border-b border-white/10 h-16 sm:h-20 flex items-center justify-between px-6 sm:px-10 lg:px-16 select-none">
+      <nav className="fixed top-0 left-0 right-0 z-[70] bg-black text-white border-b border-white/10 h-16 sm:h-20 flex items-center justify-between px-3 sm:px-8 lg:px-16 select-none">
         {/* Left: Brand Logo */}
         <Link
           href="/"
