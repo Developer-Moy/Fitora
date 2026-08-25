@@ -157,7 +157,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
           title={soundEnabled ? "Mute sound cues" : "Unmute sound cues"}
         >
           {soundEnabled ? (
-            <Volume2 className="w-4 h-4 text-emerald-400" />
+            <Volume2 className="w-4 h-4 text-white" />
           ) : (
             <VolumeX className="w-4 h-4 text-zinc-500" />
           )}

@@ -43,18 +43,18 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
     return `${mins.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  // Dynamic ring colors and glows (monochrome — red kept only as countdown warning)
+  // Dynamic ring colors and glows (pure monochrome)
   const ringStroke = isCountdownMode
     ? isWarning || isDone
-      ? "#ef4444"
+      ? "#ffffff"
       : "#d4d4d4"
-    : "#34d399";
+    : "#ffffff";
 
   const ringGlow = isCountdownMode
     ? isWarning || isDone
-      ? "drop-shadow(0 0 12px #ef4444) drop-shadow(0 0 24px rgba(239,68,68,0.45))"
+      ? "drop-shadow(0 0 14px #ffffff) drop-shadow(0 0 28px rgba(255,255,255,0.55))"
       : "drop-shadow(0 0 12px #d4d4d4) drop-shadow(0 0 24px rgba(212,212,212,0.35))"
-    : "drop-shadow(0 0 10px #34d399) drop-shadow(0 0 22px rgba(52,211,153,0.4))";
+    : "drop-shadow(0 0 10px rgba(255,255,255,0.85)) drop-shadow(0 0 22px rgba(255,255,255,0.35))";
 
   const trackColor = "#262626";
 
@@ -64,11 +64,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
       {isRunning && (
         <span
           className={`absolute inset-0 rounded-full animate-ping opacity-[0.06] pointer-events-none ${
-            isCountdownMode
-              ? isWarning
-                ? "bg-red-500"
-                : "bg-zinc-300"
-              : "bg-emerald-400"
+            isCountdownMode && isWarning ? "bg-white" : "bg-zinc-300"
           }`}
           style={{ animationDuration: "2s" }}
         />
@@ -106,13 +102,13 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
       </svg>
 
       {/* Center Digital Readout */}
-      <div className="relative z-10 flex flex-col items-center justify-center select-none">
+      <div className="relative z-10 flex flex-col items-center justify-center select-none px-6 sm:px-8 py-8">
         {isCountdownMode ? (
           // ── REST COUNTDOWN DISPLAY ──
           <>
             <span
               className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${
-                isWarning || isDone ? "text-red-400" : "text-zinc-300"
+                isWarning || isDone ? "text-white" : "text-zinc-300"
               }`}
             >
               {isDone ? "Rest Complete" : "Rest Countdown"}
@@ -121,7 +117,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
             <div
               className={`text-4xl xs:text-5xl sm:text-6xl font-extrabold font-mono tracking-tight transition-colors ${
                 isWarning || isDone
-                  ? "text-red-400 drop-shadow-[0_0_18px_rgba(239,68,68,0.65)]"
+                  ? "text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.65)]"
                   : "text-zinc-200 drop-shadow-[0_0_18px_rgba(255,255,255,0.4)]"
               } ${isWarning ? "animate-pulse" : ""}`}
             >
@@ -131,7 +127,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
             <span
               className={`text-[11px] mt-1.5 font-mono ${
                 isWarning
-                  ? "text-red-400 font-bold animate-pulse"
+                  ? "text-white font-bold animate-pulse"
                   : isDone
                   ? "text-white font-bold"
                   : "text-zinc-400"
@@ -143,7 +139,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
         ) : (
           // ── NORMAL ACTIVE SET STOPWATCH ──
           <>
-            <div className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-extrabold font-mono tracking-tight text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]">
+            <div className="whitespace-nowrap tabular-nums text-3xl xs:text-4xl sm:text-5xl font-extrabold font-mono tracking-tight text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]">
               {formatTime(seconds)}
             </div>
 

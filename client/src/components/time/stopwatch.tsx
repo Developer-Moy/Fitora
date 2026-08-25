@@ -73,7 +73,7 @@ return (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
 
           <span className="text-[11px] sm:text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <Zap className="w-3.5 h-3.5 text-white shrink-0" />
 
             <span>Current Exercise:</span>
 
