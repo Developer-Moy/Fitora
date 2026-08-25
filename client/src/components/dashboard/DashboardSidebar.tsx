@@ -85,7 +85,7 @@ const adminNavItems: NavGroup[] = [
   {
     category: "CONTROL CENTER",
     links: [
-      { name: "Overview", href: "/dashboard/admin", icon: LayoutDashboard },
+      { name: "Overview", href: "/dashboard/admin/overview", icon: LayoutDashboard },
       { name: "User Management", href: "/dashboard/admin/users", icon: Users },
     ],
   },
