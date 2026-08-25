@@ -1,26 +1,51 @@
-# My Assigned Sections
+# My Assigned Sections & Contributions
 
 ## 1. Header Navbar & Mobile/Tablet Drawer Redesign
 
 The **Header Navbar & Mobile/Tablet Drawer** provides a high-contrast Pure Black & White responsive header across all devices.
 
 ### Key Implementation:
-* **Desktop View (`>= 1024px`)**: Solid pitch-black header with centered navigation links (`Home`, `BMI Calculator`, `Gym Stopwatch`, `Membership Plans`, `AI Coach Studio`) and a pure white rounded `"Join Now"` CTA button.
+* **Desktop View (`>= 1024px`)**: Solid pitch-black header with centered navigation links (`Home`, `BMI Calculator`, `Gym Stopwatch`, `Membership Plans`, `AI Coach Studio`) and a signature white rounded `"Join Now"` CTA button featuring an `ArrowUpRight` (`↗`) icon badge.
 * **Mobile & Tablet View (`< 1024px`)**: Right slide-in Brainwave-style drawer menu featuring a top search bar, collapsible Chat List, profile card, and upgraded Pro button. Positioned below the main header with smooth CSS cubic-bezier animations.
 
 ---
 
-## 2. Consultation Contact Form ("Leave Us Your Info") & Home Page Assembly
+## 2. Hero Section 1-to-1 Design Alignment (`HeroSection.tsx`)
 
-Built the consultation contact section (`client/src/components/home/ContactInfoForm.tsx`) and assembled the home page.
+Completed 1-to-1 visual alignment of the Hero Section matching `docs/fitora.png`.
 
 ### Key Implementation:
-* **Left Column**: Headline *"We are here for help you! To Shape Your Body."*, location info (`Fitora Tower, Gulshan-2, Dhaka 1212` & `64 Branches in Bangladesh`), opening hours, phone/email, and social media links with black accent underline bars.
-* **Right Column**: Light gray container (`bg-[#F4F4F4]`) titled *"Leave Us Your Info"* featuring clean white input fields for `Full Name *`, `Email Address *`, `Select Class` dropdown, `Comment` textarea, and a high-contrast `SUBMIT NOW` button.
+* **Headline**: Single horizontal line *"Build Your Body"* across top in Serif Italic Title Case (`font-serif font-black italic`, `fontSize: "clamp(3rem, 7.5vw, 8rem)"`).
+* **Athlete Cutout (`/hero.png`)**: Transparent cutout athlete placed at `z-20` (overlapping `z-10` text), centered with shorts sitting directly on top of the bottom notch.
+* **SVG Bottom Notch**: Non-clipped smooth arch curve (width 180px x height 65px, `viewBox="0 -16 180 91"`) with inner circle arrow button.
+* **Zoom-Proof & Responsive Layout**: Positioned left details text at left-middle (`top-1/2 -translate-y-1/2`), social icons at far-left bottom, and "See Packages" signature button at right-middle (`top-1/2 -translate-y-1/2`), locked inside a `max-w-7xl` container.
+* **Stats Counter Strip**: 3-column white strip with animated numbers (105+ Expert Trainers, 970+ Member Joined, 135+ Fitness Programs).
 
 ---
 
-## 3. Footer Component Redesign
+## 3. Pure Black & White Color Theme & Signature Button System
+
+Enforced strict B&W color palette and uniform button styling across all home components:
+* **Signature Pill Buttons**: Standardized all website buttons (`Join Now`, `See Packages`, `Free Trial Today`, `PURCHASE NOW`, `SUBMIT NOW`, `CHOOSE PLAN`) to use pill shapes (`rounded-full`) with rotating `ArrowUpRight` (`↗`) round icon badges.
+* **`WhyChooseUs.tsx`**: White background (`bg-white`), black text (`text-black`), black checkmark icons, and signature black pill button.
+* **`PricingSection.tsx`**: Clean 3-tier membership pricing cards (Basic Pass, Pro Athlete, VIP Ultimate) with Monthly/Annual discount toggle and signature pill CTA buttons.
+* **`TrainerCalloutBanner.tsx`**: Pitch-black background with white text and signature white pill button.
+* **`ContactInfoForm.tsx`**: Consultation form with signature black pill `SUBMIT NOW` button.
+* **Clean Brand Consistency**: Standardized 100% brand mentions across the codebase to strictly **FITORA** / **FITORA GYM & AI**.
+
+---
+
+## 4. Consultation Contact Form ("Leave Us Your Info") & Home Assembly
+
+Built the consultation contact section (`client/src/components/home/ContactInfoForm.tsx`) and assembled the home page in `client/src/app/(main)/page.tsx`.
+
+### Key Implementation:
+* **Left Column**: Headline *"We are here for help you! To Shape Your Body."*, location info (`Fitora Tower, Gulshan-2, Dhaka 1212` & `64 Branches in Bangladesh`), opening hours, phone/email, and social media links with black accent underline bars.
+* **Right Column**: Light gray container (`bg-[#F4F4F4]`) titled *"Leave Us Your Info"* featuring clean white input fields for `Full Name *`, `Email Address *`, `Select Class` dropdown, `Comment` textarea, and signature `SUBMIT NOW` pill button.
+
+---
+
+## 5. Footer Component Redesign (`Footer.tsx`)
 
 Redesigned the global Footer (`client/src/components/Footer.tsx`) matching the 1-to-1 reference mockup spec.
 
@@ -33,11 +58,11 @@ Redesigned the global Footer (`client/src/components/Footer.tsx`) matching the 1
 
 ## Overview
 
-These components form the responsive header, footer, and consultation contact experience of **Fitora**.
+These components form the responsive header, hero section, pricing, callouts, contact form, and footer of **Fitora**.
 
 ---
 
-## My Branch
+## My Branch & Developer Profile
 
 **Developer:** [Moloy Paul (DeveloperMoy)](https://github.com/Developer-Moy)
 
@@ -49,30 +74,34 @@ These components form the responsive header, footer, and consultation contact ex
 
 ---
 
-## 17-Aug-26
+## Work Log & Progress Timeline
 
+### 17-Aug-26
 * Initial setup for AI Chat & Header Navbar
 
-## 18-Aug-26
-
+### 18-Aug-26
 * Pulled latest changes from `development` branch into `moloy` branch and resolved conflicts
 
-## 19-Aug-26
-
+### 19-Aug-26
 * Implemented AI Trainer Chat stream and AiMessage database schema
 
-## 20-Aug-26
-
+### 20-Aug-26
 * Standardized Pure Black & White theme across Header Navbar and Footer
 
-## 23-Aug-26
-
+### 23-Aug-26
 * Redesigned Mobile & Tablet drawer (`< 1024px`) with right slide-in Brainwave UI layout, white search bar, and smooth CSS keyframe animations
 
-## 24-Aug-26
-
+### 24-Aug-26
 * Built `ContactInfoForm.tsx` ("Leave Us Your Info" consultation form) with 1-to-1 exact visual mockup match and Bangladesh 64 branches office info
 * Redesigned `Footer.tsx` with "GO FOR IT!" typography, location block, directions button, and `Design and Developed by DeveloperMoy` credit
 * Assembled home page section in `client/src/app/(main)/page.tsx` & `client/src/app/page.tsx`
-* Merged latest `origin/development` with 0 merge conflicts
-* Verified Next.js Turbopack production build (`✓ Compiled successfully`) and pushed commits to `origin moloy`
+
+### 25-Aug-26
+* Extracted transparent background cutout image `/hero.png` (~19MB) for athlete figure
+* Achieved 1-to-1 visual alignment of `HeroSection.tsx` with "Build Your Body" Serif Italic headline, athlete head overlap, non-clipped SVG bottom notch, left-middle details text, far-left bottom socials, and right-middle "See Packages" button
+* Implemented zoom-proof layout architecture using `max-w-7xl` container to prevent element shifting on zoom and ultra-wide screens
+* Standardized signature pill button design system (`rounded-full` + `ArrowUpRight` `↗` round icon badge) across Navbar, HeroSection, WhyChooseUs, PricingSection, TrainerCalloutBanner, and ContactInfoForm
+* Updated `WhyChooseUs.tsx` and `PricingSection.tsx` to white background theme (`bg-white`) with black text (`text-black`)
+* Removed unused old component files (`MealChartSection.tsx`, `PricingAndReviews.tsx`, `TrainersSection.tsx`, `AiTrainerSection.tsx`, `CalculatorSection.tsx`, `GymTimerSection.tsx`, `MeetTrainers.tsx`)
+* Standardized 100% brand consistency under **FITORA** / **FITORA GYM & AI**
+* Updated all project documentation (`README.md`, `docs/moloy.md`, `docs/project_architecture.md`)

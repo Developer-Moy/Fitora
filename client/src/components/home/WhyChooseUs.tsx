@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ArrowUpRight } from "lucide-react";
 
 export default function WhyChooseUs() {
   return (
     <section
       id="why-choose"
-      className="w-full py-20 px-6 sm:px-10 lg:px-16 bg-black text-white border-b border-white/10 select-none"
+      className="w-full pt-8 sm:pt-12 pb-20 sm:pb-24 px-6 sm:px-10 lg:px-16 bg-black text-white border-b border-white/10 select-none"
     >
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         {/* ── Left Side: 3 Stacked Rounded Workout Images ── */}
@@ -39,7 +39,7 @@ export default function WhyChooseUs() {
         <div className="lg:col-span-6 space-y-6">
           <div className="space-y-3">
             <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
-              Why Choose FitLife Studio?
+              Why Choose Fitora?
             </h2>
             <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
               Discover the Benefits That Set Us Apart and Propel Your Fitness
@@ -89,13 +89,16 @@ export default function WhyChooseUs() {
             </div>
           </div>
 
-          {/* Free Trial Button (Pure B&W Theme) */}
+          {/* Free Trial Button */}
           <div className="pt-4">
             <Link
               href="/register"
-              className="inline-block px-8 py-3.5 rounded-xl bg-white text-black font-extrabold text-xs sm:text-sm uppercase tracking-wider hover:bg-gray-200 transition-all shadow-md active:scale-95 cursor-pointer"
+              className="group inline-flex items-center gap-2.5 bg-white text-black font-bold text-xs sm:text-sm px-6 py-3.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
             >
-              Free Trial Today
+              <span>Free Trial Today</span>
+              <span className="bg-black text-white w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              </span>
             </Link>
           </div>
         </div>
