@@ -1,24 +1,21 @@
-# My Assigned Sections
+# My Assigned Sections & Progress
 
-## 1. AI Meal Planning Assistant (Premium Meal Chart)
+## 1. AI Meal Planning Assistant & Nutrition Dashboard (`/dashboard/user/nutrition`)
 
-The **AI Meal Planning Assistant** is an AI-powered feature that generates a personalized meal chart based on the information provided by the user. The user will submit relevant information, which will be processed through an AI API to generate suitable meal suggestions for different times of the day, such as breakfast, lunch, snacks, and dinner.
+The **AI Meal Planning Assistant** is an AI-powered feature that generates a personalized meal chart based on user parameters (calorie goal, dietary restrictions).
+- **Nutrition Dashboard**: Interactive Water Hydration progress ring widget, 2,400 kcal macro progress bar, and category filterable meal cards.
+- **Backend API**: Endpoints `GET /api/meal-charts` & `POST /api/meal-charts` with `MealPlan` Mongoose schema.
 
-## 2. Advertisement (Gym-related Ads)
+## 2. User Registration Flow (`/register`)
 
-The **Advertisement** section displays fitness-related product advertisements based on the exercise selected by the user. The system matches the selected exercise with relevant products and displays related advertisements.
+Built the User Registration page and form layout with validation and session integration.
 
-**Examples:**
+## Note on Homepage Cleanup:
+*(Previous temporary homepage sections — `Coaches / Meet Our Trainers` (`TrainersSection` / `MeetTrainers`), `MealChartSection`, and `Advertisement` — were removed from `client/src/app/(main)/page.tsx` during the 1-to-1 design alignment to strictly follow the authoritative design reference `docs/fitora.png`)*.
 
-* **Run** → Running Shoes, Sportswear, Sports Accessories
-* **Yoga** → Yoga Mat, Yoga Block, Yoga Accessories
-* **Weight Training** → Dumbbells, Resistance Bands, Gym Gloves
+---
 
-## Overview
-
-These two sections provide personalized experiences within **Fitora**. The **AI Meal Planning Assistant** helps users generate personalized meal suggestions, while the **Advertisement** section displays exercise-related fitness product advertisements based on the user's selected activity.
-
-## My Branch
+## My Branch & Links
 
 **Developer:** [Simanto Poddar](https://github.com/simanto-poddar)
 
@@ -28,46 +25,35 @@ These two sections provide personalized experiences within **Fitora**. The **AI 
 
 **Branch Link:** [View My Branch](https://github.com/Developer-Moy/Fitora/tree/simanto-poddar)
 
-## 17-Aug-26
+---
 
+## Work Log & Progress Timeline
+
+### 17-Aug-26
 * Build user input form for meal chart generation
-
 * Create MealPlan Mongoose schema
 
-## 18-Aug-26
-
-* Pulled the latest changes from the development branch into my (`simanto-poddar`) branch and resolved the issues/conflicts found on my side.
-
-### Meal Chart API Implementation
-
+### 18-Aug-26
+* Pulled the latest changes from the development branch into `simanto-poddar` branch and resolved conflicts
 * Implemented the Meal Chart API endpoints:
+  - `GET /api/meal-charts?userId={userId}`
+  - `POST /api/meal-charts`
 
-  * `GET /api/meal-charts?userId={userId}` — Fetch meal charts for a specific user.
-  * `POST /api/meal-charts` — Create and save a meal plan.
-* The `GET /api/meal-charts` endpoint requires a `userId` query parameter.
+### 19-Aug-26
+* Build User Registration page (`/register`)
+* Build initial Meal Chart section
 
-### Client Environment Variables
+### 20-Aug-26
+* Update Nutrition page UI (`/dashboard/user/nutrition`)
+* Build Advertisement section component
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-```
-
-## 19-Aug-26
-
-* Build User Registration page.
-* Build Premium Meal Chart section (homepage).
-
-## 20-Aug-26
-
-* Update Nutrition page UI
-* Build Advertisement section (homepage)
-
-## 23-Aug-26
-
-* Add an interactive Water Hydration progress ring widget on the Nutrition Dashboard  (client\src\app\dashboard\user\nutrition\page.tsx)
-* Replace temp userId with authenticated session userId (client\src\components\MealChartCard.tsx)
+### 23-Aug-26
+* Add interactive Water Hydration progress ring widget on Nutrition Dashboard (`client/src/app/dashboard/user/nutrition/page.tsx`)
+* Replace temp userId with authenticated session userId (`client/src/components/MealChartCard.tsx`)
 * Add advertisement schema and API route
 
-## 24-Aug-26
+### 24-Aug-26
+* Build Coaches Mentor Banner & 6-Trainer Certification Photo Grid (`Meet Our Trainers`)
 
-* Build Coaches Mentor Banner & 6-Trainer Certification Photo Grid
+### 25-Aug-26
+* Homepage sections (`Meet Our Trainers`, `MealChartSection`, `Advertisement`) cleaned up to strictly follow 1-to-1 design mockup `docs/fitora.png`
