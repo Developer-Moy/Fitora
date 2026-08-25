@@ -62,7 +62,7 @@ export default function StopwatchPage({ showSetHistory = true }: { showSetHistor
     }
   };
 return (
-  <div className="min-h-screen w-full rounded-2xl  bg-[#090a0d] text-white flex flex-col overflow-x-hidden selection:bg-emerald-500 selection:text-black ">
+  <div className="min-h-screen w-full rounded-2xl  bg-[#090a0d] text-white flex flex-col overflow-x-hidden selection:bg-white selection:text-black ">
 
     <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
 
@@ -73,7 +73,7 @@ return (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
 
           <span className="text-[11px] sm:text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <Zap className="w-3.5 h-3.5 text-white shrink-0" />
 
             <span>Current Exercise:</span>
 
@@ -85,7 +85,7 @@ return (
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowCustomInput((p) => !p)}
-              className="self-start sm:self-auto text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
+              className="self-start sm:self-auto text-xs text-white hover:text-gray-300 flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               Custom
@@ -97,10 +97,10 @@ return (
               onClick={toggleFullscreen}
               title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
               className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border transition cursor-pointer
-                bg-[#12141a] hover:bg-[#1a1e28] text-zinc-400 hover:text-white border-[#232836] hover:border-emerald-700/60"
+                bg-[#12141a] hover:bg-[#1a1e28] text-zinc-400 hover:text-white border-[#232836] hover:border-white/40"
             >
               {isFullscreen ? (
-                <><Minimize2 className="w-3.5 h-3.5 text-emerald-400" /><span className="hidden sm:inline">Exit Full</span></>
+                <><Minimize2 className="w-3.5 h-3.5 text-white" /><span className="hidden sm:inline">Exit Full</span></>
               ) : (
                 <><Maximize2 className="w-3.5 h-3.5 text-zinc-400" /><span className="hidden sm:inline">Fullscreen</span></>
               )}
@@ -119,13 +119,13 @@ return (
               placeholder="Enter exercise name..."
               value={customExercise}
               onChange={(e) => setCustomExercise(e.target.value)}
-              className="w-full min-w-0 bg-[#12141a] border border-emerald-700/50 rounded-xl px-3 py-2 sm:py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-400"
+              className="w-full min-w-0 bg-[#12141a] border border-[#232836] rounded-xl px-3 py-2 sm:py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/70"
               autoFocus
             />
 
             <button
               type="submit"
-              className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-bold px-5 py-2 sm:py-1.5 rounded-xl cursor-pointer"
+              className="w-full sm:w-auto bg-white hover:bg-gray-100 text-black text-xs font-bold px-5 py-2 sm:py-1.5 rounded-xl cursor-pointer"
             >
               Set
             </button>
@@ -142,7 +142,7 @@ return (
                 onClick={() => handleSelectExercise(ex)}
                 className={`shrink-0 whitespace-nowrap px-3 py-1.5 sm:px-3.5 rounded-xl text-[11px] sm:text-xs font-medium transition border cursor-pointer ${
                   selectedExercise === ex
-                    ? "bg-emerald-950/80 text-emerald-300 border-emerald-500/60 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                    ? "bg-white text-black border-white shadow-[0_0_12px_rgba(255,255,255,0.25)]"
                     : "bg-[#12141a] hover:bg-[#191d26] text-zinc-400 border-[#232836]"
                 }`}
               >
