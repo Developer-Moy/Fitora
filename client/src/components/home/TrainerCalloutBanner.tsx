@@ -2,95 +2,73 @@
 
 import React from "react";
 import Link from "next/link";
+import { PhoneCall, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { Phone, ArrowUpRight } from "lucide-react";
 
-interface TrainerCalloutBannerProps {
-  title?: string;
-  phoneLabel?: string;
-  phoneNumber?: string;
-  phoneLink?: string;
-  buttonText?: string;
-  buttonHref?: string;
-  backgroundImage?: string;
-  className?: string;
-}
-
-export default function TrainerCalloutBanner({
-  title = "Need a Fitness Trainer?",
-  phoneLabel = "Call:",
-  phoneNumber = "+91-999999-9999",
-  phoneLink = "tel:+919999999999",
-  buttonText = "PURCHASE NOW",
-  buttonHref = "/plans",
-  backgroundImage = "/trainer-banner-bg.jpg",
-  className = "",
-}: TrainerCalloutBannerProps) {
+export default function TrainerCalloutBanner() {
   return (
-    <section
-      aria-label="Fitness Trainer Callout"
-      className={`relative w-full overflow-hidden bg-black text-white min-h-[320px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[460px] flex items-center ${className}`}
-    >
-      {/* Background Image Layer */}
-      <div
-        className="absolute inset-0 bg-cover bg-no-repeat bg-[position:80%_top] sm:bg-[position:85%_top] md:bg-[position:88%_top] lg:bg-[position:90%_top] transition-transform duration-700"
-        style={{
-          backgroundImage: `url('${backgroundImage}')`,
-        }}
-      />
+    <section className="w-full bg-white py-6 sm:py-8 px-4 sm:px-6 lg:px-10 select-none">
+      <div className="relative z-10 w-full mx-auto max-w-7xl rounded-[2.5rem] sm:rounded-[3.5rem] bg-black text-white p-8 sm:p-14 lg:p-20 shadow-2xl border border-white/10 overflow-hidden">
 
-      {/* Dark Vignette Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 md:via-black/70 to-transparent z-1" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/60 z-1" />
-      <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none z-1" />
+        {/* Background Image Overlay with Dim Gradient */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <img
+            src="/trainer-banner-bg-wide.jpg"
+            alt="Gym Trainer Banner Background"
+            className="w-full h-full object-cover filter brightness-[0.25] contrast-125 scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
+        </div>
 
-      {/* Main Content Container */}
-      <div className="relative z-10 w-full mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 py-20 sm:py-24">
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="max-w-2xl flex flex-col items-start text-left"
-        >
-          {/* Main Headline */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white drop-shadow-md">
-            {title}
-          </h2>
+        {/* Ambient Glow Orbs */}
+        <div className="absolute -right-20 -bottom-20 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none z-1" />
+        <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none z-1" />
 
-          {/* Contact / Phone Line — White Text */}
-          <div className="mt-3 sm:mt-4 flex items-center gap-2.5 text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-            <span className="text-white font-extrabold drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
-              {phoneLabel}
-            </span>
-            <a
-              href={phoneLink}
-              className="text-white hover:text-gray-200 transition-colors duration-200 inline-flex items-center gap-2 group"
-            >
-              <span>{phoneNumber}</span>
-              <Phone className="w-5 h-5 text-white opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
-            </a>
-          </div>
+        {/* Main Content Grid */}
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
 
-          {/* CTA Button Box — White Pill Button with ArrowUpRight Badge */}
-          <div className="mt-7 sm:mt-9">
+          {/* Left Text */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="lg:col-span-7 space-y-4 text-left"
+          >
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-none">
+              Need a Fitness Trainer?
+            </h2>
+            <div className="flex items-center gap-3 pt-2">
+              <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shrink-0 shadow-lg">
+                <PhoneCall className="w-5 h-5 stroke-[2.5]" />
+              </div>
+              <span className="text-2xl sm:text-4xl font-black tracking-tight text-white">
+                +880 1700-000000
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Right Signature Pill CTA Button */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="lg:col-span-5 lg:flex lg:justify-end"
+          >
             <Link
-              href={buttonHref}
-              className="group inline-flex items-center gap-2.5 bg-white text-black font-bold text-xs sm:text-sm px-6 sm:px-8 py-3.5 sm:py-4 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
+              href="#contact"
+              className="group inline-flex items-center gap-3 bg-white text-black font-extrabold text-sm sm:text-base px-8 py-4 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-2xl hover:scale-105"
             >
-              <span>{buttonText}</span>
-              <span className="bg-black text-white w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>PURCHASE NOW</span>
+              <span className="bg-black text-white w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
               </span>
             </Link>
-          </div>
-        </motion.div>
-      </div>
+          </motion.div>
 
-      {/* Decorative Bottom border */}
-      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent z-10" />
+        </div>
+      </div>
     </section>
   );
 }
-
-export { TrainerCalloutBanner };
