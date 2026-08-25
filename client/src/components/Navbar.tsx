@@ -17,6 +17,8 @@ import {
   FiMessageSquare,
 } from "react-icons/fi";
 
+import { useSession } from "@/lib/auth-client";
+
 /* ── Main Menu Items (Mobile & Tablet Drawer) ── */
 const MENU_ITEMS = [
   { label: "Chats", href: "/", icon: FiMessageSquare },
@@ -50,7 +52,14 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [chatListOpen, setChatListOpen] = useState(true);
 
-  if (pathname?.startsWith("/dashboard")) {
+  const { data: authSession } = useSession();
+  const isLoggedIn = !!authSession?.user;
+
+  if (
+    pathname?.startsWith("/dashboard") ||
+    pathname === "/login" ||
+    pathname === "/register"
+  ) {
     return null;
   }
 
@@ -103,15 +112,27 @@ export default function Navbar() {
         {/* ── Right Side Actions ── */}
         <div className="flex items-center gap-4 shrink-0">
           {/* PC Desktop CTA Button */}
-          <Link
-            href="/register"
-            className="hidden lg:inline-flex group items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
-          >
-            <span>Join Now</span>
-            <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-              <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-            </span>
-          </Link>
+          {!isLoggedIn ? (
+            <Link
+              href="/login"
+              className="hidden lg:inline-flex group items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
+            >
+              <span>Join Now</span>
+              <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href="/dashboard/user/ai-coach"
+              className="hidden lg:inline-flex group items-center gap-2 bg-neutral-900 border border-white/20 text-white font-bold text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 shadow-xl"
+            >
+              <span>Dashboard</span>
+              <span className="bg-white text-black group-hover:bg-black group-hover:text-white w-6 h-6 rounded-full flex items-center justify-center transition-colors">
+                <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+              </span>
+            </Link>
+          )}
 
           {/* Mobile & Tablet Hamburger Toggle Button (< 1024px) */}
           <button
@@ -135,7 +156,7 @@ export default function Navbar() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── White Search Box at Top ── */}
-            <div className="px-4 pt-5 pb-2 shrink-0">
+            <div className="px-4 pt-5 pb-2 shrink-0 space-y-3">
               <div className="relative">
                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input
@@ -144,6 +165,31 @@ export default function Navbar() {
                   className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white text-black text-sm font-medium placeholder:text-gray-400 outline-none border-0 shadow-sm"
                 />
               </div>
+
+              {/* ── Mobile & Tablet CTA Button (Join Now if logged out, Dashboard if logged in) ── */}
+              {!isLoggedIn ? (
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-between bg-white text-black font-black text-sm px-5 py-3 rounded-2xl shadow-xl hover:bg-gray-100 transition-all duration-300 group cursor-pointer"
+                >
+                  <span>Join Now</span>
+                  <span className="bg-black text-white w-7 h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                    <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  href="/dashboard/user/ai-coach"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-between bg-neutral-900 text-white font-black text-sm px-5 py-3 rounded-2xl border border-white/20 shadow-xl hover:bg-white hover:text-black transition-all duration-300 group cursor-pointer"
+                >
+                  <span>Go to Dashboard</span>
+                  <span className="bg-white text-black group-hover:bg-black group-hover:text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors">
+                    <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </span>
+                </Link>
+              )}
             </div>
 
             {/* ── Scrollable Menu Content ── */}
