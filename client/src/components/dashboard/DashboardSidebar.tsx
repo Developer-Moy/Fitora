@@ -85,20 +85,38 @@ const adminNavItems: NavGroup[] = [
   {
     category: "CONTROL CENTER",
     links: [
-      { name: "Overview", href: "/dashboard/admin/overview", icon: LayoutDashboard },
+      {
+        name: "Overview",
+        href: "/dashboard/admin/overview",
+        icon: LayoutDashboard,
+      },
       { name: "User Management", href: "/dashboard/admin/users", icon: Users },
     ],
   },
   {
     category: "OPERATIONS",
     links: [
-      { name: "Branch Network", href: "/dashboard/admin/branches", icon: Building2 },
-      { name: "AI Model Control", href: "/dashboard/admin/ai-model", icon: BrainCircuit },
+      {
+        name: "Branch Network",
+        href: "/dashboard/admin/branches",
+        icon: Building2,
+      },
+      {
+        name: "AI Model Control",
+        href: "/dashboard/admin/ai-model",
+        icon: BrainCircuit,
+      },
     ],
   },
   {
     category: "CONFIGURATION",
-    links: [{ name: "Admin Settings", href: "/dashboard/admin/settings", icon: Settings }],
+    links: [
+      {
+        name: "Admin Settings",
+        href: "/dashboard/admin/settings",
+        icon: Settings,
+      },
+    ],
   },
 ];
 
@@ -136,50 +154,57 @@ export default function DashboardSidebar({
         className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r transition-all duration-300 ease-in-out select-none
           bg-[#0b0c0e] border-white/[0.08] text-white
           ${isCollapsed ? "w-20" : "w-64"}
-          ${isMobileOpen
-            ? "translate-x-0 w-64 shadow-2xl shadow-black"
-            : "-translate-x-full lg:translate-x-0"
+          ${
+            isMobileOpen
+              ? "translate-x-0 w-64 shadow-2xl shadow-black"
+              : "-translate-x-full lg:translate-x-0"
           }`}
       >
         {/* Header / Brand Logo */}
-        <div className="relative flex h-16 items-center border-b border-white/[0.08]">
+        <div className="relative flex h-16 items-center border-b border-white/10">
           <Link
             href="/"
-            className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${isCollapsed && !isMobileOpen
-              ? "w-full justify-center"
-              : "w-full px-5"
-              }`}
+            className={`flex items-center gap-3 overflow-hidden transition-all duration-300 group ${
+              isCollapsed && !isMobileOpen
+                ? "w-full justify-center"
+                : "w-full px-4"
+            }`}
             onClick={handleNavClick}
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-600/20 border border-red-500/40 shadow-lg shadow-red-950/40">
-              <img
-                src="/logo.svg"
-                alt="Fitora logo"
-                className="w-5 h-5 object-contain"
-              />
-            </div>
+            <img
+              src="/logo.svg"
+              alt="Fitora logo"
+              className="w-8 h-8 shrink-0 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
+            />
 
-            <span
-              className={`text-xl font-extrabold tracking-wider text-white whitespace-nowrap transition-opacity duration-200 ${showDetails
-                ? "opacity-100"
-                : "opacity-0 w-0 overflow-hidden pointer-events-none"
-                }`}
+            <div
+              className={`flex flex-col whitespace-nowrap transition-opacity duration-200 ${
+                showDetails
+                  ? "opacity-100"
+                  : "opacity-0 w-0 overflow-hidden pointer-events-none"
+              }`}
             >
-              FITORA<span className="text-red-500">.</span>
-            </span>
+              <span className="text-white font-black text-lg tracking-wider uppercase leading-none font-sans">
+                FITORA
+              </span>
+              <span className="text-[8px] text-gray-400 font-bold tracking-[0.25em] uppercase mt-0.5">
+                GYM & AI
+              </span>
+            </div>
           </Link>
 
           {/* Toggle Expand/Collapse Button */}
           <button
             onClick={() => setIsCollapsed((prev) => !prev)}
-            className={`hidden lg:flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-[#141519] text-white/60 hover:text-white hover:border-red-500/50 shadow-md transition-all duration-200 z-10 ${isCollapsed
-              ? "absolute right-0 translate-x-1/2"
-              : "absolute right-3"
-              }`}
+            className={`hidden lg:flex h-7 w-7 items-center justify-center rounded-lg border border-white/15 bg-neutral-900 text-white/70 hover:text-white hover:border-white shadow-md transition-all duration-200 z-10 cursor-pointer ${
+              isCollapsed
+                ? "absolute right-0 translate-x-1/2"
+                : "absolute right-3"
+            }`}
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isCollapsed ? (
-              <ChevronRight className="h-4 w-4 text-red-500" />
+              <ChevronRight className="h-4 w-4 text-white" />
             ) : (
               <ChevronLeft className="h-4 w-4" />
             )}
@@ -196,16 +221,18 @@ export default function DashboardSidebar({
 
         {/* Scrollable Navigation Body */}
         <div
-          className={`flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-6 scrollbar-thin scrollbar-thumb-white/10 ${isCollapsed && !isMobileOpen ? "px-2" : "px-3"
-            }`}
+          className={`flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-6 scrollbar-thin scrollbar-thumb-white/10 ${
+            isCollapsed && !isMobileOpen ? "px-2" : "px-3"
+          }`}
         >
           {activeNavItems.map((group) => (
             <div key={group.category} className="space-y-1">
               <p
-                className={`px-3 text-[10px] font-extrabold tracking-widest text-white/40 uppercase whitespace-nowrap transition-opacity duration-200 ${showDetails
-                  ? "opacity-100"
-                  : "opacity-0 h-0 overflow-hidden pointer-events-none"
-                  }`}
+                className={`px-3 text-[10px] font-black tracking-widest text-white/40 uppercase whitespace-nowrap transition-opacity duration-200 ${
+                  showDetails
+                    ? "opacity-100"
+                    : "opacity-0 h-0 overflow-hidden pointer-events-none"
+                }`}
               >
                 {group.category}
               </p>
@@ -213,54 +240,47 @@ export default function DashboardSidebar({
               {group.links.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
+                const isCollapsedMode = isCollapsed && !isMobileOpen;
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={handleNavClick}
-                    title={isCollapsed && !isMobileOpen ? item.name : undefined}
-                    className={`group relative flex items-center transition-all duration-200 ${isActive
-                      ? "bg-red-600/15 text-red-500 font-bold border-l-2 border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.15)]"
-                      : "text-white/70 hover:bg-white/[0.05] hover:text-white"
-                      } ${isCollapsed && !isMobileOpen
-                        ? "justify-center h-10 w-10 mx-auto rounded-xl"
-                        : "gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold"
-                      }`}
+                    title={isCollapsedMode ? item.name : undefined}
+                    className={`group relative flex items-center transition-all duration-200 ${
+                      isActive
+                        ? "bg-white text-black font-extrabold shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                        : "text-white/70 hover:bg-neutral-900 hover:text-white"
+                    } ${
+                      isCollapsedMode
+                        ? "justify-center items-center h-10 w-10 mx-auto rounded-xl"
+                        : "gap-3 rounded-xl px-3 py-2.5 text-xs font-bold uppercase tracking-wider"
+                    }`}
                   >
                     <div className="flex h-5 w-5 shrink-0 items-center justify-center">
                       <Icon
-                        className={`h-5 w-5 transition-colors ${isActive
-                          ? item.isAi
-                            ? "text-purple-400"
-                            : "text-red-500"
-                          : item.isAi
-                            ? "text-purple-400 group-hover:text-purple-300"
+                        className={`h-4 w-4 transition-colors ${
+                          isActive
+                            ? "text-black"
                             : "text-white/60 group-hover:text-white"
-                          }`}
+                        }`}
                       />
                     </div>
 
-                    <span
-                      className={`flex-1 truncate whitespace-nowrap transition-opacity duration-200 ${showDetails
-                        ? "opacity-100"
-                        : "opacity-0 w-0 overflow-hidden pointer-events-none"
-                        }`}
-                    >
-                      {item.name}
-                    </span>
+                    {showDetails && (
+                      <>
+                        <span className="flex-1 truncate whitespace-nowrap">
+                          {item.name}
+                        </span>
 
-                    {/* AI Feature Pill Badge */}
-                    {item.isAi && (
-                      <span
-                        className={`ml-auto rounded-full bg-purple-950/50 px-2 py-0.5 text-[10px] font-bold text-purple-400 border border-purple-800/40 flex items-center gap-1 transition-opacity duration-200 ${showDetails
-                          ? "opacity-100"
-                          : "opacity-0 w-0 overflow-hidden pointer-events-none"
-                          }`}
-                      >
-                        <Sparkles className="w-2.5 h-2.5 animate-pulse" />
-                        AI
-                      </span>
+                        {item.isAi && (
+                          <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black text-white border border-white/20 flex items-center gap-1">
+                            <Sparkles className="w-2.5 h-2.5 text-white animate-pulse" />
+                            AI
+                          </span>
+                        )}
+                      </>
                     )}
                   </Link>
                 );
@@ -271,32 +291,38 @@ export default function DashboardSidebar({
 
         {/* Sidebar Footer Account Info Card */}
         <div
-          className={`border-t border-white/[0.08] ${isCollapsed && !isMobileOpen ? "p-2 flex justify-center" : "p-3"
-            }`}
+          className={`border-t border-white/10 ${
+            isCollapsed && !isMobileOpen ? "p-2 flex justify-center" : "p-3"
+          }`}
         >
           <div
-            className={`flex items-center gap-3 rounded-xl transition-all duration-200 ${isCollapsed && !isMobileOpen
-              ? "justify-center"
-              : "p-2.5 bg-[#141519] border border-white/[0.06]"
-              }`}
+            className={`flex items-center gap-3 rounded-2xl transition-all duration-200 ${
+              isCollapsed && !isMobileOpen
+                ? "justify-center"
+                : "p-2.5 bg-neutral-900 border border-white/15 shadow-xl"
+            }`}
           >
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-red-500 text-white font-bold text-sm shadow-md shadow-red-950/50">
-              {isAdminDashboard ? "A" : "M"}
-              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-[#0b0c0e]" />
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full overflow-hidden border border-white/30 bg-neutral-950 shadow-md">
+              <img
+                src="/coache1.jpg.jpeg"
+                alt="Master Admin Profile"
+                className="w-full h-full object-cover object-top"
+              />
+              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-white ring-2 ring-black" />
             </div>
 
             <div
-              className={`flex-1 overflow-hidden whitespace-nowrap transition-opacity duration-200 ${showDetails
-                ? "opacity-100"
-                : "opacity-0 w-0 overflow-hidden pointer-events-none"
-                }`}
+              className={`flex-1 overflow-hidden whitespace-nowrap transition-opacity duration-200 ${
+                showDetails
+                  ? "opacity-100"
+                  : "opacity-0 w-0 overflow-hidden pointer-events-none"
+              }`}
             >
-              <p className="truncate text-sm font-bold text-white">
-                {isAdminDashboard ? "Fitora Admin" : "Moloy Paul"}
+              <p className="truncate text-xs font-black uppercase tracking-wider text-white">
+                {isAdminDashboard ? "MASTER ADMIN" : "PRO ATHLETE"}
               </p>
-              <p className="truncate text-xs text-red-400 font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                {isAdminDashboard ? "Administrator" : "Pro Athlete"}
+              <p className="truncate text-[9px] text-white/50 font-bold tracking-wider uppercase mt-0.5">
+                {isAdminDashboard ? "admin@fitora.com" : "PRO MEMBER"}
               </p>
             </div>
           </div>

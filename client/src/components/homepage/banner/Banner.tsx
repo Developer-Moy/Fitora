@@ -14,7 +14,7 @@ import {
 
 export default function HeroBanner() {
   return (
-    <section className="relative min-h-[calc(100vh-4rem)] flex flex-col justify-between overflow-hidden bg-black text-white transition-colors duration-300">
+    <section className="relative min-h-[calc(100vh-5rem)] flex flex-col justify-between overflow-hidden bg-black text-white transition-colors duration-300">
       {/* Decorative Background Glows (Pure Monochrome Neutral) */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[400px] pointer-events-none z-0">
         <div className="absolute top-[-50px] left-[15%] w-[300px] sm:w-[450px] h-[300px] sm:h-[450px] rounded-full bg-white/5 blur-[120px]" />
@@ -22,9 +22,8 @@ export default function HeroBanner() {
       </div>
 
       {/* --- HERO CONTENT MAIN SECTION --- */}
-      <div className="relative z-10 flex-1 flex items-center max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-8">
+      <div className="relative z-10 flex-1 flex items-center max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center w-full">
-          
           {/* Left Column: Value Proposition & CTAs */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             {/* AI Badge Header */}
@@ -46,9 +45,9 @@ export default function HeroBanner() {
               </h1>
 
               <p className="max-w-xl mx-auto lg:mx-0 text-base sm:text-lg text-gray-300 leading-relaxed pt-2">
-                The all-in-one platform built for athletes and gym trainees. Fitora
-                seamlessly unifies workout logging, dynamic planning, recovery
-                tracking, and AI coaching:{" "}
+                The all-in-one platform built for athletes and gym trainees.
+                Fitora seamlessly unifies workout logging, dynamic planning,
+                recovery tracking, and AI coaching:{" "}
                 <span className="font-semibold text-white">
                   Plan &rarr; Train &rarr; Track &rarr; Recover &rarr; Improve
                 </span>
@@ -95,7 +94,6 @@ export default function HeroBanner() {
           {/* Right Column: Interactive Card Preview */}
           <div className="lg:col-span-5 relative flex justify-center">
             <div className="relative w-full max-w-md lg:max-w-none">
-              
               {/* Card Container (Pure Black & White) */}
               <div className="relative rounded-2xl border border-white/15 bg-[#0E0F12] p-6 shadow-2xl space-y-5">
                 {/* Header */}
@@ -215,7 +213,6 @@ export default function HeroBanner() {
                   </p>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -225,9 +222,7 @@ export default function HeroBanner() {
       <div className="relative z-10 py-3 border-t border-white/10 bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
           <p className="font-semibold text-white">Fitora AI Platform Engine</p>
-          <span>
-            Google Gemini &bull; Groq &bull; OpenAI Multi-AI Fallback
-          </span>
+          <span>Google Gemini &bull; Groq &bull; OpenAI Multi-AI Fallback</span>
         </div>
       </div>
     </section>

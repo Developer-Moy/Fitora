@@ -77,12 +77,12 @@ const initialUsers: ManagedUser[] = [
   },
   {
     id: 5,
-    name: "Fahim Ahmed",
-    email: "fahim.ahmed@example.com",
+    name: "Master Admin",
+    email: "admin@fitora.com",
     role: "Admin",
     status: "Active",
     registered: "Jul 29, 2026",
-    initials: "FA",
+    initials: "MA",
   },
   {
     id: 6,
@@ -144,21 +144,26 @@ export default function AdminUsersPage() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div className="space-y-8 select-none font-sans">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end border-b border-white/10 pb-6">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-500">
-            Control Center
-          </p>
-          <h1 className="mt-2 text-3xl font-black uppercase tracking-tight text-white md:text-4xl">
-            User Management
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-white" />
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">
+              CONTROL CENTER
+            </p>
+          </div>
+          <h1 className="text-3xl font-black uppercase tracking-tight text-white md:text-4xl">
+            USER MANAGEMENT
           </h1>
-          <p className="mt-2 text-sm text-white/50">
-            Review members, manage account access, and keep roles up to date.
+          <p className="mt-1.5 text-xs text-white/50 font-medium">
+            Review members, manage account access, and assign access
+            permissions.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/40">
-          <ShieldCheck className="h-4 w-4 text-white/70" /> Admin access
+        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/40 border border-white/10 rounded-full px-4 py-2 bg-neutral-950">
+          <ShieldCheck className="h-4 w-4 text-white" />
+          <span>ADMINISTRATOR ACCESS</span>
         </div>
       </div>
 
@@ -167,38 +172,47 @@ export default function AdminUsersPage() {
           return (
             <div
               key={label}
-              className="group rounded-2xl border border-white/8 bg-[#0e0f12] p-5 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#14151a] hover:shadow-[0_12px_32px_rgba(0,0,0,0.24)]"
+              className="group rounded-2xl border border-white/10 bg-neutral-950 p-5 transition duration-300 hover:-translate-y-1 hover:border-white/30 hover:bg-neutral-900 shadow-xl"
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm text-white/50">{label}</span>
-                <MetricIcon className="h-5 w-5 text-white/80 transition-colors group-hover:text-white" />
+                <span className="text-xs font-bold uppercase tracking-wider text-white/50">
+                  {label}
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white">
+                  <MetricIcon className="h-4 w-4" />
+                </div>
               </div>
-              <p className="mt-5 text-2xl font-black text-white">{value}</p>
+              <p className="mt-4 text-3xl font-black text-white tracking-tight">
+                {value}
+              </p>
             </div>
           );
         })}
       </section>
 
-      <section className="group rounded-2xl border border-white/8 bg-[#0e0f12] p-5 transition duration-300 hover:border-white/20 hover:bg-[#14151a] hover:shadow-[0_12px_32px_rgba(0,0,0,0.24)] md:p-6">
-        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+      <section className="group rounded-2xl border border-white/10 bg-neutral-950 p-5 transition duration-300 hover:border-white/20 md:p-6 shadow-xl">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center border-b border-white/10 pb-5">
           <div>
-            <h2 className="text-lg font-bold text-white">Registered Users</h2>
+            <h2 className="text-base font-black uppercase tracking-wider text-white">
+              REGISTERED USERS
+            </h2>
             <p className="mt-1 text-xs text-white/40">
-              {filteredUsers.length} of {users.length} accounts shown
+              Showing {filteredUsers.length} of {users.length} registered
+              accounts
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <label className="flex min-w-64 items-center gap-2 rounded-lg border border-white/10 bg-black/30 px-3 py-2.5">
+            <label className="flex min-w-64 items-center gap-2.5 rounded-full border border-white/15 bg-neutral-900 px-4 py-2.5">
               <Search className="h-4 w-4 text-white/40" />
               <span className="sr-only">Search users</span>
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search name or email"
-                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/30"
+                placeholder="SEARCH NAME OR EMAIL..."
+                className="w-full bg-transparent text-xs font-bold text-white outline-none placeholder:text-white/30 uppercase tracking-wider"
               />
             </label>
-            <label className="relative flex items-center rounded-lg border border-white/10 bg-black/30">
+            <label className="relative flex items-center rounded-full border border-white/15 bg-neutral-900 px-1">
               <span className="sr-only">Filter by account status</span>
               <select
                 value={statusFilter}
@@ -207,52 +221,61 @@ export default function AdminUsersPage() {
                     event.target.value as "All statuses" | AccountStatus,
                   )
                 }
-                className="appearance-none bg-transparent py-2.5 pl-3 pr-9 text-sm text-white outline-none"
+                className="appearance-none bg-transparent py-2.5 pl-4 pr-9 text-xs font-extrabold uppercase tracking-wider text-white outline-none cursor-pointer"
               >
-                <option className="bg-[#0e0f12]" value="All statuses">
-                  All statuses
+                <option
+                  className="bg-neutral-950 text-white"
+                  value="All statuses"
+                >
+                  ALL STATUSES
                 </option>
-                <option className="bg-[#0e0f12]" value="Active">
-                  Active
+                <option className="bg-neutral-950 text-white" value="Active">
+                  ACTIVE ONLY
                 </option>
-                <option className="bg-[#0e0f12]" value="Blocked">
-                  Blocked
+                <option className="bg-neutral-950 text-white" value="Blocked">
+                  BLOCKED ONLY
                 </option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-white/50" />
+              <ChevronDown className="pointer-events-none absolute right-3.5 h-4 w-4 text-white/50" />
             </label>
           </div>
         </div>
 
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-190 text-left">
-            <thead className="border-b border-white/8 text-[10px] font-bold uppercase tracking-widest text-white/35">
+          <table className="w-full min-w-[650px] text-left">
+            <thead className="border-b border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40">
               <tr>
-                <th className="pb-4 pr-4">User</th>
-                <th className="pb-4 pr-4">Role</th>
-                <th className="pb-4 pr-4">Status</th>
-                <th className="pb-4 pr-4">Registered</th>
-                <th className="pb-4 text-right">Actions</th>
+                <th className="pb-4 pr-4">USER</th>
+                <th className="pb-4 pr-4">ROLE</th>
+                <th className="pb-4 pr-4">STATUS</th>
+                <th className="pb-4 pr-4">REGISTERED</th>
+                <th className="pb-4 text-right">ACTIONS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/6">
+            <tbody className="divide-y divide-white/5">
               {filteredUsers.map((user) => {
                 const RoleIcon = roleIcons[user.role];
                 return (
                   <tr
                     key={user.id}
-                    className="group/row transition-colors duration-200 hover:bg-white/[0.035]"
+                    className="group/row transition-colors duration-200 hover:bg-white/[0.03]"
                   >
                     <td className="py-4 pr-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white transition-transform duration-200 group-hover/row:scale-105">
-                          {user.initials}
-                        </span>
+                        {user.email === "admin@fitora.com" ? (
+                          <div className="w-9 h-9 rounded-full overflow-hidden border border-white/30 shrink-0 shadow-md">
+                            <img src="/coache1.jpg.jpeg" alt="Master Admin" className="w-full h-full object-cover object-top" />
+                          </div>
+                        ) : (
+                          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-black text-xs font-black shrink-0 shadow-md">
+                            {user.initials}
+                          </span>
+                        )}
                         <div>
-                          <p className="text-sm font-semibold text-white">
+                          <p className="text-xs font-black uppercase tracking-wider text-white">
                             {user.name}
                           </p>
-                          <p className="mt-1 text-xs text-white/40">
+                          <p className="mt-0.5 text-xs text-white/40">
                             {user.email}
                           </p>
                         </div>
@@ -263,7 +286,7 @@ export default function AdminUsersPage() {
                         <span className="sr-only">
                           Change role for {user.name}
                         </span>
-                        <RoleIcon className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-white/45" />
+                        <RoleIcon className="pointer-events-none absolute left-3 h-3.5 w-3.5 text-white/60" />
                         <select
                           value={user.role}
                           onChange={(event) =>
@@ -272,44 +295,54 @@ export default function AdminUsersPage() {
                             })
                           }
                           aria-label={`Change role for ${user.name}`}
-                          className="appearance-none rounded-lg border border-white/10 bg-[#15171b] py-2 pl-8 pr-8 text-xs font-bold text-white outline-none transition-colors hover:border-white/25 focus:border-white/45 focus:ring-2 focus:ring-white/10"
+                          className="appearance-none rounded-full border border-white/15 bg-neutral-900 py-1.5 pl-9 pr-8 text-xs font-bold uppercase tracking-wider text-white outline-none transition-colors hover:border-white/30 cursor-pointer"
                         >
-                          <option className="bg-[#0e0f12]">Member</option>
-                          <option className="bg-[#0e0f12]">Trainer</option>
-                          <option className="bg-[#0e0f12]">Admin</option>
+                          <option className="bg-neutral-950">Member</option>
+                          <option className="bg-neutral-950">Trainer</option>
+                          <option className="bg-neutral-950">Admin</option>
                         </select>
-                        <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-white/45" />
+                        <ChevronDown className="pointer-events-none absolute right-3 h-3.5 w-3.5 text-white/50" />
                       </label>
                     </td>
                     <td className="py-4 pr-4">
                       <span
-                        className={`inline-flex items-center gap-2 text-xs font-semibold ${user.status === "Active" ? "text-emerald-400" : "text-red-400"}`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                          user.status === "Active"
+                            ? "bg-white text-black"
+                            : "border border-white/20 text-white/50"
+                        }`}
                       >
                         <span
-                          className={`h-1.5 w-1.5 rounded-full ${user.status === "Active" ? "bg-emerald-400" : "bg-red-400"}`}
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            user.status === "Active"
+                              ? "bg-black"
+                              : "bg-white/40"
+                          }`}
                         />
                         {user.status}
                       </span>
                     </td>
-                    <td className="py-4 pr-4 text-sm text-white/50">
+                    <td className="py-4 pr-4 text-xs font-medium text-white/50">
                       {user.registered}
                     </td>
                     <td className="py-4 text-right">
                       <div className="flex justify-end gap-3">
                         <button
+                          type="button"
                           onClick={() => setSelectedUser(user)}
-                          className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white"
+                          className="inline-flex items-center gap-1 text-xs font-extrabold uppercase tracking-wider text-white/70 hover:text-white cursor-pointer"
                         >
                           <Eye className="h-3.5 w-3.5" /> View
                         </button>
                         <button
+                          type="button"
                           onClick={() =>
                             updateUser(user.id, {
                               status:
                                 user.status === "Active" ? "Blocked" : "Active",
                             })
                           }
-                          className="text-xs font-bold uppercase tracking-wider text-red-400 hover:text-red-300"
+                          className="text-xs font-extrabold uppercase tracking-wider text-white/50 hover:text-white cursor-pointer"
                         >
                           {user.status === "Active" ? "Block" : "Unblock"}
                         </button>
@@ -321,7 +354,7 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
           {filteredUsers.length === 0 && (
-            <div className="py-12 text-center text-sm text-white/40">
+            <div className="py-12 text-center text-xs font-bold uppercase tracking-wider text-white/40">
               No users match the current filters.
             </div>
           )}
@@ -329,47 +362,53 @@ export default function AdminUsersPage() {
       </section>
 
       {selectedUser && (
-        <div className="group rounded-2xl border border-white/8 bg-[#0e0f12] p-5 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#14151a] hover:shadow-[0_12px_32px_rgba(0,0,0,0.24)] md:p-6">
-          <div className="flex items-start justify-between gap-4">
+        <div className="rounded-2xl border border-white/15 bg-neutral-950 p-6 transition duration-300 shadow-xl space-y-4">
+          <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-red-500">
-                User Details
-              </p>
-              <h2 className="mt-2 text-xl font-bold text-white">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2 h-2 rounded-full bg-white" />
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
+                  USER INSPECTOR DETAILS
+                </p>
+              </div>
+              <h2 className="text-xl font-black uppercase tracking-tight text-white">
                 {selectedUser.name}
               </h2>
-              <p className="mt-1 text-sm text-white/45">{selectedUser.email}</p>
+              <p className="mt-1 text-xs text-white/50 font-medium">
+                {selectedUser.email}
+              </p>
             </div>
             <button
+              type="button"
               onClick={() => setSelectedUser(null)}
-              aria-label="Close user details"
-              className="text-xs font-bold uppercase tracking-widest text-white/40 hover:text-white"
+              className="px-4 py-1.5 rounded-full border border-white/20 text-xs font-bold uppercase tracking-wider text-white hover:bg-white hover:text-black transition cursor-pointer"
             >
               Close
             </button>
           </div>
-          <div className="mt-6 grid gap-4 text-sm sm:grid-cols-3">
+
+          <div className="grid gap-4 text-xs sm:grid-cols-3 pt-2">
             <div>
-              <p className="text-xs uppercase tracking-widest text-white/35">
-                Role
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                ROLE ACCESS
               </p>
-              <p className="mt-2 font-semibold text-white">
+              <p className="mt-1.5 font-black uppercase text-white">
                 {selectedUser.role}
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest text-white/35">
-                Status
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                ACCOUNT STATUS
               </p>
-              <p className="mt-2 font-semibold text-white">
+              <p className="mt-1.5 font-black uppercase text-white">
                 {selectedUser.status}
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest text-white/35">
-                Registered
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                JOINED DATE
               </p>
-              <p className="mt-2 font-semibold text-white">
+              <p className="mt-1.5 font-black uppercase text-white">
                 {selectedUser.registered}
               </p>
             </div>

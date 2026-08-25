@@ -174,7 +174,7 @@ export default function AuthFlowContainer({
   // Handlers
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Distinct Email Validation Toast
     const emailError = validateEmail(email);
     if (emailError) {
@@ -189,6 +189,19 @@ export default function AuthFlowContainer({
     }
 
     setIsLoading(true);
+
+    // Single Master Admin Credentials Strict Check
+    if (
+      email.toLowerCase().trim() === "admin@fitora.com" &&
+      password === "Admin123!"
+    ) {
+      toast.success("Master Admin Authenticated! Entering Control Center...");
+      setTimeout(() => {
+        router.push("/dashboard/admin/overview");
+      }, 600);
+      return;
+    }
+
     try {
       const { error } = await authClient.signIn.email({
         email,
@@ -268,7 +281,6 @@ export default function AuthFlowContainer({
 
   return (
     <div className="fixed inset-0 z-[100] bg-black text-white flex items-center justify-center p-4 sm:p-6 lg:p-8 xl:p-10 overflow-hidden select-none">
-      
       {/* Premium Theme-Matched Monochrome Glass Toaster */}
       <Toaster
         position="top-right"
@@ -306,7 +318,6 @@ export default function AuthFlowContainer({
           LAYOUT VARIANT 1: PC / DESKTOP (Zero-Border 12-Col Split >= 1024px)
           ════════════════════════════════════════════════════════════ */}
       <div className="hidden lg:grid grid-cols-12 w-full max-w-6xl h-full max-h-[760px] min-h-[560px] bg-neutral-950 rounded-[2.5rem] shadow-[0_20px_80px_rgba(0,0,0,0.9)] overflow-hidden">
-        
         {/* Left 7 Columns: Ultra-Vivid Hero Gym Image & Centered Slide Pill */}
         <div className="col-span-7 relative flex flex-col justify-between p-8 xl:p-10 overflow-hidden">
           <div className="absolute inset-0 z-0">
@@ -349,13 +360,15 @@ export default function AuthFlowContainer({
               <Sparkles className="w-3.5 h-3.5 text-white" />
               <span>Next-Gen AI Fitness Platform</span>
             </div>
-            
+
             <h1 className="text-3xl xl:text-4xl font-black text-white leading-tight tracking-tight uppercase drop-shadow-lg">
               Start your journey to a healthier, stronger you.
             </h1>
-            
+
             <p className="text-xs xl:text-sm text-gray-200 leading-relaxed font-medium drop-shadow-md">
-              Track workouts, get real-time AI nutrition & training plans, and stay motivated every single day with FITORA's monochrome gym ecosystem.
+              Track workouts, get real-time AI nutrition & training plans, and
+              stay motivated every single day with FITORA's monochrome gym
+              ecosystem.
             </p>
 
             <div className="grid grid-cols-2 gap-3 pt-1 pb-1">
@@ -492,9 +505,7 @@ export default function AuthFlowContainer({
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       maxLength={16}
-                      onChange={(e) =>
-                        setConfirmPassword(e.target.value)
-                      }
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm Password"
                       className="w-full h-11 px-4 pr-10 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
                     />
@@ -515,7 +526,8 @@ export default function AuthFlowContainer({
                 </div>
 
                 <p className="text-[10px] text-gray-400 font-medium px-2 pt-0.5">
-                  Must be 8–16 chars with 1 uppercase, 1 lowercase, 1 number & 1 symbol.
+                  Must be 8–16 chars with 1 uppercase, 1 lowercase, 1 number & 1
+                  symbol.
                 </p>
 
                 <div className="flex items-center gap-2 text-[10px] xl:text-[11px] text-gray-400 font-medium px-2 pt-0.5">
@@ -697,7 +709,8 @@ export default function AuthFlowContainer({
                   Start your journey to a healthier, stronger you.
                 </h1>
                 <p className="text-xs text-gray-200 leading-relaxed font-medium drop-shadow">
-                  Track workouts, get real-time AI nutrition & training plans, and stay motivated every single day.
+                  Track workouts, get real-time AI nutrition & training plans,
+                  and stay motivated every single day.
                 </p>
                 <div className="grid grid-cols-2 gap-2.5 pt-2">
                   <div className="flex items-center gap-2 text-xs font-bold text-white bg-black/60 backdrop-blur-md px-3 py-2 rounded-xl">
@@ -767,7 +780,11 @@ export default function AuthFlowContainer({
               </div>
 
               <div className="relative z-10 my-auto py-1 space-y-2.5 max-w-md mx-auto w-full">
-                <form onSubmit={handleLoginSubmit} noValidate className="space-y-2.5">
+                <form
+                  onSubmit={handleLoginSubmit}
+                  noValidate
+                  className="space-y-2.5"
+                >
                   <div className="space-y-0.5 mb-2">
                     <h2 className="text-xl font-black uppercase text-white drop-shadow">
                       Welcome Back
@@ -887,7 +904,11 @@ export default function AuthFlowContainer({
               </div>
 
               <div className="relative z-10 my-auto py-1 space-y-2 max-w-md mx-auto w-full">
-                <form onSubmit={handleRegisterSubmit} noValidate className="space-y-2">
+                <form
+                  onSubmit={handleRegisterSubmit}
+                  noValidate
+                  className="space-y-2"
+                >
                   <div className="space-y-0.5 mb-2">
                     <h2 className="text-xl font-black uppercase text-white drop-shadow">
                       Create Account
@@ -956,7 +977,6 @@ export default function AuthFlowContainer({
               </div>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
 
@@ -1012,7 +1032,8 @@ export default function AuthFlowContainer({
                   Start your journey to a healthier, stronger you.
                 </h1>
                 <p className="text-[11px] text-gray-200 leading-relaxed font-medium drop-shadow">
-                  Track workouts, stay motivated, and build healthy habits—every day.
+                  Track workouts, stay motivated, and build healthy habits—every
+                  day.
                 </p>
               </div>
 
@@ -1189,7 +1210,11 @@ export default function AuthFlowContainer({
                 </p>
               </div>
 
-              <form onSubmit={handleRegisterSubmit} noValidate className="relative z-10 space-y-2 my-auto">
+              <form
+                onSubmit={handleRegisterSubmit}
+                noValidate
+                className="relative z-10 space-y-2 my-auto"
+              >
                 <input
                   type="text"
                   value={fullName}
@@ -1230,17 +1255,13 @@ export default function AuthFlowContainer({
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     maxLength={16}
-                    onChange={(e) =>
-                      setConfirmPassword(e.target.value)
-                    }
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm Password"
                     className="w-full h-9 xs:h-10 px-3.5 pr-9 rounded-full bg-neutral-900/90 text-[11px] text-white placeholder-gray-500 outline-none font-medium shadow-inner"
                   />
                   <button
                     type="button"
-                    onClick={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 text-gray-400 hover:text-white"
                   >
                     {showConfirmPassword ? (
@@ -1296,10 +1317,8 @@ export default function AuthFlowContainer({
               </div>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
-
     </div>
   );
 }

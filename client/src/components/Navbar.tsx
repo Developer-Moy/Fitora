@@ -22,29 +22,24 @@ import { useSession } from "@/lib/auth-client";
 /* ── Main Menu Items (Mobile & Tablet Drawer) ── */
 const MENU_ITEMS = [
   { label: "Chats", href: "/", icon: FiMessageSquare },
-  { label: "Manage subscription", href: "/plans", icon: FiCreditCard },
   { label: "Updates & FAQ", href: "/#about", icon: FiHelpCircle },
   { label: "Settings", href: "/profile", icon: FiSettings },
 ];
 
 /* ── Collapsible "Chat list" Items ── */
 const CHAT_LIST = [
-  {
-    label: "AI Coach Studio",
-    href: "/dashboard/user/ai-coach",
-    icon: Sparkles,
-  },
   { label: "BMI Calculator", href: "/calculator", icon: FiActivity },
   { label: "Gym Stopwatch", href: "/stopwatch", icon: FiClock },
+  { label: "Meal Plans", href: "/meals", icon: FiCreditCard },
+  { label: "Exercise Library", href: "/exercises", icon: FiActivity },
 ];
 
 /* ── Desktop / PC Horizontal Navigation Links (Centered in Middle) ── */
 const DESKTOP_LINKS = [
-  { label: "Home", href: "/" },
   { label: "BMI Calculator", href: "/calculator" },
   { label: "Gym Stopwatch", href: "/stopwatch" },
-  { label: "Membership Plans", href: "/plans" },
-  { label: "AI Coach Studio", href: "/dashboard/user/ai-coach" },
+  { label: "Meal Plans", href: "/meals" },
+  { label: "Exercise Library", href: "/exercises" },
 ];
 
 export default function Navbar() {
@@ -283,7 +278,7 @@ export default function Navbar() {
 
               {/* Upgraded to Pro — White Button */}
               <Link
-                href="/plans"
+                href="#contact"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-3 rounded-2xl bg-white text-black font-bold text-sm text-center flex items-center justify-center gap-2 hover:bg-gray-200 transition-all block shadow-sm"
               >

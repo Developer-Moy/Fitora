@@ -1,7 +1,8 @@
 "use client";
 
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import { Bell, Menu, Search } from "lucide-react";
+import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
+import { Menu, Search } from "lucide-react";
 import React, { useState } from "react";
 
 export default function DashboardLayout({
@@ -13,7 +14,7 @@ export default function DashboardLayout({
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-red-500 selection:text-white">
+    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
       <DashboardSidebar
         isCollapsed={isCollapsed}
         setIsCollapsed={setIsCollapsed}
@@ -23,16 +24,17 @@ export default function DashboardLayout({
 
       {/* Main Content Wrapper (Adjusts margin dynamically based on sidebar state) */}
       <div
-        className={`flex min-h-screen flex-col transition-all duration-300 ease-in-out ${isCollapsed ? "lg:ml-20" : "lg:ml-64"
-          }`}
+        className={`flex min-h-screen flex-col transition-all duration-300 ease-in-out ${
+          isCollapsed ? "lg:ml-20" : "lg:ml-64"
+        }`}
       >
         {/* Top Navbar Header */}
-        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b px-4 lg:px-8 bg-[#0b0c0e]/80 backdrop-blur-md border-white/[0.08]">
+        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b px-4 lg:px-8 bg-black/80 backdrop-blur-md border-white/10">
           {/* Left Controls: Mobile Drawer Trigger & Search Bar */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsMobileOpen(true)}
-              className="flex lg:hidden h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-[#141519] text-white hover:border-red-500/50"
+              className="flex lg:hidden h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-neutral-900 text-white hover:bg-neutral-800 transition cursor-pointer"
               aria-label="Open Navigation Menu"
             >
               <Menu className="h-5 w-5" />
@@ -44,21 +46,14 @@ export default function DashboardLayout({
               <input
                 type="text"
                 placeholder="Search workouts, exercises, metrics..."
-                className="w-full rounded-xl border py-2 pl-10 pr-4 text-sm outline-none transition-all bg-[#141519] border-white/10 text-white placeholder-white/40 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                className="w-full rounded-xl border py-2 pl-10 pr-4 text-xs font-medium outline-none transition-all bg-neutral-900 border-white/15 text-white placeholder:text-white/40 focus:border-white focus:ring-1 focus:ring-white"
               />
             </div>
           </div>
 
           {/* Right Controls: Notifications */}
           <div className="flex items-center gap-3">
-            {/* Notifications Button */}
-            <button
-              className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-[#141519] text-white/60 hover:text-white hover:border-red-500/50 transition-colors"
-              aria-label="Notifications"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-            </button>
+            <NotificationDropdown />
           </div>
         </header>
 
