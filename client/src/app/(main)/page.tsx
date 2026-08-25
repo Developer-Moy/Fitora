@@ -11,6 +11,14 @@ import ContactInfoForm from "@/components/home/ContactInfoForm";
 // ─────────────────────────────────────────────────────────────────────────────
 // FITORA HOME PAGE — / (main)/page.tsx
 // Sections included:
+// 1. HeroSection (Hero Banner + Stats Counter Strip)
+// 2. WhyChooseUs (Why Choose Fitora?)
+// 3. PricingSection (JOIN TODAY — Membership Pricing Plans)
+// 4. TrainerCalloutBanner (Need a Fitness Trainer? Callout Banner)
+// 5. ContactInfoForm (We are here for help you! To Shape Your Body.)
+// ─────────────────────────────────────────────────────────────────────────────
+// FITORA HOME PAGE — / (main)/page.tsx
+// Sections included:
 // 1. HeroSection (Hero Banner + Stats Counter Strip + Notch AI Widget)
 // 2. WhyChooseUs (Why Choose Fitora? — White BG)
 // 3. CoachesBanner (Coaches / Are you looking for a Mentor? — Black BG, Text White)
