@@ -84,60 +84,15 @@ export default function Footer() {
 
           </div>
 
-          {/* ── Middle Row: 4-Column Page Links Navigation Grid ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-8 border-t border-white/15">
+          {/* ── Middle Row: 3-Column Unique Non-Navbar Links Grid ── */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 py-8 border-t border-white/15">
             
-            {/* Column 1: Explore Fitora */}
+            {/* Column 1: AI Workouts & Nutrition */}
             <div className="space-y-3">
               <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                Explore Fitora
+                AI Fitness Hubs
               </h4>
               <ul className="space-y-2 text-xs text-gray-300">
-                <li>
-                  <Link href="/" className="hover:text-white transition-colors">Home Page</Link>
-                </li>
-                <li>
-                  <Link href="#why-choose" className="hover:text-white transition-colors">Why Choose Us</Link>
-                </li>
-                <li>
-                  <Link href="#coaches" className="hover:text-white transition-colors">Coaches & Mentors</Link>
-                </li>
-                <li>
-                  <Link href="#trainers" className="hover:text-white transition-colors">Certified Trainers</Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Column 2: Fitness Tools */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                Fitness Tools
-              </h4>
-              <ul className="space-y-2 text-xs text-gray-300">
-                <li>
-                  <Link href="/calculator" className="hover:text-white transition-colors">BMI & Macro Calculator</Link>
-                </li>
-                <li>
-                  <Link href="/stopwatch" className="hover:text-white transition-colors">Gym Rest Stopwatch HUD</Link>
-                </li>
-                <li>
-                  <Link href="/plans" className="hover:text-white transition-colors">Membership Pricing Tiers</Link>
-                </li>
-                <li>
-                  <Link href="/profile" className="hover:text-white transition-colors">User Profile & Badges</Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Column 3: AI Fitness Studio */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-black uppercase tracking-wider text-white">
-                AI Studio & Hubs
-              </h4>
-              <ul className="space-y-2 text-xs text-gray-300">
-                <li>
-                  <Link href="/dashboard/user/ai-coach" className="hover:text-white transition-colors">AI Coach Studio</Link>
-                </li>
                 <li>
                   <Link href="/dashboard/user/nutrition" className="hover:text-white transition-colors">AI Nutrition & Meal Chart</Link>
                 </li>
@@ -150,12 +105,33 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Column 4: Account & Portal */}
+            {/* Column 2: Fitora Features */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                Fitora Highlights
+              </h4>
+              <ul className="space-y-2 text-xs text-gray-300">
+                <li>
+                  <Link href="/#why-choose" className="hover:text-white transition-colors">Why Choose Fitora</Link>
+                </li>
+                <li>
+                  <Link href="/#coaches" className="hover:text-white transition-colors">Coaches & Mentors</Link>
+                </li>
+                <li>
+                  <Link href="/#trainers" className="hover:text-white transition-colors">Certified Master Trainers</Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Account & Locations */}
             <div className="space-y-3">
               <h4 className="text-xs font-black uppercase tracking-wider text-white">
                 Account & Portal
               </h4>
               <ul className="space-y-2 text-xs text-gray-300">
+                <li>
+                  <Link href="/profile" className="hover:text-white transition-colors">User Profile & Badges</Link>
+                </li>
                 <li>
                   <Link href="/register" className="hover:text-white transition-colors">Free Trial Sign Up</Link>
                 </li>
@@ -163,7 +139,7 @@ export default function Footer() {
                   <Link href="/login" className="hover:text-white transition-colors">User Login Portal</Link>
                 </li>
                 <li>
-                  <Link href="#contact" className="hover:text-white transition-colors">Bangladesh Branches</Link>
+                  <Link href="/#contact" className="hover:text-white transition-colors">Bangladesh 64 Branches</Link>
                 </li>
               </ul>
             </div>
