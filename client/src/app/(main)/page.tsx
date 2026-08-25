@@ -11,7 +11,7 @@ import ContactInfoForm from "@/components/home/ContactInfoForm";
 // ─────────────────────────────────────────────────────────────────────────────
 // FITORA HOME PAGE — / (main)/page.tsx
 // Sections included:
-// 1. HeroSection (Hero Banner + Stats Counter Strip)
+// 1. HeroSection (Hero Banner + Stats Counter Strip + Notch AI Widget)
 // 2. WhyChooseUs (Why Choose Fitora? — White BG)
 // 3. CoachesBanner (Coaches / Are you looking for a Mentor? — Black BG, Text White)
 // 4. MeetTrainers (Meet Our Trainers 6-Photo Grid — White BG, Text Black)
