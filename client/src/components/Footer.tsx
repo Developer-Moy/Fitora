@@ -16,7 +16,7 @@ export default function Footer() {
   return (
     <footer className="relative bg-black text-white select-none overflow-hidden border-t border-white/10">
       
-      {/* ── Main Hero Footer Section (Compact Height + Dedicated Gym Image) ── */}
+      {/* ── Main Hero Footer Section ── */}
       <div className="relative py-10 sm:py-14 px-6 sm:px-10 lg:px-14 overflow-hidden">
         
         {/* High Visibility Gym Background Image */}
@@ -26,7 +26,7 @@ export default function Footer() {
             backgroundImage: "url('/image1.jpg.jpeg')",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30 z-0" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/40 z-0" />
 
         {/* Content Container */}
         <div className="relative z-10 max-w-7xl mx-auto space-y-10">
@@ -84,7 +84,93 @@ export default function Footer() {
 
           </div>
 
-          {/* Middle Row: Social Media Icons + E-Newsletter Bar */}
+          {/* ── Middle Row: 4-Column Page Links Navigation Grid ── */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-8 border-t border-white/15">
+            
+            {/* Column 1: Explore Fitora */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                Explore Fitora
+              </h4>
+              <ul className="space-y-2 text-xs text-gray-300">
+                <li>
+                  <Link href="/" className="hover:text-white transition-colors">Home Page</Link>
+                </li>
+                <li>
+                  <Link href="#why-choose" className="hover:text-white transition-colors">Why Choose Us</Link>
+                </li>
+                <li>
+                  <Link href="#coaches" className="hover:text-white transition-colors">Coaches & Mentors</Link>
+                </li>
+                <li>
+                  <Link href="#trainers" className="hover:text-white transition-colors">Certified Trainers</Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 2: Fitness Tools */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                Fitness Tools
+              </h4>
+              <ul className="space-y-2 text-xs text-gray-300">
+                <li>
+                  <Link href="/calculator" className="hover:text-white transition-colors">BMI & Macro Calculator</Link>
+                </li>
+                <li>
+                  <Link href="/stopwatch" className="hover:text-white transition-colors">Gym Rest Stopwatch HUD</Link>
+                </li>
+                <li>
+                  <Link href="/plans" className="hover:text-white transition-colors">Membership Pricing Tiers</Link>
+                </li>
+                <li>
+                  <Link href="/profile" className="hover:text-white transition-colors">User Profile & Badges</Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: AI Fitness Studio */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                AI Studio & Hubs
+              </h4>
+              <ul className="space-y-2 text-xs text-gray-300">
+                <li>
+                  <Link href="/dashboard/user/ai-coach" className="hover:text-white transition-colors">AI Coach Studio</Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/user/nutrition" className="hover:text-white transition-colors">AI Nutrition & Meal Chart</Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/user/workout" className="hover:text-white transition-colors">Workout Log Studio</Link>
+                </li>
+                <li>
+                  <Link href="/dashboard/user/recovery" className="hover:text-white transition-colors">Recovery & Stretch Hub</Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 4: Account & Portal */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-black uppercase tracking-wider text-white">
+                Account & Portal
+              </h4>
+              <ul className="space-y-2 text-xs text-gray-300">
+                <li>
+                  <Link href="/register" className="hover:text-white transition-colors">Free Trial Sign Up</Link>
+                </li>
+                <li>
+                  <Link href="/login" className="hover:text-white transition-colors">User Login Portal</Link>
+                </li>
+                <li>
+                  <Link href="#contact" className="hover:text-white transition-colors">Bangladesh Branches</Link>
+                </li>
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Bottom Social Media Icons & Newsletter Bar */}
           <div className="pt-6 border-t border-white/15 flex flex-col md:flex-row items-center justify-between gap-6">
             
             {/* Social Media Icons */}
@@ -151,13 +237,13 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ── Bottom Strip (Pure Black Theme) ── */}
+      {/* ── Bottom Copyright Strip (Pure Black Theme) ── */}
       <div className="bg-black border-t border-white/10 py-4 px-6 sm:px-10 lg:px-14">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-400">
           
-          {/* Left Side: Copyright & Legal */}
+          {/* Left Side: Copyright & Developer Credit */}
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 font-medium">
-            <span>Fitora Gym © {new Date().getFullYear()}</span>
+            <span>FITORA GYM © {new Date().getFullYear()}</span>
             <Link href="/privacy" className="hover:text-white transition-colors">
               Privacy Policy
             </Link>
