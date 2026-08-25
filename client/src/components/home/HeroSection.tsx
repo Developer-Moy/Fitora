@@ -28,61 +28,55 @@ const CountUp = ({
   duration?: number;
 }) => {
   const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const [started, setStarted] = useState(false);
+  const countRef = useRef<HTMLSpanElement>(null);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !started) {
-          setStarted(true);
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          let start = 0;
+          const stepTime = Math.abs(Math.floor(duration / end));
+          const timer = setInterval(
+            () => {
+              start += 1;
+              setCount(start);
+              if (start >= end) {
+                setCount(end);
+                clearInterval(timer);
+              }
+            },
+            Math.max(stepTime, 10),
+          );
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.2 },
     );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
+    if (countRef.current) observer.observe(countRef.current);
     return () => observer.disconnect();
-  }, [started]);
+  }, [end, duration, hasAnimated]);
 
-  useEffect(() => {
-    if (!started) return;
-
-    let startTimestamp: number | null = null;
-    const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-
-      const easeOutQuad = (t: number) => t * (2 - t);
-      setCount(Math.floor(easeOutQuad(progress) * end));
-
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      }
-    };
-
-    window.requestAnimationFrame(step);
-  }, [started, end, duration]);
-
-  return <span ref={ref}>{count}</span>;
+  return <span ref={countRef}>{count}</span>;
 };
 
 export default function HeroSection() {
   return (
-    <section className="relative bg-black text-white select-none overflow-hidden pt-16 sm:pt-20">
-      {/* Outer wrapper to set exact container bounds */}
-      <div className="w-full relative min-h-[380px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[520px] max-h-[580px] flex items-end justify-center">
-        {/* Centered max-w-7xl relative container to anchor Left/Right elements on zoom */}
-        <div className="relative w-full max-w-7xl h-full mx-auto px-4 sm:px-6 md:px-8">
-          
-          {/* ─── Z-10: Single Line Serif Headline "Build Your Body" ─── */}
-          <div className="absolute z-10 inset-x-0 top-3 sm:top-5 md:top-6 text-center whitespace-nowrap overflow-hidden">
+    <section className="relative w-full overflow-hidden select-none">
+      {/* ════════════════════════════════════════════════════════════
+          HERO CONTAINER — Locked Centered Layout (Zoom & Ultrawide Proof)
+          ════════════════════════════════════════════════════════════ */}
+      <div className="relative w-full bg-black text-white overflow-hidden min-h-[380px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[520px]">
+        {/* ─── Centered max-w-7xl container to lock relative positions on Zoom & UltraWide ─── */}
+        <div className="relative w-full max-w-7xl mx-auto h-full min-h-[380px] sm:min-h-[440px] md:min-h-[480px] lg:min-h-[520px]">
+          {/* ─── Z-10: "Build Your Body" Title Case Serif Italic Headline ─── */}
+          <div className="absolute z-10 top-4 sm:top-5 md:top-6 inset-x-0 flex justify-center pointer-events-none px-4">
             <h1
-              className="font-serif font-black italic tracking-tight text-white/90 drop-shadow-2xl inline-block"
+              className="text-white leading-none whitespace-nowrap select-none tracking-tight text-center"
               style={{
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontWeight: 900,
+                fontStyle: "italic",
                 fontSize: "clamp(3rem, 7.5vw, 8rem)",
               }}
             >
@@ -104,8 +98,8 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* ─── Z-30: Left Side — Subtitle & "See Packages" Button ─── */}
-          <div className="absolute z-30 left-4 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 max-w-[220px] sm:max-w-[260px] space-y-4">
+          {/* ─── Z-30: Subtitle locked in LEFT-MIDDLE ─── */}
+          <div className="absolute z-30 left-4 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 max-w-[220px] sm:max-w-[250px]">
             <p
               className="text-gray-200 text-xs sm:text-[13px] md:text-sm leading-[1.65]"
               style={{ fontStyle: "italic" }}
@@ -114,68 +108,6 @@ export default function HeroSection() {
               equipment, and a community that motivates you every step of the
               way.
             </p>
-
-            <div>
-              <Link
-                href="#pricing"
-                className="group inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
-              >
-                <span>See Packages</span>
-                <span className="bg-black text-white w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-                  <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
-                </span>
-              </Link>
-            </div>
-          </div>
-
-          {/* ─── Z-30: Right Side — 3 Stats Counters Floating Glass Stack ─── */}
-          <div className="absolute z-30 right-4 sm:right-6 md:right-8 top-1/2 -translate-y-1/2 space-y-2.5 hidden sm:flex sm:flex-col items-end">
-            
-            {/* Stat 1 */}
-            <div className="flex items-center gap-3 bg-black/80 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-2xl shadow-2xl hover:scale-105 transition-transform">
-              <div className="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center shrink-0">
-                <Dumbbell className="w-3.5 h-3.5 stroke-[2.5]" />
-              </div>
-              <div className="text-right">
-                <span className="text-sm sm:text-base font-black text-white leading-none block font-sans">
-                  <CountUp end={105} />+
-                </span>
-                <span className="text-[9px] text-gray-300 uppercase tracking-wider font-semibold">
-                  Trainers
-                </span>
-              </div>
-            </div>
-
-            {/* Stat 2 */}
-            <div className="flex items-center gap-3 bg-black/80 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-2xl shadow-2xl hover:scale-105 transition-transform">
-              <div className="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center shrink-0">
-                <Users className="w-3.5 h-3.5 stroke-[2.5]" />
-              </div>
-              <div className="text-right">
-                <span className="text-sm sm:text-base font-black text-white leading-none block font-sans">
-                  <CountUp end={970} />+
-                </span>
-                <span className="text-[9px] text-gray-300 uppercase tracking-wider font-semibold">
-                  Members
-                </span>
-              </div>
-            </div>
-
-            {/* Stat 3 */}
-            <div className="flex items-center gap-3 bg-black/80 backdrop-blur-md border border-white/20 px-3.5 py-2 rounded-2xl shadow-2xl hover:scale-105 transition-transform">
-              <div className="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center shrink-0">
-                <Trophy className="w-3.5 h-3.5 stroke-[2.5]" />
-              </div>
-              <div className="text-right">
-                <span className="text-sm sm:text-base font-black text-white leading-none block font-sans">
-                  <CountUp end={135} />+
-                </span>
-                <span className="text-[9px] text-gray-300 uppercase tracking-wider font-semibold">
-                  Programs
-                </span>
-              </div>
-            </div>
-
           </div>
 
           {/* ─── Z-30: Social Icons locked inside max-w-7xl at bottom left ─── */}
@@ -217,6 +149,19 @@ export default function HeroSection() {
             </Link>
           </div>
 
+          {/* ─── Z-30: "See Packages" Button locked in RIGHT-MIDDLE ─── */}
+          <div className="absolute z-30 right-4 sm:right-6 md:right-8 top-1/2 -translate-y-1/2">
+            <Link
+              href="#pricing"
+              className="group inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
+            >
+              <span>See Packages</span>
+              <span className="bg-black text-white w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+              </span>
+            </Link>
+          </div>
+
           {/* ─── Z-40: Notch & Arrow Button ─── */}
           <div
             className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 flex justify-center items-end"
@@ -229,14 +174,68 @@ export default function HeroSection() {
               <path d="M 0 75 C 36 75 44 60 44 38 A 46 46 0 0 1 136 38 C 136 60 144 75 180 75 Z" />
             </svg>
             <a
-              href="#why-choose"
+              href="#stats"
               aria-label="Scroll Down"
               className="absolute z-50 left-1/2 -translate-x-1/2 top-[4px] w-13 h-13 sm:w-14 sm:h-14 bg-black text-white rounded-full flex items-center justify-center border-4 border-white shadow-2xl hover:scale-110 transition-transform duration-300 cursor-pointer"
             >
               <ArrowUpRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </a>
           </div>
+        </div>
+      </div>
 
+      {/* ════════════════════════════════════════════════════════════
+          STATS — Premium Card Grid with Icon Badges
+          ════════════════════════════════════════════════════════════ */}
+      <div
+        id="stats"
+        className="bg-white text-black py-10 sm:py-12 px-6 border-b border-gray-100"
+      >
+        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          {/* Stat 1 */}
+          <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
+                <CountUp end={105} />+
+              </span>
+              <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
+                Expert Trainers
+              </span>
+            </div>
+          </div>
+
+          {/* Stat 2 */}
+          <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
+                <CountUp end={970} />+
+              </span>
+              <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
+                Members Joined
+              </span>
+            </div>
+          </div>
+
+          {/* Stat 3 */}
+          <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
+                <CountUp end={135} />+
+              </span>
+              <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
+                Fitness Programs
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
