@@ -37,8 +37,11 @@ export default function MeetTrainers() {
   ];
 
   return (
-    <section id="trainers" className="w-full bg-white py-6 sm:py-8 px-4 sm:px-6 lg:px-10 select-none">
-      <div className="max-w-7xl mx-auto rounded-[2.5rem] sm:rounded-[3.5rem] bg-black text-white p-8 sm:p-14 lg:p-20 shadow-2xl border border-white/10 space-y-12">
+    <section
+      id="trainers"
+      className="w-full bg-black text-white rounded-t-[3rem] rounded-b-[3rem] sm:rounded-t-[4.5rem] sm:rounded-b-[4.5rem] py-16 sm:py-24 px-6 sm:px-10 lg:px-16 select-none border-t border-b border-white/10"
+    >
+      <div className="max-w-7xl mx-auto space-y-12">
         {/* Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
