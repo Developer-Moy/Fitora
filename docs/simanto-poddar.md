@@ -11,7 +11,7 @@ The **AI Meal Planning Assistant** is an AI-powered feature that generates a per
 Built the User Registration page and form layout with validation and session integration.
 
 ## Note on Homepage Cleanup:
-*(Previous temporary homepage sections — `MealChartSection`, `TrainersSection`, and `Advertisement` — were removed from `client/src/app/(main)/page.tsx` during the 1-to-1 design alignment to strictly follow the authoritative design reference `docs/fitora.png`)*.
+*(Previous temporary homepage sections — `Coaches / Meet Our Trainers` (`TrainersSection` / `MeetTrainers`), `MealChartSection`, and `Advertisement` — were removed from `client/src/app/(main)/page.tsx` during the 1-to-1 design alignment to strictly follow the authoritative design reference `docs/fitora.png`)*.
 
 ---
 
@@ -52,5 +52,8 @@ Built the User Registration page and form layout with validation and session int
 * Replace temp userId with authenticated session userId (`client/src/components/MealChartCard.tsx`)
 * Add advertisement schema and API route
 
+### 24-Aug-26
+* Build Coaches Mentor Banner & 6-Trainer Certification Photo Grid (`Meet Our Trainers`)
+
 ### 25-Aug-26
-* Homepage sections cleaned up to strictly follow 1-to-1 design mockup `docs/fitora.png`
+* Homepage sections (`Meet Our Trainers`, `MealChartSection`, `Advertisement`) cleaned up to strictly follow 1-to-1 design mockup `docs/fitora.png`
