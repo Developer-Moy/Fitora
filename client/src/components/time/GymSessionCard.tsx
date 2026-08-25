@@ -22,16 +22,16 @@ export const GymSessionCard: React.FC<GymSessionCardProps> = ({
 }) => {
   if (variant === "left") {
     return (
-      <div className="bg-[#122319]/90 border border-emerald-800/40 rounded-2xl px-4 py-3 w-full shadow-inner backdrop-blur-md">
+      <div className="bg-[#121212]/90 border border-white/15 rounded-2xl px-4 py-3 w-full shadow-inner backdrop-blur-md">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-emerald-400/80 tracking-wide uppercase">
+          <span className="text-[11px] font-medium text-zinc-400 tracking-wide uppercase">
             Total Gym Time
           </span>
           {onClearGymTime && (
             <button
               type="button"
               onClick={onClearGymTime}
-              className="text-[10px] text-zinc-500 hover:text-rose-400 flex items-center gap-0.5 transition cursor-pointer p-0.5 rounded"
+              className="text-[10px] text-zinc-500 hover:text-red-400 flex items-center gap-0.5 transition cursor-pointer p-0.5 rounded"
               title="Reset total daily gym time"
             >
               <RotateCcw className="w-2.5 h-2.5" />
@@ -47,7 +47,7 @@ export const GymSessionCard: React.FC<GymSessionCardProps> = ({
   }
 
   return (
-    <div className="bg-[#122319]/90 border border-emerald-800/40 rounded-2xl px-4 py-3 w-full shadow-inner backdrop-blur-md flex flex-col gap-1.5 border-green-700">
+    <div className="bg-[#121212]/90 border border-white/15 rounded-2xl px-4 py-3 w-full shadow-inner backdrop-blur-md flex flex-col gap-1.5">
       {/* Total Gym Time Row */}
       <div className="flex items-center gap-2 text-xs text-zinc-200 font-mono">
         <span className="relative flex h-2.5 w-2.5">
@@ -65,7 +65,7 @@ export const GymSessionCard: React.FC<GymSessionCardProps> = ({
       </div>
 
       {/* Realtime Sync Row */}
-      <div className="flex items-center justify-between pt-1 border-t border-emerald-900/40">
+      <div className="flex items-center justify-between pt-1 border-t border-white/10">
         <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-medium">
           <Activity className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
           <span>Realtime Sync</span>

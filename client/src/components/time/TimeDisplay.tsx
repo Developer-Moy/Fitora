@@ -43,20 +43,20 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
     return `${mins.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  // Dynamic ring colors and glows
+  // Dynamic ring colors and glows (monochrome — red kept only as countdown warning)
   const ringStroke = isCountdownMode
     ? isWarning || isDone
       ? "#ef4444"
-      : "#f59e0b"
-    : "#00e676";
+      : "#d4d4d4"
+    : "#34d399";
 
   const ringGlow = isCountdownMode
     ? isWarning || isDone
       ? "drop-shadow(0 0 12px #ef4444) drop-shadow(0 0 24px rgba(239,68,68,0.45))"
-      : "drop-shadow(0 0 12px #f59e0b) drop-shadow(0 0 24px rgba(245,158,11,0.35))"
-    : "drop-shadow(0 0 10px #00e676) drop-shadow(0 0 22px rgba(0,230,118,0.4))";
+      : "drop-shadow(0 0 12px #d4d4d4) drop-shadow(0 0 24px rgba(212,212,212,0.35))"
+    : "drop-shadow(0 0 10px #34d399) drop-shadow(0 0 22px rgba(52,211,153,0.4))";
 
-  const trackColor = isCountdownMode ? "#2a1a00" : "#093521";
+  const trackColor = "#262626";
 
   return (
     <div className="relative flex items-center justify-center w-[240px] h-[240px] xs:w-[270px] xs:h-[270px] sm:w-[310px] sm:h-[310px] my-2">
@@ -67,8 +67,8 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
             isCountdownMode
               ? isWarning
                 ? "bg-red-500"
-                : "bg-amber-400"
-              : "bg-emerald-500"
+                : "bg-zinc-300"
+              : "bg-emerald-400"
           }`}
           style={{ animationDuration: "2s" }}
         />
@@ -112,7 +112,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
           <>
             <span
               className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${
-                isWarning || isDone ? "text-red-400" : "text-amber-400/90"
+                isWarning || isDone ? "text-red-400" : "text-zinc-300"
               }`}
             >
               {isDone ? "Rest Complete" : "Rest Countdown"}
@@ -122,7 +122,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
               className={`text-4xl xs:text-5xl sm:text-6xl font-extrabold font-mono tracking-tight transition-colors ${
                 isWarning || isDone
                   ? "text-red-400 drop-shadow-[0_0_18px_rgba(239,68,68,0.65)]"
-                  : "text-amber-300 drop-shadow-[0_0_18px_rgba(245,158,11,0.5)]"
+                  : "text-zinc-200 drop-shadow-[0_0_18px_rgba(255,255,255,0.4)]"
               } ${isWarning ? "animate-pulse" : ""}`}
             >
               {formatCountdown(remaining ?? 0)}
@@ -133,7 +133,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
                 isWarning
                   ? "text-red-400 font-bold animate-pulse"
                   : isDone
-                  ? "text-emerald-400 font-bold"
+                  ? "text-white font-bold"
                   : "text-zinc-400"
               }`}
             >
