@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 export default function TrainerCalloutBanner() {
   return (
     <div className="w-full bg-white">
-      <section className="relative w-full bg-black text-white rounded-t-[3rem] rounded-b-[3rem] sm:rounded-t-[4.5rem] sm:rounded-b-[4.5rem] py-16 sm:py-24 px-6 sm:px-10 lg:px-16 overflow-hidden select-none border-t border-b border-white/10 shadow-2xl">
+      <section className="relative w-full bg-black text-white rounded-t-[3rem] rounded-b-[3rem] py-16 sm:py-24 px-6 sm:px-10 lg:px-16 overflow-hidden select-none border-t border-b border-white/10 shadow-2xl">
         {/* Background Image Overlay with Dim Gradient */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <img

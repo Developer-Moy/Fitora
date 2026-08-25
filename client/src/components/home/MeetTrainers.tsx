@@ -40,7 +40,7 @@ export default function MeetTrainers() {
     <div className="w-full bg-white">
       <section
         id="trainers"
-        className="w-full bg-black text-white rounded-t-[3rem] rounded-b-[3rem] sm:rounded-t-[4.5rem] sm:rounded-b-[4.5rem] py-16 sm:py-24 px-6 sm:px-10 lg:px-16 select-none border-t border-b border-white/10 shadow-2xl"
+        className="w-full bg-black text-white rounded-t-[3rem] rounded-b-[3rem] py-16 sm:py-24 px-6 sm:px-10 lg:px-16 select-none border-t border-b border-white/10 shadow-2xl"
       >
         <div className="max-w-7xl mx-auto space-y-12">
           {/* Header */}

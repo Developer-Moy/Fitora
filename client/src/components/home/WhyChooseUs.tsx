@@ -8,7 +8,7 @@ export default function WhyChooseUs() {
     <div className="w-full bg-white">
       <section
         id="why-choose"
-        className="w-full bg-black text-white rounded-t-[3rem] rounded-b-[3rem] sm:rounded-t-[4.5rem] sm:rounded-b-[4.5rem] py-16 sm:py-24 px-6 sm:px-10 lg:px-16 select-none border-t border-b border-white/10 shadow-2xl"
+        className="w-full bg-black text-white rounded-t-[3rem] rounded-b-[3rem] py-16 sm:py-24 px-6 sm:px-10 lg:px-16 select-none border-t border-b border-white/10 shadow-2xl"
       >
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           {/* ── Left Side: 3 Stacked Rounded Workout Images ── */}
