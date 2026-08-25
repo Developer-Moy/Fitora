@@ -46,7 +46,11 @@ export default function TrainerCalloutBanner({
       <div className="absolute -left-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none z-0" />
 
       {/* Main Content Container */}
+<<<<<<< HEAD
       <div className="relative z-10 w-full mx-auto max-w-7xl px-6 py-10 sm:px-10 sm:py-14 md:py-16 lg:px-16 lg:py-20">
+=======
+      <div className="relative z-10 w-full mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 py-20 sm:py-24">
+>>>>>>> origin/development
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
