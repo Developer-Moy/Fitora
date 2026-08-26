@@ -63,13 +63,13 @@ const CountUp = ({
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full overflow-hidden select-none">
+    <section className="relative w-full overflow-hidden select-none border-0 border-none">
       {/* ════════════════════════════════════════════════════════════
           HERO CONTAINER — Locked Centered Layout (Zoom & Ultrawide Proof)
           ════════════════════════════════════════════════════════════ */}
-      <div className="relative w-full bg-black text-white overflow-hidden min-h-[440px] sm:min-h-[480px] md:min-h-[500px] lg:min-h-[540px]">
+      <div className="relative w-full bg-black text-white overflow-hidden min-h-[440px] sm:min-h-[480px] md:min-h-[500px] lg:min-h-[540px] border-0 border-none">
         {/* ─── Centered max-w-7xl container to lock relative positions on Zoom & UltraWide ─── */}
-        <div className="relative w-full max-w-7xl mx-auto h-full min-h-[440px] sm:min-h-[480px] md:min-h-[500px] lg:min-h-[540px]">
+        <div className="relative w-full max-w-7xl mx-auto h-full min-h-[440px] sm:min-h-[480px] md:min-h-[500px] lg:min-h-[540px] border-0 border-none">
           {/* ─── Z-10: "Build Your Body" Title Case Serif Italic Headline ─── */}
           <div className="absolute z-10 top-4 sm:top-6 md:top-7 inset-x-0 flex flex-col items-center pointer-events-none px-3 sm:px-4">
             <h1
@@ -224,14 +224,18 @@ export default function HeroSection() {
 
           {/* ─── Z-40: Notch SVG Background Arc ─── */}
           <div
-            className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 flex justify-center items-end pointer-events-none"
+            className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 flex justify-center items-end pointer-events-none border-0 border-none outline-none"
             style={{ width: "180px", height: "65px" }}
           >
             <svg
               viewBox="0 -16 180 91"
-              className="w-[180px] h-[65px] text-white fill-current block"
+              className="w-[180px] h-[65px] text-white fill-current block border-0 border-none outline-none"
             >
-              <path d="M 0 75 C 36 75 44 60 44 38 A 46 46 0 0 1 136 38 C 136 60 144 75 180 75 Z" />
+              <path
+                d="M 0 75 C 36 75 44 60 44 38 A 46 46 0 0 1 136 38 C 136 60 144 75 180 75 Z"
+                fill="white"
+                stroke="none"
+              />
             </svg>
           </div>
 
