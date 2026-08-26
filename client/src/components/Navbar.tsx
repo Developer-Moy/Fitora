@@ -143,11 +143,11 @@ export default function Navbar() {
       {/* ── Mobile & Tablet Drawer (Visible ONLY on Mobile/Tablet < 1024px) ── */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 top-16 sm:top-20 z-[60] bg-black/80 backdrop-blur-md lg:hidden drawer-overlay-fade"
+          className="fixed inset-0 top-16 sm:top-20 z-[90] bg-black/80 backdrop-blur-md lg:hidden drawer-overlay-fade"
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[360px] h-full bg-[#0E0F12] border-l border-white/10 flex flex-col drawer-slide-in shadow-2xl shadow-black/50"
+            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[360px] h-full bg-[#0E0F12] border-l border-white/10 flex flex-col drawer-slide-in shadow-2xl shadow-black/50 z-[100]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── White Search Box at Top ── */}
