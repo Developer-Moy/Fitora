@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Phone } from "lucide-react";
+import { Phone, ArrowUpRight } from "lucide-react";
 
 interface TrainerCalloutBannerProps {
   title?: string;
@@ -22,7 +22,7 @@ export default function TrainerCalloutBanner({
   phoneNumber = "+880 1700-000000",
   phoneLink = "tel:+8801700000000",
   buttonText = "BOOK A SESSION",
-  buttonHref = "/dashboard/user/workout",
+  buttonHref = "/exercises",
   backgroundImage = "/trainer-banner-bg.jpg",
   className = "",
 }: TrainerCalloutBannerProps) {
@@ -70,9 +70,12 @@ export default function TrainerCalloutBanner({
           <div className="pt-2">
             <Link
               href={buttonHref}
-              className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-black font-extrabold text-xs uppercase tracking-wider rounded-full hover:bg-gray-100 transition shadow-xl cursor-pointer"
+              className="group inline-flex items-center gap-2.5 bg-white text-black font-bold text-xs sm:text-sm px-6 py-3.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl cursor-pointer"
             >
-              {buttonText}
+              <span>{buttonText}</span>
+              <span className="bg-black text-white w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              </span>
             </Link>
           </div>
         </motion.div>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { MealsData } from "@/Data/MealsData";
-import MealCard from "@/components/Meal/MealCard";
+import { MealsData } from "@/data/MealsData";
+import MealCard from "@/components/meals/MealCard";
 import { Search, Utensils, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function MealsPage() {

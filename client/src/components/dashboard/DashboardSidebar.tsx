@@ -1,29 +1,35 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useDashboardRole } from "@/hooks/useDashboardRole";
 import {
-  BookOpen,
-  Bot,
-  BrainCircuit,
+  LayoutDashboard,
+  Users,
   Building2,
-  Calendar,
-  Camera,
+  QrCode,
+  TrendingUp,
+  CreditCard,
+  Activity,
   ChevronLeft,
   ChevronRight,
-  Dumbbell,
-  HeartPulse,
-  LayoutDashboard,
-  LucideIcon,
-  Settings,
-  Sparkles,
-  Target,
-  TrendingUp,
-  Users,
-  Utensils,
+  ChevronDown,
   X,
+  Zap,
+  LucideIcon,
+  Shield,
+  Crown,
+  User,
+  Dumbbell,
+  Utensils,
+  Target,
+  Layers,
+  Circle,
+  ChevronsUpDown,
+  HeartPulse,
+  LogOut,
 } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React from "react";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -32,89 +38,180 @@ interface SidebarProps {
   setIsMobileOpen: (open: boolean) => void;
 }
 
-interface NavItem {
+interface NavSubItem {
   name: string;
   href: string;
+  tabKey: string;
+  icon?: LucideIcon;
+  masterOnly?: boolean;
+}
+
+interface NavItem {
+  name: string;
+  href?: string;
   icon: LucideIcon;
-  isAi?: boolean;
+  tabKey?: string;
+  masterOnly?: boolean;
+  subItems?: NavSubItem[];
 }
 
 interface NavGroup {
   category: string;
-  links: NavItem[];
+  items: NavItem[];
 }
 
-const navItems: NavGroup[] = [
+const adminNavGroups: NavGroup[] = [
   {
-    category: "MAIN MENU",
-    links: [
-      { name: "Workout", href: "/dashboard/user/workout", icon: Dumbbell },
-      { name: "Planner", href: "/dashboard/user/planner", icon: Calendar },
-      { name: "Exercises", href: "/dashboard/user/exercises", icon: BookOpen },
-    ],
-  },
-  {
-    category: "ANALYTICS & GOALS",
-    links: [
-      { name: "Progress", href: "/dashboard/user/progress", icon: TrendingUp },
-      { name: "Goals", href: "/dashboard/user/goals", icon: Target },
-      { name: "Recovery", href: "/dashboard/user/recovery", icon: HeartPulse },
-      { name: "Nutrition", href: "/dashboard/user/nutrition", icon: Utensils },
-    ],
-  },
-  {
-    category: "AI SUITE",
-    links: [
+    category: "CORE",
+    items: [
       {
-        name: "AI Coach",
-        href: "/dashboard/user/ai-coach",
-        icon: Bot,
-        isAi: true,
+        name: "Executive Overview",
+        href: "/dashboard?tab=overview",
+        icon: LayoutDashboard,
+        tabKey: "overview",
+      },
+    ],
+  },
+  {
+    category: "OPERATIONS",
+    items: [
+      {
+        name: "Gym Management",
+        icon: Building2,
+        subItems: [
+          {
+            name: "User Management",
+            href: "/dashboard?tab=users",
+            tabKey: "users",
+            icon: Users,
+          },
+          {
+            name: "64 Branches Directory",
+            href: "/dashboard?tab=branches",
+            tabKey: "branches",
+            icon: Building2,
+            masterOnly: true,
+          },
+          {
+            name: "Live QR Attendance",
+            href: "/dashboard?tab=attendance",
+            tabKey: "attendance",
+            icon: QrCode,
+          },
+        ],
       },
       {
-        name: "Form Coach",
-        href: "/dashboard/user/form-coach",
-        icon: Camera,
-        isAi: true,
+        name: "Finance & Growth",
+        icon: TrendingUp,
+        subItems: [
+          {
+            name: "Income & MRR Growth",
+            href: "/dashboard?tab=revenue",
+            tabKey: "revenue",
+            icon: TrendingUp,
+          },
+          {
+            name: "bKash & Nagad Gateways",
+            href: "/dashboard?tab=payments",
+            tabKey: "payments",
+            icon: CreditCard,
+          },
+          {
+            name: "Membership Packages",
+            href: "/dashboard?tab=packages",
+            tabKey: "packages",
+            icon: Layers,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    category: "SYSTEM & TELEMETRY",
+    items: [
+      {
+        name: "Platform Telemetry",
+        href: "/dashboard?tab=ai-telemetry",
+        icon: Activity,
+        tabKey: "ai-telemetry",
       },
     ],
   },
 ];
 
-const adminNavItems: NavGroup[] = [
+const memberNavGroups: NavGroup[] = [
   {
-    category: "CONTROL CENTER",
-    links: [
+    category: "CORE",
+    items: [
       {
-        name: "Overview",
-        href: "/dashboard/admin/overview",
+        name: "Member Dashboard",
+        href: "/dashboard?tab=overview",
         icon: LayoutDashboard,
+        tabKey: "overview",
       },
-      { name: "User Management", href: "/dashboard/admin/users", icon: Users },
     ],
   },
   {
-    category: "OPERATIONS",
-    links: [
+    category: "FITNESS & LIFESTYLE",
+    items: [
       {
-        name: "Branch Network",
-        href: "/dashboard/admin/branches",
+        name: "Training Routine",
+        icon: Dumbbell,
+        subItems: [
+          {
+            name: "Digital QR Pass",
+            href: "/dashboard?tab=entry-pass",
+            tabKey: "entry-pass",
+            icon: QrCode,
+          },
+          {
+            name: "Workout Session Log",
+            href: "/dashboard?tab=workout-log",
+            tabKey: "workout-log",
+            icon: Dumbbell,
+          },
+          {
+            name: "Nutrition & Hydration",
+            href: "/dashboard?tab=nutrition-log",
+            tabKey: "nutrition-log",
+            icon: Utensils,
+          },
+          {
+            name: "PR Goals & Records",
+            href: "/dashboard?tab=goals-log",
+            tabKey: "goals-log",
+            icon: Target,
+          },
+        ],
+      },
+      {
+        name: "Personal Training Studio",
+        href: "/dashboard?tab=ai-coach",
+        icon: HeartPulse,
+        tabKey: "ai-coach",
+      },
+      {
+        name: "64 Gyms Directory",
+        href: "/dashboard?tab=branches",
         icon: Building2,
-      },
-      {
-        name: "AI Model Control",
-        href: "/dashboard/admin/ai-model",
-        icon: BrainCircuit,
+        tabKey: "branches",
       },
     ],
   },
   {
-    category: "CONFIGURATION",
-    links: [
+    category: "ACCOUNT & SETTINGS",
+    items: [
       {
-        name: "Admin Settings",
-        href: "/dashboard/admin/settings",
-        icon: Settings,
+        name: "Profile & Settings",
+        href: "/dashboard?tab=profile",
+        icon: User,
+        tabKey: "profile",
+      },
+      {
+        name: "Upgrade to Pro Athlete",
+        href: "/dashboard?tab=upgrade",
+        icon: Crown,
+        tabKey: "upgrade",
       },
     ],
   },
@@ -127,8 +224,29 @@ export default function DashboardSidebar({
   setIsMobileOpen,
 }: SidebarProps) {
   const pathname = usePathname();
-  const isAdminDashboard = pathname.startsWith("/dashboard/admin");
-  const activeNavItems = isAdminDashboard ? adminNavItems : navItems;
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab") || "overview";
+  const { role, setRole, userName, isMasterAdmin, isBranchAdmin } =
+    useDashboardRole();
+  const [showRoleMenu, setShowRoleMenu] = useState(false);
+
+  // Accordion State: Track which parent menus are open
+  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>(
+    {
+      "Gym Management": true,
+      "Finance & Growth": true,
+      "Training Routine": true,
+    },
+  );
+
+  const toggleAccordion = (name: string) => {
+    if (isCollapsed) {
+      setIsCollapsed(false);
+      setOpenAccordions((prev) => ({ ...prev, [name]: true }));
+    } else {
+      setOpenAccordions((prev) => ({ ...prev, [name]: !prev[name] }));
+    }
+  };
 
   const handleNavClick = () => {
     if (isMobileOpen) {
@@ -137,150 +255,259 @@ export default function DashboardSidebar({
   };
 
   const showDetails = !isCollapsed || isMobileOpen;
+  const navGroups =
+    isMasterAdmin || isBranchAdmin ? adminNavGroups : memberNavGroups;
+
+  // Auto-expand accordion when a child item is active
+  useEffect(() => {
+    navGroups.forEach((group) => {
+      group.items.forEach((item) => {
+        if (item.subItems?.some((sub) => sub.tabKey === currentTab)) {
+          setOpenAccordions((prev) => ({ ...prev, [item.name]: true }));
+        }
+      });
+    });
+  }, [currentTab, navGroups]);
 
   return (
     <>
       {/* Mobile Backdrop Overlay */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden transition-opacity duration-300"
           onClick={() => setIsMobileOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* HTML Aside Sidebar Container */}
+      {/* Aside Sidebar Container — Strict Homepage Luxury Dark Theme */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r transition-all duration-300 ease-in-out select-none
-          bg-[#0b0c0e] border-white/[0.08] text-white
-          ${isCollapsed ? "w-20" : "w-64"}
-          ${
-            isMobileOpen
-              ? "translate-x-0 w-64 shadow-2xl shadow-black"
-              : "-translate-x-full lg:translate-x-0"
-          }`}
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-white/10 bg-neutral-950 text-white transition-all duration-300 ease-in-out select-none ${
+          isCollapsed ? "w-20" : "w-64"
+        } ${
+          isMobileOpen
+            ? "translate-x-0 w-64"
+            : "-translate-x-full lg:translate-x-0"
+        }`}
       >
-        {/* Header / Brand Logo */}
-        <div className="relative flex h-16 items-center border-b border-white/10">
-          <Link
-            href="/"
-            className={`flex items-center gap-3 overflow-hidden transition-all duration-300 group ${
-              isCollapsed && !isMobileOpen
-                ? "w-full justify-center"
-                : "w-full px-4"
-            }`}
-            onClick={handleNavClick}
-          >
-            <img
-              src="/logo.svg"
-              alt="Fitora logo"
-              className="w-8 h-8 shrink-0 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
-            />
-
-            <div
-              className={`flex flex-col whitespace-nowrap transition-opacity duration-200 ${
-                showDetails
-                  ? "opacity-100"
-                  : "opacity-0 w-0 overflow-hidden pointer-events-none"
-              }`}
-            >
-              <span className="text-white font-black text-lg tracking-wider uppercase leading-none font-sans">
-                FITORA
-              </span>
-              <span className="text-[8px] text-gray-400 font-bold tracking-[0.25em] uppercase mt-0.5">
-                GYM & AI
-              </span>
+        {/* Header / Brand Logo Container */}
+        <div className="relative flex h-16 sm:h-20 w-full items-center border-b border-white/10">
+          {isCollapsed && !isMobileOpen ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <Link
+                href="/"
+                onClick={handleNavClick}
+                className="flex items-center justify-center group"
+                title="FITORA - GYM & AI"
+              >
+                <img
+                  src="/logo.svg"
+                  alt="Fitora logo"
+                  className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
+                />
+              </Link>
             </div>
-          </Link>
+          ) : (
+            <div className="w-full flex items-center justify-between px-4">
+              <Link
+                href="/"
+                onClick={handleNavClick}
+                className="flex items-center gap-3 group"
+                title="FITORA - GYM & AI"
+              >
+                <img
+                  src="/logo.svg"
+                  alt="Fitora logo"
+                  className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200 shrink-0"
+                />
+                <div className="flex flex-col">
+                  <span className="text-white font-black text-lg tracking-wider uppercase leading-none font-sans whitespace-nowrap">
+                    FITORA
+                  </span>
+                  <span className="text-[9px] text-gray-400 font-bold tracking-[0.25em] uppercase whitespace-nowrap mt-0.5">
+                    GYM & FITNESS
+                  </span>
+                </div>
+              </Link>
 
-          {/* Toggle Expand/Collapse Button */}
-          <button
-            onClick={() => setIsCollapsed((prev) => !prev)}
-            className={`hidden lg:flex h-7 w-7 items-center justify-center rounded-lg border border-white/15 bg-neutral-900 text-white/70 hover:text-white hover:border-white shadow-md transition-all duration-200 z-10 cursor-pointer ${
-              isCollapsed
-                ? "absolute right-0 translate-x-1/2"
-                : "absolute right-3"
-            }`}
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4 text-white" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </button>
+              <button
+                onClick={() => setIsCollapsed(true)}
+                className="hidden lg:flex h-8 w-8 rounded-full border border-white/15 bg-neutral-900 text-white/70 hover:text-white hover:bg-neutral-800 items-center justify-center transition cursor-pointer"
+                title="Collapse Sidebar"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
 
-          {/* Mobile Close Button */}
-          <button
-            onClick={() => setIsMobileOpen(false)}
-            className="flex lg:hidden absolute right-3 h-8 w-8 items-center justify-center rounded-lg text-white/60 hover:text-white"
-          >
-            <X className="h-5 w-5" />
-          </button>
+              <button
+                onClick={() => setIsMobileOpen(false)}
+                className="flex lg:hidden h-8 w-8 items-center justify-center rounded-lg text-white/60 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+
+          {/* Floating Collapse Toggle on border when collapsed */}
+          {isCollapsed && (
+            <button
+              onClick={() => setIsCollapsed(false)}
+              className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-neutral-900 text-white/80 hover:text-white hover:bg-white hover:text-black shadow-2xl transition z-50 cursor-pointer"
+              title="Expand Sidebar"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
         {/* Scrollable Navigation Body */}
         <div
-          className={`flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-6 scrollbar-thin scrollbar-thumb-white/10 ${
-            isCollapsed && !isMobileOpen ? "px-2" : "px-3"
+          className={`flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-6 scrollbar-thin ${
+            isCollapsed && !isMobileOpen ? "px-0" : "px-3"
           }`}
         >
-          {activeNavItems.map((group) => (
-            <div key={group.category} className="space-y-1">
-              <p
-                className={`px-3 text-[10px] font-black tracking-widest text-white/40 uppercase whitespace-nowrap transition-opacity duration-200 ${
-                  showDetails
-                    ? "opacity-100"
-                    : "opacity-0 h-0 overflow-hidden pointer-events-none"
-                }`}
-              >
-                {group.category}
-              </p>
+          {navGroups.map((group, groupIdx) => (
+            <div key={groupIdx} className="space-y-1.5">
+              {showDetails && (
+                <p className="px-3 text-[10px] font-bold tracking-widest text-neutral-400 uppercase whitespace-nowrap mb-1">
+                  {group.category}
+                </p>
+              )}
 
-              {group.links.map((item) => {
+              {group.items.map((item) => {
+                if (item.masterOnly && !isMasterAdmin) return null;
+
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
-                const isCollapsedMode = isCollapsed && !isMobileOpen;
+                const hasSubItems = Boolean(
+                  item.subItems && item.subItems.length > 0,
+                );
+                const isSubItemActive =
+                  hasSubItems &&
+                  item.subItems?.some((sub) => sub.tabKey === currentTab);
+                const isDirectActive =
+                  !hasSubItems &&
+                  pathname === "/dashboard" &&
+                  currentTab === item.tabKey;
+                const isOpen = openAccordions[item.name] ?? false;
 
+                // ── CASE 1: ACCORDION ITEM WITH SUB-MENUS ──
+                if (hasSubItems) {
+                  return (
+                    <div key={item.name} className="space-y-1">
+                      {/* Parent Accordion Trigger Button */}
+                      <button
+                        type="button"
+                        onClick={() => toggleAccordion(item.name)}
+                        title={
+                          isCollapsed && !isMobileOpen ? item.name : undefined
+                        }
+                        className={`w-full group relative flex items-center transition-all duration-200 cursor-pointer ${
+                          isSubItemActive
+                            ? "text-white font-bold bg-white/5"
+                            : "text-neutral-300 hover:bg-neutral-900 hover:text-white font-medium"
+                        } ${
+                          isCollapsed && !isMobileOpen
+                            ? "justify-center h-10 w-10 mx-auto rounded-full"
+                            : "gap-3 rounded-xl px-3 py-2 text-[13px] justify-between"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+                            <Icon
+                              className={`h-4.5 w-4.5 transition-colors ${
+                                isSubItemActive
+                                  ? "text-white"
+                                  : "text-neutral-400 group-hover:text-white"
+                              }`}
+                            />
+                          </div>
+
+                          {showDetails && (
+                            <span className="truncate whitespace-nowrap text-left font-semibold">
+                              {item.name}
+                            </span>
+                          )}
+                        </div>
+
+                        {showDetails && (
+                          <div className="text-neutral-400 group-hover:text-white transition-transform">
+                            {isOpen ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                          </div>
+                        )}
+                      </button>
+
+                      {/* Sub-Menu Drawer Items (Rendered when open and expanded) */}
+                      {showDetails && isOpen && (
+                        <div className="ml-4 pl-3.5 py-1 space-y-1 border-l border-white/15 my-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                          {item.subItems?.map((sub) => {
+                            if (sub.masterOnly && !isMasterAdmin) return null;
+                            const isChildActive = currentTab === sub.tabKey;
+                            const SubIcon = sub.icon;
+
+                            return (
+                              <Link
+                                key={sub.name}
+                                href={sub.href}
+                                onClick={handleNavClick}
+                                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                                  isChildActive
+                                    ? "bg-white text-black font-bold shadow-md"
+                                    : "text-neutral-300 hover:text-white hover:bg-white/10"
+                                }`}
+                              >
+                                {SubIcon ? (
+                                  <SubIcon
+                                    className={`w-4 h-4 shrink-0 ${isChildActive ? "text-black" : "text-neutral-400"}`}
+                                  />
+                                ) : (
+                                  <Circle
+                                    className={`w-1.5 h-1.5 shrink-0 ${isChildActive ? "fill-black text-black" : "text-neutral-500"}`}
+                                  />
+                                )}
+                                <span className="truncate">{sub.name}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                // ── CASE 2: DIRECT LINK ITEM (NO SUB-MENUS) ──
                 return (
                   <Link
-                    key={item.href}
-                    href={item.href}
+                    key={item.name}
+                    href={item.href || "/dashboard"}
                     onClick={handleNavClick}
-                    title={isCollapsedMode ? item.name : undefined}
+                    title={isCollapsed && !isMobileOpen ? item.name : undefined}
                     className={`group relative flex items-center transition-all duration-200 ${
-                      isActive
-                        ? "bg-white text-black font-extrabold shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-                        : "text-white/70 hover:bg-neutral-900 hover:text-white"
+                      isDirectActive
+                        ? "bg-white text-black font-bold shadow-lg"
+                        : "text-neutral-300 hover:bg-neutral-900 hover:text-white font-medium"
                     } ${
-                      isCollapsedMode
-                        ? "justify-center items-center h-10 w-10 mx-auto rounded-xl"
-                        : "gap-3 rounded-xl px-3 py-2.5 text-xs font-bold uppercase tracking-wider"
+                      isCollapsed && !isMobileOpen
+                        ? "justify-center h-10 w-10 mx-auto rounded-full p-0"
+                        : "gap-3 rounded-xl px-3 py-2.5 text-[13px]"
                     }`}
                   >
                     <div className="flex h-5 w-5 shrink-0 items-center justify-center">
                       <Icon
-                        className={`h-4 w-4 transition-colors ${
-                          isActive
+                        className={`h-4.5 w-4.5 transition-colors ${
+                          isDirectActive
                             ? "text-black"
-                            : "text-white/60 group-hover:text-white"
+                            : "text-neutral-400 group-hover:text-white"
                         }`}
                       />
                     </div>
 
                     {showDetails && (
-                      <>
-                        <span className="flex-1 truncate whitespace-nowrap">
-                          {item.name}
-                        </span>
-
-                        {item.isAi && (
-                          <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black text-white border border-white/20 flex items-center gap-1">
-                            <Sparkles className="w-2.5 h-2.5 text-white animate-pulse" />
-                            AI
-                          </span>
-                        )}
-                      </>
+                      <span className="flex-1 truncate whitespace-nowrap font-semibold">
+                        {item.name}
+                      </span>
                     )}
                   </Link>
                 );
@@ -289,43 +516,149 @@ export default function DashboardSidebar({
           ))}
         </div>
 
-        {/* Sidebar Footer Account Info Card */}
+        {/* Sidebar Footer User Info Card & Role Switcher */}
         <div
-          className={`border-t border-white/10 ${
-            isCollapsed && !isMobileOpen ? "p-2 flex justify-center" : "p-3"
+          className={`relative border-t border-white/10 ${
+            isCollapsed && !isMobileOpen
+              ? "p-0 py-3 flex justify-center"
+              : "p-3"
           }`}
         >
-          <div
-            className={`flex items-center gap-3 rounded-2xl transition-all duration-200 ${
-              isCollapsed && !isMobileOpen
-                ? "justify-center"
-                : "p-2.5 bg-neutral-900 border border-white/15 shadow-xl"
-            }`}
-          >
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full overflow-hidden border border-white/30 bg-neutral-950 shadow-md">
-              <img
-                src="/coache1.jpg.jpeg"
-                alt="Master Admin Profile"
-                className="w-full h-full object-cover object-top"
-              />
-              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-white ring-2 ring-black" />
-            </div>
-
+          {/* Role Switcher Popover Menu */}
+          {showRoleMenu && (
             <div
-              className={`flex-1 overflow-hidden whitespace-nowrap transition-opacity duration-200 ${
-                showDetails
-                  ? "opacity-100"
-                  : "opacity-0 w-0 overflow-hidden pointer-events-none"
+              className={`absolute bottom-full mb-2 bg-neutral-900 border border-white/15 rounded-2xl p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+                isCollapsed && !isMobileOpen ? "left-2 w-56" : "left-3 right-3"
               }`}
             >
-              <p className="truncate text-xs font-black uppercase tracking-wider text-white">
-                {isAdminDashboard ? "MASTER ADMIN" : "PRO ATHLETE"}
-              </p>
-              <p className="truncate text-[9px] text-white/50 font-bold tracking-wider uppercase mt-0.5">
-                {isAdminDashboard ? "admin@fitora.com" : "PRO MEMBER"}
-              </p>
+              <div className="px-3 py-1.5 border-b border-white/10 text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center justify-between">
+                <span>Switch Preview Role</span>
+                <button
+                  type="button"
+                  onClick={() => setShowRoleMenu(false)}
+                  className="text-neutral-400 hover:text-white cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="py-1 space-y-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRole("master_admin");
+                    setShowRoleMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    role === "master_admin"
+                      ? "bg-white text-black font-bold"
+                      : "text-neutral-200 hover:bg-neutral-800 hover:text-white"
+                  }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  <span>Master Admin</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRole("branch_admin");
+                    setShowRoleMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    role === "branch_admin"
+                      ? "bg-white text-black font-bold"
+                      : "text-neutral-200 hover:bg-neutral-800 hover:text-white"
+                  }`}
+                >
+                  <Building2 className="w-4 h-4" />
+                  <span>Branch Admin</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRole("premium_user");
+                    setShowRoleMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    role === "premium_user"
+                      ? "bg-white text-black font-bold"
+                      : "text-neutral-200 hover:bg-neutral-800 hover:text-white"
+                  }`}
+                >
+                  <Crown className="w-4 h-4" />
+                  <span>Premium Athlete</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRole("free_user");
+                    setShowRoleMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    role === "free_user"
+                      ? "bg-white text-black font-bold"
+                      : "text-neutral-200 hover:bg-neutral-800 hover:text-white"
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span>Free Member</span>
+                </button>
+
+                <div className="pt-2 mt-2 border-t border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        localStorage.removeItem("fitora_auth_session");
+                        localStorage.removeItem("fitora_active_role");
+                        localStorage.removeItem("fitora_active_branch");
+                      }
+                      setShowRoleMenu(false);
+                      window.location.href = "/dashboard/login";
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* User Profile Card / Trigger */}
+          <button
+            type="button"
+            onClick={() => setShowRoleMenu((prev) => !prev)}
+            className={`w-full flex items-center transition-all duration-200 cursor-pointer ${
+              isCollapsed && !isMobileOpen
+                ? "justify-center"
+                : "gap-3 p-2.5 rounded-2xl bg-neutral-900 border border-white/10 hover:border-white/30 text-left"
+            }`}
+            title="Click to Switch Role Preview"
+          >
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-black font-black text-xs">
+              {userName.charAt(0)}
+              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-neutral-900" />
+            </div>
+
+            {showDetails && (
+              <>
+                <div className="flex-1 overflow-hidden whitespace-nowrap">
+                  <p className="truncate text-xs font-bold text-white tracking-wide">
+                    {userName.split(" ")[0]}
+                  </p>
+                  <p className="truncate text-[10px] font-medium text-neutral-400 tracking-wider uppercase flex items-center gap-1">
+                    <span>{role.replace("_", " ")}</span>
+                  </p>
+                </div>
+                <ChevronsUpDown className="w-4 h-4 text-neutral-400" />
+              </>
+            )}
+          </button>
         </div>
       </aside>
     </>

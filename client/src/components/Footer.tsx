@@ -8,7 +8,7 @@ import {
   FaLinkedinIn,
   FaYoutube,
 } from "react-icons/fa6";
-import { FiMapPin, FiArrowRight } from "react-icons/fi";
+import { MapPin as FiMapPin, ArrowRight as FiArrowRight } from "lucide-react";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -93,26 +93,26 @@ export default function Footer() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-white/20 text-xs text-gray-200">
             <div>
               <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
-                AI Fitness Hubs
+                Fitness Hubs
               </span>
               <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
                 <Link
-                  href="/dashboard/user/nutrition"
+                  href="/meals"
                   className="hover:text-white transition-colors"
                 >
-                  AI Nutrition
+                  Meal Plans
                 </Link>
                 <Link
-                  href="/dashboard/user/workout"
+                  href="/exercises"
                   className="hover:text-white transition-colors"
                 >
-                  Workout Log
+                  Exercise Directory
                 </Link>
                 <Link
-                  href="/dashboard/user/recovery"
+                  href="/dashboard"
                   className="hover:text-white transition-colors"
                 >
-                  Recovery Hub
+                  Athlete Dashboard
                 </Link>
               </div>
             </div>
@@ -149,7 +149,7 @@ export default function Footer() {
               </span>
               <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
                 <Link
-                  href="/profile"
+                  href="/dashboard"
                   className="hover:text-white transition-colors"
                 >
                   User Profile

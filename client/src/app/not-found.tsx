@@ -1,15 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  ArrowLeft,
-  Home,
-  Sparkles,
-  Activity,
-  Clock,
-  ShieldAlert,
-} from "lucide-react";
+import { ArrowUpRight, ArrowLeft, Home, Activity, Clock } from "lucide-react";
 
 export default function NotFound() {
   return (

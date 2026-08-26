@@ -5,7 +5,7 @@ import {
   Bell,
   Check,
   Trash2,
-  Sparkles,
+  Activity,
   Dumbbell,
   Trophy,
   ShieldCheck,
@@ -107,7 +107,7 @@ export default function NotificationDropdown() {
       case "goal":
         return <Trophy className="w-4 h-4 text-white" />;
       case "ai":
-        return <Sparkles className="w-4 h-4 text-white animate-pulse" />;
+        return <Activity className="w-4 h-4 text-white" />;
       case "system":
         return <ShieldCheck className="w-4 h-4 text-white" />;
       default:
@@ -121,16 +121,16 @@ export default function NotificationDropdown() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`relative flex h-10 w-10 items-center justify-center rounded-xl border transition-colors cursor-pointer ${
+        className={`relative flex h-10 w-10 items-center justify-center rounded-full border transition-all cursor-pointer ${
           isOpen
-            ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-            : "bg-neutral-900 border-white/15 text-white/70 hover:text-white hover:bg-neutral-800"
+            ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+            : "border-white/15 bg-neutral-900 text-white hover:bg-neutral-800 hover:border-white/30"
         }`}
         aria-label="Notifications"
       >
-        <Bell className="h-5 w-5" />
+        <Bell className="h-4.5 w-4.5" />
         {unreadCount > 0 && (
-          <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-white animate-pulse shadow-[0_0_8px_white]" />
+          <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
         )}
       </button>
 

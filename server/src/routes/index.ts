@@ -7,6 +7,7 @@ import goalRoutes from "./goal.routes";
 import mealChartRoutes from "./mealChart.routes";
 import bmiRoutes from "./bmi.routes";
 import adRoutes from "./ad.routes";
+import userRoutes from "./user.routes";
 
 const apiRouter = Router();
 
@@ -34,5 +35,6 @@ apiRouter.use("/goals", goalRoutes);
 apiRouter.use("/meal-charts", mealChartRoutes);
 apiRouter.use("/bmi", bmiRoutes);
 apiRouter.use("/ads", adRoutes);
+apiRouter.use("/dashboard", userRoutes);
 
 export default apiRouter;

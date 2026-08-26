@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Sparkles,
+  Utensils,
   ArrowUpRight,
   CheckCircle,
   Flame,
@@ -799,7 +799,7 @@ Macros:
               className="w-full rounded-3xl overflow-hidden border border-white/10 bg-neutral-950 flex items-center p-5 sm:p-6 gap-4 shadow-xl text-white"
             >
               <div className="w-11 h-11 rounded-2xl bg-white text-black flex items-center justify-center shrink-0 shadow-lg">
-                <Sparkles className="w-5 h-5 text-black" />
+                <Utensils className="w-5 h-5 text-black" />
               </div>
 
               <div className="space-y-0.5 min-w-0 flex-1">

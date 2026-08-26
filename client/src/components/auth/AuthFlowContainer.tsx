@@ -164,7 +164,7 @@ export default function AuthFlowContainer({
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard/user/ai-coach",
+        callbackURL: "/dashboard",
       });
     } catch (err: any) {
       toast.error(err?.message || "Could not sign in with Google.");
@@ -190,14 +190,35 @@ export default function AuthFlowContainer({
 
     setIsLoading(true);
 
-    // Single Master Admin Credentials Strict Check
+    // 1. Single Master Admin Credentials Strict Check
     if (
-      email.toLowerCase().trim() === "admin@fitora.com" &&
-      password === "Admin123!"
+      email.toLowerCase().trim() === "master@fitora.com" &&
+      password === "P@SSW0RDF!T0R@"
     ) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("fitora_auth_session", "true");
+        localStorage.setItem("fitora_active_role", "master_admin");
+      }
       toast.success("Master Admin Authenticated! Entering Control Center...");
       setTimeout(() => {
-        router.push("/dashboard/admin/overview");
+        router.push("/dashboard");
+      }, 600);
+      return;
+    }
+
+    // 2. Branch Admin Credentials Authentication
+    if (
+      (email.toLowerCase().trim().endsWith("admin@fitora.com.bd") ||
+        email.toLowerCase().trim().endsWith("admin@fitora.com")) &&
+      password.length >= 6
+    ) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("fitora_auth_session", "true");
+        localStorage.setItem("fitora_active_role", "branch_admin");
+      }
+      toast.success("Branch Admin Authenticated! Entering Branch Portal...");
+      setTimeout(() => {
+        router.push("/dashboard");
       }, 600);
       return;
     }
@@ -214,9 +235,13 @@ export default function AuthFlowContainer({
         return;
       }
 
+      if (typeof window !== "undefined") {
+        localStorage.setItem("fitora_auth_session", "true");
+        localStorage.setItem("fitora_active_role", "free_user");
+      }
       toast.success("Welcome back to FITORA!");
       setTimeout(() => {
-        router.push("/dashboard/user/ai-coach");
+        router.push("/dashboard");
       }, 800);
     } catch (err: any) {
       toast.error(err?.message || "An unexpected error occurred.");
@@ -271,7 +296,7 @@ export default function AuthFlowContainer({
 
       toast.success("Account created! Redirecting to dashboard...");
       setTimeout(() => {
-        router.push("/dashboard/user/ai-coach");
+        router.push("/dashboard");
       }, 800);
     } catch (err: any) {
       toast.error(err?.message || "An error occurred.");

@@ -3,19 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, ArrowUpRight } from "lucide-react";
 import {
-  FiSearch,
-  FiCreditCard,
-  FiHelpCircle,
-  FiSettings,
-  FiChevronDown,
-  FiSidebar,
-  FiCheckCircle,
-  FiActivity,
-  FiClock,
-  FiMessageSquare,
-} from "react-icons/fi";
+  ArrowUpRight,
+  Search as FiSearch,
+  CreditCard as FiCreditCard,
+  HelpCircle as FiHelpCircle,
+  Settings as FiSettings,
+  ChevronDown as FiChevronDown,
+  Menu as FiSidebar,
+  CheckCircle2 as FiCheckCircle,
+  Activity as FiActivity,
+  Clock as FiClock,
+  MessageSquare as FiMessageSquare,
+} from "lucide-react";
 
 import { useSession } from "@/lib/auth-client";
 
@@ -23,7 +23,7 @@ import { useSession } from "@/lib/auth-client";
 const MENU_ITEMS = [
   { label: "Chats", href: "/", icon: FiMessageSquare },
   { label: "Updates & FAQ", href: "/#about", icon: FiHelpCircle },
-  { label: "Settings", href: "/profile", icon: FiSettings },
+  { label: "Dashboard", href: "/dashboard", icon: FiSettings },
 ];
 
 /* ── Collapsible "Chat list" Items ── */
@@ -119,7 +119,7 @@ export default function Navbar() {
             </Link>
           ) : (
             <Link
-              href="/dashboard/user/ai-coach"
+              href="/dashboard"
               className="hidden lg:inline-flex group items-center gap-2 bg-neutral-900 border border-white/20 text-white font-bold text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 shadow-xl"
             >
               <span>Dashboard</span>
@@ -175,7 +175,7 @@ export default function Navbar() {
                 </Link>
               ) : (
                 <Link
-                  href="/dashboard/user/ai-coach"
+                  href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full flex items-center justify-between bg-neutral-900 text-white font-black text-sm px-5 py-3 rounded-2xl border border-white/20 shadow-xl hover:bg-white hover:text-black transition-all duration-300 group cursor-pointer"
                 >
