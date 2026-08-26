@@ -7,27 +7,16 @@ import {
   ArrowUpRight,
   Search as FiSearch,
   CreditCard as FiCreditCard,
-  HelpCircle as FiHelpCircle,
-  Settings as FiSettings,
-  ChevronDown as FiChevronDown,
-  Menu as FiSidebar,
   CheckCircle2 as FiCheckCircle,
   Activity as FiActivity,
   Clock as FiClock,
-  MessageSquare as FiMessageSquare,
 } from "lucide-react";
+import { FaBarsStaggered, FaXmark } from "react-icons/fa6";
 
 import { useSession } from "@/lib/auth-client";
 
 /* ── Main Menu Items (Mobile & Tablet Drawer) ── */
 const MENU_ITEMS = [
-  { label: "Chats", href: "/", icon: FiMessageSquare },
-  { label: "Updates & FAQ", href: "/#about", icon: FiHelpCircle },
-  { label: "Dashboard", href: "/dashboard", icon: FiSettings },
-];
-
-/* ── Collapsible "Chat list" Items ── */
-const CHAT_LIST = [
   { label: "BMI Calculator", href: "/calculator", icon: FiActivity },
   { label: "Gym Stopwatch", href: "/stopwatch", icon: FiClock },
   { label: "Meal Plans", href: "/meals", icon: FiCreditCard },
@@ -45,7 +34,6 @@ const DESKTOP_LINKS = [
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [chatListOpen, setChatListOpen] = useState(true);
 
   const { data: authSession } = useSession();
   const isLoggedIn = !!authSession?.user;
@@ -132,10 +120,16 @@ export default function Navbar() {
           {/* Mobile & Tablet Hamburger Toggle Button (< 1024px) */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="text-white hover:text-gray-300 transition-colors duration-200 lg:hidden cursor-pointer shrink-0 p-2 rounded-xl bg-white/10 border border-white/20"
+            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl transition-all duration-300 lg:hidden cursor-pointer shrink-0 flex items-center justify-center active:scale-90 border bg-gradient-to-b from-white via-neutral-100 to-gray-200 text-black border-white shadow-[0_0_25px_rgba(255,255,255,0.35)] hover:brightness-105 ${
+              mobileMenuOpen ? "rotate-90" : ""
+            }`}
             aria-label="Toggle Navigation Menu"
           >
-            <FiSidebar className="w-5 h-5" />
+            {mobileMenuOpen ? (
+              <FaXmark className="w-5 h-5 text-black" />
+            ) : (
+              <FaBarsStaggered className="w-5 h-5 text-black" />
+            )}
           </button>
         </div>
       </nav>
@@ -147,17 +141,33 @@ export default function Navbar() {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[360px] h-full bg-[#0E0F12] border-l border-white/10 flex flex-col drawer-slide-in shadow-2xl shadow-black/50 z-[100]"
+            className="absolute right-0 top-0 bottom-0 w-[88vw] max-w-[370px] h-full bg-[#08090C]/95 backdrop-blur-3xl border-l border-white/15 flex flex-col drawer-slide-in shadow-[0_0_80px_rgba(0,0,0,0.98)] z-[100] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ── White Search Box at Top ── */}
-            <div className="px-4 pt-5 pb-2 shrink-0 space-y-3">
+            {/* Ambient Background Glows */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.04] rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/[0.03] rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
+
+            {/* ── Top Header Tag & Search ── */}
+            <div className="px-5 pt-5 pb-2 shrink-0 space-y-3 relative z-10">
+              <div className="flex items-center justify-between pb-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                  <span className="text-[10px] font-black tracking-[0.25em] text-gray-300 uppercase font-sans">
+                    FITORA PORTAL
+                  </span>
+                </div>
+                <span className="text-[9px] font-extrabold text-gray-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Gym & AI
+                </span>
+              </div>
+
               <div className="relative">
-                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white text-black text-sm font-medium placeholder:text-gray-400 outline-none border-0 shadow-sm"
+                  placeholder="Search features..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-neutral-900/90 text-white text-sm font-medium placeholder:text-gray-500 outline-none border border-white/15 focus:border-white focus:bg-neutral-800 transition-all shadow-inner"
                 />
               </div>
 
@@ -188,7 +198,7 @@ export default function Navbar() {
             </div>
 
             {/* ── Scrollable Menu Content ── */}
-            <div className="flex-1 overflow-y-auto px-4 pt-2 pb-4 space-y-1">
+            <div className="flex-1 overflow-y-auto px-5 pt-2 pb-4 space-y-2 relative z-10">
               {/* Main Menu Items */}
               {MENU_ITEMS.map(({ label, href, icon: Icon }) => {
                 const isActive =
@@ -198,91 +208,67 @@ export default function Navbar() {
                     key={label}
                     href={href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm transition-all duration-150 ${
+                    className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm transition-all duration-300 group border ${
                       isActive
-                        ? "bg-white/10 text-white font-bold"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                        ? "bg-white text-black font-black border-white shadow-[0_4px_25px_rgba(255,255,255,0.2)]"
+                        : "bg-neutral-900/60 text-gray-300 hover:text-white hover:bg-neutral-800/80 border-white/5 hover:border-white/20"
                     }`}
                   >
-                    <Icon
-                      className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-gray-500"}`}
+                    <div className="flex items-center gap-3.5">
+                      <div
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+                          isActive
+                            ? "bg-black text-white"
+                            : "bg-white/5 text-gray-400 group-hover:text-white group-hover:bg-white/10"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 stroke-[2]" />
+                      </div>
+                      <span className="tracking-wide font-bold">{label}</span>
+                    </div>
+                    <ArrowUpRight
+                      className={`w-4 h-4 transition-transform duration-300 group-hover:rotate-45 ${
+                        isActive
+                          ? "text-black"
+                          : "text-gray-500 group-hover:text-white"
+                      }`}
                     />
-                    <span>{label}</span>
                   </Link>
                 );
               })}
-
-              {/* Divider */}
-              <div className="h-px bg-white/10 my-3" />
-
-              {/* Collapsible Chat List */}
-              <button
-                onClick={() => setChatListOpen(!chatListOpen)}
-                className="flex items-center gap-2.5 text-xs font-semibold text-gray-500 hover:text-gray-300 px-4 py-2 w-full text-left transition-colors cursor-pointer"
-              >
-                <FiChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${chatListOpen ? "" : "-rotate-90"}`}
-                />
-                <span className="tracking-wide">Chat list</span>
-              </button>
-
-              {chatListOpen && (
-                <div className="space-y-0.5">
-                  {CHAT_LIST.map(({ label, href, icon: ToolIcon }) => {
-                    const isActive = pathname === href;
-                    return (
-                      <Link
-                        key={label}
-                        href={href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm transition-all duration-150 ${
-                          isActive
-                            ? "bg-white/10 text-white font-semibold"
-                            : "text-gray-400 hover:text-white hover:bg-white/5"
-                        }`}
-                      >
-                        <ToolIcon
-                          className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-500"}`}
-                        />
-                        <span>{label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
             </div>
 
             {/* ── Bottom: Profile + Upgrade ── */}
-            <div className="px-4 pb-6 space-y-3 shrink-0">
-              <div className="h-px bg-white/10" />
+            <div className="px-5 pb-6 space-y-3 shrink-0 relative z-10">
+              <div className="h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
 
-              {/* User Profile Row */}
-              <div className="flex items-center justify-between px-2 py-2">
+              {/* User Profile Card */}
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-900/90 border border-white/15 shadow-xl backdrop-blur-md">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-300 to-gray-600 flex items-center justify-center text-black font-black text-sm shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-white to-gray-400 flex items-center justify-center text-black font-black text-sm shrink-0 shadow-md">
                     M
                   </div>
                   <div className="min-w-0">
                     <p className="text-white font-bold text-sm leading-tight truncate">
                       Moloy Paul
                     </p>
-                    <p className="text-[11px] text-gray-500 leading-tight truncate">
+                    <p className="text-[11px] text-gray-400 leading-tight truncate">
                       moloy@fitora.dev
                     </p>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-white text-black shrink-0">
+                <span className="px-2.5 py-1 rounded-lg text-[10px] font-black bg-white text-black shrink-0 tracking-wider shadow-sm">
                   PRO
                 </span>
               </div>
 
-              {/* Upgraded to Pro — White Button */}
+              {/* Upgraded to Pro — Button */}
               <Link
-                href="#contact"
+                href="/#pricing"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 rounded-2xl bg-white text-black font-bold text-sm text-center flex items-center justify-center gap-2 hover:bg-gray-200 transition-all block shadow-sm"
+                className="w-full py-3 rounded-2xl bg-white text-black font-black text-sm text-center flex items-center justify-center gap-2 hover:bg-gray-200 transition-all block shadow-xl cursor-pointer"
               >
-                <FiCheckCircle className="w-4 h-4" />
+                <FiCheckCircle className="w-4 h-4 stroke-[2.5]" />
                 <span>Upgraded to Pro</span>
               </Link>
             </div>
