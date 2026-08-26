@@ -1,129 +1,86 @@
-# 🏋️‍♂️ FITORA — Technical Documentation & Implementation Plan
+# 🏋️‍♂️ FITORA — Technical Documentation & Architecture Specification
 
-> **Platform Overview**: Fitora is Bangladesh's premier AI-powered fitness and gym ecosystem serving athletes across all 64 districts. Designed with a **Pure Black & White High-Contrast Visual Identity**, real-time AI workout coaching, macro nutrition planning, and multi-tier membership control.
+> **Platform Overview**: FITORA is Bangladesh's premier AI-powered fitness ecosystem serving athletes across all 64 districts. Designed with a **Pure Monochrome Black & White Visual Identity**, real-time AI workout coaching, nutritional planning, body metric tracking, and multi-tier Role-Based Access Control (RBAC).
 
 ---
 
 ## 🔐 1. User Roles & Access Control Architecture
 
-The platform enforces strict **Role-Based Access Control (RBAC)** across four distinct user levels:
+The platform enforces strict **Role-Based Access Control (RBAC)** across three primary operational levels:
 
 ```
-+---------------------------------------------------------------------------------------+
-| USER ROLE                    | ACCESSIBLE ROUTES & FEATURES                            |
-+------------------------------+--------------------------------------------------------+
-| 1. Guest (Not Logged In)    | ONLY Homepage (/), Login (/login), Register (/register) |
-| 2. Free Member               | Homepage, Calculator, Stopwatch, Plans, Profile       |
-| 3. Premium Member            | All Free Features + AI Coach, Nutrition, Recovery, Logs|
-| 4. Admin                     | Exclusive Access to Admin Dashboard (/dashboard/admin) |
-+---------------------------------------------------------------------------------------+
++----------------------------------------------------------------------------------------------------+
+| USER ROLE                    | ACCESSIBLE ROUTES & FEATURES                                         |
++------------------------------+----------------------------------------------------------------------+
+| 1. Guest / Unauthenticated   | Homepage (/), Login (/login), Register (/register)                  |
+| 2. Member / Athlete          | All Core Tools (/calculator, /stopwatch, /meals, /exercises)         |
+|                              | + Athlete Dashboard (/dashboard) with Hydration & Streak Tracker     |
+| 3. Branch Admin              | Branch Portal (/dashboard): District stats, check-in log, packages  |
+| 4. System Master Admin       | Central Command (/dashboard): 64-branch telemetry, User Management, |
+|                              | revenue metrics, role creation & Master account immutability         |
++----------------------------------------------------------------------------------------------------+
 ```
 
 ### Access Control Matrix
 
-| Route / Feature | Guest (Not Logged In) | Free Member | Premium Member | Admin |
+| Route / Feature | Guest / Unauthenticated | Free / Member | Branch Admin | Master Admin |
 | :--- | :---: | :---: | :---: | :---: |
 | **Homepage (`/`)** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed |
-| **Login / Register (`/login`, `/register`)** | ✅ Allowed | 🔄 Redirect to Home | 🔄 Redirect to Home | 🔄 Redirect to Home |
-| **BMI Calculator (`/calculator`)** | 🔒 Redirect `/login` | ✅ Allowed | ✅ Allowed | ✅ Allowed |
-| **Gym Rest Stopwatch (`/stopwatch`)** | 🔒 Redirect `/login` | ✅ Allowed | ✅ Allowed | ✅ Allowed |
-| **Membership Plans (`/plans`)** | 🔒 Redirect `/login` | ✅ Allowed | ✅ Allowed | ✅ Allowed |
-| **User Profile (`/profile`)** | 🔒 Redirect `/login` | ✅ Allowed | ✅ Allowed | ✅ Allowed |
-| **AI Personal Coach (`/dashboard/user/ai-coach`)** | 🔒 Redirect `/login` | 🔒 Upgrade Required | ✅ Allowed | ✅ Allowed |
-| **Nutrition Planner (`/dashboard/user/nutrition`)** | 🔒 Redirect `/login` | 🔒 Upgrade Required | ✅ Allowed | ✅ Allowed |
-| **Recovery Metrics (`/dashboard/user/recovery`)** | 🔒 Redirect `/login` | 🔒 Upgrade Required | ✅ Allowed | ✅ Allowed |
-| **Workout Tracker (`/dashboard/user/workout`)** | 🔒 Redirect `/login` | 🔒 Upgrade Required | ✅ Allowed | ✅ Allowed |
-| **Admin Control Center (`/dashboard/admin/*`)** | 🔒 Redirect `/login` | 🚫 403 Forbidden | 🚫 403 Forbidden | ✅ Exclusive Access |
+| **Login / Register (`/login`, `/register`)** | ✅ Allowed | 🔄 Redirect `/dashboard` | 🔄 Redirect `/dashboard` | 🔄 Redirect `/dashboard` |
+| **BMI Calculator (`/calculator`)** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed |
+| **Gym Stopwatch (`/stopwatch`)** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed |
+| **Meals Catalog (`/meals`)** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed |
+| **Exercise Library (`/exercises`)** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed |
+| **Security Gateway (`/dashboard/login`)** | ✅ Allowed | ✅ Allowed | ✅ Allowed | ✅ Allowed |
+| **Unified Dashboard (`/dashboard`)** | 🔒 Redirect `/dashboard/login` | ✅ Athlete View | ✅ Branch View | 👑 Master View |
 
 ---
 
-## 🎨 2. Design System & Frontend Architecture
+## 👑 2. System Master Admin & Security Immutability
+
+FITORA features a dedicated, single Master Administrator account with code-level immutability protection:
+
+* **Master Name**: `Master`
+* **Master Email**: `master@fitora.com`
+* **Master Password**: `P@SSW0RDF!T0R@`
+* **Immutability Enforcement**:
+  - The Master account (`USR-1001`) cannot be edited, renamed, or deleted by any user or administrator in the system.
+  - The User Management Table displays a permanent locked `System Master` badge.
+  - System prevents creating duplicate `master_admin` roles to ensure unified governance.
+
+---
+
+## 🎨 3. Design System & Frontend Architecture
 
 ### Visual Identity Principles
-* **Color Palette**: Pure Monochrome Black & White (`#000000` pitch black, `#FFFFFF` pure white, `#0E0F12` dark card containers, `#F4F4F4` light card containers). Zero red/emerald accent colors.
-* **Signature Button System**: Uniform `rounded-full` pill buttons with rotating `ArrowUpRight` (`↗`) round icon badges across all components.
-* **Zoom-Proof Layout**: Locked `max-w-7xl` container architecture preventing layout shift on browser zoom or 2K/4K ultra-wide screens.
-* **Typography**: Heavy bold uppercase headlines (`font-black uppercase tracking-tight`), Serif Italic Title Case headlines (`font-serif font-black italic`), outlined stroke typography (`WebkitTextStroke: "2px white"`).
-* **Brand Identity**: 
-  - **Logo & Tagline**: FITORA GYM & AI with pitch-white flame icon (`/logo.svg`).
-  - **Branch Network**: *Fitora Tower, Gulshan-2, Dhaka 1212* & *64 Branches in Bangladesh*.
-  - **Developer Credit**: `Design and Developed by DeveloperMoy`.
-
-### Header Navbar & Responsive Navigation
-* **Desktop View (`>= 1024px`)**: Solid pitch-black background with centered navigation links (`Home`, `BMI Calculator`, `Gym Stopwatch`, `Membership Plans`, `AI Coach Studio`) and a signature white rounded `"Join Now"` CTA button.
-* **Mobile & Tablet Drawer (`< 1024px`)**: Slide-in B&W menu drawer with top white search bar, collapsible Chat List, profile card, and Pro button.
-
-### Assembled Homepage Section Flow (`app/(main)/page.tsx`)
-1. **`HeroSection`** — *"Build Your Body"* headline, transparent athlete cutout (`/hero.png`), non-clipped SVG notch, left-middle details text, far-left bottom socials, right-middle *"See Packages"* button, and 3-column stats counter strip.
-2. **`WhyChooseUs`** — *"Why Choose Fitora?"* section with white background (`bg-white`), black text, 3 workout images, checklist, and signature *"Free Trial Today"* button.
-3. **`PricingSection`** — *"JOIN TODAY & SHAPE YOUR BODY"* 3-tier membership pricing cards (Basic Pass, Pro Athlete, VIP Ultimate), monthly/annual toggle, and signature CTA buttons.
-4. **`TrainerCalloutBanner`** — *"Need a Fitness Trainer?"* pitch-black callout banner with white phone text and signature *"PURCHASE NOW"* button.
-5. **`ContactInfoForm`** — *"We are here for help you! To Shape Your Body."* consultation contact form with Bangladesh 64 branches office info and signature *"SUBMIT NOW"* button.
+* **Color Palette**: Pure Monochrome Black & White (`#000000` pitch black, `#FFFFFF` pure white, `bg-neutral-950` dark cards, `border-white/10` borders). Zero red or extraneous colors.
+* **Signature Button System**: Uniform `rounded-full` pill buttons with rotating `ArrowUpRight` (`↗`) round icon badges.
+* **100% Zoom-Proof Layout**: Locked `max-w-7xl` container architecture preventing layout shifts on browser zoom or 2K/4K ultra-wide screens.
+* **Brand Consistency**: Standardized 100% brand identity under **FITORA** / **FITORA GYM & AI**.
 
 ---
 
-## 🛡️ 3. Backend & API Architecture
+## 🏢 4. 64 Nationwide Branches Network
 
-### Database Schema (MongoDB / Mongoose)
-
-#### User Schema (`server/src/models/User.ts`)
-```typescript
-interface IUser {
-  _id: string;
-  name: string;
-  email: string;
-  passwordHash: string;
-  role: "guest" | "free" | "premium" | "admin";
-  district: string; // One of 64 districts in Bangladesh
-  membershipPlan?: "beginner" | "premium" | "pro";
-  subscriptionStatus: "active" | "canceled" | "expired";
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Express Middleware for Route Protection
-
-```typescript
-// 1. Require Authenticated User (Guest Block)
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user) {
-    return res.status(401).json({ error: "Access denied. Please log in to view this page." });
-  }
-  next();
-};
-
-// 2. Require Premium Membership
-export const requirePremium = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role !== "premium" && req.user?.role !== "admin") {
-    return res.status(403).json({ error: "Upgrade to Premium required to access this feature." });
-  }
-  next();
-};
-
-// 3. Require Admin Role (Exclusive Admin Access)
-export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role !== "admin") {
-    return res.status(403).json({ error: "Access forbidden. Admin privileges required." });
-  }
-  next();
-};
-```
+FITORA operates across all 8 divisions and 64 districts in Bangladesh:
+* **Divisions**: Dhaka, Chittagong, Sylhet, Rajshahi, Khulna, Barisal, Rangpur, Mymensingh.
+* **Flagship HQ**: Fitora Tower, Gulshan-2, Dhaka 1212.
+* **Branch Features**: RFID Turnstile Check-in Feed, Live Occupancy Monitoring, and Division Filter Directory.
 
 ---
 
-## 📋 4. Implementation Roadmap for Access Control & Admin Dashboard
+## 🛠️ 5. Technology Stack
 
-### Phase 1: Authentication & Next.js Middleware Protection
-- [x] Configure Next.js Middleware (`middleware.ts`) to intercept all routes except `/`, `/login`, `/register`, and `/api/auth/*`.
-- [x] Unauthenticated users requesting `/calculator`, `/stopwatch`, `/dashboard/*` are automatically redirected to `/login?redirect={targetRoute}`.
+### Frontend (`/client`)
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript (Strict Mode)
+- **Styling**: Tailwind CSS v4, Framer Motion
+- **Notifications**: React Hot Toast (`react-hot-toast`)
+- **Authentication**: Better Auth
 
-### Phase 2: Role-Based Navigation & UI Guards
-- [x] Hide Admin Dashboard links from Free & Premium users.
-- [x] Show "Upgrade to Premium" banners on AI Coach, Nutrition, and Workout pages for Free tier members.
-
-### Phase 3: Admin Dashboard Control Center (`/dashboard/admin`)
-- [ ] **System Metrics Overview**: Total registered users, active premium subscriptions, revenue analytics, 64-district activity breakdown.
-- [ ] **User Management Table**: Filter by district, role (Free/Premium/Admin), subscription status, change user roles, suspend/activate accounts.
-- [ ] **Branch Network Manager**: Manage gym locations across 64 districts in Bangladesh.
-- [ ] **AI Model Parameters Control**: Monitor real-time Socket.IO chat tokens and AI response latency.
+### Backend (`/server`)
+- **Runtime**: Node.js & Express.js
+- **Database**: MongoDB with Mongoose ODM
+- **Language**: TypeScript (`tsx` engine)
+- **Realtime**: Socket.IO Server
+- **Security**: CORS, Dotenv, JWT Token Verification
