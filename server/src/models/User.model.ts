@@ -1,10 +1,18 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export type UserRole =
+  | "user"
+  | "admin"
+  | "master_admin"
+  | "branch_admin"
+  | "athlete"
+  | "trainer";
+
 export interface IUser extends Document {
   name: string;
   email: string;
   passwordHash: string;
-  role: "user" | "admin" | "master_admin" | "branch_admin" | "athlete" | "trainer";
+  role: UserRole;
   assignedBranch?: string;
   plan: "Basic Pass" | "Pro Athlete" | "VIP Ultimate" | "Free Pass";
   status: "active" | "suspended" | "pending";
