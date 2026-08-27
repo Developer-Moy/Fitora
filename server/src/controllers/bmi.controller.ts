@@ -201,7 +201,7 @@ export const createBMIHistory = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
 
     if (!userId) {
       res.status(401).json({
@@ -311,7 +311,7 @@ export const getBMIHistory = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
 
     if (!userId) {
       res.status(401).json({
@@ -359,7 +359,7 @@ export const deleteBMIHistory = async (
   res: Response
 ): Promise<void> => {
   try {
-    const userId = (req as any).user?.id;
+    const userId = (req as any).user?.userId;
 
     if (!userId) {
       res.status(401).json({
