@@ -1,17 +1,18 @@
-import { Router, Request, Response } from "express";
+import { Request, Response, Router } from "express";
 import mongoose from "mongoose";
-import workoutRoutes from "./workout.routes";
+import adRoutes from "./ad.routes";
 import aiRoutes from "./ai.routes";
 import authRoutes from "./auth.routes";
-import goalRoutes from "./goal.routes";
-import mealChartRoutes from "./mealChart.routes";
 import bmiRoutes from "./bmi.routes";
-import adRoutes from "./ad.routes";
-import userRoutes from "./user.routes";
-import consultationRoutes from "./consultation.routes";
 import branchRoutes from "./branch.routes";
+import consultationRoutes from "./consultation.routes";
+import goalRoutes from "./goal.routes";
+import masterRoutes from "./master.routes";
+import mealChartRoutes from "./mealChart.routes";
 import newsletterRoutes from "./newsletter.routes";
 import stopwatchRoutes from "./stopwatch.routes";
+import userRoutes from "./user.routes";
+import workoutRoutes from "./workout.routes";
 
 const apiRouter = Router();
 
@@ -43,6 +44,7 @@ apiRouter.use("/dashboard", userRoutes);
 apiRouter.use("/consultations", consultationRoutes);
 apiRouter.use("/branches", branchRoutes);
 apiRouter.use("/newsletter", newsletterRoutes);
-apiRouter.use("/stopwatch",stopwatchRoutes);
+apiRouter.use("/stopwatch", stopwatchRoutes);
+apiRouter.use("/dashboard/master", masterRoutes);
 
 export default apiRouter;
