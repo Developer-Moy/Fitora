@@ -9,6 +9,14 @@ export type UserRole =
   | "premium_user"
   | "free_user";
 
+export type UserRole =
+  | "user"
+  | "admin"
+  | "master_admin"
+  | "branch_admin"
+  | "athlete"
+  | "trainer";
+
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   name: string;
@@ -99,6 +107,10 @@ const UserSchema: Schema = new Schema(
       type: String,
       default: "",
     },
+    assignedBranch: { type: String, default: "" },
+    plan: { type: String, enum: ["Basic Pass", "Pro Athlete", "VIP Ultimate", "Free Pass"], default: "Free Pass" },
+    status: { type: String, enum: ["active", "suspended", "pending"], default: "active" },
+    totalPaidBDT: { type: Number, default: 0, min: 0 },
   },
   {
     timestamps: true,

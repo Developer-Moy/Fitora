@@ -1,5 +1,7 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+
+export type AuthRole = "user" | "admin" | "master_admin" | "branch_admin" | "athlete" | "trainer";
 
 export interface AuthRequest extends Request {
   user?: {
