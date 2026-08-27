@@ -1,13 +1,35 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
+
+export type UserRole =
+  | "master_admin"
+  | "branch_admin"
+  | "athlete"
+  | "user"
+  | "admin"
+  | "premium_user"
+  | "free_user";
 
 export interface IUser extends Document {
+  _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
-  passwordHash: string;
-  role: "user" | "admin";
+  password?: string;
+  passwordHash?: string;
+  phone?: string;
+  role: UserRole;
+  plan: string;
+  assignedBranch?: string;
+  status: "active" | "inactive" | "suspended" | "pending";
+  attendanceStreakDays: number;
+  hydrationTargetLiters: number;
+  totalPaidBDT: number;
+  isMasterProtected: boolean;
+  avatarUrl?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const userSchema = new Schema<IUser>(
+const UserSchema: Schema = new Schema(
   {
     name: {
       type: String,
@@ -21,14 +43,61 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
     },
+    password: {
+      type: String,
+    },
     passwordHash: {
       type: String,
-      required: true,
+    },
+    phone: {
+      type: String,
+      default: "",
     },
     role: {
       type: String,
-      enum: ["user", "admin"],
-      default: "user",
+      enum: [
+        "master_admin",
+        "branch_admin",
+        "athlete",
+        "user",
+        "admin",
+        "premium_user",
+        "free_user",
+      ],
+      default: "athlete",
+    },
+    plan: {
+      type: String,
+      default: "Free Pass",
+    },
+    assignedBranch: {
+      type: String,
+      default: "Dhaka - Gulshan-2 Branch (Flagship)",
+    },
+    status: {
+      type: String,
+      enum: ["active", "inactive", "suspended", "pending"],
+      default: "active",
+    },
+    attendanceStreakDays: {
+      type: Number,
+      default: 0,
+    },
+    hydrationTargetLiters: {
+      type: Number,
+      default: 3.5,
+    },
+    totalPaidBDT: {
+      type: Number,
+      default: 0,
+    },
+    isMasterProtected: {
+      type: Boolean,
+      default: false,
+    },
+    avatarUrl: {
+      type: String,
+      default: "",
     },
   },
   {
@@ -36,5 +105,8 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-export const User = mongoose.model<IUser>("User", userSchema);
+UserSchema.index({ email: 1 });
+UserSchema.index({ role: 1 });
+
+export const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
 export default User;

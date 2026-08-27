@@ -4,13 +4,19 @@ import jwt from "jsonwebtoken";
 export interface AuthRequest extends Request {
   user?: {
     userId: string;
-    role: "user" | "admin";
+    email?: string;
+    role: string;
+    assignedBranch?: string;
+    tier?: string;
   };
 }
 
 interface JwtPayload {
   userId: string;
-  role: "user" | "admin";
+  email?: string;
+  role: string;
+  assignedBranch?: string;
+  tier?: string;
 }
 
 export const authMiddleware = (
@@ -37,20 +43,16 @@ export const authMiddleware = (
       });
     }
 
-    const jwtSecret = process.env.JWT_SECRET;
-
-    if (!jwtSecret) {
-      return res.status(500).json({
-        success: false,
-        message: "JWT secret is not configured",
-      });
-    }
+    const jwtSecret = process.env.JWT_SECRET || "fitora_jwt_secret_key_2026_super_secure";
 
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
 
     req.user = {
       userId: decoded.userId,
+      email: decoded.email,
       role: decoded.role,
+      assignedBranch: decoded.assignedBranch,
+      tier: decoded.tier,
     };
 
     next();
@@ -60,4 +62,39 @@ export const authMiddleware = (
       message: "Invalid or expired token",
     });
   }
+};
+
+export const requireRoles = (...allowedRoles: string[]) => {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const userRole = req.user.role;
+    if (!allowedRoles.includes(userRole) && userRole !== "master_admin") {
+      return res.status(403).json({
+        success: false,
+        message: `Forbidden: Access restricted to roles [${allowedRoles.join(", ")}]`,
+      });
+    }
+
+    next();
+  };
+};
+
+export const requireMasterAdmin = requireRoles("master_admin");
+export const requireAdminOrBranchAdmin = requireRoles(
+  "master_admin",
+  "branch_admin",
+  "admin"
+);
+
+export default {
+  authMiddleware,
+  requireRoles,
+  requireMasterAdmin,
+  requireAdminOrBranchAdmin,
 };
