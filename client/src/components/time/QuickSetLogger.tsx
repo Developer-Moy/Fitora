@@ -103,8 +103,8 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
         {/* Header */}
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 shrink-0 rounded-xl bg-emerald-500/15 border border-emerald-600/30 flex items-center justify-center">
-              <Dumbbell className="w-4 h-4 text-emerald-400" />
+            <div className="w-9 h-9 shrink-0 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+              <Dumbbell className="w-4 h-4 text-white" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-white leading-tight truncate">
@@ -146,12 +146,12 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
                 placeholder="e.g. 40"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                className={`w-full rounded-lg border bg-[#111214] px-3 py-2.5 text-sm font-mono text-white outline-none transition focus:border-emerald-400 ${
-                  errors.weight ? "border-red-500/60" : "border-[#303136]"
+                className={`w-full rounded-lg border bg-[#111214] px-3 py-2.5 text-sm font-mono text-white outline-none transition focus:border-white ${
+                  errors.weight ? "border-white/70" : "border-[#303136]"
                 }`}
               />
               {errors.weight && (
-                <p className="text-xs text-red-400 pl-1">{errors.weight}</p>
+                <p className="text-xs text-white pl-1">{errors.weight}</p>
               )}
             </div>
 
@@ -172,12 +172,12 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
                 placeholder="e.g. 12"
                 value={reps}
                 onChange={(e) => setReps(e.target.value)}
-                className={`w-full rounded-lg border bg-[#111214] px-3 py-2.5 text-sm font-mono text-white outline-none transition focus:border-emerald-400 ${
-                  errors.reps ? "border-red-500/60" : "border-[#303136]"
+                className={`w-full rounded-lg border bg-[#111214] px-3 py-2.5 text-sm font-mono text-white outline-none transition focus:border-white ${
+                  errors.reps ? "border-white/70" : "border-[#303136]"
                 }`}
               />
               {errors.reps && (
-                <p className="text-xs text-red-400 pl-1">{errors.reps}</p>
+                <p className="text-xs text-white pl-1">{errors.reps}</p>
               )}
             </div>
           </div>
@@ -193,7 +193,7 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#05130c] px-4 py-2.5 text-sm font-bold shadow-[0_0_20px_rgba(16,185,129,0.35)] transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              className="rounded-xl bg-white hover:bg-gray-100 text-black px-4 py-2.5 text-sm font-bold shadow-[0_0_20px_rgba(255,255,255,0.25)] transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>Save Set</span>
