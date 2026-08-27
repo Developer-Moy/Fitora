@@ -73,3 +73,43 @@ export const getMealCharts = async (
         });
     }
 };
+
+// Get meal chart by user ID
+export const getMealChartById = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        if (!id || typeof id !== "string") {
+            res.status(400).json({
+                success: false,
+                message: "User ID is required",
+            });
+            return;
+        }
+
+        const mealChart = await MealPlan.findOne({ userId: id });
+
+        if (!mealChart) {
+            res.status(404).json({
+                success: false,
+                message: "Meal chart not found for this user",
+            });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            data: mealChart,
+        });
+    } catch (error) {
+        console.error("Get meal chart by user ID error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch meal chart",
+        });
+    }
+};

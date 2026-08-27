@@ -34,12 +34,36 @@ export interface IMealStructureData {
   preferredCuisine: string;
 }
 
+export interface IMealSlot {
+  recommendedMeal: string;
+  calories: number;
+}
+
+export interface IDailyMealSchedule {
+  dayName: string;
+  breakfast: IMealSlot;
+  lunch: IMealSlot;
+  snack: IMealSlot;
+  dinner: IMealSlot;
+}
+
+export interface IWeeklySchedule {
+  monday: IDailyMealSchedule;
+  tuesday: IDailyMealSchedule;
+  wednesday: IDailyMealSchedule;
+  thursday: IDailyMealSchedule;
+  friday: IDailyMealSchedule;
+  saturday: IDailyMealSchedule;
+  sunday: IDailyMealSchedule;
+}
+
 export interface IMealPlan {
   userId?: string;
   profile: IUserProfileData;
   goals: IGoalsLifestyleData;
   dietary: IDietaryPreferencesData;
   structure: IMealStructureData;
+  weeklySchedule?: IWeeklySchedule;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -98,6 +122,38 @@ const MealStructureSchema = new Schema<IMealStructureData>(
   { _id: false }
 );
 
+const MealSlotSchema = new Schema<IMealSlot>(
+  {
+    recommendedMeal: { type: String, required: true },
+    calories: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
+const DailyMealScheduleSchema = new Schema<IDailyMealSchedule>(
+  {
+    dayName: { type: String, required: true },
+    breakfast: { type: MealSlotSchema, required: true },
+    lunch: { type: MealSlotSchema, required: true },
+    snack: { type: MealSlotSchema, required: true },
+    dinner: { type: MealSlotSchema, required: true },
+  },
+  { _id: false }
+);
+
+const WeeklyScheduleSchema = new Schema<IWeeklySchedule>(
+  {
+    monday: { type: DailyMealScheduleSchema, required: false },
+    tuesday: { type: DailyMealScheduleSchema, required: false },
+    wednesday: { type: DailyMealScheduleSchema, required: false },
+    thursday: { type: DailyMealScheduleSchema, required: false },
+    friday: { type: DailyMealScheduleSchema, required: false },
+    saturday: { type: DailyMealScheduleSchema, required: false },
+    sunday: { type: DailyMealScheduleSchema, required: false },
+  },
+  { _id: false }
+);
+
 export const MealPlanSchema = new Schema<IMealPlanDocument>(
   {
     userId: {
@@ -119,6 +175,10 @@ export const MealPlanSchema = new Schema<IMealPlanDocument>(
     structure: {
       type: MealStructureSchema,
       required: true,
+    },
+    weeklySchedule: {
+      type: WeeklyScheduleSchema,
+      required: false,
     },
   },
   {
