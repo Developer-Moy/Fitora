@@ -5,7 +5,12 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import { setupSocketHandlers } from './sockets/index.js';
+import mealChartRoutes from './routes/mealChart.routes.js';
 import apiRouter from './routes/index.js';
+
+// Routes import
+import dashboardStatisticSummary from './routes/user.routes.js';
+import bmiRoutes from './routes/bmi.routes.js';
 
 dotenv.config();
 
@@ -25,6 +30,14 @@ const io = new SocketIOServer(server, {
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
+// Routes
+app.use('/api/dashboard', dashboardStatisticSummary);
+// API Routes
+app.use('/api', mealChartRoutes);
+// BMI History API
+app.use('/api/bmi', bmiRoutes);
+
+// Root API Route
 // Root Health Check Route
 app.get('/', (req: Request, res: Response) => {
   res.json({
@@ -34,7 +47,7 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
-// Mounted Central API Router (/api/workouts, /api/ai, /api/auth, /api/goals, /api/meal-charts, /api/bmi, /api/dashboard, /api/ads, /api/health)
+// API Routes
 app.use('/api', apiRouter);
 
 // Initialize Socket.IO handlers

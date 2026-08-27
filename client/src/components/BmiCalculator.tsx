@@ -27,113 +27,93 @@ const BmiCalculator = () => {
   const weightProgress = ((weight - 20) / (300 - 20)) * 100;
   const heightProgress = ((height - 50) / (250 - 50)) * 100;
 
-  // 100% FITORA Signature Monochrome Grayscale Status Theme
-  const getStatusTheme = () => {
-    switch (bmiStatus) {
-      case "Underweight":
-        return {
-          cardBg: "bg-neutral-200 text-black shadow-md border-gray-300",
-          barBg: "bg-neutral-300",
-          textColor: "text-gray-300",
-          subTextColor: "text-black/80",
-          dotColor: "text-gray-400",
-        };
-      case "Healthy":
-        return {
-          cardBg: "bg-white text-black shadow-[0_0_25px_rgba(255,255,255,0.25)] border-white",
-          barBg: "bg-white",
-          textColor: "text-white",
-          subTextColor: "text-black/90",
-          dotColor: "text-white",
-        };
-      case "Overweight":
-        return {
-          cardBg: "bg-neutral-800 text-white shadow-md border-white/20",
-          barBg: "bg-neutral-400",
-          textColor: "text-gray-300",
-          subTextColor: "text-gray-300",
-          dotColor: "text-gray-400",
-        };
-      case "Obesity":
-      default:
-        return {
-          cardBg: "bg-black text-white shadow-xl border-2 border-white/80",
-          barBg: "bg-white",
-          textColor: "text-white",
-          subTextColor: "text-gray-300",
-          dotColor: "text-white",
-        };
-    }
-  };
-
-  const statusTheme = getStatusTheme();
+  // BMI status background
+  const bmiStatusBg =
+    bmiStatus === "Underweight"
+      ? "bg-gray-200"
+      : bmiStatus === "Healthy"
+        ? "bg-white"
+        : bmiStatus === "Overweight"
+          ? "bg-gray-300"
+          : "bg-gray-400";
 
   return (
-    <div className="flex w-full flex-col gap-4 sm:flex-row lg:flex-col select-none">
+    <div className="flex w-full flex-col gap-3 sm:flex-row lg:flex-col">
 
-      {/* Result Box */}
-      <div className="min-h-48 w-full rounded-2xl border border-white/10 bg-[#111111] p-4 sm:w-1/2 lg:w-full space-y-3">
-        {/* Dynamic Monochrome Status Card */}
+      <div className="min-h-48 w-full rounded-xl border border-white/10 bg-[#111111] p-3 sm:w-1/2 lg:w-full">
+        {/* Result */}
         <div
-          className={`rounded-xl border px-4 py-5 text-center transition-all duration-500 ${statusTheme.cardBg}`}
+          className={`rounded-lg border border-white/10 px-3 py-5 text-center text-black transition-colors duration-300 ${bmiStatusBg}`}
         >
-          <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${statusTheme.subTextColor}`}>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em]">
             Your BMI
           </p>
 
-          <p className="mt-1.5 text-4xl font-black leading-none tracking-tight font-sans">
+          <p className="mt-2 text-3xl font-black leading-none tracking-[-0.05em]">
             {bmi}
           </p>
 
-          <p className={`mt-2 text-xs font-black uppercase tracking-widest ${statusTheme.subTextColor}`}>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-500">
             {bmiStatus}
           </p>
         </div>
 
         {/* Divider */}
-        <div className="my-2 h-px bg-white/10" />
+        <div className="my-3 h-px bg-white/10" />
 
         {/* Information */}
-        <div className="space-y-2 text-[12px] leading-tight text-gray-400 font-medium">
+        <div className="space-y-2 text-[12px] leading-tight text-gray-500">
           <div className="flex items-start gap-2">
-            <span className={`mt-0.5 shrink-0 ${statusTheme.dotColor}`}>●</span>
+            <span className="mt-0.5 shrink-0 text-white">●</span>
+
             <span>
-              BMI Score: <span className="font-bold text-white">{bmi} kg/m²</span>
+              BMI: <span className="text-gray-300">{bmi} kg/m²</span>
             </span>
           </div>
 
           <div className="flex items-start gap-2">
-            <span className="mt-0.5 shrink-0 text-gray-500">●</span>
-            <span className="text-[11px] text-gray-400">
-              Category: <span className={`font-extrabold ${statusTheme.textColor}`}>{bmiStatus}</span>
+            <span className="mt-0.5 shrink-0 text-gray-600">●</span>
+
+            <span>
+              BMI is one measurement and should be interpreted with age and
+              other factors.
             </span>
           </div>
         </div>
       </div>
 
-      {/* Sliders Box */}
-      <div className="min-h-[204px] w-full rounded-2xl border border-white/10 bg-[#111111] p-5 sm:w-1/2 lg:w-full space-y-5">
-        {/* Weight Slider */}
-        <div>
+    
+      <div className="min-h-[204px] w-full rounded-xl border border-white/10 bg-[#111111] p-4 sm:w-1/2 lg:w-full">
+        {/* Weight */}
+        <div className="mb-6">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-white">
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-white">
               Weight
             </span>
-            <span className="text-xs font-bold text-gray-300">
+
+            <span className="text-[8px] font-bold text-gray-500">
               {weight} kg
             </span>
           </div>
 
+          {/* Custom Weight Slider */}
           <div className="relative h-4 w-full">
-            <div className="absolute top-1/2 h-1.5 w-full -translate-y-1/2 rounded-full bg-white/10" />
+            <div className="absolute top-1/2 h-1 w-full -translate-y-1/2 rounded-full bg-white/10" />
+
             <div
-              className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white transition-all duration-150"
-              style={{ width: `${weightProgress}%` }}
+              className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-white transition-all duration-150"
+              style={{
+                width: `${weightProgress}%`,
+              }}
             />
+
             <div
-              className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md transition-all duration-150"
-              style={{ left: `${weightProgress}%` }}
+              className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white transition-all duration-150"
+              style={{
+                left: `${weightProgress}%`,
+              }}
             />
+
             <input
               type="range"
               min="20"
@@ -145,27 +125,36 @@ const BmiCalculator = () => {
           </div>
         </div>
 
-        {/* Height Slider */}
-        <div>
+        {/* Height */}
+        <div className="mb-6">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-white">
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-white">
               Height
             </span>
-            <span className="text-xs font-bold text-gray-300">
+
+            <span className="text-[8px] font-bold text-gray-500">
               {height} cm
             </span>
           </div>
 
+          {/* Custom Height Slider */}
           <div className="relative h-4 w-full">
-            <div className="absolute top-1/2 h-1.5 w-full -translate-y-1/2 rounded-full bg-white/10" />
+            <div className="absolute top-1/2 h-1 w-full -translate-y-1/2 rounded-full bg-white/10" />
+
             <div
-              className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white transition-all duration-150"
-              style={{ width: `${heightProgress}%` }}
+              className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-white transition-all duration-150"
+              style={{
+                width: `${heightProgress}%`,
+              }}
             />
+
             <div
-              className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md transition-all duration-150"
-              style={{ left: `${heightProgress}%` }}
+              className="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white transition-all duration-150"
+              style={{
+                left: `${heightProgress}%`,
+              }}
             />
+
             <input
               type="range"
               min="50"
@@ -177,40 +166,46 @@ const BmiCalculator = () => {
           </div>
         </div>
 
-        {/* Dynamic Monochrome BMI Progress Bar */}
-        <div>
+        {/* BMI Progress */}
+        <div className="mb-6">
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-white">
-              BMI Scale Progress
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-white">
+              BMI
             </span>
-            <span className="text-xs font-bold text-gray-300">
+
+            <span className="text-[8px] font-bold text-gray-500">
               {bmi}
             </span>
           </div>
 
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${statusTheme.barBg}`}
-              style={{ width: `${bmiProgress}%` }}
+              className="h-full rounded-full bg-white transition-all duration-300"
+              style={{
+                width: `${bmiProgress}%`,
+              }}
             />
           </div>
         </div>
 
-        {/* Dynamic Status Bar */}
+        {/* Status */}
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-white">
-              Category Status
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-white">
+              Status
             </span>
-            <span className={`text-xs font-black uppercase tracking-wider ${statusTheme.textColor}`}>
+
+            <span className="text-[8px] font-bold text-gray-500">
               {bmiStatus}
             </span>
           </div>
 
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${statusTheme.barBg}`}
-              style={{ width: `${bmiProgress}%` }}
+              className="h-full rounded-full bg-gray-400 transition-all duration-300"
+              style={{
+                width: `${bmiProgress}%`,
+              }}
             />
           </div>
         </div>
