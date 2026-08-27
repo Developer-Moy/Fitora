@@ -3,43 +3,46 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Sparkles, ArrowUpRight } from "lucide-react";
 import {
-  ArrowUpRight,
-  Search as FiSearch,
-  CreditCard as FiCreditCard,
-  HelpCircle as FiHelpCircle,
-  Settings as FiSettings,
-  ChevronDown as FiChevronDown,
-  Menu as FiSidebar,
-  CheckCircle2 as FiCheckCircle,
-  Activity as FiActivity,
-  Clock as FiClock,
-  MessageSquare as FiMessageSquare,
-} from "lucide-react";
-
-import { useSession } from "@/lib/auth-client";
+  FiSearch,
+  FiCreditCard,
+  FiHelpCircle,
+  FiSettings,
+  FiChevronDown,
+  FiSidebar,
+  FiCheckCircle,
+  FiActivity,
+  FiClock,
+  FiMessageSquare,
+} from "react-icons/fi";
 
 /* ── Main Menu Items (Mobile & Tablet Drawer) ── */
 const MENU_ITEMS = [
   { label: "Chats", href: "/", icon: FiMessageSquare },
+  { label: "Manage subscription", href: "/plans", icon: FiCreditCard },
   { label: "Updates & FAQ", href: "/#about", icon: FiHelpCircle },
-  { label: "Dashboard", href: "/dashboard", icon: FiSettings },
+  { label: "Settings", href: "/profile", icon: FiSettings },
 ];
 
 /* ── Collapsible "Chat list" Items ── */
 const CHAT_LIST = [
+  {
+    label: "AI Coach Studio",
+    href: "/dashboard/user/ai-coach",
+    icon: Sparkles,
+  },
   { label: "BMI Calculator", href: "/calculator", icon: FiActivity },
   { label: "Gym Stopwatch", href: "/stopwatch", icon: FiClock },
-  { label: "Meal Plans", href: "/meals", icon: FiCreditCard },
-  { label: "Exercise Library", href: "/exercises", icon: FiActivity },
 ];
 
 /* ── Desktop / PC Horizontal Navigation Links (Centered in Middle) ── */
 const DESKTOP_LINKS = [
+  { label: "Home", href: "/" },
   { label: "BMI Calculator", href: "/calculator" },
   { label: "Gym Stopwatch", href: "/stopwatch" },
-  { label: "Meal Plans", href: "/meals" },
-  { label: "Exercise Library", href: "/exercises" },
+  { label: "Membership Plans", href: "/plans" },
+  { label: "AI Coach Studio", href: "/dashboard/user/ai-coach" },
 ];
 
 export default function Navbar() {
@@ -47,14 +50,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [chatListOpen, setChatListOpen] = useState(true);
 
-  const { data: authSession } = useSession();
-  const isLoggedIn = !!authSession?.user;
-
-  if (
-    pathname?.startsWith("/dashboard") ||
-    pathname === "/login" ||
-    pathname === "/register"
-  ) {
+  if (pathname?.startsWith("/dashboard")) {
     return null;
   }
 
@@ -107,27 +103,15 @@ export default function Navbar() {
         {/* ── Right Side Actions ── */}
         <div className="flex items-center gap-4 shrink-0">
           {/* PC Desktop CTA Button */}
-          {!isLoggedIn ? (
-            <Link
-              href="/login"
-              className="hidden lg:inline-flex group items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
-            >
-              <span>Join Now</span>
-              <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-                <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-              </span>
-            </Link>
-          ) : (
-            <Link
-              href="/dashboard"
-              className="hidden lg:inline-flex group items-center gap-2 bg-neutral-900 border border-white/20 text-white font-bold text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 shadow-xl"
-            >
-              <span>Dashboard</span>
-              <span className="bg-white text-black group-hover:bg-black group-hover:text-white w-6 h-6 rounded-full flex items-center justify-center transition-colors">
-                <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-              </span>
-            </Link>
-          )}
+          <Link
+            href="/register"
+            className="hidden lg:inline-flex group items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl"
+          >
+            <span>Join Now</span>
+            <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+              <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+            </span>
+          </Link>
 
           {/* Mobile & Tablet Hamburger Toggle Button (< 1024px) */}
           <button
@@ -143,15 +127,15 @@ export default function Navbar() {
       {/* ── Mobile & Tablet Drawer (Visible ONLY on Mobile/Tablet < 1024px) ── */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 top-16 sm:top-20 z-[90] bg-black/80 backdrop-blur-md lg:hidden drawer-overlay-fade"
+          className="fixed inset-0 top-16 sm:top-20 z-[60] bg-black/80 backdrop-blur-md lg:hidden drawer-overlay-fade"
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[360px] h-full bg-[#0E0F12] border-l border-white/10 flex flex-col drawer-slide-in shadow-2xl shadow-black/50 z-[100]"
+            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[360px] h-full bg-[#0E0F12] border-l border-white/10 flex flex-col drawer-slide-in shadow-2xl shadow-black/50"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── White Search Box at Top ── */}
-            <div className="px-4 pt-5 pb-2 shrink-0 space-y-3">
+            <div className="px-4 pt-5 pb-2 shrink-0">
               <div className="relative">
                 <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input
@@ -160,31 +144,6 @@ export default function Navbar() {
                   className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white text-black text-sm font-medium placeholder:text-gray-400 outline-none border-0 shadow-sm"
                 />
               </div>
-
-              {/* ── Mobile & Tablet CTA Button (Join Now if logged out, Dashboard if logged in) ── */}
-              {!isLoggedIn ? (
-                <Link
-                  href="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-between bg-white text-black font-black text-sm px-5 py-3 rounded-2xl shadow-xl hover:bg-gray-100 transition-all duration-300 group cursor-pointer"
-                >
-                  <span>Join Now</span>
-                  <span className="bg-black text-white w-7 h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-                    <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </span>
-                </Link>
-              ) : (
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-between bg-neutral-900 text-white font-black text-sm px-5 py-3 rounded-2xl border border-white/20 shadow-xl hover:bg-white hover:text-black transition-all duration-300 group cursor-pointer"
-                >
-                  <span>Go to Dashboard</span>
-                  <span className="bg-white text-black group-hover:bg-black group-hover:text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors">
-                    <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </span>
-                </Link>
-              )}
             </div>
 
             {/* ── Scrollable Menu Content ── */}
@@ -278,7 +237,7 @@ export default function Navbar() {
 
               {/* Upgraded to Pro — White Button */}
               <Link
-                href="#contact"
+                href="/plans"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full py-3 rounded-2xl bg-white text-black font-bold text-sm text-center flex items-center justify-center gap-2 hover:bg-gray-200 transition-all block shadow-sm"
               >
