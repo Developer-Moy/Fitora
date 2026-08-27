@@ -35,6 +35,6 @@ apiRouter.use("/goals", goalRoutes);
 apiRouter.use("/meal-charts", mealChartRoutes);
 apiRouter.use("/bmi", bmiRoutes);
 apiRouter.use("/ads", adRoutes);
-apiRouter.use("/stopwatch", stopwatchRoutes);
+apiRouter.use("/stopwatch",stopwatchRoutes);
 
 export default apiRouter;
