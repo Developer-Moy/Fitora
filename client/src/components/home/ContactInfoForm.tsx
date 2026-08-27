@@ -8,25 +8,48 @@ import {
   FaPinterestP,
 } from "react-icons/fa6";
 import { ArrowUpRight, CheckCircle2 as FiCheckCircle } from "lucide-react";
+import { submitConsultationApi } from "@/services/consultationService";
 
 export default function ContactInfoForm() {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    phone: "",
     selectedClass: "",
     comment: "",
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [responseMsg, setResponseMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.fullName || !formData.email) return;
+
+    setIsSubmitting(true);
+    const result = await submitConsultationApi({
+      fullName: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      selectedClass: formData.selectedClass || "General Fitness & Gym Access",
+      comment: formData.comment,
+    });
+
+    setIsSubmitting(false);
+    setResponseMsg(result.message);
     setSubmitted(true);
+
     setTimeout(() => {
       setSubmitted(false);
-      setFormData({ fullName: "", email: "", selectedClass: "", comment: "" });
-    }, 4000);
+      setFormData({
+        fullName: "",
+        email: "",
+        phone: "",
+        selectedClass: "",
+        comment: "",
+      });
+    }, 4500);
   };
 
   return (

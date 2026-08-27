@@ -8,6 +8,8 @@ import mealChartRoutes from "./mealChart.routes";
 import bmiRoutes from "./bmi.routes";
 import adRoutes from "./ad.routes";
 import userRoutes from "./user.routes";
+import consultationRoutes from "./consultation.routes";
+import branchRoutes from "./branch.routes";
 
 const apiRouter = Router();
 
@@ -36,5 +38,7 @@ apiRouter.use("/meal-charts", mealChartRoutes);
 apiRouter.use("/bmi", bmiRoutes);
 apiRouter.use("/ads", adRoutes);
 apiRouter.use("/dashboard", userRoutes);
+apiRouter.use("/consultations", consultationRoutes);
+apiRouter.use("/branches", branchRoutes);
 
 export default apiRouter;
