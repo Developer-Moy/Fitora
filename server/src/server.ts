@@ -1,16 +1,16 @@
+import cors from 'cors';
+import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import cors from 'cors';
-import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
-import { setupSocketHandlers } from './sockets/index.js';
-import mealChartRoutes from './routes/mealChart.routes.js';
 import apiRouter from './routes/index.js';
+import mealChartRoutes from './routes/mealChart.routes.js';
+import { setupSocketHandlers } from './sockets/index.js';
 
 // Routes import
-import dashboardStatisticSummary from './routes/user.routes.js';
 import bmiRoutes from './routes/bmi.routes.js';
+import dashboardStatisticSummary from './routes/user.routes.js';
 
 dotenv.config();
 
@@ -25,6 +25,7 @@ const io = new SocketIOServer(server, {
     methods: ['GET', 'POST']
   }
 });
+app.set('io', io);
 
 // Middleware
 app.use(cors({ origin: '*' }));
