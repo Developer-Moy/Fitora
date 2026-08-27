@@ -5,7 +5,7 @@
 The **AI Meal Planning Assistant** is an AI-powered feature that generates a personalized meal chart based on user parameters (calorie goal, dietary restrictions).
 
 - **Nutrition Dashboard**: Interactive Water Hydration progress ring widget, 2,400 kcal macro progress bar, and category filterable meal cards.
-- **Backend API**: Endpoints `GET /api/meal-charts` & `POST /api/meal-charts` with `MealPlan` Mongoose schema.
+- **Backend API**: Endpoints `GET /api/meal-charts/getMealCharts` & `POST /api/meal-charts/createMealChart` with `MealPlan` Mongoose schema.
 
 ## 2. User Registration Flow (`/register`)
 
@@ -47,9 +47,9 @@ Built the User Registration page and form layout with validation and session int
 
 - Implemented the Meal Chart API endpoints:
 
-  - `GET /api/meal-charts?userId={userId}` — Fetch meal charts for a specific user.
-  - `POST /api/meal-charts` — Create and save a meal plan.
-- The `GET /api/meal-charts` endpoint requires a `userId` query parameter.
+  - `GET /api/meal-charts/getMealCharts?userId={userId}` — Fetch meal charts for a specific user.
+  - `POST /api/meal-charts/createMealChart` — Create and save a meal plan.
+- The `GET /api/meal-charts/getMealCharts` endpoint requires a `userId` query parameter.
 
 ### Client Environment Variables
 
@@ -103,4 +103,26 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 
 ## 27-Aug-26
 
-- test: <http://localhost:5001/api/meal-charts/user_12345>
+### Meal plans with multi-tag filtering (`goal`, `caloriesMin`, `caloriesMax`, `prepTime`, `dietaryTags`)
+
+GET(All Meals) <http://localhost:5001/api/meals/getMeals>
+
+GET <http://localhost:5001/api/meals/getMeals?goal=weight-loss&caloriesMin=300&caloriesMax=400&dietaryTags=high-protein>
+
+GET <http://localhost:5001/api/meals/getMeals?goal=muscle-gain&dietaryTags=high-protein&prepTime=30>
+
+GET <http://localhost:5001/api/meals/getMeals?goal=weight-loss&caloriesMin=300&caloriesMax=500&prepTime=30&dietaryTags=high-protein,low-carb>
+
+GET <http://localhost:5001/api/meals/getMeals?goal=maintenance&dietaryTags=vegan,gluten-free>
+
+### Detailed View including ingredient list, and macro breakdown (Protein, Carbs, Fats)
+
+GET <http://localhost:5001/api/meals/6a900055238a668c7442cb6d>
+
+### Weekly schedule distributing daily calories across Breakfast, Lunch, Snack, and Dinner
+
+POST /api/meal-charts/createMealChart
+
+### 7 Day meal chart for authenticated athlete
+
+GET <http://localhost:5001/api/meal-charts/getMealCharts?userId=user_123>

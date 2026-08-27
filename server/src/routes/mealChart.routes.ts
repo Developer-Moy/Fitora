@@ -3,8 +3,8 @@ import { createMealChart, getMealCharts, getMealChartById } from "../controllers
 
 const router = Router();
 
-router.post("/", createMealChart);
-router.get("/", getMealCharts);
+router.post("/createMealChart", createMealChart);
+router.get("/getMealCharts", getMealCharts);
 router.get("/:id", getMealChartById);
 
 export default router;
