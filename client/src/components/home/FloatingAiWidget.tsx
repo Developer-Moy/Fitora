@@ -17,6 +17,7 @@ import {
   Zap,
   Trash2,
 } from "lucide-react";
+import { sendAiChatApi } from "@/services/aiService";
 
 interface Message {
   id: string;
@@ -120,7 +121,7 @@ export default function FloatingAiWidget() {
     }
   };
 
-  const handleSendMessage = (customText?: string) => {
+  const handleSendMessage = async (customText?: string) => {
     const textToSend = customText || inputText;
     if (!textToSend.trim()) return;
 
@@ -143,44 +144,51 @@ export default function FloatingAiWidget() {
     setInputText("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      let responseText = "";
+    try {
+      const mode = selectedMode === "coach" ? "coach" : "chat";
+      const apiResult = await sendAiChatApi(textToSend, mode);
 
-      if (selectedMode === "chat") {
-        if (
-          textToSend.toLowerCase().includes("protein") ||
-          textToSend.toLowerCase().includes("diet") ||
-          textToSend.toLowerCase().includes("meal")
-        ) {
-          responseText =
-            "For optimal muscle synthesis & recovery, target 1.6 - 2.2g of protein per kg of bodyweight daily. Prioritize whole sources like chicken breast, eggs, fish, lentils, and whey protein isolates.";
-        } else if (
-          textToSend.toLowerCase().includes("split") ||
-          textToSend.toLowerCase().includes("routine") ||
-          textToSend.toLowerCase().includes("workout")
-        ) {
-          responseText =
-            "A 6-day Push-Pull-Legs (PPL) or 4-day Upper-Lower split is optimal for hypertrophy & strength gains. Ensure 10-20 hard sets per muscle group weekly with progressive overload!";
-        } else {
-          responseText =
-            "FITORA AI recommends focusing on progressive overload, adequate hydration (3-4L daily), and 7-8 hours of sleep for peak athletic performance & recovery.";
-        }
+      let responseText = "";
+      if (apiResult.success && apiResult.data?.responseText) {
+        responseText = apiResult.data.responseText;
       } else {
-        if (
-          textToSend.toLowerCase().includes("loss") ||
-          textToSend.toLowerCase().includes("fat")
-        ) {
-          responseText =
-            "Fat Loss Blueprint Generated: 300 kcal daily deficit + 4-day Resistance Training + 20 min LISS Cardio. You can view your complete macro targets in AI Coach Studio!";
-        } else if (
-          textToSend.toLowerCase().includes("muscle") ||
-          textToSend.toLowerCase().includes("gain")
-        ) {
-          responseText =
-            "Hypertrophy Program Generated: 250 kcal surplus + 5-day Compound Heavy Split (6-10 rep range). Open full AI Coach Studio to track weekly progress!";
+        // Local Intelligent Fallback
+        if (mode === "chat") {
+          if (
+            textToSend.toLowerCase().includes("protein") ||
+            textToSend.toLowerCase().includes("diet") ||
+            textToSend.toLowerCase().includes("meal")
+          ) {
+            responseText =
+              "For optimal muscle synthesis & recovery, target 1.6 - 2.2g of protein per kg of bodyweight daily. Prioritize whole sources like chicken breast, eggs, fish, lentils, and whey protein isolates.";
+          } else if (
+            textToSend.toLowerCase().includes("split") ||
+            textToSend.toLowerCase().includes("routine") ||
+            textToSend.toLowerCase().includes("workout")
+          ) {
+            responseText =
+              "A 6-day Push-Pull-Legs (PPL) or 4-day Upper-Lower split is optimal for hypertrophy & strength gains. Ensure 10-20 hard sets per muscle group weekly with progressive overload!";
+          } else {
+            responseText =
+              "FITORA AI recommends focusing on progressive overload, adequate hydration (3.5L daily), and 7-8 hours of sleep for peak athletic performance & recovery.";
+          }
         } else {
-          responseText =
-            "Custom Training Routine Generated! You can view detailed macro calculations, calorie targets & workout logs inside the main AI Coach Studio.";
+          if (
+            textToSend.toLowerCase().includes("loss") ||
+            textToSend.toLowerCase().includes("fat")
+          ) {
+            responseText =
+              "Fat Loss Blueprint Generated: 350 kcal daily deficit + 4-day Resistance Training + 25 min LISS Cardio. You can view your complete macro targets in AI Coach Studio!";
+          } else if (
+            textToSend.toLowerCase().includes("muscle") ||
+            textToSend.toLowerCase().includes("gain")
+          ) {
+            responseText =
+              "Hypertrophy Program Generated: 250 kcal surplus + 5-day Compound Heavy Split (6-10 rep range). Open full AI Coach Studio to track weekly progress!";
+          } else {
+            responseText =
+              "Custom Training Routine Generated! You can view detailed macro calculations, calorie targets & workout logs inside the main AI Coach Studio.";
+          }
         }
       }
 
@@ -199,9 +207,11 @@ export default function FloatingAiWidget() {
       } else {
         setCoachMessages((prev) => [...prev, aiMsg]);
       }
-
+    } catch (err) {
+      console.error("AI chat error:", err);
+    } finally {
       setIsTyping(false);
-    }, 1100);
+    }
   };
 
   const currentMessages =
