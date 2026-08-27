@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User.model";
 
@@ -21,7 +21,7 @@ export const dashboardLogin = async (req: Request, res: Response) => {
     if (user.role !== "master_admin" && user.role !== "branch_admin" && user.role !== "admin") {
       return res.status(403).json({ success: false, message: "Administrator access required" });
     }
-    const token = jwt.sign({ userId: user._id.toString(), role: user.role }, jwtSecret(), { expiresIn: "7d" });
+    const token = jwt.sign({ userId: user._id.toString(), role: user.role, assignedBranch: user.assignedBranch }, jwtSecret(), { expiresIn: "7d" });
     return res.json({ success: true, token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (error) {
     console.error("Dashboard login failed:", error);
@@ -122,6 +122,7 @@ export const loginUser = async (
       {
         userId: user._id.toString(),
         role: user.role,
+        assignedBranch: user.assignedBranch,
       },
       secret,
       {

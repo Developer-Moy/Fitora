@@ -7,12 +7,14 @@ export interface AuthRequest extends Request {
   user?: {
     userId: string;
     role: AuthRole;
+    assignedBranch?: string;
   };
 }
 
 interface JwtPayload {
   userId: string;
   role: AuthRole;
+  assignedBranch?: string;
 }
 
 export const authMiddleware = (
@@ -46,6 +48,7 @@ export const authMiddleware = (
     req.user = {
       userId: decoded.userId,
       role: decoded.role,
+      assignedBranch: decoded.assignedBranch,
     };
 
     next();
