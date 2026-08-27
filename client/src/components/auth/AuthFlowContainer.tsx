@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
+import { loginApi, registerApi, saveAuthSession } from "@/services/authService";
 
 // High-Contrast Google SVG Icon
 const GoogleIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -224,13 +225,27 @@ export default function AuthFlowContainer({
     }
 
     try {
+      const apiRes = await loginApi(email, password);
+      if (apiRes.success && apiRes.user) {
+        toast.success(`Welcome back, ${apiRes.user.name || "Athlete"}!`);
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 800);
+        return;
+      }
+
+      // Secondary fallback to client auth
       const { error } = await authClient.signIn.email({
         email,
         password,
       });
 
       if (error) {
-        toast.error(error.message || "Invalid email or password credentials.");
+        toast.error(
+          apiRes.message ||
+            error.message ||
+            "Invalid email or password credentials.",
+        );
         setIsLoading(false);
         return;
       }
@@ -282,6 +297,23 @@ export default function AuthFlowContainer({
 
     setIsLoading(true);
     try {
+      const apiRes = await registerApi({
+        name: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (apiRes.success) {
+        toast.success(
+          "Account created successfully! Redirecting to dashboard...",
+        );
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 800);
+        return;
+      }
+
+      // Secondary fallback to client auth
       const { error } = await authClient.signUp.email({
         name: fullName,
         email,
@@ -289,7 +321,9 @@ export default function AuthFlowContainer({
       });
 
       if (error) {
-        toast.error(error.message || "Could not create account.");
+        toast.error(
+          apiRes.message || error.message || "Could not create account.",
+        );
         setIsLoading(false);
         return;
       }
