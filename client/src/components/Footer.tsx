@@ -1,12 +1,48 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaFacebookF, FaInstagram, FaLinkedinIn, FaYoutube } from "react-icons/fa6";
-import { FiMapPin, FiArrowRight } from "react-icons/fi";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaLinkedinIn,
+  FaYoutube,
+} from "react-icons/fa6";
+import {
+  MapPin as FiMapPin,
+  ArrowRight as FiArrowRight,
+  CheckCircle2 as FiCheckCircle,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import { subscribeNewsletterApi } from "@/services/adService";
 
 export default function Footer() {
   const pathname = usePathname();
+  const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setIsSubscribing(true);
+    const result = await subscribeNewsletterApi(email, "footer");
+    setIsSubscribing(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      setSubscribed(true);
+      setEmail("");
+      setTimeout(() => setSubscribed(false), 5000);
+    } else {
+      toast.error(result.message);
+    }
+  };
 
   // Hide footer inside /dashboard routes
   if (pathname?.startsWith("/dashboard")) {
@@ -159,20 +195,38 @@ export default function Footer() {
 
             {/* Newsletter Subscription Bar */}
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleNewsletterSubmit}
               className="flex items-center gap-3 w-full md:w-auto max-w-md border-b-2 border-white/40 pb-1.5 focus-within:border-white transition-colors"
             >
               <input
                 type="email"
-                placeholder="Enter your email address..."
-                className="bg-transparent text-xs text-white placeholder-gray-300 outline-none w-full font-semibold"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={
+                  subscribed
+                    ? "✓ Subscribed to Fitora VIP Updates!"
+                    : "Enter your email address..."
+                }
+                disabled={isSubscribing || subscribed}
+                className="bg-transparent text-xs text-white placeholder-gray-300 outline-none w-full font-semibold disabled:opacity-80"
               />
               <button
                 type="submit"
-                className="flex items-center gap-1.5 text-[11px] font-black uppercase text-white hover:text-gray-200 transition-colors shrink-0 cursor-pointer"
+                disabled={isSubscribing || subscribed}
+                className="flex items-center gap-1.5 text-[11px] font-black uppercase text-white hover:text-gray-200 transition-colors shrink-0 cursor-pointer disabled:opacity-60"
               >
-                <span>Subscribe</span>
-                <FiArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>
+                  {isSubscribing
+                    ? "Subscribing..."
+                    : subscribed
+                      ? "Subscribed"
+                      : "Subscribe"}
+                </span>
+                {subscribed ? (
+                  <FiCheckCircle className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+                ) : (
+                  <FiArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                )}
               </button>
             </form>
 
