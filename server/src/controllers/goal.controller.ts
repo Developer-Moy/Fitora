@@ -1,17 +1,22 @@
-import { Request, Response } from "express";
+import { Response } from "express";
+import { AuthRequest } from "../middlewares/auth.middleware";
 import Goal from "../models/Goal.model";
 import WorkoutLog from "../models/WorkoutLog.model";
 
-export const createOrUpdateGoal = async (req: Request, res: Response) => {
+export const createOrUpdateGoal = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, targetWeight, weeklyWorkoutFrequency } = req.body;
+    const userId = req.user?.userId;
+    const { fitnessGoal, targetWeight, weeklyWorkoutFrequency, strengthTarget } = req.body;
+    if (!userId) return res.status(401).json({ success: false, message: "Authentication required" });
 
     const goal = await Goal.findOneAndUpdate(
       { userId },
       {
         userId,
+        fitnessGoal,
         targetWeight,
         weeklyWorkoutFrequency,
+        strengthTarget,
       },
       {
         new: true,
@@ -32,9 +37,12 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
   }
 };
 
-export const getGoal = async (req: Request, res: Response) => {
+export const getGoal = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = req.user?.userId;
+    if (!userId || (req.params.userId && req.params.userId !== userId)) {
+      return res.status(403).json({ success: false, message: "You can only access your own goals" });
+    }
 
     const goal = await Goal.findOne({ userId });
 
@@ -117,11 +125,11 @@ export const getGoal = async (req: Request, res: Response) => {
   }
 };
 
-export const updateGoal = async (req: Request, res: Response) => {
+export const updateGoal = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
-    const goal = await Goal.findByIdAndUpdate(id, req.body, {
+    const goal = await Goal.findOneAndUpdate({ _id: id, userId: req.user?.userId }, req.body, {
       new: true,
       runValidators: true,
     });
@@ -145,11 +153,11 @@ export const updateGoal = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteGoal = async (req: Request, res: Response) => {
+export const deleteGoal = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
-    const goal = await Goal.findByIdAndDelete(id);
+    const goal = await Goal.findOneAndDelete({ _id: id, userId: req.user?.userId });
 
     if (!goal) {
       return res.status(404).json({
