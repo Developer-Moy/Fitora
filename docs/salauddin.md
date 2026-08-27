@@ -198,3 +198,7 @@ Monthly / Yearly billing toggle switch.
 
 ### 25-Aug-26
 * create Exercise section and improve UI
+
+
+### 27-Aug-26
+* Progressive Workout Program, Set/Rep & 1RM PR Engine (Brzycki Formula) and Exercise Encyclopedia & Multi-Muscle Group Filter (/exercises)

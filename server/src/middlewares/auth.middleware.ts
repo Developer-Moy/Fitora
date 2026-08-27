@@ -1,23 +1,22 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { UserRole } from "../models/User.model";
-
-export interface AuthUserPayload {
-  userId: string;
-  email: string;
-  role: UserRole;
-  assignedBranch?: string;
-  tier?: string;
-}
 
 export interface AuthRequest extends Request {
-  user?: AuthUserPayload;
+  user?: {
+    userId: string;
+    role: "user" | "admin";
+  };
+}
+
+interface JwtPayload {
+  userId: string;
+  role: "user" | "admin";
 }
 
 export const authMiddleware = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   try {
     const authHeader = req.headers.authorization;
@@ -34,65 +33,31 @@ export const authMiddleware = (
     if (schema !== "Bearer" || !token) {
       return res.status(401).json({
         success: false,
-        message: "Invalid authorization format. Bearer token required.",
+        message: "Invalid authorization format",
       });
     }
 
-    const jwtSecret =
-      process.env.JWT_SECRET || "FITORA_SUPER_SECRET_JWT_KEY_2026_PRODUCTION";
+    const jwtSecret = process.env.JWT_SECRET;
 
-    const decoded = jwt.verify(token, jwtSecret) as AuthUserPayload;
+    if (!jwtSecret) {
+      return res.status(500).json({
+        success: false,
+        message: "JWT secret is not configured",
+      });
+    }
+
+    const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
 
     req.user = {
       userId: decoded.userId,
-      email: decoded.email,
       role: decoded.role,
-      assignedBranch: decoded.assignedBranch,
-      tier: decoded.tier,
     };
 
     next();
-  } catch (error: any) {
+  } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Invalid or expired authorization token",
-      error: error.message,
+      message: "Invalid or expired token",
     });
   }
 };
-
-/**
- * Role-Based Access Control (RBAC) Guard Middleware
- */
-export const requireRoles = (allowedRoles: UserRole[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
-    }
-
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: `Forbidden: Insufficient privileges. Required role: [${allowedRoles.join(", ")}]`,
-      });
-    }
-
-    next();
-  };
-};
-
-/**
- * Convenience Guard: Master Admin Only
- */
-export const requireMasterAdmin = requireRoles(["master_admin"]);
-
-/**
- * Convenience Guard: Master Admin or Branch Admin
- */
-export const requireAdminOrBranchAdmin = requireRoles([
-  "master_admin",
-  "branch_admin",
-]);

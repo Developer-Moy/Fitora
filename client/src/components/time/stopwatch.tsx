@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { GymTimer } from "@/components/time";
 import toast from "react-hot-toast";
 import {
@@ -8,12 +8,9 @@ import {
   Minimize2,
   Zap,
   Plus,
-  Sparkles,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 
-const ALL_GYM_EXERCISES = [
+const POPULAR_EXERCISES = [
   "Bench Press",
   "Barbell Squat",
   "Deadlift",
@@ -22,37 +19,15 @@ const ALL_GYM_EXERCISES = [
   "Barbell Rows",
   "Incline Dumbbell Press",
   "Leg Press",
-  "Lat Pulldown",
-  "Dumbbell Bicep Curls",
-  "Triceps Rope Pushdown",
-  "Romanian Deadlift",
-  "Bulgarian Split Squat",
-  "Cable Chest Flyes",
-  "Lateral Raises",
-  "Face Pulls",
-  "Leg Curls",
-  "Leg Extension",
-  "Calf Raises",
-  "Dips",
-  "Hanging Leg Raises",
-  "Plank Hold",
-  "Treadmill Run",
-  "Rowing Ergometer",
 ];
 
-export default function StopwatchPage({
-  showSetHistory = true,
-}: {
-  showSetHistory?: boolean;
-}) {
-  const [exercises, setExercises] = useState(ALL_GYM_EXERCISES);
+export default function StopwatchPage({ showSetHistory = true }: { showSetHistory?: boolean }) {
+  const [exercises, setExercises] = useState(POPULAR_EXERCISES);
   const [selectedExercise, setSelectedExercise] = useState("Bench Press");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customExercise, setCustomExercise] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [targetSets] = useState(5);
-
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Keep isFullscreen in sync when user presses Esc or browser exits fullscreen
   useEffect(() => {
@@ -64,10 +39,7 @@ export default function StopwatchPage({
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
-      toast("Entered Fullscreen — press Esc to exit", {
-        icon: "⛶",
-        id: "fullscreen",
-      });
+      toast("Entered Fullscreen — press Esc to exit", { icon: "⛶", id: "fullscreen" });
     } else {
       document.exitFullscreen?.().catch(() => {});
     }
@@ -89,146 +61,109 @@ export default function StopwatchPage({
       toast.success(`Custom exercise added: ${name}`);
     }
   };
+return (
+  <div className="min-h-screen w-full rounded-2xl  bg-[#090a0d] text-white flex flex-col overflow-x-hidden selection:bg-white selection:text-black ">
 
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -260, behavior: "smooth" });
-    }
-  };
+    <main className="flex-1 w-full max-w-6xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
 
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 260, behavior: "smooth" });
-    }
-  };
+      {/* Exercise Switcher */}
+      <section className="w-full max-w-4xl mx-auto mb-4 sm:mb-6">
 
-  return (
-    <div className="w-full bg-black text-white flex flex-col overflow-x-hidden selection:bg-white selection:text-black">
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-        {/* Exercise Switcher Header */}
-        <section className="w-full max-w-4xl mx-auto space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-white/10">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-white shrink-0" />
-              <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                Current Exercise:
-              </span>
-              <strong className="text-white font-extrabold text-sm sm:text-base tracking-wide uppercase">
-                {selectedExercise}
-              </strong>
-            </div>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowCustomInput((p) => !p)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/20 bg-white/5 hover:bg-white/15 text-white transition cursor-pointer shadow-md"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Custom</span>
-              </button>
+          <span className="text-[11px] sm:text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-white shrink-0" />
 
-              {/* Fullscreen Toggle */}
-              <button
-                type="button"
-                onClick={toggleFullscreen}
-                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/20 bg-white/5 hover:bg-white/15 text-white transition cursor-pointer shadow-md"
-              >
-                {isFullscreen ? (
-                  <>
-                    <Minimize2 className="w-3.5 h-3.5 text-white" />
-                    <span>Exit Full</span>
-                  </>
-                ) : (
-                  <>
-                    <Maximize2 className="w-3.5 h-3.5 text-white" />
-                    <span>Fullscreen</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+            <span>Current Exercise:</span>
 
-          {/* Custom Exercise Input Form */}
-          {showCustomInput && (
-            <form
-              onSubmit={handleAddCustomExercise}
-              className="flex flex-col sm:flex-row gap-2 pt-2 animate-in fade-in duration-200"
-            >
-              <input
-                type="text"
-                placeholder="Enter custom exercise name..."
-                value={customExercise}
-                onChange={(e) => setCustomExercise(e.target.value)}
-                className="w-full min-w-0 bg-neutral-900 border border-white/20 rounded-full px-4 py-2.5 text-xs text-white placeholder-gray-400 outline-none focus:border-white font-medium"
-                autoFocus
-              />
+            <strong className="text-white font-bold text-xs sm:text-sm ml-1 truncate">
+              {selectedExercise}
+            </strong>
+          </span>
 
-              <button
-                type="submit"
-                className="w-full sm:w-auto bg-white hover:bg-gray-100 text-black text-xs font-black px-6 py-2.5 rounded-full transition cursor-pointer shadow-lg uppercase"
-              >
-                Add Exercise
-              </button>
-            </form>
-          )}
-
-          {/* Exercise Chips Bar with 2-side Navigation Arrows */}
-          <div className="relative flex items-center gap-2.5 w-full pt-1">
-            {/* Left Scroll Navigation Button */}
+          <div className="flex items-center gap-2">
             <button
-              type="button"
-              onClick={scrollLeft}
-              className="shrink-0 w-8 h-8 rounded-full bg-neutral-900 border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition shadow-lg cursor-pointer z-10"
-              aria-label="Scroll exercises left"
+              onClick={() => setShowCustomInput((p) => !p)}
+              className="self-start sm:self-auto text-xs text-white hover:text-gray-300 flex items-center gap-1 cursor-pointer"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
+              Custom
             </button>
 
-            {/* Scrollable Exercise Chips */}
-            <div
-              ref={scrollRef}
-              className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none touch-pan-x scroll-smooth flex-1"
-            >
-              {exercises.map((ex) => (
-                <button
-                  key={ex}
-                  type="button"
-                  onClick={() => handleSelectExercise(ex)}
-                  className={`shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all border cursor-pointer ${
-                    selectedExercise === ex
-                      ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-[1.02]"
-                      : "bg-neutral-900 hover:bg-neutral-800 text-gray-300 border-white/10 hover:border-white/30"
-                  }`}
-                >
-                  {ex}
-                </button>
-              ))}
-            </div>
-
-            {/* Right Scroll Navigation Button */}
+            {/* Fullscreen Toggle */}
             <button
               type="button"
-              onClick={scrollRight}
-              className="shrink-0 w-8 h-8 rounded-full bg-neutral-900 border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition shadow-lg cursor-pointer z-10"
-              aria-label="Scroll exercises right"
+              onClick={toggleFullscreen}
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border transition cursor-pointer
+                bg-[#12141a] hover:bg-[#1a1e28] text-zinc-400 hover:text-white border-[#232836] hover:border-white/40"
             >
-              <ChevronRight className="w-4 h-4" />
+              {isFullscreen ? (
+                <><Minimize2 className="w-3.5 h-3.5 text-white" /><span className="hidden sm:inline">Exit Full</span></>
+              ) : (
+                <><Maximize2 className="w-3.5 h-3.5 text-zinc-400" /><span className="hidden sm:inline">Fullscreen</span></>
+              )}
             </button>
           </div>
-        </section>
+        </div>
 
-        {/* Timer Main Arena */}
-        <section className="w-full min-w-0">
-          <GymTimer
-            key={selectedExercise}
-            exerciseName={selectedExercise}
-            defaultSets={targetSets}
-            showSetHistory={showSetHistory}
-          />
-        </section>
-      </main>
-    </div>
-  );
+        {/* Custom Exercise */}
+        {showCustomInput && (
+          <form
+            onSubmit={handleAddCustomExercise}
+            className="flex flex-col sm:flex-row gap-2 mb-3"
+          >
+            <input
+              type="text"
+              placeholder="Enter exercise name..."
+              value={customExercise}
+              onChange={(e) => setCustomExercise(e.target.value)}
+              className="w-full min-w-0 bg-[#12141a] border border-[#232836] rounded-xl px-3 py-2 sm:py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-white/70"
+              autoFocus
+            />
+
+            <button
+              type="submit"
+              className="w-full sm:w-auto bg-white hover:bg-gray-100 text-black text-xs font-bold px-5 py-2 sm:py-1.5 rounded-xl cursor-pointer"
+            >
+              Set
+            </button>
+          </form>
+        )}
+
+        {/* Exercise Chips */}
+        <div className="w-full overflow-hidden">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none touch-pan-x">
+            {exercises.map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                onClick={() => handleSelectExercise(ex)}
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 sm:px-3.5 rounded-xl text-[11px] sm:text-xs font-medium transition border cursor-pointer ${
+                  selectedExercise === ex
+                    ? "bg-white text-black border-white shadow-[0_0_12px_rgba(255,255,255,0.25)]"
+                    : "bg-[#12141a] hover:bg-[#191d26] text-zinc-400 border-[#232836]"
+                }`}
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Timer */}
+      <section className="w-full min-w-0">
+        <GymTimer
+          key={selectedExercise}
+          exerciseName={selectedExercise}
+          defaultSets={targetSets}
+          showSetHistory={showSetHistory}
+        />
+      </section>
+
+    </main>
+  </div>
+);
 }

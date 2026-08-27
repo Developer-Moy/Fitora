@@ -26,6 +26,11 @@ GET	/api/workouts/log	Get logged workouts + summary stats
 POST	/api/workouts/log	Log a new workout session
 DELETE	/api/workouts/log/:id	Delete a log entry
 
+GET	/api/stopwatch/presets	Get all stopwatch presets (public)
+POST	/api/stopwatch/custom-preset	Create custom stopwatch preset (auth required)
+GET	/api/stopwatch/user-presets	Get user's stopwatch presets (auth required)
+POST	/api/stopwatch/session-complete	Mark a stopwatch session as complete (auth required)
+GET	/api/stopwatch/recent-sessions	Get recent stopwatch sessions (auth required)
 
 ______________________________________________________________________
 
@@ -33,6 +38,11 @@ ______________________________________________________________________
 Method	Endpoint	Purpose	Backend code
 POST	/api/workouts/log	Save completed session	server/src/routes/workout.routes.ts → createWorkoutLog
 GET	/api/workouts/log?userId=&limit=	Fetch history + summary	server/src/routes/workout.routes.ts → getWorkoutLogs
+GET	/api/stopwatch/presets	Get all stopwatch presets	server/src/routes/stopwatch.routes.ts → getPresets
+POST	/api/stopwatch/custom-preset	Create custom preset	server/src/routes/stopwatch.routes.ts → createCustomPreset
+GET	/api/stopwatch/user-presets	Get user presets	server/src/routes/stopwatch.routes.ts → getUserPresets
+POST	/api/stopwatch/session-complete	Mark session complete	server/src/routes/stopwatch.routes.ts → markSessionComplete
+GET	/api/stopwatch/recent-sessions	Get recent sessions	server/src/routes/stopwatch.routes.ts → getRecentSessions
 
 ---
 
@@ -78,4 +88,23 @@ Recolored the entire `/stopwatch` experience (commit `952cef3`) from the old gre
 ---
 
 ## 3. Branch Maintenance
+
 * Synced `origin/development` and `origin/main` into `puskor_roy` (merge commits `b3b001b`, `f2fa4fb`) and resolved the `TrainerCalloutBanner.tsx` conflict in favor of the local redesign.
+
+## 4. Stopwatch API Backend
+
+Added full stopwatch presets and sessions API to the server:
+
+### New Routes (`server/src/routes/stopwatch.routes.ts`):
+* `GET /api/stopwatch/presets` — Public endpoint to fetch all presets
+* `POST /api/stopwatch/custom-preset` — Create custom preset (JWT auth required)
+* `GET /api/stopwatch/user-presets` — Fetch user's presets (JWT auth required)
+* `POST /api/stopwatch/session-complete` — Mark session as complete (JWT auth required)
+* `GET /api/stopwatch/recent-sessions` — Get recent sessions (JWT auth required)
+
+### Controller (`server/src/controllers/stopwatch.controller.ts`):
+In-memory storage with HIIT Interval and Strength Circuit presets, session tracking, and calorie calculation.
+
+---
+
+<p align="right">Updated: 2026-08-27</p>

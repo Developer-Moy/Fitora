@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,24 +9,52 @@ import {
   FaLinkedinIn,
   FaYoutube,
 } from "react-icons/fa6";
-import { MapPin as FiMapPin, ArrowRight as FiArrowRight } from "lucide-react";
+import {
+  MapPin as FiMapPin,
+  ArrowRight as FiArrowRight,
+  CheckCircle2 as FiCheckCircle,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import { subscribeNewsletterApi } from "@/services/adService";
 
 export default function Footer() {
   const pathname = usePathname();
+  const [email, setEmail] = useState("");
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
 
-  // Hide footer inside /dashboard, /login, and /register routes
-  if (
-    pathname?.startsWith("/dashboard") ||
-    pathname === "/login" ||
-    pathname === "/register"
-  ) {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setIsSubscribing(true);
+    const result = await subscribeNewsletterApi(email, "footer");
+    setIsSubscribing(false);
+
+    if (result.success) {
+      toast.success(result.message);
+      setSubscribed(true);
+      setEmail("");
+      setTimeout(() => setSubscribed(false), 5000);
+    } else {
+      toast.error(result.message);
+    }
+  };
+
+  // Hide footer inside /dashboard routes
+  if (pathname?.startsWith("/dashboard")) {
     return null;
   }
 
   return (
     <footer className="relative bg-black text-white select-none overflow-hidden border-t border-white/10">
+      
       {/* ── Main Hero Footer Section (Crystal Clear Gym BG & Polished Bold Design) ── */}
       <div className="relative py-10 sm:py-12 px-6 sm:px-10 lg:px-14 overflow-hidden">
+        
         {/* Crystal Clear High Visibility Gym Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-[0.85] contrast-115 z-0 transition-all duration-300"
@@ -37,8 +66,10 @@ export default function Footer() {
 
         {/* Content Container */}
         <div className="relative z-10 max-w-7xl mx-auto space-y-8">
+          
           {/* Top Row: Bold Outlined "GO FOR IT!" Typography + Gym HQ Location & Mission */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
+            
             {/* Left Column: Bold & Outlined "GO FOR IT!" Text */}
             <div className="lg:col-span-6 font-black uppercase leading-[0.85] tracking-tighter text-4xl sm:text-6xl xl:text-7xl drop-shadow-2xl">
               <div className="text-white drop-shadow-md">GO</div>
@@ -58,10 +89,9 @@ export default function Footer() {
 
             {/* Right Column: Mission Quote + Location Info + Directions Button */}
             <div className="lg:col-span-6 space-y-4 lg:pl-10 text-left lg:text-right flex flex-col lg:items-end justify-end">
+              
               <p className="text-xs sm:text-sm text-gray-200 max-w-md font-semibold leading-relaxed drop-shadow-md">
-                Bangladesh's premier AI fitness platform. Serving fitness
-                enthusiasts across all 64 districts with real-time workout
-                tracking, AI coaching, and custom nutrition.
+                Bangladesh's premier AI fitness platform. Serving fitness enthusiasts across all 64 districts with real-time workout tracking, AI coaching, and custom nutrition.
               </p>
 
               <div className="space-y-1 drop-shadow-md">
@@ -87,91 +117,42 @@ export default function Footer() {
                 <FiMapPin className="w-4 h-4 text-black stroke-[2.5]" />
               </a>
             </div>
+
           </div>
 
           {/* Middle Row: Unique Non-Navbar Links Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-white/20 text-xs text-gray-200">
             <div>
-              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
-                Fitness Hubs
-              </span>
+              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">AI Fitness Hubs</span>
               <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
-                <Link
-                  href="/meals"
-                  className="hover:text-white transition-colors"
-                >
-                  Meal Plans
-                </Link>
-                <Link
-                  href="/exercises"
-                  className="hover:text-white transition-colors"
-                >
-                  Exercise Directory
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="hover:text-white transition-colors"
-                >
-                  Athlete Dashboard
-                </Link>
+                <Link href="/dashboard/user/nutrition" className="hover:text-white transition-colors">AI Nutrition</Link>
+                <Link href="/dashboard/user/workout" className="hover:text-white transition-colors">Workout Log</Link>
+                <Link href="/dashboard/user/recovery" className="hover:text-white transition-colors">Recovery Hub</Link>
               </div>
             </div>
 
             <div>
-              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
-                Fitora Highlights
-              </span>
+              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">Fitora Highlights</span>
               <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
-                <Link
-                  href="/#why-choose"
-                  className="hover:text-white transition-colors"
-                >
-                  Why Choose Us
-                </Link>
-                <Link
-                  href="/#coaches"
-                  className="hover:text-white transition-colors"
-                >
-                  Coaches & Mentors
-                </Link>
-                <Link
-                  href="/#trainers"
-                  className="hover:text-white transition-colors"
-                >
-                  Certified Trainers
-                </Link>
+                <Link href="/#why-choose" className="hover:text-white transition-colors">Why Choose Us</Link>
+                <Link href="/#coaches" className="hover:text-white transition-colors">Coaches & Mentors</Link>
+                <Link href="/#trainers" className="hover:text-white transition-colors">Certified Trainers</Link>
               </div>
             </div>
 
             <div>
-              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
-                Account & Portal
-              </span>
+              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">Account & Portal</span>
               <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
-                <Link
-                  href="/dashboard"
-                  className="hover:text-white transition-colors"
-                >
-                  User Profile
-                </Link>
-                <Link
-                  href="/register"
-                  className="hover:text-white transition-colors"
-                >
-                  Free Trial
-                </Link>
-                <Link
-                  href="/login"
-                  className="hover:text-white transition-colors"
-                >
-                  Login Portal
-                </Link>
+                <Link href="/profile" className="hover:text-white transition-colors">User Profile</Link>
+                <Link href="/register" className="hover:text-white transition-colors">Free Trial</Link>
+                <Link href="/login" className="hover:text-white transition-colors">Login Portal</Link>
               </div>
             </div>
           </div>
 
           {/* Bottom Row: Social Media Icons + E-Newsletter Bar */}
           <div className="pt-6 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-6">
+            
             {/* Social Media Icons */}
             <div className="flex items-center gap-5">
               <a
@@ -214,36 +195,54 @@ export default function Footer() {
 
             {/* Newsletter Subscription Bar */}
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleNewsletterSubmit}
               className="flex items-center gap-3 w-full md:w-auto max-w-md border-b-2 border-white/40 pb-1.5 focus-within:border-white transition-colors"
             >
               <input
                 type="email"
-                placeholder="Enter your email address..."
-                className="bg-transparent text-xs text-white placeholder-gray-300 outline-none w-full font-semibold"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={
+                  subscribed
+                    ? "✓ Subscribed to Fitora VIP Updates!"
+                    : "Enter your email address..."
+                }
+                disabled={isSubscribing || subscribed}
+                className="bg-transparent text-xs text-white placeholder-gray-300 outline-none w-full font-semibold disabled:opacity-80"
               />
               <button
                 type="submit"
-                className="flex items-center gap-1.5 text-[11px] font-black uppercase text-white hover:text-gray-200 transition-colors shrink-0 cursor-pointer"
+                disabled={isSubscribing || subscribed}
+                className="flex items-center gap-1.5 text-[11px] font-black uppercase text-white hover:text-gray-200 transition-colors shrink-0 cursor-pointer disabled:opacity-60"
               >
-                <span>Subscribe</span>
-                <FiArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>
+                  {isSubscribing
+                    ? "Subscribing..."
+                    : subscribed
+                      ? "Subscribed"
+                      : "Subscribe"}
+                </span>
+                {subscribed ? (
+                  <FiCheckCircle className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+                ) : (
+                  <FiArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                )}
               </button>
             </form>
+
           </div>
+
         </div>
       </div>
 
       {/* ── Bottom Copyright Strip ── */}
       <div className="bg-black border-t border-white/10 py-4 px-6 sm:px-10 lg:px-14">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-400">
+          
           {/* Left Side: Copyright & Developer Credit */}
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 font-semibold">
             <span>FITORA GYM © {new Date().getFullYear()}</span>
-            <Link
-              href="/privacy"
-              className="hover:text-white transition-colors"
-            >
+            <Link href="/privacy" className="hover:text-white transition-colors">
               Privacy Policy
             </Link>
             <Link href="/terms" className="hover:text-white transition-colors">
@@ -253,10 +252,7 @@ export default function Footer() {
           </div>
 
           {/* Right Side: FITORA Logo + Name */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 group select-none shrink-0"
-          >
+          <Link href="/" className="flex items-center gap-2 group select-none shrink-0">
             <img
               src="/logo.svg"
               alt="Fitora logo"
@@ -266,8 +262,10 @@ export default function Footer() {
               FITORA
             </span>
           </Link>
+
         </div>
       </div>
+
     </footer>
   );
 }

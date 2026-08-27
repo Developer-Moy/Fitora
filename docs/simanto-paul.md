@@ -1,44 +1,124 @@
-# My Assigned Section
+# My Assigned Sections & Contributions
 
 ## 1. BMI Calculator
 
-The **BMI Calculator** is an interactive feature that calculates a user's Body Mass Index (BMI) based on their height and weight. Users can adjust their height and weight using range sliders, and the BMI value and health status update dynamically.
+Built the reusable **BMI Calculator** component with interactive height and weight sliders.
 
-The calculator includes:
+### Key Implementation:
 
-* **Weight:** 20–300 kg
-* **Height:** 50–250 cm
-* **BMI Calculation:** Weight / Height²
-* **BMI Status:** Underweight, Healthy, Overweight, and Obesity
-* **Responsive UI:** Works across different screen sizes
+* Height: 50–250 cm
+* Weight: 20–300 kg
+* Dynamic BMI calculation and status
+* BMI progress indicator
+* Responsive UI
+* Created reusable `calculateBmi` utility
 
-The BMI calculation logic is implemented as a reusable utility, while the frontend component handles the sliders, result display, and responsive UI.
+---
 
-## 2. Nutrition Calculator
+## 2. Calculator Section
 
-The **Nutrition Calculator** is an interactive feature that calculates a user's daily calorie requirements based on their age, gender, height, weight, and activity level. It uses the **Mifflin-St Jeor equation** to calculate Basal Metabolic Rate (BMR) and then determines the user's Total Daily Energy Expenditure (TDEE).
+Implemented the homepage **CalculatorSection** and integrated the BMI Calculator.
 
-The calculator includes:
+### Key Implementation:
 
-* **Age:** User's age
-* **Gender:** Male or Female
-* **Height:** User's height in cm
-* **Weight:** User's weight in kg
-* **Activity Level:** Different activity levels for daily calorie estimation
-* **BMR Calculation:** Mifflin-St Jeor equation
-* **TDEE Calculation:** BMR × Activity Factor
-* **Input Validation:** Validates age, gender, height, weight, and activity level
-* **Responsive UI:** Works across different screen sizes
+* "Calculate Your Metrics" section
+* BMI integration
+* TDEE display
+* Protein, Carbs & Fats macro gauges
+* CTA to `/calculator`
 
-The nutrition calculation logic is implemented in the backend controller, while the API handles input validation and returns the calculated BMR and daily calorie requirements.
+---
 
-## Overview
+## 3. Standalone Calculator Page
 
-The **BMI and Nutrition Calculators** provide users with simple and interactive tools to understand their BMI and estimate their daily nutritional needs. The BMI Calculator dynamically calculates BMI based on height and weight, while the Nutrition Calculator uses personal information and activity level to estimate daily calorie requirements.
+Built the dedicated `/calculator` page with complete fitness calculations.
 
-## My Branch
+### Key Implementation:
 
-**Developer:** [Simanto Paul](https://github.com/simantopal)
+* Age & Gender selection
+* Height & Weight inputs
+* Activity Level
+* BMR & TDEE calculation
+* Macro distribution
+* Responsive metric cards and gauges
+* Export Metrics functionality
+
+---
+
+## 4. Goal Selector & Nutrition Planning
+
+Added dynamic fitness goals:
+
+* **Bulking:** +500 kcal
+* **Cutting:** −500 kcal
+* **Maintenance:** TDEE
+
+Target calories and macros update automatically based on the selected goal.
+
+---
+
+## 5. Backend Nutrition & BMI History
+
+Implemented backend nutrition calculation logic using **Express + TypeScript**.
+
+### Key Implementation:
+
+* Mifflin-St Jeor BMR calculation
+* TDEE calculation
+* Protein, Carbs & Fats calculation
+* `/api/bmi/history` CRUD structure
+* Weekly BMI/BMR/TDEE history support
+
+---
+
+# Overview
+
+My primary contribution to **Fitora** focuses on the **BMI & Nutrition Calculator system**, covering frontend UI, fitness calculations, goal-based nutrition planning, and backend integration.
+
+**Main Flow:**
+
+`BMI → BMR → TDEE → Goal → Calories → Macros → History`
+
+---
+
+## My Branch & Links
+
+**Developer:** [Simanto Poddar](https://github.com/simantopal)
 **Repository:** [Fitora](https://github.com/Developer-Moy/Fitora)
-**Branch:** `simanto-paul`
 **Branch Link:** [View My Branch](https://github.com/Developer-Moy/Fitora/tree/simanto-paul)
+**Branch:** `simanto-paul`
+
+---
+
+# Work Log & Progress Timeline
+
+### 18-Aug-26
+
+* Built BMI Calculator and calculation utility.
+* Added height/weight sliders and BMI status.
+
+### 19-Aug-26
+
+* Integrated BMI Calculator into homepage.
+* Built CalculatorSection with TDEE and macro gauges.
+
+### 20-Aug-26
+
+* Created `/calculator` page.
+* Added BMR, TDEE and macro calculations.
+
+### 23-Aug-26
+
+* Added Bulking, Cutting & Maintenance goal selector.
+* Implemented dynamic calorie and macro updates.
+
+### 24-Aug-26
+
+* Implemented backend nutrition calculation logic.
+* Started BMI history API structure.
+
+### 25-Aug-26
+
+* Refined calculator UI and responsive behavior.
+* Improved nutrition metrics and macro visualization.
+* Continued frontend/backend integration.

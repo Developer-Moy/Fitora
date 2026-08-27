@@ -9,6 +9,10 @@ import mealCatalogRoutes from "./mealCatalog.routes";
 import bmiRoutes from "./bmi.routes";
 import adRoutes from "./ad.routes";
 import userRoutes from "./user.routes";
+import consultationRoutes from "./consultation.routes";
+import branchRoutes from "./branch.routes";
+import newsletterRoutes from "./newsletter.routes";
+import stopwatchRoutes from "./stopwatch.routes";
 
 const apiRouter = Router();
 
@@ -38,5 +42,9 @@ apiRouter.use("/meals", mealCatalogRoutes);
 apiRouter.use("/bmi", bmiRoutes);
 apiRouter.use("/ads", adRoutes);
 apiRouter.use("/dashboard", userRoutes);
+apiRouter.use("/consultations", consultationRoutes);
+apiRouter.use("/branches", branchRoutes);
+apiRouter.use("/newsletter", newsletterRoutes);
+apiRouter.use("/stopwatch",stopwatchRoutes);
 
 export default apiRouter;

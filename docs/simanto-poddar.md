@@ -3,7 +3,6 @@
 ## 1. AI Meal Planning Assistant & Nutrition Dashboard (`/dashboard/user/nutrition`)
 
 The **AI Meal Planning Assistant** is an AI-powered feature that generates a personalized meal chart based on user parameters (calorie goal, dietary restrictions).
-
 - **Nutrition Dashboard**: Interactive Water Hydration progress ring widget, 2,400 kcal macro progress bar, and category filterable meal cards.
 - **Backend API**: Endpoints `GET /api/meal-charts/getMealCharts` & `POST /api/meal-charts/createMealChart` with `MealPlan` Mongoose schema.
 
@@ -14,8 +13,6 @@ Built the User Registration page and form layout with validation and session int
 ## Note on Homepage Cleanup
 
 *(Previous temporary homepage sections — `Coaches / Meet Our Trainers` (`TrainersSection` / `MeetTrainers`), `MealChartSection`, and `Advertisement` — were removed from `client/src/app/(main)/page.tsx` during the 1-to-1 design alignment to strictly follow the authoritative design reference `docs/fitora.png`)*.
-
-## 3. Healthy Meals Page (`/meals`)
 
 ---
 
@@ -85,17 +82,24 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 
 - `Fitora\client\src\app\meals\page.tsx`
 
-  - Built and structured the Meals page.
-  - Integrated meal data with the page layout.
-  - Added a responsive listing structure for meal cards.
+### 18-Aug-26
+* Pulled the latest changes from the development branch into `simanto-poddar` branch and resolved conflicts
+* Implemented the Meal Chart API endpoints:
+  - `GET /api/meal-charts?userId={userId}`
+  - `POST /api/meal-charts`
 
-- `Fitora\client\src\components\Meal\MealCard.tsx`
+### 19-Aug-26
+* Build User Registration page (`/register`)
+* Build initial Meal Chart section
 
-  - Created the reusable Meal Card component.
-  - Displays essential meal information.
-  - Added a **View Details** interaction for opening the meal details modal.
+### 20-Aug-26
+* Update Nutrition page UI (`/dashboard/user/nutrition`)
+* Build Advertisement section component
 
-- `Fitora\client\src\components\Meal\MealDetailsModal.tsx`
+### 23-Aug-26
+* Add interactive Water Hydration progress ring widget on Nutrition Dashboard (`client/src/app/dashboard/user/nutrition/page.tsx`)
+* Replace temp userId with authenticated session userId (`client/src/components/MealChartCard.tsx`)
+* Add advertisement schema and API route
 
   - Created the meal details modal.
   - Displays detailed information such as **name, ingredients, calories, and description**.
