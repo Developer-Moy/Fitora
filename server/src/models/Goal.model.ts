@@ -2,7 +2,9 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IGoal extends Document {
   userId: string;
+  fitnessGoal?: string;
   targetWeight: number;
+  strengthTarget?: string;
   weeklyWorkoutFrequency: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -15,6 +17,12 @@ const goalSchema = new Schema<IGoal>(
       required: true,
       index: true,
     },
+    fitnessGoal: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 100,
+    },
     targetWeight: {
       type: Number,
       required: true,
@@ -23,6 +31,12 @@ const goalSchema = new Schema<IGoal>(
       type: Number,
       required: true,
       default: 4,
+    },
+    strengthTarget: {
+      type: String,
+      trim: true,
+      default: "",
+      maxlength: 100,
     },
   },
   {
