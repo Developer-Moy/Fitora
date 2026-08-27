@@ -10,6 +10,7 @@ import adRoutes from "./ad.routes";
 import userRoutes from "./user.routes";
 import consultationRoutes from "./consultation.routes";
 import branchRoutes from "./branch.routes";
+import newsletterRoutes from "./newsletter.routes";
 
 const apiRouter = Router();
 
@@ -40,5 +41,6 @@ apiRouter.use("/ads", adRoutes);
 apiRouter.use("/dashboard", userRoutes);
 apiRouter.use("/consultations", consultationRoutes);
 apiRouter.use("/branches", branchRoutes);
+apiRouter.use("/newsletter", newsletterRoutes);
 
 export default apiRouter;
