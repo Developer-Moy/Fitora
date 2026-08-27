@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { WorkoutLog, IWorkoutLog } from "../models/WorkoutLog.model.js";
 import { LOCAL_WORKOUTS_DATABASE, WorkoutExercise } from "../data/workout.data.js";
+import { WORKOUT_PROGRAMS } from "../data/workout.programs.js";
+import { Exercise } from "../models/Exercise.model.js";
 
 // In-memory fallback storage for offline development
 interface LocalLogItem {
@@ -365,6 +367,161 @@ export const deleteWorkoutLog = async (req: Request, res: Response): Promise<Res
       success: false,
       message: "Failed to delete workout log",
       error: error instanceof Error ? error.message : "Internal Server Error",
+    });
+  }
+};
+
+
+/**
+ * GET /api/workouts/programs
+ * Retrieve pre-built workout programs
+ */
+export const getPrograms = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    return res.status(200).json({
+      success: true,
+      message: "Workout programs fetched successfully",
+      count: WORKOUT_PROGRAMS.length,
+      data: WORKOUT_PROGRAMS,
+    });
+  } catch (error) {
+    console.error("[Workout Controller] getPrograms Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch workout programs",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Internal Server Error",
+    });
+  }
+};
+
+
+
+/**
+ * GET /api/workouts/pr/:exerciseId
+ * Calculate Personal Record and estimated 1RM
+ * using the Brzycki Formula.
+ */
+export const get1RMAndPR = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { exerciseId } = req.params;
+
+    if (!exerciseId) {
+      return res.status(400).json({
+        success: false,
+        message: "Exercise ID is required",
+        error: "EXERCISE_ID_REQUIRED",
+      });
+    }
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(exerciseId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid exercise ID",
+        error: "INVALID_EXERCISE_ID",
+      });
+    }
+
+    // Find exercise
+    const exercise = await Exercise.findById(exerciseId);
+
+    if (!exercise) {
+      return res.status(404).json({
+        success: false,
+        message: "Exercise not found",
+        error: "EXERCISE_NOT_FOUND",
+      });
+    }
+
+    // Find workout logs for this exercise
+    const logs = await WorkoutLog.find({
+      exerciseName: exercise.name,
+    }).sort({
+      weight: -1,
+      repsCount: -1,
+    });
+
+    if (logs.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No workout history found for this exercise",
+        data: {
+          exerciseId: exercise._id,
+          exerciseName: exercise.name,
+          personalRecord: null,
+          estimated1RM: null,
+        },
+      });
+    }
+
+    // Find highest weight
+    const personalRecord = logs.reduce((best, current) => {
+      const bestWeight = Number(best.weight) || 0;
+      const currentWeight = Number(current.weight) || 0;
+
+      if (currentWeight > bestWeight) {
+        return current;
+      }
+
+      if (
+        currentWeight === bestWeight &&
+        Number(current.repsCount) > Number(best.repsCount)
+      ) {
+        return current;
+      }
+
+      return best;
+    });
+
+    const weight = Number(personalRecord.weight) || 0;
+    const reps = Number(personalRecord.repsCount) || 0;
+
+    // Brzycki Formula
+    let estimated1RM: number | null = null;
+
+    if (weight > 0 && reps > 0 && reps < 37) {
+      estimated1RM = Number(
+        (weight * (36 / (37 - reps))).toFixed(2)
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Personal record and 1RM calculated successfully",
+
+      data: {
+        exerciseId: exercise._id,
+        exerciseName: exercise.name,
+
+        personalRecord: {
+          weight,
+          reps,
+          date: personalRecord.date,
+        },
+
+        estimated1RM,
+      },
+    });
+  } catch (error) {
+    console.error("[Workout Controller] get1RMAndPR Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to calculate PR and 1RM",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Internal Server Error",
     });
   }
 };
