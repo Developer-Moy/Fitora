@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import MealPlan from "../models/MealChart.model";
 
-// Create / Save a meal plan
+// Create / Save a meal plan (POST /api/meal-charts/createMealChart)
 export const createMealChart = async (
     req: Request,
     res: Response
 ): Promise<void> => {
     try {
-        const { userId, profile, goals, dietary, structure } = req.body;
+        const { userId, profile, goals, dietary, structure, weeklySchedule } = req.body;
 
         if (!profile || !goals || !dietary || !structure) {
             res.status(400).json({
@@ -23,6 +23,7 @@ export const createMealChart = async (
             goals,
             dietary,
             structure,
+            weeklySchedule,
         });
 
         res.status(201).json({
@@ -40,7 +41,7 @@ export const createMealChart = async (
     }
 };
 
-// Get meal plan by user ID
+// Get meal plan by user ID (GET /api/meal-charts/getMealCharts)
 export const getMealCharts = async (
     req: Request,
     res: Response
@@ -70,6 +71,46 @@ export const getMealCharts = async (
         res.status(500).json({
             success: false,
             message: "Failed to fetch meal plans",
+        });
+    }
+};
+
+// Get meal chart by user ID (GET /api/meal-charts/:id)
+export const getMealChartById = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        if (!id || typeof id !== "string") {
+            res.status(400).json({
+                success: false,
+                message: "User ID is required",
+            });
+            return;
+        }
+
+        const mealChart = await MealPlan.findOne({ userId: id });
+
+        if (!mealChart) {
+            res.status(404).json({
+                success: false,
+                message: "Meal chart not found for this user",
+            });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            data: mealChart,
+        });
+    } catch (error) {
+        console.error("Get meal chart by user ID error:", error);
+
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch meal chart",
         });
     }
 };
