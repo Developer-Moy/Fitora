@@ -21,9 +21,9 @@ const MealCard = (meal: MealProps) => {
   return (
     <>
       {/* ── Meal Card Grid Item ── */}
-      <div className="group relative bg-neutral-950 border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl hover:border-white/30 transition-all duration-500 flex flex-col h-full select-none">
+      <div className="group relative bg-neutral-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:border-white/30 transition-all duration-500 flex flex-col h-full select-none">
         {/* Meal Image */}
-        <div className="relative w-full aspect-[4/3] overflow-hidden bg-neutral-900">
+        <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-neutral-900">
           <img
             src={displayImage}
             alt={meal.name}
@@ -32,9 +32,9 @@ const MealCard = (meal: MealProps) => {
           />
 
           {/* Top Calorie Badge */}
-          <div className="absolute top-4 left-4 z-10">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/75 backdrop-blur-md border border-white/15 text-xs font-black text-white shadow-lg">
-              <Flame className="w-3.5 h-3.5 text-white" />
+          <div className="absolute top-3 left-3 z-10">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/15 text-[11px] font-black text-white shadow-lg">
+              <Flame className="w-3 h-3 text-white" />
               <span>{meal.calories} kcal</span>
             </span>
           </div>
@@ -43,9 +43,9 @@ const MealCard = (meal: MealProps) => {
         </div>
 
         {/* Card Content */}
-        <div className="p-6 flex flex-col grow space-y-4 -mt-4 relative z-10 bg-neutral-950">
+        <div className="p-5 flex flex-col grow space-y-3 -mt-2 relative z-10 bg-neutral-950">
           {/* Meal Name */}
-          <h3 className="text-xl font-black text-white tracking-tight leading-tight uppercase font-sans line-clamp-1">
+          <h3 className="text-lg sm:text-xl font-black text-white tracking-tight leading-tight uppercase font-sans line-clamp-1">
             {meal.name}
           </h3>
 
@@ -55,24 +55,24 @@ const MealCard = (meal: MealProps) => {
           </p>
 
           {/* Ingredients Preview Tags */}
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
             {meal.ingredients.slice(0, 3).map((ing, idx) => (
               <span
                 key={idx}
-                className="text-[10px] font-bold text-gray-300 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full"
+                className="text-[10px] font-bold text-gray-300 bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-full"
               >
                 {ing}
               </span>
             ))}
             {meal.ingredients.length > 3 && (
-              <span className="text-[10px] font-bold text-gray-400 bg-white/5 border border-white/10 px-2 py-1 rounded-full">
+              <span className="text-[10px] font-bold text-gray-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
                 +{meal.ingredients.length - 3} more
               </span>
             )}
           </div>
 
           {/* Action Button Footer */}
-          <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-4">
+          <div className="pt-2.5 border-t border-white/10 flex items-center justify-between gap-4">
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
               <Utensils className="w-3.5 h-3.5 text-white" />
               <span>Nutrition Plan</span>
@@ -82,7 +82,7 @@ const MealCard = (meal: MealProps) => {
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="group/btn inline-flex items-center gap-2 bg-white text-black font-extrabold text-xs px-4 py-2.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl cursor-pointer"
+              className="group/btn inline-flex items-center gap-2 bg-white text-black font-extrabold text-xs px-4 py-2 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl cursor-pointer"
             >
               <span>View Details</span>
               <span className="bg-black text-white w-5 h-5 rounded-full flex items-center justify-center group-hover/btn:rotate-45 transition-transform duration-300">

@@ -244,7 +244,7 @@ Macros:
               </div>
 
               {/* Full Color Image Banner (Positioned in the Middle, Object-Top to avoid cutting head) */}
-              <div className="group relative h-[250px] sm:h-[300px] lg:h-[320px] my-auto overflow-hidden rounded-3xl border border-white/15 shadow-2xl">
+              <div className="group relative h-[220px] sm:h-[260px] lg:h-[270px] my-auto overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
                 <img
                   src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1400&q=80"
                   alt="BMI fitness banner"
