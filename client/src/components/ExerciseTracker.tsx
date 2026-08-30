@@ -1571,7 +1571,10 @@ function ExerciseModal({
               <button
                 type="button"
                 onClick={() => {
-                  toast.success(`Starting ${exercise.name} session! Head over to Gym Stopwatch to log sets.`, { duration: 4000 });
+                  toast.success(
+                    `Starting ${exercise.name} session! Head over to Gym Stopwatch to log sets.`,
+                    { duration: 4000 },
+                  );
                   onClose();
                 }}
                 className="group w-full inline-flex items-center justify-center gap-2.5 bg-white text-black font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl cursor-pointer"
