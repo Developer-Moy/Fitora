@@ -10,6 +10,8 @@ export interface AuthUser {
   assignedBranch?: string;
   status?: string;
   avatarUrl?: string;
+  isMasterAdmin?: boolean;
+  isBranchAdmin?: boolean;
 }
 
 export interface AuthResponse {
