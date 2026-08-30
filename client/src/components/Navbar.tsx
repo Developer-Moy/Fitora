@@ -62,8 +62,10 @@ export default function Navbar() {
 
   const { data: authSession } = useSession();
   const [localUser, setLocalUser] = useState<AuthUser | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const session = getAuthSession();
     if (session.user) {
       setLocalUser(session.user);
@@ -71,7 +73,7 @@ export default function Navbar() {
   }, []);
 
   const activeUser = authSession?.user || localUser;
-  const isLoggedIn = !!activeUser;
+  const isLoggedIn = isMounted && !!activeUser;
 
   const userName = activeUser?.name || "Athlete Member";
   const userEmail = activeUser?.email || "athlete@fitora.com";
