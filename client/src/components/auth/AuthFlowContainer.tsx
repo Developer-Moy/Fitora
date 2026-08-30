@@ -181,10 +181,8 @@ export default function AuthFlowContainer({
         plan: "Free Pass",
         assignedBranch: "Dhaka - Gulshan-2 Branch (Flagship)",
       });
-      toast.success("Google Account Authenticated! Entering Dashboard...");
       toast.success("Signed in with Google! Welcome to FITORA.");
       setTimeout(() => {
-        router.push("/dashboard");
         router.push("/");
       }, 700);
     } catch (err: any) {
@@ -196,10 +194,8 @@ export default function AuthFlowContainer({
         plan: "Free Pass",
         assignedBranch: "Dhaka - Gulshan-2 Branch (Flagship)",
       });
-      toast.success("Signed in with Google! Entering Dashboard...");
       toast.success("Signed in with Google! Welcome to FITORA.");
       setTimeout(() => {
-        router.push("/dashboard");
         router.push("/");
       }, 700);
     } finally {
@@ -339,7 +335,9 @@ export default function AuthFlowContainer({
       });
 
       if (apiRes.success) {
-        toast.success("Account created successfully! Welcome to FITORA.");
+        toast.success(
+          "Account created successfully! Welcome to FITORA.",
+        );
         setTimeout(() => {
           router.push("/");
         }, 800);
