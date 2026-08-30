@@ -1,108 +1,71 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export interface AuthUser {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
   email: string;
-  phone?: string;
   role: string;
-  assignedBranch?: string;
   plan?: string;
+  assignedBranch?: string;
   status?: string;
-  isMasterAdmin?: boolean;
-  isBranchAdmin?: boolean;
-  attendanceStreakDays?: number;
-  hydrationTargetLiters?: number;
-  totalPaidBDT?: number;
+  avatarUrl?: string;
 }
 
 export interface AuthResponse {
   success: boolean;
-  message?: string;
+  message: string;
   token?: string;
   user?: AuthUser;
 }
 
-export const getStoredAuthToken = (): string | null => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("fitora_jwt_token");
-};
-
-export const getStoredUserRole = (): string | null => {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("fitora_active_role");
-};
-
-export const saveAuthSession = (token: string, user: AuthUser) => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("fitora_jwt_token", token);
-  localStorage.setItem("fitora_auth_session", "true");
-  localStorage.setItem("fitora_active_role", user.role);
-  localStorage.setItem("fitora_user_name", user.name);
-  localStorage.setItem("fitora_user_email", user.email);
-  if (user.assignedBranch) {
-    localStorage.setItem("fitora_assigned_branch", user.assignedBranch);
-    localStorage.setItem("fitora_active_branch", user.assignedBranch);
-  }
-};
-
-export const clearAuthSession = () => {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem("fitora_jwt_token");
-  localStorage.removeItem("fitora_auth_session");
-  localStorage.removeItem("fitora_active_role");
-  localStorage.removeItem("fitora_user_name");
-  localStorage.removeItem("fitora_user_email");
-  localStorage.removeItem("fitora_assigned_branch");
-  localStorage.removeItem("fitora_active_branch");
-};
-
+/**
+ * 1. Enterprise Security Gateway Login for /dashboard/login
+ */
 export async function dashboardLoginApi(
   email: string,
-  password: string,
-  gatewayKey?: string,
+  secretPass: string
 ): Promise<AuthResponse> {
   try {
     const res = await fetch(`${API_URL}/auth/dashboard-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, gatewayKey }),
+      body: JSON.stringify({ email, secretPass }),
     });
 
     const data = await res.json().catch(() => null);
 
-    if (!res.ok) {
+    if (!res.ok || !data?.success) {
       return {
         success: false,
-        message:
-          data?.message ||
-          `Security Gateway rejected with status ${res.status}`,
+        message: data?.message || "Invalid credentials or unauthorized clearance",
       };
     }
 
-    if (data?.token && data?.user) {
+    if (data.token) {
       saveAuthSession(data.token, data.user);
     }
 
     return {
       success: true,
-      message: data?.message || "Authenticated successfully",
-      token: data?.token,
-      user: data?.user,
+      message: data.message || "Dashboard authentication authorized",
+      token: data.token,
+      user: data.user,
     };
   } catch (error: any) {
     return {
       success: false,
-      message:
-        error.message ||
-        "Network error — could not connect to backend security gateway",
+      message: "Network error — Could not connect to authentication gateway",
     };
   }
 }
 
+/**
+ * 2. Public Login (/login)
+ */
 export async function loginApi(
   email: string,
-  password: string,
+  password: string
 ): Promise<AuthResponse> {
   try {
     const res = await fetch(`${API_URL}/auth/login`, {
@@ -113,37 +76,39 @@ export async function loginApi(
 
     const data = await res.json().catch(() => null);
 
-    if (!res.ok) {
+    if (!res.ok || !data?.success) {
       return {
         success: false,
-        message: data?.message || `Login failed with status ${res.status}`,
+        message: data?.message || "Invalid email or password",
       };
     }
 
-    if (data?.token && data?.user) {
+    if (data.token) {
       saveAuthSession(data.token, data.user);
     }
 
     return {
       success: true,
-      message: data?.message || "Login successful",
-      token: data?.token,
-      user: data?.user,
+      message: data.message || "Login successful",
+      token: data.token,
+      user: data.user,
     };
   } catch (error: any) {
     return {
       success: false,
-      message: error.message || "Network error — could not reach auth server",
+      message: "Network error — Could not reach login server",
     };
   }
 }
 
+/**
+ * 3. Public User Registration (/register)
+ */
 export async function registerApi(payload: {
   name: string;
   email: string;
   password: string;
   phone?: string;
-  role?: string;
   assignedBranch?: string;
 }): Promise<AuthResponse> {
   try {
@@ -155,37 +120,39 @@ export async function registerApi(payload: {
 
     const data = await res.json().catch(() => null);
 
-    if (!res.ok) {
+    if (!res.ok || !data?.success) {
       return {
         success: false,
-        message:
-          data?.message || `Registration failed with status ${res.status}`,
+        message: data?.message || "Registration failed. Please try again.",
       };
     }
 
-    if (data?.token && data?.user) {
+    if (data.token) {
       saveAuthSession(data.token, data.user);
     }
 
     return {
       success: true,
-      message: data?.message || "Registered successfully",
-      token: data?.token,
-      user: data?.user,
+      message: data.message || "Registration successful",
+      token: data.token,
+      user: data.user,
     };
   } catch (error: any) {
     return {
       success: false,
-      message: error.message || "Network error — could not reach auth server",
+      message: "Network error — Could not complete registration",
     };
   }
 }
 
+/**
+ * 4. Get Current User Profile (/api/auth/me)
+ */
 export async function getCurrentUserApi(): Promise<AuthResponse> {
   try {
-    const token = getStoredAuthToken();
+    const token = typeof window !== "undefined" ? localStorage.getItem("fitora_token") : null;
     if (!token) {
-      return { success: false, message: "No token stored" };
+      return { success: false, message: "No active token found" };
     }
 
     const res = await fetch(`${API_URL}/auth/me`, {
@@ -197,15 +164,68 @@ export async function getCurrentUserApi(): Promise<AuthResponse> {
     });
 
     const data = await res.json().catch(() => null);
+
     if (!res.ok || !data?.success) {
-      return {
-        success: false,
-        message: data?.message || "Failed to retrieve user profile",
-      };
+      return { success: false, message: "Session expired" };
     }
 
-    return { success: true, user: data.user };
+    return {
+      success: true,
+      message: "User verified",
+      user: data.user,
+      token,
+    };
   } catch (error: any) {
-    return { success: false, message: error.message || "Network error" };
+    return { success: false, message: "Could not fetch user claims" };
   }
 }
+
+/**
+ * Session persistence helpers
+ */
+export function saveAuthSession(token: string, user?: AuthUser) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("fitora_token", token);
+  localStorage.setItem("fitora_auth_token", token);
+  if (user) {
+    localStorage.setItem("fitora_user", JSON.stringify(user));
+    if (user.role) localStorage.setItem("fitora_user_role", user.role);
+    if (user.email) localStorage.setItem("fitora_user_email", user.email);
+    if (user.name) localStorage.setItem("fitora_user_name", user.name);
+  }
+}
+
+export function getAuthSession(): { token: string | null; user: AuthUser | null } {
+  if (typeof window === "undefined") return { token: null, user: null };
+  const token = localStorage.getItem("fitora_token") || localStorage.getItem("fitora_auth_token");
+  const userStr = localStorage.getItem("fitora_user");
+  let user = null;
+  if (userStr) {
+    try {
+      user = JSON.parse(userStr);
+    } catch {
+      user = null;
+    }
+  }
+  return { token, user };
+}
+
+export function clearAuthSession() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem("fitora_token");
+  localStorage.removeItem("fitora_auth_token");
+  localStorage.removeItem("fitora_user");
+  localStorage.removeItem("fitora_user_role");
+  localStorage.removeItem("fitora_user_email");
+  localStorage.removeItem("fitora_user_name");
+}
+
+export default {
+  dashboardLoginApi,
+  loginApi,
+  registerApi,
+  getCurrentUserApi,
+  saveAuthSession,
+  getAuthSession,
+  clearAuthSession,
+};
