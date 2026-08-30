@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { UserRole } from "../models/User.model";
+import { errorResponse } from "../utils/apiResponse";
 
 export interface AuthUserPayload {
   userId: string;
@@ -23,19 +24,21 @@ export const authMiddleware = (
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      return res.status(401).json({
-        success: false,
-        message: "Authorization token is required",
-      });
+      return res.status(401).json(
+        errorResponse("Authorization token is required", "Unauthorized", 401)
+      );
     }
 
     const [schema, token] = authHeader.split(" ");
 
     if (schema !== "Bearer" || !token) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid authorization format. Bearer token required.",
-      });
+      return res.status(401).json(
+        errorResponse(
+          "Invalid authorization format. Bearer token required.",
+          "Unauthorized",
+          401
+        )
+      );
     }
 
     const jwtSecret =
@@ -53,11 +56,13 @@ export const authMiddleware = (
 
     next();
   } catch (error: any) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid or expired authorization token",
-      error: error.message,
-    });
+    return res.status(401).json(
+      errorResponse(
+        "Invalid or expired authorization token",
+        error.message,
+        401
+      )
+    );
   }
 };
 
@@ -67,17 +72,19 @@ export const authMiddleware = (
 export const requireRoles = (allowedRoles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
+      return res.status(401).json(
+        errorResponse("Authentication required", "Unauthorized", 401)
+      );
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: `Forbidden: Insufficient privileges. Required role: [${allowedRoles.join(", ")}]`,
-      });
+      return res.status(403).json(
+        errorResponse(
+          `Forbidden: Insufficient privileges. Required role: [${allowedRoles.join(", ")}]`,
+          "Forbidden",
+          403
+        )
+      );
     }
 
     next();

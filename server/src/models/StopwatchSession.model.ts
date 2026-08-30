@@ -8,6 +8,7 @@ export interface IStopwatchSession extends Document {
   durationMinutes: number;
   weightKg?: number;
   caloriesBurned?: number;
+  completedAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +19,7 @@ const stopwatchSessionSchema = new Schema<IStopwatchSession>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
     presetId: {
       type: String,
@@ -40,14 +42,20 @@ const stopwatchSessionSchema = new Schema<IStopwatchSession>(
       type: Number,
       min: 0,
     },
+    completedAt: {
+      type: Date,
+      required: true,
+      default: Date.now,
+      index: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Index for efficient querying of user sessions
-stopwatchSessionSchema.index({ userId: 1, startedAt: -1 });
+// Compound index for efficient querying of user sessions by completion date
+stopwatchSessionSchema.index({ userId: 1, completedAt: -1 });
 
 export const StopwatchSession = mongoose.model<IStopwatchSession>(
   "StopwatchSession",

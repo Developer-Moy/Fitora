@@ -28,10 +28,13 @@ app.use(express.json());
 
 // Root Health Check Route
 app.get('/', (req: Request, res: Response) => {
-  res.json({
-    status: 'online',
+  res.status(200).json({
+    success: true,
     message: 'Fitora Server API Running',
-    version: '1.0.0'
+    data: {
+      version: '1.0.0'
+    },
+    timestamp: new Date().toISOString()
   });
 });
 

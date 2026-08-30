@@ -14,23 +14,33 @@ import newsletterRoutes from "./newsletter.routes";
 import stopwatchRoutes from "./stopwatch.routes";
 import exerciseRoutes from "./exercise.routes";
 import nutritionRoutes from "./nutrition.routes";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 const apiRouter = Router();
 
 // System Health Check & Server Status Endpoint
 apiRouter.get("/health", (req: Request, res: Response) => {
-  const dbState = mongoose.connection.readyState;
-  const dbStatus =
-    dbState === 1 ? "connected" : dbState === 2 ? "connecting" : "disconnected";
+  try {
+    const dbState = mongoose.connection.readyState;
+    const dbStatus =
+      dbState === 1 ? "connected" : dbState === 2 ? "connecting" : "disconnected";
 
-  res.status(200).json({
-    success: true,
-    message: "Fitora API & Socket Server is running smoothly",
-    timestamp: new Date().toISOString(),
-    uptimeSeconds: Math.floor(process.uptime()),
-    databaseStatus: dbStatus,
-    environment: process.env.NODE_ENV || "development",
-  });
+    return res.status(200).json(
+      successResponse("Fitora API & Socket Server is running smoothly", {
+        uptimeSeconds: Math.floor(process.uptime()),
+        databaseStatus: dbStatus,
+        environment: process.env.NODE_ENV || "development",
+      })
+    );
+  } catch (error) {
+    return res.status(500).json(
+      errorResponse(
+        "Health check failed",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
+  }
 });
 
 // Mounted Central API Routes across all 6 Team Members
