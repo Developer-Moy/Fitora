@@ -48,11 +48,19 @@ export function DashboardRoleProvider({
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const isAuth = localStorage.getItem(STORAGE_KEY_AUTH) === "true";
-    const savedRole = localStorage.getItem(
-      STORAGE_KEY_ROLE,
-    ) as DashboardRole | null;
-    const savedBranch = localStorage.getItem(STORAGE_KEY_BRANCH);
+    const isAuth =
+      localStorage.getItem(STORAGE_KEY_AUTH) === "true" ||
+      !!localStorage.getItem("fitora_token") ||
+      !!localStorage.getItem("fitora_auth_token") ||
+      !!localStorage.getItem("fitora_user");
+
+    const savedRole = (localStorage.getItem(STORAGE_KEY_ROLE) ||
+      localStorage.getItem("fitora_user_role") ||
+      "master_admin") as DashboardRole;
+
+    const savedBranch =
+      localStorage.getItem(STORAGE_KEY_BRANCH) ||
+      localStorage.getItem("fitora_active_branch");
 
     if (isAuth && savedRole) {
       setIsAuthenticated(true);
@@ -62,6 +70,8 @@ export function DashboardRoleProvider({
         )
       ) {
         setRoleState(savedRole);
+      } else {
+        setRoleState("master_admin");
       }
       if (savedBranch) {
         setAssignedBranchState(savedBranch);

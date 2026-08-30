@@ -26,13 +26,13 @@ export interface AuthResponse {
  */
 export async function dashboardLoginApi(
   email: string,
-  secretPass: string
+  secretPass: string,
 ): Promise<AuthResponse> {
   try {
     const res = await fetch(`${API_URL}/auth/dashboard-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, secretPass }),
+      body: JSON.stringify({ email, password: secretPass, secretPass }),
     });
 
     const data = await res.json().catch(() => null);
@@ -40,7 +40,8 @@ export async function dashboardLoginApi(
     if (!res.ok || !data?.success) {
       return {
         success: false,
-        message: data?.message || "Invalid credentials or unauthorized clearance",
+        message:
+          data?.message || "Invalid credentials or unauthorized clearance",
       };
     }
 
@@ -67,7 +68,7 @@ export async function dashboardLoginApi(
  */
 export async function loginApi(
   email: string,
-  password: string
+  password: string,
 ): Promise<AuthResponse> {
   try {
     const res = await fetch(`${API_URL}/auth/login`, {
@@ -152,7 +153,10 @@ export async function registerApi(payload: {
  */
 export async function getCurrentUserApi(): Promise<AuthResponse> {
   try {
-    const token = typeof window !== "undefined" ? localStorage.getItem("fitora_token") : null;
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("fitora_token")
+        : null;
     if (!token) {
       return { success: false, message: "No active token found" };
     }
@@ -189,17 +193,29 @@ export function saveAuthSession(token: string, user?: AuthUser) {
   if (typeof window === "undefined") return;
   localStorage.setItem("fitora_token", token);
   localStorage.setItem("fitora_auth_token", token);
+  localStorage.setItem("fitora_auth_session", "true");
   if (user) {
     localStorage.setItem("fitora_user", JSON.stringify(user));
-    if (user.role) localStorage.setItem("fitora_user_role", user.role);
+    if (user.role) {
+      localStorage.setItem("fitora_user_role", user.role);
+      localStorage.setItem("fitora_active_role", user.role);
+    }
+    if (user.assignedBranch) {
+      localStorage.setItem("fitora_active_branch", user.assignedBranch);
+    }
     if (user.email) localStorage.setItem("fitora_user_email", user.email);
     if (user.name) localStorage.setItem("fitora_user_name", user.name);
   }
 }
 
-export function getAuthSession(): { token: string | null; user: AuthUser | null } {
+export function getAuthSession(): {
+  token: string | null;
+  user: AuthUser | null;
+} {
   if (typeof window === "undefined") return { token: null, user: null };
-  const token = localStorage.getItem("fitora_token") || localStorage.getItem("fitora_auth_token");
+  const token =
+    localStorage.getItem("fitora_token") ||
+    localStorage.getItem("fitora_auth_token");
   const userStr = localStorage.getItem("fitora_user");
   let user = null;
   if (userStr) {
@@ -216,6 +232,9 @@ export function clearAuthSession() {
   if (typeof window === "undefined") return;
   localStorage.removeItem("fitora_token");
   localStorage.removeItem("fitora_auth_token");
+  localStorage.removeItem("fitora_auth_session");
+  localStorage.removeItem("fitora_active_role");
+  localStorage.removeItem("fitora_active_branch");
   localStorage.removeItem("fitora_user");
   localStorage.removeItem("fitora_user_role");
   localStorage.removeItem("fitora_user_email");

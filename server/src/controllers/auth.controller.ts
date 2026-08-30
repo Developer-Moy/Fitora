@@ -173,7 +173,9 @@ export const loginUser = async (req: Request, res: Response) => {
  */
 export const dashboardLogin = async (req: Request, res: Response) => {
   try {
-    const { email, password, gatewayKey } = req.body;
+    const email = req.body.email;
+    const password = req.body.password || req.body.secretPass;
+    const gatewayKey = req.body.gatewayKey;
 
     if (!email || !password) {
       return res.status(400).json({
