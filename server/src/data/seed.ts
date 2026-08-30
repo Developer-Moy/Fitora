@@ -8,12 +8,37 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
   throw new Error("MONGODB_URI is not defined in .env");
-};
+}
 
 // --------------------------------------------------
-// BMI calculation
+// Types
 // --------------------------------------------------
-const calculateBMI = (weight: number, height: number): number => {
+
+type Gender = "male" | "female";
+
+type GoalType =
+  | "Bulking"
+  | "Cutting"
+  | "Recomp"
+  | "Maintenance";
+
+interface Profile {
+  age: number;
+  gender: Gender;
+  height: number;
+  weight: number;
+  activityLevel: number;
+  goalType: GoalType;
+}
+
+// --------------------------------------------------
+// BMI
+// --------------------------------------------------
+
+const calculateBMI = (
+  weight: number,
+  height: number
+): number => {
   const heightInMeters = height / 100;
 
   return Number(
@@ -24,9 +49,10 @@ const calculateBMI = (weight: number, height: number): number => {
 // --------------------------------------------------
 // BMR - Mifflin-St Jeor
 // --------------------------------------------------
+
 const calculateBMR = (
   age: number,
-  gender: "male" | "female",
+  gender: Gender,
   height: number,
   weight: number
 ): number => {
@@ -50,6 +76,7 @@ const calculateBMR = (
 // --------------------------------------------------
 // TDEE
 // --------------------------------------------------
+
 const calculateTDEE = (
   bmr: number,
   activityLevel: number
@@ -58,9 +85,12 @@ const calculateTDEE = (
 };
 
 // --------------------------------------------------
-// BMI category
+// BMI Category
 // --------------------------------------------------
-const getBMICategory = (bmi: number): string => {
+
+const getBMICategory = (
+  bmi: number
+): string => {
   if (bmi < 18.5) {
     return "Underweight";
   }
@@ -77,9 +107,12 @@ const getBMICategory = (bmi: number): string => {
 };
 
 // --------------------------------------------------
-// Risk level
+// Risk Level
 // --------------------------------------------------
-const getRiskLevel = (bmi: number): string => {
+
+const getRiskLevel = (
+  bmi: number
+): string => {
   if (bmi < 18.5) {
     return "Moderate";
   }
@@ -96,14 +129,24 @@ const getRiskLevel = (bmi: number): string => {
 };
 
 // --------------------------------------------------
-// Ideal weight range
+// Ideal Weight
 // BMI 18.5 - 24.9
 // --------------------------------------------------
-const getIdealWeightRange = (height: number) => {
+
+const getIdealWeightRange = (
+  height: number
+) => {
   const heightInMeters = height / 100;
 
-  const min = 18.5 * heightInMeters * heightInMeters;
-  const max = 24.9 * heightInMeters * heightInMeters;
+  const min =
+    18.5 *
+    heightInMeters *
+    heightInMeters;
+
+  const max =
+    24.9 *
+    heightInMeters *
+    heightInMeters;
 
   return {
     min: Number(min.toFixed(1)),
@@ -112,8 +155,493 @@ const getIdealWeightRange = (height: number) => {
 };
 
 // --------------------------------------------------
-// Seed
+// Calories
 // --------------------------------------------------
+
+const calculateTargetCalories = (
+  tdee: number,
+  goalType: GoalType
+): number => {
+  switch (goalType) {
+    case "Bulking":
+      return Math.round(tdee * 1.1);
+
+    case "Cutting":
+      return Math.round(tdee * 0.8);
+
+    case "Recomp":
+      return Math.round(tdee * 0.95);
+
+    case "Maintenance":
+      return tdee;
+  }
+};
+
+// --------------------------------------------------
+// Macros
+// --------------------------------------------------
+
+const calculateMacros = (
+  weight: number,
+  calories: number,
+  goalType: GoalType
+) => {
+  let protein: number;
+  let fat: number;
+
+  switch (goalType) {
+    case "Bulking":
+      protein = Math.round(weight * 2);
+      fat = Math.round(weight * 0.9);
+      break;
+
+    case "Cutting":
+      protein = Math.round(weight * 2);
+      fat = Math.round(weight * 0.7);
+      break;
+
+    case "Recomp":
+      protein = Math.round(weight * 2);
+      fat = Math.round(weight * 0.8);
+      break;
+
+    case "Maintenance":
+      protein = Math.round(weight * 1.8);
+      fat = Math.round(weight * 0.8);
+      break;
+  }
+
+  const proteinCalories = protein * 4;
+  const fatCalories = fat * 9;
+
+  const carbs = Math.max(
+    0,
+    Math.round(
+      (calories -
+        proteinCalories -
+        fatCalories) /
+        4
+    )
+  );
+
+  return {
+    protein,
+    carbs,
+    fat,
+  };
+};
+
+// --------------------------------------------------
+// 50 Realistic Profiles
+// --------------------------------------------------
+
+const profiles: Profile[] = [
+  {
+    age: 24,
+    gender: "male",
+    height: 170,
+    weight: 68,
+    activityLevel: 1.55,
+    goalType: "Maintenance",
+  },
+  {
+    age: 26,
+    gender: "female",
+    height: 160,
+    weight: 58,
+    activityLevel: 1.55,
+    goalType: "Recomp",
+  },
+  {
+    age: 29,
+    gender: "male",
+    height: 178,
+    weight: 76,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 23,
+    gender: "female",
+    height: 165,
+    weight: 55,
+    activityLevel: 1.55,
+    goalType: "Cutting",
+  },
+  {
+    age: 31,
+    gender: "male",
+    height: 180,
+    weight: 84,
+    activityLevel: 1.375,
+    goalType: "Cutting",
+  },
+  {
+    age: 28,
+    gender: "female",
+    height: 168,
+    weight: 64,
+    activityLevel: 1.55,
+    goalType: "Maintenance",
+  },
+  {
+    age: 22,
+    gender: "male",
+    height: 175,
+    weight: 70,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 30,
+    gender: "female",
+    height: 162,
+    weight: 72,
+    activityLevel: 1.375,
+    goalType: "Cutting",
+  },
+  {
+    age: 35,
+    gender: "male",
+    height: 172,
+    weight: 78,
+    activityLevel: 1.55,
+    goalType: "Recomp",
+  },
+  {
+    age: 25,
+    gender: "female",
+    height: 158,
+    weight: 52,
+    activityLevel: 1.55,
+    goalType: "Bulking",
+  },
+  {
+    age: 27,
+    gender: "male",
+    height: 182,
+    weight: 88,
+    activityLevel: 1.55,
+    goalType: "Cutting",
+  },
+  {
+    age: 34,
+    gender: "female",
+    height: 170,
+    weight: 76,
+    activityLevel: 1.375,
+    goalType: "Cutting",
+  },
+  {
+    age: 40,
+    gender: "male",
+    height: 176,
+    weight: 92,
+    activityLevel: 1.375,
+    goalType: "Maintenance",
+  },
+  {
+    age: 29,
+    gender: "female",
+    height: 164,
+    weight: 61,
+    activityLevel: 1.55,
+    goalType: "Recomp",
+  },
+  {
+    age: 26,
+    gender: "male",
+    height: 168,
+    weight: 63,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 32,
+    gender: "female",
+    height: 166,
+    weight: 69,
+    activityLevel: 1.375,
+    goalType: "Maintenance",
+  },
+  {
+    age: 23,
+    gender: "male",
+    height: 180,
+    weight: 74,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 27,
+    gender: "female",
+    height: 160,
+    weight: 67,
+    activityLevel: 1.55,
+    goalType: "Cutting",
+  },
+  {
+    age: 33,
+    gender: "male",
+    height: 174,
+    weight: 81,
+    activityLevel: 1.55,
+    goalType: "Recomp",
+  },
+  {
+    age: 24,
+    gender: "female",
+    height: 167,
+    weight: 59,
+    activityLevel: 1.55,
+    goalType: "Maintenance",
+  },
+  {
+    age: 30,
+    gender: "male",
+    height: 185,
+    weight: 96,
+    activityLevel: 1.375,
+    goalType: "Cutting",
+  },
+  {
+    age: 36,
+    gender: "female",
+    height: 163,
+    weight: 82,
+    activityLevel: 1.2,
+    goalType: "Cutting",
+  },
+  {
+    age: 28,
+    gender: "male",
+    height: 177,
+    weight: 73,
+    activityLevel: 1.55,
+    goalType: "Maintenance",
+  },
+  {
+    age: 31,
+    gender: "female",
+    height: 169,
+    weight: 66,
+    activityLevel: 1.55,
+    goalType: "Recomp",
+  },
+  {
+    age: 25,
+    gender: "male",
+    height: 171,
+    weight: 57,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 22,
+    gender: "female",
+    height: 157,
+    weight: 48,
+    activityLevel: 1.55,
+    goalType: "Bulking",
+  },
+  {
+    age: 37,
+    gender: "male",
+    height: 179,
+    weight: 86,
+    activityLevel: 1.375,
+    goalType: "Cutting",
+  },
+  {
+    age: 40,
+    gender: "female",
+    height: 165,
+    weight: 74,
+    activityLevel: 1.375,
+    goalType: "Maintenance",
+  },
+  {
+    age: 32,
+    gender: "male",
+    height: 183,
+    weight: 90,
+    activityLevel: 1.55,
+    goalType: "Recomp",
+  },
+  {
+    age: 26,
+    gender: "female",
+    height: 161,
+    weight: 56,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 21,
+    gender: "male",
+    height: 169,
+    weight: 60,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 33,
+    gender: "female",
+    height: 171,
+    weight: 79,
+    activityLevel: 1.375,
+    goalType: "Cutting",
+  },
+  {
+    age: 38,
+    gender: "male",
+    height: 175,
+    weight: 101,
+    activityLevel: 1.2,
+    goalType: "Cutting",
+  },
+  {
+    age: 28,
+    gender: "female",
+    height: 159,
+    weight: 62,
+    activityLevel: 1.55,
+    goalType: "Recomp",
+  },
+  {
+    age: 34,
+    gender: "male",
+    height: 181,
+    weight: 83,
+    activityLevel: 1.55,
+    goalType: "Maintenance",
+  },
+  {
+    age: 25,
+    gender: "female",
+    height: 166,
+    weight: 60,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 29,
+    gender: "male",
+    height: 173,
+    weight: 69,
+    activityLevel: 1.725,
+    goalType: "Recomp",
+  },
+  {
+    age: 35,
+    gender: "female",
+    height: 168,
+    weight: 73,
+    activityLevel: 1.375,
+    goalType: "Cutting",
+  },
+  {
+    age: 42,
+    gender: "male",
+    height: 177,
+    weight: 95,
+    activityLevel: 1.2,
+    goalType: "Maintenance",
+  },
+  {
+    age: 30,
+    gender: "female",
+    height: 163,
+    weight: 58,
+    activityLevel: 1.55,
+    goalType: "Recomp",
+  },
+  {
+    age: 24,
+    gender: "male",
+    height: 186,
+    weight: 82,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 27,
+    gender: "female",
+    height: 170,
+    weight: 70,
+    activityLevel: 1.55,
+    goalType: "Cutting",
+  },
+  {
+    age: 36,
+    gender: "male",
+    height: 170,
+    weight: 85,
+    activityLevel: 1.375,
+    goalType: "Cutting",
+  },
+  {
+    age: 38,
+    gender: "female",
+    height: 162,
+    weight: 77,
+    activityLevel: 1.2,
+    goalType: "Maintenance",
+  },
+  {
+    age: 27,
+    gender: "male",
+    height: 176,
+    weight: 79,
+    activityLevel: 1.55,
+    goalType: "Recomp",
+  },
+  {
+    age: 23,
+    gender: "female",
+    height: 159,
+    weight: 51,
+    activityLevel: 1.725,
+    goalType: "Bulking",
+  },
+  {
+    age: 31,
+    gender: "male",
+    height: 184,
+    weight: 91,
+    activityLevel: 1.55,
+    goalType: "Cutting",
+  },
+  {
+    age: 29,
+    gender: "female",
+    height: 167,
+    weight: 63,
+    activityLevel: 1.55,
+    goalType: "Maintenance",
+  },
+  {
+    age: 26,
+    gender: "male",
+    height: 172,
+    weight: 66,
+    activityLevel: 1.725,
+    goalType: "Recomp",
+  },
+  {
+    age: 34,
+    gender: "female",
+    height: 160,
+    weight: 68,
+    activityLevel: 1.375,
+    goalType: "Cutting",
+  },
+];
+
+// --------------------------------------------------
+// Seed Database
+// --------------------------------------------------
+
 const seedDatabase = async (): Promise<void> => {
   try {
     console.log("Connecting to MongoDB...");
@@ -124,481 +652,183 @@ const seedDatabase = async (): Promise<void> => {
       `MongoDB connected: ${mongoose.connection.host}`
     );
 
-    // ------------------------------------------------
     // Get existing users
-    // ------------------------------------------------
     const users = await mongoose.connection
       .collection("users")
       .find({})
       .project({ _id: 1 })
-      .limit(20)
+      .limit(50)
       .toArray();
 
     if (users.length === 0) {
       throw new Error(
-        "No users found. Create users before running the seed script."
+        "No users found in users collection."
       );
     }
 
-    console.log(`Found ${users.length} existing users.`);
+    console.log(
+      `Found ${users.length} users.`
+    );
 
     // ------------------------------------------------
-    // BMI seed profiles
+    // Create BMI History records
     // ------------------------------------------------
-    const profiles = [
-      // Underweight
-      {
-        age: 21,
-        gender: "male" as const,
-        height: 172,
-        weight: 52,
-        activity: 1.375,
-      },
-      {
-        age: 24,
-        gender: "female" as const,
-        height: 160,
-        weight: 46,
-        activity: 1.375,
-      },
-      {
-        age: 27,
-        gender: "male" as const,
-        height: 178,
-        weight: 55,
-        activity: 1.55,
-      },
-      {
-        age: 22,
-        gender: "female" as const,
-        height: 165,
-        weight: 49,
-        activity: 1.2,
-      },
-      {
-        age: 29,
-        gender: "male" as const,
-        height: 180,
-        weight: 58,
-        activity: 1.55,
-      },
-      {
-        age: 25,
-        gender: "female" as const,
-        height: 158,
-        weight: 45,
-        activity: 1.375,
-      },
-      {
-        age: 31,
-        gender: "male" as const,
-        height: 175,
-        weight: 54,
-        activity: 1.55,
-      },
-      {
-        age: 23,
-        gender: "female" as const,
-        height: 162,
-        weight: 47,
-        activity: 1.2,
-      },
-      {
-        age: 28,
-        gender: "male" as const,
-        height: 170,
-        weight: 51,
-        activity: 1.375,
-      },
-      {
-        age: 26,
-        gender: "female" as const,
-        height: 168,
-        weight: 50,
-        activity: 1.55,
-      },
 
-      // Normal
-      {
-        age: 24,
-        gender: "male" as const,
-        height: 170,
-        weight: 68,
-        activity: 1.55,
-      },
-      {
-        age: 26,
-        gender: "female" as const,
-        height: 160,
-        weight: 58,
-        activity: 1.375,
-      },
-      {
-        age: 30,
-        gender: "male" as const,
-        height: 175,
-        weight: 72,
-        activity: 1.55,
-      },
-      {
-        age: 28,
-        gender: "female" as const,
-        height: 165,
-        weight: 61,
-        activity: 1.55,
-      },
-      {
-        age: 32,
-        gender: "male" as const,
-        height: 180,
-        weight: 78,
-        activity: 1.725,
-      },
-      {
-        age: 25,
-        gender: "female" as const,
-        height: 158,
-        weight: 55,
-        activity: 1.375,
-      },
-      {
-        age: 29,
-        gender: "male" as const,
-        height: 168,
-        weight: 64,
-        activity: 1.55,
-      },
-      {
-        age: 27,
-        gender: "female" as const,
-        height: 170,
-        weight: 67,
-        activity: 1.55,
-      },
-      {
-        age: 35,
-        gender: "male" as const,
-        height: 176,
-        weight: 74,
-        activity: 1.375,
-      },
-      {
-        age: 33,
-        gender: "female" as const,
-        height: 163,
-        weight: 60,
-        activity: 1.55,
-      },
-
-      // Overweight
-      {
-        age: 30,
-        gender: "male" as const,
-        height: 175,
-        weight: 84,
-        activity: 1.375,
-      },
-      {
-        age: 34,
-        gender: "female" as const,
-        height: 162,
-        weight: 76,
-        activity: 1.2,
-      },
-      {
-        age: 38,
-        gender: "male" as const,
-        height: 180,
-        weight: 94,
-        activity: 1.375,
-      },
-      {
-        age: 31,
-        gender: "female" as const,
-        height: 165,
-        weight: 79,
-        activity: 1.375,
-      },
-      {
-        age: 42,
-        gender: "male" as const,
-        height: 172,
-        weight: 86,
-        activity: 1.2,
-      },
-      {
-        age: 36,
-        gender: "female" as const,
-        height: 168,
-        weight: 82,
-        activity: 1.375,
-      },
-      {
-        age: 29,
-        gender: "male" as const,
-        height: 178,
-        weight: 88,
-        activity: 1.55,
-      },
-      {
-        age: 40,
-        gender: "female" as const,
-        height: 160,
-        weight: 78,
-        activity: 1.2,
-      },
-      {
-        age: 37,
-        gender: "male" as const,
-        height: 183,
-        weight: 98,
-        activity: 1.375,
-      },
-      {
-        age: 35,
-        gender: "female" as const,
-        height: 170,
-        weight: 86,
-        activity: 1.375,
-      },
-
-      // Obese
-      {
-        age: 40,
-        gender: "male" as const,
-        height: 175,
-        weight: 105,
-        activity: 1.2,
-      },
-      {
-        age: 44,
-        gender: "female" as const,
-        height: 165,
-        weight: 98,
-        activity: 1.2,
-      },
-      {
-        age: 39,
-        gender: "male" as const,
-        height: 180,
-        weight: 112,
-        activity: 1.2,
-      },
-      {
-        age: 46,
-        gender: "female" as const,
-        height: 160,
-        weight: 94,
-        activity: 1.2,
-      },
-      {
-        age: 42,
-        gender: "male" as const,
-        height: 172,
-        weight: 108,
-        activity: 1.375,
-      },
-      {
-        age: 48,
-        gender: "female" as const,
-        height: 168,
-        weight: 101,
-        activity: 1.2,
-      },
-      {
-        age: 37,
-        gender: "male" as const,
-        height: 185,
-        weight: 118,
-        activity: 1.375,
-      },
-      {
-        age: 45,
-        gender: "female" as const,
-        height: 162,
-        weight: 97,
-        activity: 1.2,
-      },
-      {
-        age: 41,
-        gender: "male" as const,
-        height: 178,
-        weight: 115,
-        activity: 1.2,
-      },
-      {
-        age: 43,
-        gender: "female" as const,
-        height: 170,
-        weight: 108,
-        activity: 1.2,
-      },
-
-      // Athletic / Muscle Gain
-      {
-        age: 22,
-        gender: "male" as const,
-        height: 178,
-        weight: 82,
-        activity: 1.725,
-      },
-      {
-        age: 25,
-        gender: "male" as const,
-        height: 182,
-        weight: 88,
-        activity: 1.725,
-      },
-      {
-        age: 28,
-        gender: "female" as const,
-        height: 168,
-        weight: 68,
-        activity: 1.725,
-      },
-      {
-        age: 24,
-        gender: "male" as const,
-        height: 175,
-        weight: 80,
-        activity: 1.9,
-      },
-      {
-        age: 30,
-        gender: "female" as const,
-        height: 165,
-        weight: 65,
-        activity: 1.725,
-      },
-      {
-        age: 27,
-        gender: "male" as const,
-        height: 180,
-        weight: 85,
-        activity: 1.725,
-      },
-      {
-        age: 23,
-        gender: "female" as const,
-        height: 170,
-        weight: 70,
-        activity: 1.725,
-      },
-      {
-        age: 31,
-        gender: "male" as const,
-        height: 185,
-        weight: 92,
-        activity: 1.725,
-      },
-      {
-        age: 26,
-        gender: "male" as const,
-        height: 176,
-        weight: 79,
-        activity: 1.9,
-      },
-      {
-        age: 29,
-        gender: "female" as const,
-        height: 168,
-        weight: 69,
-        activity: 1.725,
-      },
-    ];
-
-    // ------------------------------------------------
-    // Generate BMI histories
-    // ------------------------------------------------
-    const bmiHistories = profiles.map((profile, index) => {
-      const bmi = calculateBMI(
-        profile.weight,
-        profile.height
-      );
-
-      const bmr = calculateBMR(
-        profile.age,
-        profile.gender,
-        profile.height,
-        profile.weight
-      );
-
-      const tdee = calculateTDEE(
-        bmr,
-        profile.activity
-      );
-
-      const idealWeightRange =
-        getIdealWeightRange(profile.height);
-
-      return {
-        userId: users[index % users.length]._id,
-
-        age: profile.age,
-
-        gender: profile.gender,
-
-        height: profile.height,
-
-        weight: profile.weight,
-
-        bmi,
-
-        bmr,
-
-        tdee,
-
-        bmiCategory: getBMICategory(bmi),
-
-        riskLevel: getRiskLevel(bmi),
-
-        idealWeightRange,
-      };
-    });
-
-    // ------------------------------------------------
-    // Generate Goals
-    // ------------------------------------------------
-    const goals = profiles.map((profile, index) => {
-      const bmi = calculateBMI(
-        profile.weight,
-        profile.height
-      );
-
-      let targetWeight: number;
-
-      if (bmi < 18.5) {
-        // gradual weight gain target
-        targetWeight = Number(
-          (profile.weight + 4).toFixed(1)
+    const bmiHistories = profiles.map(
+      (profile, index) => {
+        const bmi = calculateBMI(
+          profile.weight,
+          profile.height
         );
-      } else if (bmi < 25) {
-        // maintenance / small performance goal
-        targetWeight = Number(
-          profile.weight.toFixed(1)
+
+        const bmr = calculateBMR(
+          profile.age,
+          profile.gender,
+          profile.height,
+          profile.weight
         );
-      } else {
-        // gradual weight reduction target
-        targetWeight = Number(
-          (profile.weight - 5).toFixed(1)
+
+        const tdee = calculateTDEE(
+          bmr,
+          profile.activityLevel
         );
+
+        const targetCalories =
+          calculateTargetCalories(
+            tdee,
+            profile.goalType
+          );
+
+        const macros = calculateMacros(
+          profile.weight,
+          targetCalories,
+          profile.goalType
+        );
+
+        const idealWeightRange =
+          getIdealWeightRange(
+            profile.height
+          );
+
+        return {
+          userId:
+            users[index % users.length]._id,
+
+          age: profile.age,
+
+          gender: profile.gender,
+
+          height: profile.height,
+
+          weight: profile.weight,
+
+          bmi,
+
+          bmr,
+
+          tdee,
+
+          targetCalories,
+
+          macros,
+
+          bmiCategory:
+            getBMICategory(bmi),
+
+          riskLevel:
+            getRiskLevel(bmi),
+
+          idealWeightRange,
+        };
       }
-
-      const weeklyWorkoutFrequency =
-        3 + (index % 4);
-
-      return {
-        userId: users[index % users.length]._id.toString(),
-
-        targetWeight,
-
-        weeklyWorkoutFrequency,
-      };
-    });
+    );
 
     // ------------------------------------------------
-    // Insert BMI histories
+    // Create Goal records
     // ------------------------------------------------
+
+    const goals = profiles.map(
+      (profile, index) => {
+        const bmr = calculateBMR(
+          profile.age,
+          profile.gender,
+          profile.height,
+          profile.weight
+        );
+
+        const tdee = calculateTDEE(
+          bmr,
+          profile.activityLevel
+        );
+
+        const targetCalories =
+          calculateTargetCalories(
+            tdee,
+            profile.goalType
+          );
+
+        const macros = calculateMacros(
+          profile.weight,
+          targetCalories,
+          profile.goalType
+        );
+
+        let targetWeight =
+          profile.weight;
+
+        if (profile.goalType === "Bulking") {
+          targetWeight = Number(
+            (profile.weight * 1.05).toFixed(1)
+          );
+        }
+
+        if (profile.goalType === "Cutting") {
+          targetWeight = Number(
+            (profile.weight * 0.95).toFixed(1)
+          );
+        }
+
+        if (profile.goalType === "Recomp") {
+          targetWeight = Number(
+            profile.weight.toFixed(1)
+          );
+        }
+
+        if (
+          profile.goalType === "Maintenance"
+        ) {
+          targetWeight = Number(
+            profile.weight.toFixed(1)
+          );
+        }
+
+        return {
+          userId:
+            users[index % users.length]._id.toString(),
+
+          goalType:
+            profile.goalType,
+
+          targetWeight,
+
+          weeklyWorkoutFrequency:
+            3 + (index % 4),
+
+          bmr,
+
+          tdee,
+
+          targetCalories,
+
+          macros,
+        };
+      }
+    );
+
+    // ------------------------------------------------
+    // Insert data
+    // ------------------------------------------------
+
     const insertedBMI =
       await BMIHistory.insertMany(
         bmiHistories
@@ -608,9 +838,6 @@ const seedDatabase = async (): Promise<void> => {
       `Inserted ${insertedBMI.length} BMI history records.`
     );
 
-    // ------------------------------------------------
-    // Insert goals
-    // ------------------------------------------------
     const insertedGoals =
       await Goal.insertMany(goals);
 
@@ -619,11 +846,11 @@ const seedDatabase = async (): Promise<void> => {
     );
 
     console.log(
-      "========================================"
+      "======================================"
     );
 
     console.log(
-      "Seed completed successfully!"
+      "SEED COMPLETED SUCCESSFULLY"
     );
 
     console.log(
@@ -635,7 +862,7 @@ const seedDatabase = async (): Promise<void> => {
     );
 
     console.log(
-      "========================================"
+      "======================================"
     );
   } catch (error) {
     console.error(
