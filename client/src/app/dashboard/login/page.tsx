@@ -122,15 +122,15 @@ export default function DashboardLoginPage() {
       setErrorMessage(invalidMsg);
     } catch (err: any) {
       // Direct Master Fallback on Network Error
-      if (
-        cleanEmail === "master@fitora.com" ||
-        cleanEmail.includes("admin")
-      ) {
+      if (cleanEmail === "master@fitora.com" || cleanEmail.includes("admin")) {
         saveAuthSession("fitora_master_dev_token", {
           id: "master_01",
           name: "Moloy Paul",
           email: cleanEmail,
-          role: cleanEmail === "master@fitora.com" ? "master_admin" : "branch_admin",
+          role:
+            cleanEmail === "master@fitora.com"
+              ? "master_admin"
+              : "branch_admin",
           isMasterAdmin: cleanEmail === "master@fitora.com",
           isBranchAdmin: cleanEmail !== "master@fitora.com",
           plan: "VIP Ultimate",

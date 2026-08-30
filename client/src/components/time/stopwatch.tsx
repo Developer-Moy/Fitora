@@ -120,7 +120,8 @@ export default function StopwatchPage({
             HUD Workout Stopwatch
           </h1>
           <p className="text-gray-400 text-xs sm:text-sm font-medium">
-            Precision intervals, Tabata sets, and audio cues for high-intensity training.
+            Precision intervals, Tabata sets, and audio cues for high-intensity
+            training.
           </p>
         </div>
 

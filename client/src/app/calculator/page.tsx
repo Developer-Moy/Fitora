@@ -215,11 +215,11 @@ Macros:
   };
 
   return (
-    <main className="min-h-screen bg-white text-black">
+    <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black">
       {/* =====================================================
           SECTION 1: HERO / BMI HEADER & CALCULATOR
       ====================================================== */}
-      <section className="bg-black px-4 pt-20 pb-12 text-white sm:px-6 lg:pt-24 lg:pb-16 select-none border-b border-white/10">
+      <section className="bg-black px-4 pt-6 sm:pt-10 pb-12 text-white sm:px-6 lg:pt-8 lg:pb-16 select-none border-b border-white/10">
         <div className="mx-auto w-11/12 max-w-7xl">
           <div className="grid gap-8 lg:grid-cols-12 lg:items-stretch">
             {/* LEFT — BMI INFORMATION */}
@@ -352,22 +352,22 @@ Macros:
       {/* =====================================================
           SECTION 2: USER INFORMATION & MACRO BREAKDOWN (COMPACT & TIGHT)
       ====================================================== */}
-      <section className="bg-white px-4 py-10 sm:px-6 lg:py-14 select-none">
+      <section className="bg-black px-4 py-12 sm:px-6 lg:py-16 select-none border-t border-white/10">
         <div className="mx-auto w-11/12 max-w-7xl">
           <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
             {/* =================================================
                 LEFT — PERSONAL INFORMATION FORM (40/60 Ratio: 40% Width)
             ================================================= */}
             <div className="lg:col-span-5">
-              <div className="rounded-3xl bg-gray-50 border border-gray-200 p-5 sm:p-6 space-y-4 shadow-sm">
+              <div className="rounded-3xl bg-neutral-950 border border-white/15 p-5 sm:p-6 space-y-4 shadow-xl">
                 {/* Header */}
-                <div className="space-y-1 border-b border-gray-200 pb-3">
+                <div className="space-y-1 border-b border-white/10 pb-3">
                   <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
                     02 / PERSONAL PROFILE
                   </span>
 
                   <h2
-                    className="text-2xl sm:text-3xl font-black tracking-tight text-black"
+                    className="text-2xl sm:text-3xl font-black tracking-tight text-white"
                     style={{
                       fontFamily: "'Georgia', 'Times New Roman', serif",
                       fontStyle: "italic",
@@ -375,7 +375,7 @@ Macros:
                     }}
                   >
                     Tell Us{" "}
-                    <span className="text-gray-500 font-normal">
+                    <span className="text-gray-400 font-normal">
                       About You.
                     </span>
                   </h2>
@@ -387,7 +387,7 @@ Macros:
                   <div className="space-y-1">
                     <label
                       htmlFor="age"
-                      className="block text-[9px] font-black uppercase tracking-widest text-black"
+                      className="block text-[9px] font-black uppercase tracking-widest text-gray-300"
                     >
                       Age (Years)
                     </label>
@@ -398,7 +398,7 @@ Macros:
                       max="100"
                       value={age}
                       onChange={(event) => setAge(Number(event.target.value))}
-                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-gray-300 text-black text-xs font-bold outline-none focus:border-black transition-colors"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none focus:border-white transition-colors"
                     />
                   </div>
 
@@ -406,7 +406,7 @@ Macros:
                   <div className="space-y-1">
                     <label
                       htmlFor="gender"
-                      className="block text-[9px] font-black uppercase tracking-widest text-black"
+                      className="block text-[9px] font-black uppercase tracking-widest text-gray-300"
                     >
                       Gender
                     </label>
@@ -416,10 +416,10 @@ Macros:
                       onChange={(event) =>
                         setGender(event.target.value as Gender)
                       }
-                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-gray-300 text-black text-xs font-bold outline-none cursor-pointer"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none cursor-pointer focus:border-white"
                     >
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
+                      <option value="male" className="bg-neutral-950 text-white">Male</option>
+                      <option value="female" className="bg-neutral-950 text-white">Female</option>
                     </select>
                   </div>
 
@@ -427,7 +427,7 @@ Macros:
                   <div className="space-y-1">
                     <label
                       htmlFor="height"
-                      className="block text-[9px] font-black uppercase tracking-widest text-black"
+                      className="block text-[9px] font-black uppercase tracking-widest text-gray-300"
                     >
                       Height (CM)
                     </label>
@@ -440,7 +440,7 @@ Macros:
                       onChange={(event) =>
                         setHeight(Number(event.target.value))
                       }
-                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-gray-300 text-black text-xs font-bold outline-none focus:border-black transition-colors"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none focus:border-white transition-colors"
                     />
                   </div>
 
@@ -448,7 +448,7 @@ Macros:
                   <div className="space-y-1">
                     <label
                       htmlFor="weight"
-                      className="block text-[9px] font-black uppercase tracking-widest text-black"
+                      className="block text-[9px] font-black uppercase tracking-widest text-gray-300"
                     >
                       Weight (KG)
                     </label>
@@ -461,7 +461,7 @@ Macros:
                       onChange={(event) =>
                         setWeight(Number(event.target.value))
                       }
-                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-gray-300 text-black text-xs font-bold outline-none focus:border-black transition-colors"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none focus:border-white transition-colors"
                     />
                   </div>
 
@@ -469,7 +469,7 @@ Macros:
                   <div className="space-y-1">
                     <label
                       htmlFor="activity"
-                      className="block text-[9px] font-black uppercase tracking-widest text-black"
+                      className="block text-[9px] font-black uppercase tracking-widest text-gray-300"
                     >
                       Activity Level
                     </label>
@@ -479,19 +479,19 @@ Macros:
                       onChange={(event) =>
                         setActivityLevel(Number(event.target.value))
                       }
-                      className="w-full px-3.5 py-2 rounded-xl bg-white border border-gray-300 text-black text-xs font-bold outline-none cursor-pointer"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none cursor-pointer focus:border-white"
                     >
-                      <option value={1.2}>
+                      <option value={1.2} className="bg-neutral-950 text-white">
                         Sedentary (Little/no exercise)
                       </option>
-                      <option value={1.375}>
+                      <option value={1.375} className="bg-neutral-950 text-white">
                         Lightly Active (1–3 days/wk)
                       </option>
-                      <option value={1.55}>
+                      <option value={1.55} className="bg-neutral-950 text-white">
                         Moderately Active (3–5 days/wk)
                       </option>
-                      <option value={1.725}>Very Active (6–7 days/wk)</option>
-                      <option value={1.9}>
+                      <option value={1.725} className="bg-neutral-950 text-white">Very Active (6–7 days/wk)</option>
+                      <option value={1.9} className="bg-neutral-950 text-white">
                         Extremely Active (Physical Job)
                       </option>
                     </select>
@@ -499,8 +499,8 @@ Macros:
                 </div>
 
                 {/* Goal Selector Pill Buttons (Compact) */}
-                <div className="pt-3 border-t border-gray-200 space-y-2">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-black block">
+                <div className="pt-3 border-t border-white/10 space-y-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-300 block">
                     Choose Your Goal
                   </span>
 
@@ -515,16 +515,16 @@ Macros:
                           onClick={() => setGoal(item.value)}
                           className={`flex w-full items-center justify-between p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${
                             isActive
-                              ? "border-black bg-black text-white shadow-md"
-                              : "border-gray-200 bg-white text-black hover:border-gray-400 hover:bg-gray-50"
+                              ? "border-white bg-white text-black shadow-lg"
+                              : "border-white/15 bg-neutral-900 text-white hover:border-white/30 hover:bg-neutral-800"
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
                             <span
                               className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black transition-colors ${
                                 isActive
-                                  ? "bg-white text-black"
-                                  : "bg-gray-100 text-black"
+                                  ? "bg-black text-white"
+                                  : "bg-neutral-800 text-white"
                               }`}
                             >
                               {item.icon}
@@ -538,8 +538,8 @@ Macros:
                           <span
                             className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
                               isActive
-                                ? "bg-white/15 text-white"
-                                : "bg-gray-100 text-gray-600"
+                                ? "bg-black text-white font-black"
+                                : "bg-neutral-800 text-gray-300"
                             }`}
                           >
                             {item.calories}
@@ -851,10 +851,10 @@ Macros:
             <button
               type="button"
               onClick={handleExport}
-              className="group inline-flex items-center justify-between w-full bg-black text-white border border-black hover:bg-neutral-900 font-extrabold text-xs sm:text-sm px-8 py-4 rounded-full transition-all duration-300 shadow-2xl cursor-pointer"
+              className="group inline-flex items-center justify-between w-full bg-white text-black border border-white hover:bg-neutral-200 font-extrabold text-xs sm:text-sm px-8 py-4 rounded-full transition-all duration-300 shadow-2xl cursor-pointer"
             >
               <span>EXPORT METRICS & SUMMARY</span>
-              <span className="bg-white text-black w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+              <span className="bg-black text-white w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
                 <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
               </span>
             </button>
@@ -875,6 +875,6 @@ Macros:
           <span>{toast}</span>
         </motion.div>
       )}
-    </main>
+    </div>
   );
 }
