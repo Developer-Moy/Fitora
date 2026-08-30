@@ -105,6 +105,25 @@ export default function StopwatchPage({
   return (
     <div className="w-full bg-black text-white flex flex-col overflow-x-hidden selection:bg-white selection:text-black">
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+        {/* Page Top Heading */}
+        <div className="text-center space-y-3 max-w-3xl mx-auto pt-2 pb-2">
+          <h1
+            className="text-white tracking-tight select-none"
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontWeight: 900,
+              fontStyle: "italic",
+              fontSize: "clamp(2.2rem, 5.5vw, 4.2rem)",
+              lineHeight: 1.1,
+            }}
+          >
+            HUD Workout Stopwatch
+          </h1>
+          <p className="text-gray-400 text-xs sm:text-sm font-medium">
+            Precision intervals, Tabata sets, and audio cues for high-intensity training.
+          </p>
+        </div>
+
         {/* Exercise Switcher Header */}
         <section className="w-full max-w-4xl mx-auto space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-white/10">

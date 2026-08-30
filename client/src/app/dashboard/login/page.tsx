@@ -218,7 +218,16 @@ export default function DashboardLoginPage() {
             <Shield className="w-3 h-3" />
             <span>Management Security Gateway</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
+          <h1
+            className="text-white tracking-tight select-none"
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontWeight: 900,
+              fontStyle: "italic",
+              fontSize: "clamp(2rem, 5vw, 3rem)",
+              lineHeight: 1.1,
+            }}
+          >
             Sign In to Dashboard
           </h1>
           <p className="text-xs text-neutral-400">

@@ -451,7 +451,16 @@ export default function AuthFlowContainer({
               <span>Next-Gen AI Fitness Platform</span>
             </div>
 
-            <h1 className="text-3xl xl:text-4xl font-black text-white leading-tight tracking-tight uppercase drop-shadow-lg">
+            <h1
+              className="text-white tracking-tight select-none drop-shadow-lg"
+              style={{
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontWeight: 900,
+                fontStyle: "italic",
+                fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
+                lineHeight: 1.1,
+              }}
+            >
               Start your journey to a healthier, stronger you.
             </h1>
 
