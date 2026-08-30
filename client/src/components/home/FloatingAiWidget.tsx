@@ -66,7 +66,9 @@ export default function FloatingAiWidget() {
   useEffect(() => {
     const handleScroll = () => {
       if (typeof window !== "undefined") {
-        setIsScrolled(window.scrollY > 160);
+        const scrollY =
+          window.scrollY || document.documentElement.scrollTop || 0;
+        setIsScrolled(scrollY > 80);
       }
     };
     handleScroll();
@@ -217,8 +219,10 @@ export default function FloatingAiWidget() {
     selectedMode === "chat" ? chatMessages : coachMessages;
 
   return (
-    <div ref={widgetRef} className="absolute inset-0 select-none pointer-events-none">
-      {/* ─── 1. Viewport Fixed Popover Modal (320px Minimum Mobile Responsive) ─── */}
+    <div
+      ref={widgetRef}
+      className="absolute inset-0 select-none pointer-events-none"
+    >
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -228,7 +232,6 @@ export default function FloatingAiWidget() {
             transition={{ duration: 0.25, ease: "easeOut" }}
             className="fixed bottom-18 sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[640px] md:w-[720px] lg:w-[760px] max-w-[760px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[80] pointer-events-auto"
           >
-            {/* STATE A: Mode Selection Menu (320px Ultra-Compact Mobile Layout) */}
             {!selectedMode ? (
               <div className="p-3 sm:p-5 space-y-3 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black overflow-y-auto max-h-[380px] sm:max-h-[420px]">
                 {/* Header */}
@@ -538,10 +541,8 @@ export default function FloatingAiWidget() {
         )}
       </AnimatePresence>
 
-      {/* ─── 2. Framer Motion Morphing Button (320px Minimum Mobile Responsive) ─── */}
-      <motion.button
-        layout
-        transition={{ type: "spring", stiffness: 220, damping: 24 }}
+      {/* ─── 2. Morphing Button (320px Minimum Mobile Responsive) ─── */}
+      <button
         onClick={(e) => {
           e.stopPropagation();
           if (isOpen) {
@@ -551,10 +552,10 @@ export default function FloatingAiWidget() {
             setIsOpen(true);
           }
         }}
-        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 z-50 pointer-events-auto ${
+        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 pointer-events-auto ${
           isScrolled
-            ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 sm:px-6 sm:py-3 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95"
-            : "absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"
+            ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95 z-[99]"
+            : "absolute bottom-1 sm:bottom-1.5 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110 z-50"
         }`}
         aria-label="Open FITORA AI"
       >
@@ -582,7 +583,7 @@ export default function FloatingAiWidget() {
             <Sparkles className="w-4.5 h-4.5 sm:w-6 sm:h-6 fill-white stroke-none drop-shadow-[0_0_10px_rgba(255,255,255,0.9)] group-hover:rotate-12 transition-transform duration-300" />
           </motion.div>
         )}
-      </motion.button>
+      </button>
     </div>
   );
 }
