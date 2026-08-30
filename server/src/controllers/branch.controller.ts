@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Branch, IBranch } from "../models/Branch.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 // All 64 Districts of Bangladesh Grouped by 8 Divisions
 export const BANGLADESH_64_DISTRICTS = [
@@ -471,19 +472,22 @@ export const getPublicBranches = async (req: Request, res: Response) => {
       );
     }
 
-    return res.status(200).json({
-      success: true,
-      count: filtered.length,
-      totalBranchesNationwide: 64,
-      data: filtered,
-    });
+    return res.status(200).json(
+      successResponse("Public branches retrieved successfully", {
+        count: filtered.length,
+        totalBranchesNationwide: 64,
+        branches: filtered,
+      })
+    );
   } catch (error: any) {
     console.error("Error fetching public branches:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching branch directory.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching branch directory.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -516,18 +520,21 @@ export const getAdminBranches = async (req: AuthRequest, res: Response) => {
       })) as any;
     }
 
-    return res.status(200).json({
-      success: true,
-      count: branches.length,
-      data: branches,
-    });
+    return res.status(200).json(
+      successResponse("Admin branches overview retrieved successfully", {
+        count: branches.length,
+        branches,
+      })
+    );
   } catch (error: any) {
     console.error("Error in getAdminBranches:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching admin branch overview.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching admin branch overview.",
+        error.message,
+        500
+      )
+    );
   }
 };
 

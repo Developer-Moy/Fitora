@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import { setupSocketHandlers } from './sockets/index.js';
 import apiRouter from './routes/index.js';
+import { seedStopwatchPresets } from './data/stopwatch.seed.js';
 
 dotenv.config();
 
@@ -27,10 +28,13 @@ app.use(express.json());
 
 // Root Health Check Route
 app.get('/', (req: Request, res: Response) => {
-  res.json({
-    status: 'online',
+  res.status(200).json({
+    success: true,
     message: 'Fitora Server API Running',
-    version: '1.0.0'
+    data: {
+      version: '1.0.0'
+    },
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -46,6 +50,7 @@ const startServer = async () => {
     console.log(`[Fitora Server] Running on http://localhost:${PORT}`);
   });
   await connectDB();
+  await seedStopwatchPresets();
 };
 
 startServer();

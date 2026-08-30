@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Consultation } from "../models/Consultation.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 /**
  * 1. Public: Create Consultation Lead Inquiry (`POST /api/consultations`)
@@ -18,10 +19,9 @@ export const createLead = async (req: Request, res: Response) => {
     } = req.body;
 
     if (!fullName || !email) {
-      return res.status(400).json({
-        success: false,
-        message: "Full Name and Email are required fields.",
-      });
+      return res.status(400).json(
+        errorResponse("Full Name and Email are required fields.", "VALIDATION_ERROR", 400)
+      );
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -39,19 +39,21 @@ export const createLead = async (req: Request, res: Response) => {
       status: "pending",
     });
 
-    return res.status(201).json({
-      success: true,
-      message:
+    return res.status(201).json(
+      successResponse(
         "Thank you! Your gym consultation request has been received. Our branch coordinator will contact you shortly.",
-      data: consultation,
-    });
+        consultation
+      )
+    );
   } catch (error: any) {
     console.error("Error creating consultation lead:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while saving consultation inquiry.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while saving consultation inquiry.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -92,22 +94,25 @@ export const getAllLeads = async (req: AuthRequest, res: Response) => {
       Consultation.countDocuments(query),
     ]);
 
-    return res.status(200).json({
-      success: true,
-      data: leads,
-      pagination: {
-        total: totalCount,
-        page: pageNum,
-        totalPages: Math.ceil(totalCount / limitNum),
-      },
-    });
+    return res.status(200).json(
+      successResponse("Consultation leads retrieved successfully", {
+        leads,
+        pagination: {
+          total: totalCount,
+          page: pageNum,
+          totalPages: Math.ceil(totalCount / limitNum),
+        },
+      })
+    );
   } catch (error: any) {
     console.error("Error fetching consultation leads:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching consultation leads.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching consultation leads.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -121,10 +126,9 @@ export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
 
     const validStatuses = ["pending", "contacted", "enrolled", "archived"];
     if (status && !validStatuses.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: `Invalid status. Must be one of: [${validStatuses.join(", ")}]`,
-      });
+      return res.status(400).json(
+        errorResponse(`Invalid status. Must be one of: [${validStatuses.join(", ")}]`, "VALIDATION_ERROR", 400)
+      );
     }
 
     const lead = await Consultation.findByIdAndUpdate(
@@ -137,24 +141,23 @@ export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
     );
 
     if (!lead) {
-      return res.status(404).json({
-        success: false,
-        message: "Consultation lead not found.",
-      });
+      return res.status(404).json(
+        errorResponse("Consultation lead not found.", "CONSULTATION_NOT_FOUND", 404)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Consultation lead status updated successfully.",
-      data: lead,
-    });
+    return res.status(200).json(
+      successResponse("Consultation lead status updated successfully.", lead)
+    );
   } catch (error: any) {
     console.error("Error updating lead status:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while updating lead.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while updating lead.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -167,23 +170,23 @@ export const deleteLead = async (req: AuthRequest, res: Response) => {
     const lead = await Consultation.findByIdAndDelete(id);
 
     if (!lead) {
-      return res.status(404).json({
-        success: false,
-        message: "Consultation lead not found.",
-      });
+      return res.status(404).json(
+        errorResponse("Consultation lead not found.", "CONSULTATION_NOT_FOUND", 404)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Consultation lead deleted successfully.",
-    });
+    return res.status(200).json(
+      successResponse("Consultation lead deleted successfully.", {})
+    );
   } catch (error: any) {
     console.error("Error deleting lead:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while deleting lead.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while deleting lead.",
+        error.message,
+        500
+      )
+    );
   }
 };
 

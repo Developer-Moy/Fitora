@@ -1,286 +1,475 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { User } from "../models/User.model";
+import { StopwatchPreset } from "../models/StopwatchPreset.model";
+import { StopwatchSession } from "../models/StopwatchSession.model";
+import { AuthRequest } from "../middlewares/auth.middleware";
+import { estimateCalories } from "../services/calorieEstimation.service";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
-// In-memory storage for stopwatch presets and sessions (for offline development)
-// In production, these would be stored in MongoDB
-
-interface StopwatchPreset {
-  _id: string;
-  name: string;
-  description?: string;
-  defaultDurationSeconds: number;
-  defaultRestSeconds?: number;
-  exercises: StopwatchExercise[];
-}
-
-interface StopwatchExercise {
-  _id: string;
-  name: string;
-  targetDurationSeconds?: number;
-  targetRestSeconds?: number;
-  sets: number;
-  reps?: number;
-}
-
-interface StopwatchSession {
-  _id: string;
-  userId: string;
-  presetId: string;
-  startedAt: Date;
-  stoppedAt?: Date;
-  durationSeconds?: number;
-  completedExercises: number;
-  totalExercises: number;
-  caloriesBurned?: number;
-  notes?: string;
-}
-
-const inMemoryPresets: StopwatchPreset[] = [
-  {
-    _id: "preset-01",
-    name: "HIIT Interval",
-    description: "High-intensity interval training with work/rest cycles",
-    defaultDurationSeconds: 20,
-    defaultRestSeconds: 10,
-    exercises: [
-      {
-        _id: "ex-01",
-        name: "Jumping Jacks",
-        targetDurationSeconds: 30,
-        targetRestSeconds: 15,
-        sets: 3,
-        reps: 20,
-      },
-      {
-        _id: "ex-02",
-        name: "Burpees",
-        targetDurationSeconds: 30,
-        targetRestSeconds: 15,
-        sets: 3,
-        reps: 10,
-      },
-      {
-        _id: "ex-03",
-        name: "Mountain Climbers",
-        targetDurationSeconds: 30,
-        targetRestSeconds: 15,
-        sets: 3,
-        reps: 20,
-      },
-    ],
-  },
-  {
-    _id: "preset-02",
-    name: "Strength Circuit",
-    description: "Progressive strength training circuit",
-    defaultDurationSeconds: 45,
-    defaultRestSeconds: 60,
-    exercises: [
-      {
-        _id: "ex-04",
-        name: "Push-ups",
-        targetDurationSeconds: 45,
-        targetRestSeconds: 60,
-        sets: 3,
-        reps: 15,
-      },
-      {
-        _id: "ex-05",
-        name: "Squats",
-        targetDurationSeconds: 45,
-        targetRestSeconds: 60,
-        sets: 3,
-        reps: 20,
-      },
-      {
-        _id: "ex-06",
-        name: "Lunges",
-        targetDurationSeconds: 45,
-        targetRestSeconds: 60,
-        sets: 3,
-        reps: 12,
-      },
-    ],
-  },
-];
-
-const inMemorySessions: StopwatchSession[] = [];
-
+/**
+ * GET /api/stopwatch/presets
+ * Public endpoint - Returns all public stopwatch presets
+ */
 export const getPresets = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
   try {
-    return res.status(200).json({
-      success: true,
-      count: inMemoryPresets.length,
-      data: inMemoryPresets,
-    });
+    const presets = await StopwatchPreset.find({ isPublic: true })
+      .select("-userId -__v -isPublic")
+      .sort({ createdAt: 1 })
+      .lean();
+
+    return res.status(200).json(
+      successResponse("Public presets retrieved successfully", presets)
+    );
   } catch (error) {
     console.error("[Stopwatch Controller] getPresets Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch presets",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to fetch presets",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
+/**
+ * POST /api/stopwatch/custom-preset
+ * Authenticated endpoint - Create a custom workout preset
+ */
 export const createCustomPreset = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
 ): Promise<Response> => {
   try {
+    if (!req.user?.userId) {
+      return res.status(401).json(
+        errorResponse(
+          "Authentication required to create custom preset",
+          "Unauthorized",
+          401
+        )
+      );
+    }
+
     const {
       name,
-      description,
-      defaultDurationSeconds,
-      defaultRestSeconds,
-      exercises,
+      workDuration,
+      restDuration,
+      warmupDuration,
+      cooldownDuration,
+      rounds,
     } = req.body;
 
-    if (!name || typeof name !== "string" || name.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "Preset name is required and must be a non-empty string",
-      });
+    // Validate name
+    if (!name) {
+      return res.status(400).json(
+        errorResponse("name is required", "Validation Error", 400)
+      );
     }
 
-    const newPreset: StopwatchPreset = {
-      _id: `preset-${Date.now()}`,
+    if (typeof name !== "string" || name.trim() === "") {
+      return res.status(400).json(
+        errorResponse(
+          "name must be a non-empty string",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    // Validate workDuration
+    if (workDuration === undefined || workDuration === null) {
+      return res.status(400).json(
+        errorResponse("workDuration is required", "Validation Error", 400)
+      );
+    }
+
+    if (typeof workDuration !== "number" || workDuration <= 0) {
+      return res.status(400).json(
+        errorResponse(
+          "workDuration must be a positive number",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    if (workDuration > 3600) {
+      return res.status(400).json(
+        errorResponse(
+          "workDuration must not exceed 3600 seconds",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    // Validate restDuration
+    if (restDuration === undefined || restDuration === null) {
+      return res.status(400).json(
+        errorResponse("restDuration is required", "Validation Error", 400)
+      );
+    }
+
+    if (typeof restDuration !== "number" || restDuration < 0) {
+      return res.status(400).json(
+        errorResponse(
+          "restDuration must be a non-negative number",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    if (restDuration > 3600) {
+      return res.status(400).json(
+        errorResponse(
+          "restDuration must not exceed 3600 seconds",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    // Validate warmupDuration
+    const warmup = warmupDuration !== undefined ? warmupDuration : 0;
+    if (typeof warmup !== "number" || warmup < 0) {
+      return res.status(400).json(
+        errorResponse(
+          "warmupDuration must be a non-negative number",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    if (warmup > 3600) {
+      return res.status(400).json(
+        errorResponse(
+          "warmupDuration must not exceed 3600 seconds",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    // Validate cooldownDuration
+    const cooldown = cooldownDuration !== undefined ? cooldownDuration : 0;
+    if (typeof cooldown !== "number" || cooldown < 0) {
+      return res.status(400).json(
+        errorResponse(
+          "cooldownDuration must be a non-negative number",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    if (cooldown > 3600) {
+      return res.status(400).json(
+        errorResponse(
+          "cooldownDuration must not exceed 3600 seconds",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    // Validate rounds
+    if (rounds === undefined || rounds === null) {
+      return res.status(400).json(
+        errorResponse("rounds is required", "Validation Error", 400)
+      );
+    }
+
+    if (
+      typeof rounds !== "number" ||
+      !Number.isInteger(rounds) ||
+      rounds <= 0
+    ) {
+      return res.status(400).json(
+        errorResponse(
+          "rounds must be a positive integer",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    if (rounds > 100) {
+      return res.status(400).json(
+        errorResponse(
+          "rounds must not exceed 100",
+          "Validation Error",
+          400
+        )
+      );
+    }
+
+    const newPreset = await StopwatchPreset.create({
+      userId: req.user.userId,
       name: name.trim(),
-      description: description || "",
-      defaultDurationSeconds: defaultDurationSeconds || 0,
-      defaultRestSeconds: defaultRestSeconds || 0,
-      exercises: exercises || [],
-    };
-
-    inMemoryPresets.unshift(newPreset);
-
-    return res.status(201).json({
-      success: true,
-      message: "Custom preset created successfully",
-      data: newPreset,
+      workDuration,
+      restDuration,
+      rounds,
+      warmupDuration: warmup,
+      cooldownDuration: cooldown,
+      type: "Custom",
+      isPublic: false,
     });
+
+    return res.status(201).json(
+      successResponse("Custom preset created successfully", {
+        _id: newPreset._id,
+        userId: newPreset.userId,
+        name: newPreset.name,
+        workDuration: newPreset.workDuration,
+        restDuration: newPreset.restDuration,
+        rounds: newPreset.rounds,
+        warmupDuration: newPreset.warmupDuration,
+        cooldownDuration: newPreset.cooldownDuration,
+        createdAt: newPreset.createdAt,
+        updatedAt: newPreset.updatedAt,
+      })
+    );
   } catch (error) {
     console.error("[Stopwatch Controller] createCustomPreset Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to create custom preset",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to create custom preset",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
+/**
+ * GET /api/stopwatch/user-presets
+ * Authenticated endpoint - Get user's custom presets
+ * Users can only retrieve their own presets
+ */
 export const getUserPresets = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
 ): Promise<Response> => {
   try {
-    const { userId } = req.query;
-
-    // Filter presets by userId if provided
-    let userPresets = inMemoryPresets;
-    if (userId && typeof userId === "string") {
-      userPresets = inMemoryPresets.filter((p) => p.exercises.length > 0); // Simple filter
+    if (!req.user?.userId) {
+      return res.status(401).json(
+        errorResponse("Authentication required to fetch user presets", "UNAUTHORIZED", 401)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      count: userPresets.length,
-      data: userPresets,
-    });
+    // Only fetch presets belonging to the authenticated user
+    const userPresets = await StopwatchPreset.find({
+      userId: req.user.userId,
+      isPublic: false,
+    })
+      .select("-__v")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json(
+      successResponse("User presets retrieved successfully", userPresets)
+    );
   } catch (error) {
     console.error("[Stopwatch Controller] getUserPresets Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch user presets",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to fetch user presets",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
+/**
+ * POST /api/stopwatch/session-complete
+ * Authenticated endpoint - Mark a workout session as complete
+ */
 export const markSessionComplete = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
 ): Promise<Response> => {
   try {
-    const { sessionId, durationSeconds, caloriesBurned, notes } = req.body;
-    const authUser = (req as any).user;
-    const userId = authUser?.userId || "guest_user";
-
-    if (sessionId) {
-      // Find and update existing session
-      const sessionIndex = inMemorySessions.findIndex(
-        (s) => s._id === sessionId && s.userId === userId,
+    if (!req.user?.userId) {
+      return res.status(401).json(
+        errorResponse("Authentication required to save session", "UNAUTHORIZED", 401)
       );
-      if (sessionIndex !== -1) {
-        inMemorySessions[sessionIndex].stoppedAt = new Date();
-        inMemorySessions[sessionIndex].durationSeconds = durationSeconds;
-        inMemorySessions[sessionIndex].caloriesBurned = caloriesBurned;
-        inMemorySessions[sessionIndex].notes = notes;
-      }
-    } else {
-      // Create new completed session
-      const newSession: StopwatchSession = {
-        _id: `session-${Date.now()}`,
-        userId,
-        presetId: req.body.presetId || "",
-        startedAt: new Date(Date.now() - (durationSeconds || 0) * 1000),
-        stoppedAt: new Date(),
-        durationSeconds: durationSeconds,
-        completedExercises: req.body.completedExercises || 0,
-        totalExercises: req.body.totalExercises || 0,
-        caloriesBurned,
-        notes,
-      };
-
-      inMemorySessions.push(newSession);
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Session marked as complete",
+    const { presetId, workoutType, durationMinutes, weightKg, caloriesBurned } =
+      req.body;
+
+    // Validate required field: durationMinutes
+    if (durationMinutes === undefined || durationMinutes === null) {
+      return res.status(400).json(
+        errorResponse("durationMinutes is required", "VALIDATION_ERROR", 400)
+      );
+    }
+
+    if (typeof durationMinutes !== "number" || durationMinutes <= 0) {
+      return res.status(400).json(
+        errorResponse("durationMinutes must be a positive number", "VALIDATION_ERROR", 400)
+      );
+    }
+
+    if (durationMinutes > 1440) {
+      return res.status(400).json(
+        errorResponse("durationMinutes must not exceed 1440 (24 hours)", "VALIDATION_ERROR", 400)
+      );
+    }
+
+    if (presetId !== undefined && presetId !== null) {
+      if (typeof presetId !== "string" || presetId.trim() === "") {
+        return res.status(400).json(
+          errorResponse("presetId must be a non-empty string", "VALIDATION_ERROR", 400)
+        );
+      }
+    }
+
+    if (workoutType !== undefined && workoutType !== null) {
+      if (typeof workoutType !== "string" || workoutType.trim() === "") {
+        return res.status(400).json(
+          errorResponse("workoutType must be a non-empty string", "VALIDATION_ERROR", 400)
+        );
+      }
+    }
+
+    if (weightKg !== undefined && weightKg !== null) {
+      if (typeof weightKg !== "number" || weightKg <= 0) {
+        return res.status(400).json(
+          errorResponse("weightKg must be a positive number", "VALIDATION_ERROR", 400)
+        );
+      }
+
+      if (weightKg > 500) {
+        return res.status(400).json(
+          errorResponse("weightKg must not exceed 500", "VALIDATION_ERROR", 400)
+        );
+      }
+    }
+
+    // Validate optional field: caloriesBurned (if provided by frontend)
+    let finalCalories: number;
+    let calorieEstimationMetadata: any = undefined;
+
+    if (caloriesBurned !== undefined && caloriesBurned !== null) {
+      // Frontend provided calories - validate it
+      if (typeof caloriesBurned !== "number" || caloriesBurned < 0) {
+        return res.status(400).json(
+          errorResponse("caloriesBurned must be a non-negative number", "VALIDATION_ERROR", 400)
+        );
+      }
+
+      if (caloriesBurned > 10000) {
+        return res.status(400).json(
+          errorResponse("caloriesBurned must not exceed 10000", "VALIDATION_ERROR", 400)
+        );
+      }
+
+      finalCalories = caloriesBurned;
+    } else {
+      // Estimate calories using MET-based calculation
+      const estimation = estimateCalories({
+        workoutType,
+        weightKg,
+        durationMinutes,
+      });
+
+      finalCalories = estimation.estimatedCalories;
+      calorieEstimationMetadata = {
+        metValue: estimation.metValue,
+        isEstimate: estimation.isEstimate,
+        usedDefaultWeight: estimation.usedDefaultWeight,
+        disclaimer: estimation.disclaimer,
+      };
+    }
+
+    const session = await StopwatchSession.create({
+      userId: req.user.userId,
+      presetId: presetId?.trim(),
+      workoutType: workoutType?.trim(),
+      durationMinutes,
+      weightKg,
+      caloriesBurned: finalCalories,
     });
+
+    const responseData: any = {
+      session,
+    };
+
+    // Include estimation metadata if calories were estimated
+    if (calorieEstimationMetadata) {
+      responseData.calorieEstimation = calorieEstimationMetadata;
+    }
+
+    return res.status(201).json(
+      successResponse("Session marked as complete", responseData)
+    );
   } catch (error) {
     console.error("[Stopwatch Controller] markSessionComplete Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to mark session complete",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to mark session complete",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
+/**
+ * GET /api/stopwatch/recent-sessions
+ * Authenticated endpoint - Get user's recent workout sessions
+ */
 export const getRecentSessions = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
 ): Promise<Response> => {
   try {
-    const { limit } = req.query;
-    const authUser = (req as any).user;
-    const userId = authUser?.userId || "guest_user";
+    if (!req.user?.userId) {
+      return res.status(401).json(
+        errorResponse("Authentication required to fetch sessions", "UNAUTHORIZED", 401)
+      );
+    }
 
-    let sessions = inMemorySessions.filter((s) => s.userId === userId);
+    // Parse limit from query params, default to 10
+    const limit = parseInt(req.query.limit as string, 10) || 10;
 
-    // Sort by startedAt descending (most recent first)
-    sessions.sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
+    // Validate limit is reasonable
+    if (limit < 1 || limit > 100) {
+      return res.status(400).json(
+        errorResponse("limit must be between 1 and 100", "VALIDATION_ERROR", 400)
+      );
+    }
 
-    const limitNum = parseInt(limit as string, 10) || 10;
-    const recentSessions = sessions.slice(0, limitNum);
+    // Only fetch sessions belonging to the authenticated user
+    const sessions = await StopwatchSession.find({
+      userId: req.user.userId,
+    })
+      .sort({ completedAt: -1 })
+      .limit(limit)
+      .lean();
 
-    return res.status(200).json({
-      success: true,
-      count: recentSessions.length,
-      data: recentSessions,
-    });
+    return res.status(200).json(
+      successResponse("Recent sessions retrieved successfully", {
+        count: sessions.length,
+        sessions,
+      })
+    );
   } catch (error) {
     console.error("[Stopwatch Controller] getRecentSessions Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch recent sessions",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to fetch recent sessions",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
