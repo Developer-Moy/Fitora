@@ -14,34 +14,73 @@ export type BranchStatus = "active" | "maintenance" | "upcoming";
 
 export interface IBranch extends Document {
   _id: mongoose.Types.ObjectId;
+
+  // Basic Information
   name: string;
+  slug: string;
   division: BranchDivision;
   district: string;
+  city: string;
   address: string;
+  postalCode: string;
+
+  // Contact
+  phone: string;
+  email: string;
+
+  // Branch Manager
   adminName: string;
-  adminEmail: string;
-  adminPhone: string;
-  totalMembers: number;
-  maxCapacity: number;
-  monthlyRevenueBDT: number;
-  activeNow: number;
-  equipmentCount: number;
-  trainersCount: number;
+
+  // Location
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+
+  // Gym Information
+  facilities: string[];
+  membershipPlans: {
+    basic: number;
+    standard: number;
+    premium: number;
+  };
+
+  trainerCount: number;
+  memberCapacity: number;
+
+  operatingHours: {
+    open: string;
+    close: string;
+  };
+
+  image: string;
+
+  // Status
   status: BranchStatus;
+
   createdAt: Date;
   updatedAt: Date;
 }
 
 const branchSchema = new Schema<IBranch>(
   {
+    // Basic Information
     name: {
       type: String,
       required: true,
       trim: true,
       unique: true,
     },
+    slug: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
+    },
     division: {
       type: String,
+      required: true,
       enum: [
         "Dhaka",
         "Chittagong",
@@ -52,9 +91,13 @@ const branchSchema = new Schema<IBranch>(
         "Rangpur",
         "Mymensingh",
       ],
-      required: true,
     },
     district: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    city: {
       type: String,
       required: true,
       trim: true,
@@ -64,60 +107,116 @@ const branchSchema = new Schema<IBranch>(
       required: true,
       trim: true,
     },
-    adminName: {
-      type: String,
-      default: "Branch Operations Manager",
-      trim: true,
-    },
-    adminEmail: {
+    postalCode: {
       type: String,
       required: true,
-      lowercase: true,
       trim: true,
     },
-    adminPhone: {
+
+    // Contact
+    phone: {
       type: String,
-      default: "+8801700000000",
+      required: true,
       trim: true,
     },
-    totalMembers: {
-      type: Number,
-      default: 250,
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
     },
-    maxCapacity: {
-      type: Number,
-      default: 400,
+
+    // Branch Manager
+    adminName: {
+      type: String,
+      trim: true,
+      default: "Branch Operations Manager",
     },
-    monthlyRevenueBDT: {
-      type: Number,
-      default: 350000,
+
+    // Coordinates
+    coordinates: {
+      lat: {
+        type: Number,
+        required: true,
+      },
+      lng: {
+        type: Number,
+        required: true,
+      },
     },
-    activeNow: {
-      type: Number,
-      default: 45,
+
+    // Gym Facilities
+    facilities: {
+      type: [String],
+      required: true,
+      default: [],
     },
-    equipmentCount: {
-      type: Number,
-      default: 65,
+
+    // Membership Plans
+    membershipPlans: {
+      basic: {
+        type: Number,
+        required: true,
+      },
+      standard: {
+        type: Number,
+        required: true,
+      },
+      premium: {
+        type: Number,
+        required: true,
+      },
     },
-    trainersCount: {
+
+    // Capacity & Trainers
+    trainerCount: {
       type: Number,
-      default: 8,
+      required: true,
     },
+    memberCapacity: {
+      type: Number,
+      required: true,
+    },
+
+    // Operating Hours
+    operatingHours: {
+      open: {
+        type: String,
+        required: true,
+      },
+      close: {
+        type: String,
+        required: true,
+      },
+    },
+
+    // Branch Image
+    image: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    // Status
     status: {
       type: String,
+      required: true,
       enum: ["active", "maintenance", "upcoming"],
-      default: "active",
     },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
+// Indexes
 branchSchema.index({ division: 1 });
 branchSchema.index({ district: 1 });
+branchSchema.index({ city: 1 });
+branchSchema.index({ slug: 1 });
 branchSchema.index({ status: 1 });
 
-export const Branch = mongoose.model<IBranch>("Branch", branchSchema);
+const Branch = mongoose.model<IBranch>("Branch", branchSchema);
+
 export default Branch;

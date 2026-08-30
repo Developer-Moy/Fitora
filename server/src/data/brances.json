@@ -1,0 +1,3195 @@
+[{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fdd"
+  },
+  "name": "Fitora Elite Fitness — Dhanmondi",
+  "slug": "fitora-elite-fitness-dhanmondi",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Dhanmondi",
+  "address": "House 12, Road 5, Dhanmondi, Dhaka 1209",
+  "postalCode": "1209",
+  "phone": "+8801711223344",
+  "email": "dhanmondi@fitoragym.com",
+  "coordinates": {
+    "lat": 23.74647,
+    "lng": 90.37602
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Free Weights",
+    "Locker Room",
+    "Steam Bath",
+    "Yoga Studio",
+    "Personal Trainer",
+    "Shower",
+    "Parking",
+    "Protein Bar"
+  ],
+  "membershipPlans": {
+    "basic": 1800,
+    "standard": 2500,
+    "premium": 3500
+  },
+  "trainerCount": 10,
+  "memberCapacity": 400,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fde"
+  },
+  "name": "Fitora Power Club — Gulshan 1",
+  "slug": "fitora-power-club-gulshan-1",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Gulshan",
+  "address": "House 52, Road 11, Gulshan 1, Dhaka 1212",
+  "postalCode": "1212",
+  "phone": "+8801712348801",
+  "email": "gulshan@fitoragym.com",
+  "coordinates": {
+    "lat": 23.78068,
+    "lng": 90.41695
+  },
+  "facilities": [
+    "CrossFit Arena",
+    "Functional Training",
+    "Locker Room",
+    "Sauna",
+    "HIIT Studio",
+    "Indoor Cycling",
+    "Personal Trainer",
+    "Cafe",
+    "WiFi",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 2200,
+    "standard": 3200,
+    "premium": 4500
+  },
+  "trainerCount": 12,
+  "memberCapacity": 500,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1571902943202-507ec2618e8f"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fdf"
+  },
+  "name": "Fitora Strength Hub — Gulshan 2",
+  "slug": "fitora-strength-hub-gulshan-2",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Gulshan",
+  "address": "Plot 19, Road 90, Gulshan 2, Dhaka 1212",
+  "postalCode": "1212",
+  "phone": "+8801709876123",
+  "email": "gulshan2@fitoragym.com",
+  "coordinates": {
+    "lat": 23.79218,
+    "lng": 90.40794
+  },
+  "facilities": [
+    "Olympic Lifting",
+    "Cardio Zone",
+    "Boxing Ring",
+    "Locker Room",
+    "Steam Bath",
+    "Stretch Zone",
+    "Personal Trainer",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 2300,
+    "standard": 3300,
+    "premium": 4700
+  },
+  "trainerCount": 14,
+  "memberCapacity": 450,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1546483875-ad9014c88eba"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe0"
+  },
+  "name": "Fitora Iron Arena — Uttara Sector 7",
+  "slug": "fitora-iron-arena-uttara-sector-7",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Uttara",
+  "address": "House 18, Road 11, Sector 7, Uttara, Dhaka 1230",
+  "postalCode": "1230",
+  "phone": "+8801723456701",
+  "email": "uttara7@fitoragym.com",
+  "coordinates": {
+    "lat": 23.87665,
+    "lng": 90.39858
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Group Classes",
+    "Locker Room",
+    "Shower",
+    "Kids Fitness",
+    "Parking",
+    "Protein Bar"
+  ],
+  "membershipPlans": {
+    "basic": 1900,
+    "standard": 2700,
+    "premium": 3600
+  },
+  "trainerCount": 8,
+  "memberCapacity": 350,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe1"
+  },
+  "name": "Fitora Prime Fitness — Uttara Sector 11",
+  "slug": "fitora-prime-fitness-uttara-sector-11",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Uttara",
+  "address": "House 27, Road 13, Sector 11, Uttara, Dhaka 1230",
+  "postalCode": "1230",
+  "phone": "+8801729988877",
+  "email": "uttara11@fitoragym.com",
+  "coordinates": {
+    "lat": 23.86849,
+    "lng": 90.40588
+  },
+  "facilities": [
+    "CrossFit",
+    "Pilates",
+    "Cardio Zone",
+    "Locker Room",
+    "Massage Room",
+    "Sauna",
+    "Yoga Studio",
+    "WiFi"
+  ],
+  "membershipPlans": {
+    "basic": 2100,
+    "standard": 3000,
+    "premium": 4200
+  },
+  "trainerCount": 9,
+  "memberCapacity": 370,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1594737625785-a6cbdabd333c"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe2"
+  },
+  "name": "Fitora Max Performance — Mirpur 10",
+  "slug": "fitora-max-performance-mirpur-10",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Mirpur",
+  "address": "Plot 5, Block C, Mirpur 10, Dhaka 1216",
+  "postalCode": "1216",
+  "phone": "+8801815674321",
+  "email": "mirpur10@fitoragym.com",
+  "coordinates": {
+    "lat": 23.80653,
+    "lng": 90.36868
+  },
+  "facilities": [
+    "Strength Zone",
+    "Cardio Zone",
+    "Group Workout",
+    "Locker Room",
+    "Shower",
+    "Cycling Studio",
+    "Personal Trainer",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2400,
+    "premium": 3300
+  },
+  "trainerCount": 8,
+  "memberCapacity": 320,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe3"
+  },
+  "name": "Fitora Body Lab — Bashundhara R/A",
+  "slug": "fitora-body-lab-bashundhara-ra",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Bashundhara",
+  "address": "Block B, Road 4, Bashundhara Residential Area, Dhaka 1229",
+  "postalCode": "1229",
+  "phone": "+8801912456780",
+  "email": "bashundhara@fitoragym.com",
+  "coordinates": {
+    "lat": 23.81511,
+    "lng": 90.43794
+  },
+  "facilities": [
+    "CrossFit",
+    "Functional Fitness",
+    "Cardio Zone",
+    "Women's Gym",
+    "Locker Room",
+    "Shower",
+    "Nutrition Consultation",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 2000,
+    "standard": 2800,
+    "premium": 3900
+  },
+  "trainerCount": 9,
+  "memberCapacity": 330,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1598971639058-a73d17f09d3f"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe4"
+  },
+  "name": "Fitora Momentum Gym — Mohammadpur",
+  "slug": "fitora-momentum-gym-mohammadpur",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Mohammadpur",
+  "address": "House 11, Road 2, Mohammadpur, Dhaka 1207",
+  "postalCode": "1207",
+  "phone": "+8801715566778",
+  "email": "mohammadpur@fitoragym.com",
+  "coordinates": {
+    "lat": 23.75746,
+    "lng": 90.35881
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Zone",
+    "Zumba",
+    "Yoga",
+    "Locker Room",
+    "Steam Bath",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2400,
+    "premium": 3200
+  },
+  "trainerCount": 7,
+  "memberCapacity": 280,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1540497077202-7c8a3999166f"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe5"
+  },
+  "name": "Fitora Dynamic Fitness — Badda",
+  "slug": "fitora-dynamic-fitness-badda",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Badda",
+  "address": "Badda Link Road, Dhaka 1212",
+  "postalCode": "1212",
+  "phone": "+8801722334455",
+  "email": "badda@fitoragym.com",
+  "coordinates": {
+    "lat": 23.7802,
+    "lng": 90.4259
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Free Weights",
+    "Women's Fitness",
+    "Locker Room",
+    "Shower",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1800,
+    "standard": 2500,
+    "premium": 3400
+  },
+  "trainerCount": 8,
+  "memberCapacity": 290,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1518611012118-696072aa579a"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe6"
+  },
+  "name": "Fitora Urban Fitness — Motijheel",
+  "slug": "fitora-urban-fitness-motijheel",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Motijheel",
+  "address": "Motijheel Commercial Area, Dhaka 1000",
+  "postalCode": "1000",
+  "phone": "+8801819988776",
+  "email": "motijheel@fitoragym.com",
+  "coordinates": {
+    "lat": 23.73208,
+    "lng": 90.41719
+  },
+  "facilities": [
+    "Express Workout",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Corporate Membership",
+    "WiFi",
+    "Nutrition Bar"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2300,
+    "premium": 3000
+  },
+  "trainerCount": 6,
+  "memberCapacity": 250,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517838277536-f5f99be501cd"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe7"
+  },
+  "name": "Fitora Mega Fitness — Gazipur Chowrasta",
+  "slug": "fitora-mega-fitness-gazipur-chowrasta",
+  "division": "Dhaka",
+  "district": "Gazipur",
+  "city": "Gazipur",
+  "address": "Gazipur Chowrasta, Gazipur 1702",
+  "postalCode": "1702",
+  "phone": "+8801710001100",
+  "email": "gazipurchowrasta@fitoragym.com",
+  "coordinates": {
+    "lat": 24.00212,
+    "lng": 90.42027
+  },
+  "facilities": [
+    "Cardio",
+    "Powerlifting",
+    "CrossFit",
+    "Locker Room",
+    "Steam Bath",
+    "Parking",
+    "Protein Cafe"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2500,
+    "premium": 3400
+  },
+  "trainerCount": 9,
+  "memberCapacity": 350,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe8"
+  },
+  "name": "Fitora Titan Gym — Tongi",
+  "slug": "fitora-titan-gym-tongi",
+  "division": "Dhaka",
+  "district": "Gazipur",
+  "city": "Tongi",
+  "address": "College Gate, Tongi, Gazipur 1711",
+  "postalCode": "1711",
+  "phone": "+8801722331199",
+  "email": "tongi@fitoragym.com",
+  "coordinates": {
+    "lat": 23.89357,
+    "lng": 90.40331
+  },
+  "facilities": [
+    "Strength Zone",
+    "Cardio Zone",
+    "Kickboxing",
+    "Locker Room",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3100
+  },
+  "trainerCount": 7,
+  "memberCapacity": 280,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534258936925-c58bed479fcb"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fe9"
+  },
+  "name": "Fitora Warrior Fitness — Sreepur",
+  "slug": "fitora-warrior-fitness-sreepur",
+  "division": "Dhaka",
+  "district": "Gazipur",
+  "city": "Sreepur",
+  "address": "Sreepur Bazar, Gazipur 1740",
+  "postalCode": "1740",
+  "phone": "+8801714556677",
+  "email": "sreepur@fitoragym.com",
+  "coordinates": {
+    "lat": 24.1997,
+    "lng": 90.4729
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Free Weights",
+    "Locker Room",
+    "Shower",
+    "Women's Gym"
+  ],
+  "membershipPlans": {
+    "basic": 1400,
+    "standard": 2100,
+    "premium": 2800
+  },
+  "trainerCount": 6,
+  "memberCapacity": 230,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fea"
+  },
+  "name": "Fitora Fitness Arena — Narayanganj City",
+  "slug": "fitora-fitness-arena-narayanganj-city",
+  "division": "Dhaka",
+  "district": "Narayanganj",
+  "city": "Narayanganj",
+  "address": "Bangabandhu Road, Narayanganj 1400",
+  "postalCode": "1400",
+  "phone": "+8801711228899",
+  "email": "narayanganj@fitoragym.com",
+  "coordinates": {
+    "lat": 23.6238,
+    "lng": 90.5
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Locker Room",
+    "Shower",
+    "Steam Bath",
+    "Zumba",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2300,
+    "premium": 3100
+  },
+  "trainerCount": 8,
+  "memberCapacity": 300,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9feb"
+  },
+  "name": "Fitora Iron Works — Fatullah",
+  "slug": "fitora-iron-works-fatullah",
+  "division": "Dhaka",
+  "district": "Narayanganj",
+  "city": "Fatullah",
+  "address": "Fatullah Bus Stand, Narayanganj 1420",
+  "postalCode": "1420",
+  "phone": "+8801715679988",
+  "email": "fatullah@fitoragym.com",
+  "coordinates": {
+    "lat": 23.6588,
+    "lng": 90.4908
+  },
+  "facilities": [
+    "Powerlifting",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Women's Gym",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 2900
+  },
+  "trainerCount": 6,
+  "memberCapacity": 250,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1584466977773-e625c37cdd50"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fec"
+  },
+  "name": "Fitora Prime Club — Siddhirganj",
+  "slug": "fitora-prime-club-siddhirganj",
+  "division": "Dhaka",
+  "district": "Narayanganj",
+  "city": "Siddhirganj",
+  "address": "Shimrail, Siddhirganj, Narayanganj 1430",
+  "postalCode": "1430",
+  "phone": "+8801722556633",
+  "email": "siddhirganj@fitoragym.com",
+  "coordinates": {
+    "lat": 23.6848,
+    "lng": 90.5143
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "HIIT Studio",
+    "Locker Room",
+    "Yoga",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2300,
+    "premium": 3000
+  },
+  "trainerCount": 7,
+  "memberCapacity": 260,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1579758629938-03607ccdbaba"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fed"
+  },
+  "name": "Fitora Peak Fitness — Savar",
+  "slug": "fitora-peak-fitness-savar",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Savar",
+  "address": "Savar Bus Stand, Savar, Dhaka 1340",
+  "postalCode": "1340",
+  "phone": "+8801717889900",
+  "email": "savar@fitoragym.com",
+  "coordinates": {
+    "lat": 23.8585,
+    "lng": 90.2666
+  },
+  "facilities": [
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Personal Trainer",
+    "Women's Fitness"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3000
+  },
+  "trainerCount": 7,
+  "memberCapacity": 270,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fee"
+  },
+  "name": "Fitora Campus Gym — Ashulia",
+  "slug": "fitora-campus-gym-ashulia",
+  "division": "Dhaka",
+  "district": "Dhaka",
+  "city": "Ashulia",
+  "address": "DEPZ Road, Ashulia, Dhaka 1349",
+  "postalCode": "1349",
+  "phone": "+8801713445566",
+  "email": "ashulia@fitoragym.com",
+  "coordinates": {
+    "lat": 23.8971,
+    "lng": 90.3042
+  },
+  "facilities": [
+    "CrossFit",
+    "Cardio Zone",
+    "Strength Training",
+    "Locker Room",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2300,
+    "premium": 3100
+  },
+  "trainerCount": 8,
+  "memberCapacity": 300,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517838277536-f5f99be501cd"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9fef"
+  },
+  "name": "Fitora Fitness Point — Narsingdi",
+  "slug": "fitora-fitness-point-narsingdi",
+  "division": "Dhaka",
+  "district": "Narsingdi",
+  "city": "Narsingdi",
+  "address": "Sadar Road, Narsingdi 1600",
+  "postalCode": "1600",
+  "phone": "+8801723004455",
+  "email": "narsingdi@fitoragym.com",
+  "coordinates": {
+    "lat": 23.9229,
+    "lng": 90.7176
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Locker Room",
+    "Shower",
+    "Women's Gym",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 1400,
+    "standard": 2000,
+    "premium": 2800
+  },
+  "trainerCount": 6,
+  "memberCapacity": 220,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534367610401-9f5ed68180aa"
+},
+{
+  "_id": {
+    "$oid": "6a94076db0c7c0f7534c9ff0"
+  },
+  "name": "Fitora Active Club — Manikganj",
+  "slug": "fitora-active-club-manikganj",
+  "division": "Dhaka",
+  "district": "Manikganj",
+  "city": "Manikganj",
+  "address": "Shahid Rafiq Sarak, Manikganj 1800",
+  "postalCode": "1800",
+  "phone": "+8801719007788",
+  "email": "manikganj@fitoragym.com",
+  "coordinates": {
+    "lat": 23.8617,
+    "lng": 90.0018
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1400,
+    "standard": 2100,
+    "premium": 2900
+  },
+  "trainerCount": 5,
+  "memberCapacity": 200,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ff2"
+  },
+  "name": "Fitora Ocean Fitness — Agrabad",
+  "slug": "fitora-ocean-fitness-agrabad",
+  "division": "Chattogram",
+  "district": "Chattogram",
+  "city": "Agrabad",
+  "address": "Sheikh Mujib Road, Agrabad Commercial Area, Chattogram 4100",
+  "postalCode": "4100",
+  "phone": "+8801811554401",
+  "email": "agrabad@fitoragym.com",
+  "coordinates": {
+    "lat": 22.3247,
+    "lng": 91.8118
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "CrossFit Arena",
+    "Locker Room",
+    "Steam Bath",
+    "Personal Trainer",
+    "Yoga Studio",
+    "Parking",
+    "Protein Bar"
+  ],
+  "membershipPlans": {
+    "basic": 1800,
+    "standard": 2600,
+    "premium": 3600
+  },
+  "trainerCount": 10,
+  "memberCapacity": 380,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ff3"
+  },
+  "name": "Fitora Peak Performance — GEC Circle",
+  "slug": "fitora-peak-performance-gec-circle",
+  "division": "Chattogram",
+  "district": "Chattogram",
+  "city": "GEC",
+  "address": "GEC Circle, CDA Avenue, Chattogram 4000",
+  "postalCode": "4000",
+  "phone": "+8801811554402",
+  "email": "gec@fitoragym.com",
+  "coordinates": {
+    "lat": 22.3599,
+    "lng": 91.8194
+  },
+  "facilities": [
+    "Strength Zone",
+    "Functional Fitness",
+    "Indoor Cycling",
+    "Locker Room",
+    "Shower",
+    "HIIT Studio",
+    "Women's Fitness",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 1900,
+    "standard": 2800,
+    "premium": 3900
+  },
+  "trainerCount": 9,
+  "memberCapacity": 340,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1571902943202-507ec2618e8f"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ff4"
+  },
+  "name": "Fitora Iron District — Halishahar",
+  "slug": "fitora-iron-district-halishahar",
+  "division": "Chattogram",
+  "district": "Chattogram",
+  "city": "Halishahar",
+  "address": "Block G, Halishahar Housing Estate, Chattogram 4216",
+  "postalCode": "4216",
+  "phone": "+8801811554403",
+  "email": "halishahar@fitoragym.com",
+  "coordinates": {
+    "lat": 22.3331,
+    "lng": 91.7826
+  },
+  "facilities": [
+    "Powerlifting",
+    "Cardio Zone",
+    "Locker Room",
+    "Sauna",
+    "Group Classes",
+    "Parking",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2500,
+    "premium": 3400
+  },
+  "trainerCount": 8,
+  "memberCapacity": 300,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1546483875-ad9014c88eba"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ff5"
+  },
+  "name": "Fitora Elevate Gym — Khulshi",
+  "slug": "fitora-elevate-gym-khulshi",
+  "division": "Chattogram",
+  "district": "Chattogram",
+  "city": "Khulshi",
+  "address": "Zakir Hossain Road, Khulshi, Chattogram 4202",
+  "postalCode": "4202",
+  "phone": "+8801811554404",
+  "email": "khulshi@fitoragym.com",
+  "coordinates": {
+    "lat": 22.3705,
+    "lng": 91.8208
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Pilates",
+    "Yoga Studio",
+    "Steam Bath",
+    "Locker Room",
+    "Parking",
+    "Cafe"
+  ],
+  "membershipPlans": {
+    "basic": 2000,
+    "standard": 2900,
+    "premium": 4100
+  },
+  "trainerCount": 11,
+  "memberCapacity": 360,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ff6"
+  },
+  "name": "Fitora Harbor Strength — Panchlaish",
+  "slug": "fitora-harbor-strength-panchlaish",
+  "division": "Chattogram",
+  "district": "Chattogram",
+  "city": "Panchlaish",
+  "address": "Panchlaish Circle, Chattogram 4203",
+  "postalCode": "4203",
+  "phone": "+8801811554405",
+  "email": "panchlaish@fitoragym.com",
+  "coordinates": {
+    "lat": 22.3632,
+    "lng": 91.8296
+  },
+  "facilities": [
+    "CrossFit",
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Women's Gym",
+    "Massage Room",
+    "Shower",
+    "WiFi"
+  ],
+  "membershipPlans": {
+    "basic": 1850,
+    "standard": 2650,
+    "premium": 3650
+  },
+  "trainerCount": 10,
+  "memberCapacity": 330,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1598971639058-a73d17f09d3f"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ff7"
+  },
+  "name": "Fitora Victory Fitness — Cumilla Kandirpar",
+  "slug": "fitora-victory-fitness-cumilla-kandirpar",
+  "division": "Chattogram",
+  "district": "Cumilla",
+  "city": "Cumilla",
+  "address": "Kandirpar, Cumilla 3500",
+  "postalCode": "3500",
+  "phone": "+8801811665501",
+  "email": "kandirpar@fitoragym.com",
+  "coordinates": {
+    "lat": 23.4607,
+    "lng": 91.1809
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Parking",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2300,
+    "premium": 3200
+  },
+  "trainerCount": 7,
+  "memberCapacity": 260,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1518611012118-696072aa579a"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ff8"
+  },
+  "name": "Fitora Gladiator Gym — Cumilla EPZ",
+  "slug": "fitora-gladiator-gym-cumilla-epz",
+  "division": "Chattogram",
+  "district": "Cumilla",
+  "city": "Cumilla",
+  "address": "Cumilla Export Processing Zone, Cumilla 3503",
+  "postalCode": "3503",
+  "phone": "+8801811665502",
+  "email": "epzcumilla@fitoragym.com",
+  "coordinates": {
+    "lat": 23.4341,
+    "lng": 91.1897
+  },
+  "facilities": [
+    "Strength Zone",
+    "CrossFit",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Steam Bath",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2450,
+    "premium": 3350
+  },
+  "trainerCount": 8,
+  "memberCapacity": 290,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ff9"
+  },
+  "name": "Fitora Beach Fitness — Cox's Bazar Laboni",
+  "slug": "fitora-beach-fitness-coxs-bazar-laboni",
+  "division": "Chattogram",
+  "district": "Cox's Bazar",
+  "city": "Cox's Bazar",
+  "address": "Laboni Point Road, Cox's Bazar 4700",
+  "postalCode": "4700",
+  "phone": "+8801811776601",
+  "email": "laboni@fitoragym.com",
+  "coordinates": {
+    "lat": 21.4272,
+    "lng": 91.9721
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Outdoor Functional Area",
+    "Yoga Studio",
+    "Locker Room",
+    "Shower",
+    "Protein Bar",
+    "Beach Bootcamp"
+  ],
+  "membershipPlans": {
+    "basic": 1900,
+    "standard": 2800,
+    "premium": 3900
+  },
+  "trainerCount": 9,
+  "memberCapacity": 320,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1594737625785-a6cbdabd333c"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ffa"
+  },
+  "name": "Fitora Marine Strength — Cox's Bazar Kolatoli",
+  "slug": "fitora-marine-strength-coxs-bazar-kolatoli",
+  "division": "Chattogram",
+  "district": "Cox's Bazar",
+  "city": "Cox's Bazar",
+  "address": "Kolatoli Beach Road, Cox's Bazar 4700",
+  "postalCode": "4700",
+  "phone": "+8801811776602",
+  "email": "kolatoli@fitoragym.com",
+  "coordinates": {
+    "lat": 21.4394,
+    "lng": 91.9804
+  },
+  "facilities": [
+    "CrossFit Arena",
+    "Cardio Zone",
+    "Free Weights",
+    "Locker Room",
+    "Steam Bath",
+    "Personal Trainer",
+    "Cafe",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 2000,
+    "standard": 2900,
+    "premium": 4100
+  },
+  "trainerCount": 10,
+  "memberCapacity": 340,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "23:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534258936925-c58bed479fcb"
+},
+{
+  "_id": {
+    "$oid": "6a94083db0c7c0f7534c9ffb"
+  },
+  "name": "Fitora Phoenix Gym — Feni Sadar",
+  "slug": "fitora-phoenix-gym-feni-sadar",
+  "division": "Chattogram",
+  "district": "Feni",
+  "city": "Feni",
+  "address": "Trunk Road, Feni Sadar, Feni 3900",
+  "postalCode": "3900",
+  "phone": "+8801811887701",
+  "email": "feni@fitoragym.com",
+  "coordinates": {
+    "lat": 23.0158,
+    "lng": 91.3976
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Women's Fitness",
+    "Shower",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3000
+  },
+  "trainerCount": 6,
+  "memberCapacity": 230,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534c9ffd"
+  },
+  "name": "Fitora Active Fitness — Noakhali Maijdee",
+  "slug": "fitora-active-fitness-noakhali-maijdee",
+  "division": "Chattogram",
+  "district": "Noakhali",
+  "city": "Maijdee",
+  "address": "Main Road, Maijdee Court, Noakhali 3800",
+  "postalCode": "3800",
+  "phone": "+8801811998801",
+  "email": "maijdee@fitoragym.com",
+  "coordinates": {
+    "lat": 22.8696,
+    "lng": 91.0995
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Locker Room",
+    "Shower",
+    "Personal Trainer",
+    "Women's Fitness",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3000
+  },
+  "trainerCount": 6,
+  "memberCapacity": 220,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534c9ffe"
+  },
+  "name": "Fitora Power House — Chowmuhani",
+  "slug": "fitora-power-house-chowmuhani",
+  "division": "Chattogram",
+  "district": "Noakhali",
+  "city": "Chowmuhani",
+  "address": "Rail Gate Road, Chowmuhani, Noakhali 3821",
+  "postalCode": "3821",
+  "phone": "+8801811998802",
+  "email": "chowmuhani@fitoragym.com",
+  "coordinates": {
+    "lat": 22.9282,
+    "lng": 91.1227
+  },
+  "facilities": [
+    "Strength Zone",
+    "Cardio Zone",
+    "CrossFit",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2300,
+    "premium": 3100
+  },
+  "trainerCount": 7,
+  "memberCapacity": 240,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1546483875-ad9014c88eba"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534c9fff"
+  },
+  "name": "Fitora Iron Club — Lakshmipur Sadar",
+  "slug": "fitora-iron-club-lakshmipur-sadar",
+  "division": "Chattogram",
+  "district": "Lakshmipur",
+  "city": "Lakshmipur",
+  "address": "Bazar Road, Lakshmipur Sadar 3700",
+  "postalCode": "3700",
+  "phone": "+8801812007701",
+  "email": "lakshmipur@fitoragym.com",
+  "coordinates": {
+    "lat": 22.9444,
+    "lng": 90.8306
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Women's Fitness",
+    "Shower",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2100,
+    "premium": 2850
+  },
+  "trainerCount": 5,
+  "memberCapacity": 190,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534ca000"
+  },
+  "name": "Fitora Riverfront Fitness — Chandpur",
+  "slug": "fitora-riverfront-fitness-chandpur",
+  "division": "Chattogram",
+  "district": "Chandpur",
+  "city": "Chandpur",
+  "address": "Comilla Road, Chandpur Sadar 3600",
+  "postalCode": "3600",
+  "phone": "+8801812116601",
+  "email": "chandpur@fitoragym.com",
+  "coordinates": {
+    "lat": 23.2332,
+    "lng": 90.6713
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Zone",
+    "Locker Room",
+    "Steam Bath",
+    "Yoga Studio",
+    "Shower"
+  ],
+  "membershipPlans": {
+    "basic": 1550,
+    "standard": 2250,
+    "premium": 3100
+  },
+  "trainerCount": 6,
+  "memberCapacity": 210,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534ca001"
+  },
+  "name": "Fitora Elite Gym — Brahmanbaria Sadar",
+  "slug": "fitora-elite-gym-brahmanbaria-sadar",
+  "division": "Chattogram",
+  "district": "Brahmanbaria",
+  "city": "Brahmanbaria",
+  "address": "T A Road, Brahmanbaria 3400",
+  "postalCode": "3400",
+  "phone": "+8801812225501",
+  "email": "brahmanbaria@fitoragym.com",
+  "coordinates": {
+    "lat": 23.9571,
+    "lng": 91.1111
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Free Weights",
+    "Locker Room",
+    "Shower",
+    "Group Classes"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 2950
+  },
+  "trainerCount": 6,
+  "memberCapacity": 230,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534ca002"
+  },
+  "name": "Fitora Champion Fitness — Ashuganj",
+  "slug": "fitora-champion-fitness-ashuganj",
+  "division": "Chattogram",
+  "district": "Brahmanbaria",
+  "city": "Ashuganj",
+  "address": "Ashuganj Bazar, Brahmanbaria 3402",
+  "postalCode": "3402",
+  "phone": "+8801812225502",
+  "email": "ashuganj@fitoragym.com",
+  "coordinates": {
+    "lat": 24.0457,
+    "lng": 91.0018
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Powerlifting",
+    "Locker Room",
+    "Shower",
+    "Nutrition Desk",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2150,
+    "premium": 2850
+  },
+  "trainerCount": 5,
+  "memberCapacity": 180,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534258936925-c58bed479fcb"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534ca003"
+  },
+  "name": "Fitora Hill Fitness — Rangamati",
+  "slug": "fitora-hill-fitness-rangamati",
+  "division": "Chattogram",
+  "district": "Rangamati",
+  "city": "Rangamati",
+  "address": "Reserve Bazar, Rangamati 4500",
+  "postalCode": "4500",
+  "phone": "+8801812334401",
+  "email": "rangamati@fitoragym.com",
+  "coordinates": {
+    "lat": 22.6537,
+    "lng": 92.1724
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Functional Training",
+    "Strength Zone",
+    "Locker Room",
+    "Yoga",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2300,
+    "premium": 3150
+  },
+  "trainerCount": 6,
+  "memberCapacity": 200,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1518611012118-696072aa579a"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534ca004"
+  },
+  "name": "Fitora Summit Gym — Khagrachhari",
+  "slug": "fitora-summit-gym-khagrachhari",
+  "division": "Chattogram",
+  "district": "Khagrachhari",
+  "city": "Khagrachhari",
+  "address": "Shapla Chattar, Khagrachhari 4400",
+  "postalCode": "4400",
+  "phone": "+8801812443301",
+  "email": "khagrachhari@fitoragym.com",
+  "coordinates": {
+    "lat": 23.1183,
+    "lng": 91.9846
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 2950
+  },
+  "trainerCount": 5,
+  "memberCapacity": 190,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1584466977773-e625c37cdd50"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534ca005"
+  },
+  "name": "Fitora Mountain Strength — Bandarban Sadar",
+  "slug": "fitora-mountain-strength-bandarban-sadar",
+  "division": "Chattogram",
+  "district": "Bandarban",
+  "city": "Bandarban",
+  "address": "Bandarban Press Club Road, Bandarban 4600",
+  "postalCode": "4600",
+  "phone": "+8801812552201",
+  "email": "bandarban@fitoragym.com",
+  "coordinates": {
+    "lat": 22.1953,
+    "lng": 92.2184
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Zone",
+    "Outdoor Functional Area",
+    "Locker Room",
+    "Yoga Studio",
+    "Shower"
+  ],
+  "membershipPlans": {
+    "basic": 1650,
+    "standard": 2400,
+    "premium": 3300
+  },
+  "trainerCount": 6,
+  "memberCapacity": 210,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1594737625785-a6cbdabd333c"
+},
+{
+  "_id": {
+    "$oid": "6a940874b0c7c0f7534ca006"
+  },
+  "name": "Fitora Adventure Fitness — Lama",
+  "slug": "fitora-adventure-fitness-lama",
+  "division": "Chattogram",
+  "district": "Bandarban",
+  "city": "Lama",
+  "address": "Lama Main Road, Bandarban 4641",
+  "postalCode": "4641",
+  "phone": "+8801812552202",
+  "email": "lama@fitoragym.com",
+  "coordinates": {
+    "lat": 21.7765,
+    "lng": 92.2065
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "CrossFit",
+    "Locker Room",
+    "Shower",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3000
+  },
+  "trainerCount": 5,
+  "memberCapacity": 180,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1579758629938-03607ccdbaba"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca008"
+  },
+  "name": "Fitora Royal Fitness — Rajshahi New Market",
+  "slug": "fitora-royal-fitness-rajshahi-new-market",
+  "division": "Rajshahi",
+  "district": "Rajshahi",
+  "city": "Rajshahi",
+  "address": "New Market Road, Boalia, Rajshahi 6000",
+  "postalCode": "6000",
+  "phone": "+8801813001101",
+  "email": "newmarket.rajshahi@fitoragym.com",
+  "coordinates": {
+    "lat": 24.3698,
+    "lng": 88.6042
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "CrossFit Arena",
+    "Locker Room",
+    "Steam Bath",
+    "Yoga Studio",
+    "Personal Trainer",
+    "Parking",
+    "Protein Bar"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2400,
+    "premium": 3300
+  },
+  "trainerCount": 8,
+  "memberCapacity": 320,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca009"
+  },
+  "name": "Fitora Iron Temple — Rajshahi Shaheb Bazar",
+  "slug": "fitora-iron-temple-rajshahi-shaheb-bazar",
+  "division": "Rajshahi",
+  "district": "Rajshahi",
+  "city": "Rajshahi",
+  "address": "Shaheb Bazar Zero Point, Rajshahi 6000",
+  "postalCode": "6000",
+  "phone": "+8801813001102",
+  "email": "shahebbazar.rajshahi@fitoragym.com",
+  "coordinates": {
+    "lat": 24.3662,
+    "lng": 88.6004
+  },
+  "facilities": [
+    "Powerlifting",
+    "Cardio Zone",
+    "Free Weights",
+    "Locker Room",
+    "Shower",
+    "Women's Fitness",
+    "Stretch Zone",
+    "WiFi"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2500,
+    "premium": 3400
+  },
+  "trainerCount": 9,
+  "memberCapacity": 340,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1546483875-ad9014c88eba"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca00a"
+  },
+  "name": "Fitora Victory Gym — Bogura Satmatha",
+  "slug": "fitora-victory-gym-bogura-satmatha",
+  "division": "Rajshahi",
+  "district": "Bogura",
+  "city": "Bogura",
+  "address": "Satmatha, Bogura 5800",
+  "postalCode": "5800",
+  "phone": "+8801813112201",
+  "email": "satmatha.bogura@fitoragym.com",
+  "coordinates": {
+    "lat": 24.8502,
+    "lng": 89.3714
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Functional Fitness",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1650,
+    "standard": 2400,
+    "premium": 3250
+  },
+  "trainerCount": 8,
+  "memberCapacity": 300,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca00b"
+  },
+  "name": "Fitora Titan Fitness — Bogura Thanthania",
+  "slug": "fitora-titan-fitness-bogura-thanthania",
+  "division": "Rajshahi",
+  "district": "Bogura",
+  "city": "Bogura",
+  "address": "Thanthania Main Road, Bogura 5800",
+  "postalCode": "5800",
+  "phone": "+8801813112202",
+  "email": "thanthania.bogura@fitoragym.com",
+  "coordinates": {
+    "lat": 24.8475,
+    "lng": 89.3667
+  },
+  "facilities": [
+    "CrossFit",
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Steam Bath",
+    "Personal Trainer",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 1750,
+    "standard": 2550,
+    "premium": 3450
+  },
+  "trainerCount": 9,
+  "memberCapacity": 330,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1598971639058-a73d17f09d3f"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca00c"
+  },
+  "name": "Fitora Prime Fitness — Pabna Sadar",
+  "slug": "fitora-prime-fitness-pabna-sadar",
+  "division": "Rajshahi",
+  "district": "Pabna",
+  "city": "Pabna",
+  "address": "Abdul Hamid Road, Pabna Sadar 6600",
+  "postalCode": "6600",
+  "phone": "+8801813223301",
+  "email": "pabna@fitoragym.com",
+  "coordinates": {
+    "lat": 24.0064,
+    "lng": 89.2372
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Women's Fitness",
+    "Yoga Studio",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3000
+  },
+  "trainerCount": 7,
+  "memberCapacity": 250,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1518611012118-696072aa579a"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca00d"
+  },
+  "name": "Fitora Iron Hub — Naogaon Sadar",
+  "slug": "fitora-iron-hub-naogaon-sadar",
+  "division": "Rajshahi",
+  "district": "Naogaon",
+  "city": "Naogaon",
+  "address": "Main Road, Naogaon Sadar 6500",
+  "postalCode": "6500",
+  "phone": "+8801813334401",
+  "email": "naogaon@fitoragym.com",
+  "coordinates": {
+    "lat": 24.8035,
+    "lng": 88.9486
+  },
+  "facilities": [
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Personal Trainer",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2100,
+    "premium": 2850
+  },
+  "trainerCount": 6,
+  "memberCapacity": 220,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca00e"
+  },
+  "name": "Fitora Dynamic Fitness — Natore Sadar",
+  "slug": "fitora-dynamic-fitness-natore-sadar",
+  "division": "Rajshahi",
+  "district": "Natore",
+  "city": "Natore",
+  "address": "Station Road, Natore 6400",
+  "postalCode": "6400",
+  "phone": "+8801813445501",
+  "email": "natore@fitoragym.com",
+  "coordinates": {
+    "lat": 24.4208,
+    "lng": 89.0003
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Functional Fitness",
+    "Locker Room",
+    "Yoga",
+    "Shower",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 2950
+  },
+  "trainerCount": 6,
+  "memberCapacity": 230,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca00f"
+  },
+  "name": "Fitora Mango Fitness — Chapai Nawabganj",
+  "slug": "fitora-mango-fitness-chapai-nawabganj",
+  "division": "Rajshahi",
+  "district": "Chapai Nawabganj",
+  "city": "Chapai Nawabganj",
+  "address": "Town Club Road, Chapai Nawabganj 6300",
+  "postalCode": "6300",
+  "phone": "+8801813556601",
+  "email": "chapai@fitoragym.com",
+  "coordinates": {
+    "lat": 24.5965,
+    "lng": 88.2775
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Steam Bath",
+    "Women's Fitness",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1550,
+    "standard": 2250,
+    "premium": 3050
+  },
+  "trainerCount": 6,
+  "memberCapacity": 210,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534258936925-c58bed479fcb"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca010"
+  },
+  "name": "Fitora Champion Gym — Joypurhat Sadar",
+  "slug": "fitora-champion-gym-joypurhat-sadar",
+  "division": "Rajshahi",
+  "district": "Joypurhat",
+  "city": "Joypurhat",
+  "address": "Station Road, Joypurhat 5900",
+  "postalCode": "5900",
+  "phone": "+8801813667701",
+  "email": "joypurhat@fitoragym.com",
+  "coordinates": {
+    "lat": 25.1015,
+    "lng": 89.0272
+  },
+  "facilities": [
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2100,
+    "premium": 2850
+  },
+  "trainerCount": 5,
+  "memberCapacity": 190,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1584466977773-e625c37cdd50"
+},
+{
+  "_id": {
+    "$oid": "6a9408ceb0c7c0f7534ca011"
+  },
+  "name": "Fitora Velocity Fitness — Sirajganj Sadar",
+  "slug": "fitora-velocity-fitness-sirajganj-sadar",
+  "division": "Rajshahi",
+  "district": "Sirajganj",
+  "city": "Sirajganj",
+  "address": "SS Road, Sirajganj Sadar 6700",
+  "postalCode": "6700",
+  "phone": "+8801813778801",
+  "email": "sirajganj@fitoragym.com",
+  "coordinates": {
+    "lat": 24.4587,
+    "lng": 89.7082
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "CrossFit",
+    "Locker Room",
+    "Shower",
+    "Yoga Studio",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1550,
+    "standard": 2250,
+    "premium": 3100
+  },
+  "trainerCount": 7,
+  "memberCapacity": 240,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1579758629938-03607ccdbaba"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca013"
+  },
+  "name": "Fitora Elite Fitness — Khulna Sonadanga",
+  "slug": "fitora-elite-fitness-khulna-sonadanga",
+  "division": "Khulna",
+  "district": "Khulna",
+  "city": "Khulna",
+  "address": "Sonadanga Residential Area, Khulna 9100",
+  "postalCode": "9100",
+  "phone": "+8801814001101",
+  "email": "sonadanga.kh@fitoragym.com",
+  "coordinates": {
+    "lat": 22.8456,
+    "lng": 89.5403
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "CrossFit Arena",
+    "Locker Room",
+    "Steam Bath",
+    "Yoga Studio",
+    "Personal Trainer",
+    "Parking",
+    "Protein Bar"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2500,
+    "premium": 3400
+  },
+  "trainerCount": 9,
+  "memberCapacity": 340,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca014"
+  },
+  "name": "Fitora Power Club — Khulna Gollamari",
+  "slug": "fitora-power-club-khulna-gollamari",
+  "division": "Khulna",
+  "district": "Khulna",
+  "city": "Khulna",
+  "address": "Gollamari More, Khulna 9100",
+  "postalCode": "9100",
+  "phone": "+8801814001102",
+  "email": "gollamari.kh@fitoragym.com",
+  "coordinates": {
+    "lat": 22.8179,
+    "lng": 89.5511
+  },
+  "facilities": [
+    "Strength Zone",
+    "Powerlifting",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Nutrition Desk",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1750,
+    "standard": 2550,
+    "premium": 3500
+  },
+  "trainerCount": 10,
+  "memberCapacity": 360,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1571902943202-507ec2618e8f"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca015"
+  },
+  "name": "Fitora Iron Arena — Jashore Chanchra",
+  "slug": "fitora-iron-arena-jashore-chanchra",
+  "division": "Khulna",
+  "district": "Jashore",
+  "city": "Jashore",
+  "address": "Chanchra Bus Stand, Jashore 7400",
+  "postalCode": "7400",
+  "phone": "+8801814112201",
+  "email": "chanchra.jashore@fitoragym.com",
+  "coordinates": {
+    "lat": 23.1702,
+    "lng": 89.2086
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "CrossFit",
+    "Locker Room",
+    "Shower",
+    "Women's Fitness",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1650,
+    "standard": 2400,
+    "premium": 3250
+  },
+  "trainerCount": 8,
+  "memberCapacity": 310,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1546483875-ad9014c88eba"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca016"
+  },
+  "name": "Fitora Prime Strength — Jashore Monihar",
+  "slug": "fitora-prime-strength-jashore-monihar",
+  "division": "Khulna",
+  "district": "Jashore",
+  "city": "Jashore",
+  "address": "Monihar Circle, Jashore 7400",
+  "postalCode": "7400",
+  "phone": "+8801814112202",
+  "email": "monihar.jashore@fitoragym.com",
+  "coordinates": {
+    "lat": 23.1626,
+    "lng": 89.2154
+  },
+  "facilities": [
+    "Functional Fitness",
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Steam Bath",
+    "Yoga Studio",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2500,
+    "premium": 3400
+  },
+  "trainerCount": 9,
+  "memberCapacity": 330,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca017"
+  },
+  "name": "Fitora Victory Fitness — Kushtia Sadar",
+  "slug": "fitora-victory-fitness-kushtia-sadar",
+  "division": "Khulna",
+  "district": "Kushtia",
+  "city": "Kushtia",
+  "address": "NS Road, Kushtia Sadar 7000",
+  "postalCode": "7000",
+  "phone": "+8801814223301",
+  "email": "kushtia@fitoragym.com",
+  "coordinates": {
+    "lat": 23.9052,
+    "lng": 89.122
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Locker Room",
+    "Shower",
+    "Personal Trainer",
+    "Nutrition Desk",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1550,
+    "standard": 2250,
+    "premium": 3050
+  },
+  "trainerCount": 7,
+  "memberCapacity": 250,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1598971639058-a73d17f09d3f"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca018"
+  },
+  "name": "Fitora Dynamic Gym — Satkhira Sadar",
+  "slug": "fitora-dynamic-gym-satkhira-sadar",
+  "division": "Khulna",
+  "district": "Satkhira",
+  "city": "Satkhira",
+  "address": "Abul Kashem Road, Satkhira 9400",
+  "postalCode": "9400",
+  "phone": "+8801814334401",
+  "email": "satkhira@fitoragym.com",
+  "coordinates": {
+    "lat": 22.7185,
+    "lng": 89.0706
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Women's Fitness",
+    "Yoga",
+    "Shower"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 2950
+  },
+  "trainerCount": 6,
+  "memberCapacity": 220,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1518611012118-696072aa579a"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca019"
+  },
+  "name": "Fitora Champion Fitness — Jhenaidah Sadar",
+  "slug": "fitora-champion-fitness-jhenaidah-sadar",
+  "division": "Khulna",
+  "district": "Jhenaidah",
+  "city": "Jhenaidah",
+  "address": "Post Office More, Jhenaidah 7300",
+  "postalCode": "7300",
+  "phone": "+8801814445501",
+  "email": "jhenaidah@fitoragym.com",
+  "coordinates": {
+    "lat": 23.5446,
+    "lng": 89.1532
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Zone",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2100,
+    "premium": 2850
+  },
+  "trainerCount": 6,
+  "memberCapacity": 210,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca01a"
+  },
+  "name": "Fitora River Fitness — Bagerhat Sadar",
+  "slug": "fitora-river-fitness-bagerhat-sadar",
+  "division": "Khulna",
+  "district": "Bagerhat",
+  "city": "Bagerhat",
+  "address": "Main Road, Bagerhat Sadar 9300",
+  "postalCode": "9300",
+  "phone": "+8801814556601",
+  "email": "bagerhat@fitoragym.com",
+  "coordinates": {
+    "lat": 22.6516,
+    "lng": 89.7859
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Functional Fitness",
+    "Locker Room",
+    "Shower",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3000
+  },
+  "trainerCount": 6,
+  "memberCapacity": 200,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca01b"
+  },
+  "name": "Fitora Iron Works — Chuadanga Sadar",
+  "slug": "fitora-iron-works-chuadanga-sadar",
+  "division": "Khulna",
+  "district": "Chuadanga",
+  "city": "Chuadanga",
+  "address": "Court Road, Chuadanga 7200",
+  "postalCode": "7200",
+  "phone": "+8801814667701",
+  "email": "chuadanga@fitoragym.com",
+  "coordinates": {
+    "lat": 23.6402,
+    "lng": 88.8413
+  },
+  "facilities": [
+    "Strength Zone",
+    "Cardio Zone",
+    "Powerlifting",
+    "Locker Room",
+    "Shower",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2150,
+    "premium": 2900
+  },
+  "trainerCount": 5,
+  "memberCapacity": 190,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534258936925-c58bed479fcb"
+},
+{
+  "_id": {
+    "$oid": "6a9408fab0c7c0f7534ca01c"
+  },
+  "name": "Fitora Frontier Gym — Meherpur Sadar",
+  "slug": "fitora-frontier-gym-meherpur-sadar",
+  "division": "Khulna",
+  "district": "Meherpur",
+  "city": "Meherpur",
+  "address": "Gangni Road, Meherpur 7100",
+  "postalCode": "7100",
+  "phone": "+8801814778801",
+  "email": "meherpur@fitoragym.com",
+  "coordinates": {
+    "lat": 23.7621,
+    "lng": 88.6318
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Women's Fitness",
+    "Yoga Studio",
+    "Shower"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2100,
+    "premium": 2850
+  },
+  "trainerCount": 5,
+  "memberCapacity": 180,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1579758629938-03607ccdbaba"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca01e"
+  },
+  "name": "Fitora Elite Fitness — Sylhet Zindabazar",
+  "slug": "fitora-elite-fitness-sylhet-zindabazar",
+  "division": "Sylhet",
+  "district": "Sylhet",
+  "city": "Sylhet",
+  "address": "Zindabazar Point, Sylhet 3100",
+  "postalCode": "3100",
+  "phone": "+8801815001101",
+  "email": "zindabazar.sylhet@fitoragym.com",
+  "coordinates": {
+    "lat": 24.8949,
+    "lng": 91.8687
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "CrossFit Arena",
+    "Locker Room",
+    "Steam Bath",
+    "Yoga Studio",
+    "Personal Trainer",
+    "Parking",
+    "Protein Bar"
+  ],
+  "membershipPlans": {
+    "basic": 1800,
+    "standard": 2600,
+    "premium": 3600
+  },
+  "trainerCount": 10,
+  "memberCapacity": 380,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca01f"
+  },
+  "name": "Fitora Power House — Sylhet Ambarkhana",
+  "slug": "fitora-power-house-sylhet-ambarkhana",
+  "division": "Sylhet",
+  "district": "Sylhet",
+  "city": "Sylhet",
+  "address": "Ambarkhana Main Road, Sylhet 3100",
+  "postalCode": "3100",
+  "phone": "+8801815001102",
+  "email": "ambarkhana.sylhet@fitoragym.com",
+  "coordinates": {
+    "lat": 24.9024,
+    "lng": 91.8752
+  },
+  "facilities": [
+    "Powerlifting",
+    "Cardio Zone",
+    "Free Weights",
+    "Locker Room",
+    "Shower",
+    "Women's Fitness",
+    "Stretch Zone",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 1750,
+    "standard": 2550,
+    "premium": 3450
+  },
+  "trainerCount": 9,
+  "memberCapacity": 340,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1546483875-ad9014c88eba"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca020"
+  },
+  "name": "Fitora Tea Garden Fitness — Moulvibazar Sadar",
+  "slug": "fitora-tea-garden-fitness-moulvibazar-sadar",
+  "division": "Sylhet",
+  "district": "Moulvibazar",
+  "city": "Moulvibazar",
+  "address": "Court Road, Moulvibazar 3200",
+  "postalCode": "3200",
+  "phone": "+8801815112201",
+  "email": "moulvibazar@fitoragym.com",
+  "coordinates": {
+    "lat": 24.4825,
+    "lng": 91.7774
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Functional Fitness",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2350,
+    "premium": 3200
+  },
+  "trainerCount": 7,
+  "memberCapacity": 260,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca021"
+  },
+  "name": "Fitora Prime Strength — Sreemangal",
+  "slug": "fitora-prime-strength-sreemangal",
+  "division": "Sylhet",
+  "district": "Moulvibazar",
+  "city": "Sreemangal",
+  "address": "College Road, Sreemangal 3210",
+  "postalCode": "3210",
+  "phone": "+8801815112202",
+  "email": "sreemangal@fitoragym.com",
+  "coordinates": {
+    "lat": 24.3064,
+    "lng": 91.7296
+  },
+  "facilities": [
+    "CrossFit",
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Yoga Studio",
+    "Steam Bath",
+    "Cafe"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2500,
+    "premium": 3400
+  },
+  "trainerCount": 8,
+  "memberCapacity": 280,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1598971639058-a73d17f09d3f"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca022"
+  },
+  "name": "Fitora Warrior Fitness — Habiganj Sadar",
+  "slug": "fitora-warrior-fitness-habiganj-sadar",
+  "division": "Sylhet",
+  "district": "Habiganj",
+  "city": "Habiganj",
+  "address": "Town Hall Road, Habiganj 3300",
+  "postalCode": "3300",
+  "phone": "+8801815223301",
+  "email": "habiganj@fitoragym.com",
+  "coordinates": {
+    "lat": 24.3745,
+    "lng": 91.4142
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Women's Fitness",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1550,
+    "standard": 2250,
+    "premium": 3050
+  },
+  "trainerCount": 6,
+  "memberCapacity": 220,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1518611012118-696072aa579a"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca023"
+  },
+  "name": "Fitora Iron District — Madhabpur",
+  "slug": "fitora-iron-district-madhabpur",
+  "division": "Sylhet",
+  "district": "Habiganj",
+  "city": "Madhabpur",
+  "address": "Madhabpur Bazar, Habiganj 3330",
+  "postalCode": "3330",
+  "phone": "+8801815223302",
+  "email": "madhabpur@fitoragym.com",
+  "coordinates": {
+    "lat": 24.1148,
+    "lng": 91.3844
+  },
+  "facilities": [
+    "Powerlifting",
+    "Cardio Zone",
+    "Strength Zone",
+    "Locker Room",
+    "Shower",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 2950
+  },
+  "trainerCount": 6,
+  "memberCapacity": 210,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca024"
+  },
+  "name": "Fitora Lake View Fitness — Sunamganj Sadar",
+  "slug": "fitora-lake-view-fitness-sunamganj-sadar",
+  "division": "Sylhet",
+  "district": "Sunamganj",
+  "city": "Sunamganj",
+  "address": "Old Bus Stand Road, Sunamganj 3000",
+  "postalCode": "3000",
+  "phone": "+8801815334401",
+  "email": "sunamganj@fitoragym.com",
+  "coordinates": {
+    "lat": 25.0658,
+    "lng": 91.3952
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Locker Room",
+    "Yoga Studio",
+    "Shower",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3000
+  },
+  "trainerCount": 6,
+  "memberCapacity": 220,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca025"
+  },
+  "name": "Fitora Haor Strength — Jagannathpur",
+  "slug": "fitora-haor-strength-jagannathpur",
+  "division": "Sylhet",
+  "district": "Sunamganj",
+  "city": "Jagannathpur",
+  "address": "Jagannathpur Bazar, Sunamganj 3060",
+  "postalCode": "3060",
+  "phone": "+8801815334402",
+  "email": "jagannathpur@fitoragym.com",
+  "coordinates": {
+    "lat": 24.7711,
+    "lng": 91.5454
+  },
+  "facilities": [
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Women's Fitness",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2100,
+    "premium": 2850
+  },
+  "trainerCount": 5,
+  "memberCapacity": 190,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534258936925-c58bed479fcb"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca026"
+  },
+  "name": "Fitora Riverfront Gym — Barishal Sadar",
+  "slug": "fitora-riverfront-gym-barishal-sadar",
+  "division": "Barishal",
+  "district": "Barishal",
+  "city": "Barishal",
+  "address": "Sadar Road, Barishal 8200",
+  "postalCode": "8200",
+  "phone": "+8801815445501",
+  "email": "barishal@fitoragym.com",
+  "coordinates": {
+    "lat": 22.701,
+    "lng": 90.3535
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "CrossFit",
+    "Locker Room",
+    "Steam Bath",
+    "Yoga Studio",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1650,
+    "standard": 2450,
+    "premium": 3350
+  },
+  "trainerCount": 8,
+  "memberCapacity": 300,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1579758629938-03607ccdbaba"
+},
+{
+  "_id": {
+    "$oid": "6a940929b0c7c0f7534ca027"
+  },
+  "name": "Fitora Elite Club — Barishal Rupatoli",
+  "slug": "fitora-elite-club-barishal-rupatoli",
+  "division": "Barishal",
+  "district": "Barishal",
+  "city": "Barishal",
+  "address": "Rupatoli Housing Area, Barishal 8200",
+  "postalCode": "8200",
+  "phone": "+8801815445502",
+  "email": "rupatoli.barishal@fitoragym.com",
+  "coordinates": {
+    "lat": 22.6908,
+    "lng": 90.3701
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Zone",
+    "Functional Fitness",
+    "Locker Room",
+    "Shower",
+    "Women's Fitness",
+    "Personal Trainer",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2500,
+    "premium": 3400
+  },
+  "trainerCount": 8,
+  "memberCapacity": 310,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1584466977773-e625c37cdd50"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca029"
+  },
+  "name": "Fitora Island Fitness — Bhola Sadar",
+  "slug": "fitora-island-fitness-bhola-sadar",
+  "division": "Barishal",
+  "district": "Bhola",
+  "city": "Bhola",
+  "address": "Sadar Road, Bhola 8300",
+  "postalCode": "8300",
+  "phone": "+8801815556601",
+  "email": "bhola@fitoragym.com",
+  "coordinates": {
+    "lat": 22.6859,
+    "lng": 90.6482
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Women's Fitness",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3000
+  },
+  "trainerCount": 6,
+  "memberCapacity": 220,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca02a"
+  },
+  "name": "Fitora Coastal Strength — Patuakhali Sadar",
+  "slug": "fitora-coastal-strength-patuakhali-sadar",
+  "division": "Barishal",
+  "district": "Patuakhali",
+  "city": "Patuakhali",
+  "address": "Town Hall Road, Patuakhali 8600",
+  "postalCode": "8600",
+  "phone": "+8801815667701",
+  "email": "patuakhali@fitoragym.com",
+  "coordinates": {
+    "lat": 22.3596,
+    "lng": 90.3299
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Zone",
+    "Functional Fitness",
+    "Locker Room",
+    "Yoga Studio",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1550,
+    "standard": 2250,
+    "premium": 3050
+  },
+  "trainerCount": 6,
+  "memberCapacity": 230,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1546483875-ad9014c88eba"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca02b"
+  },
+  "name": "Fitora Heritage Gym — Pirojpur Sadar",
+  "slug": "fitora-heritage-gym-pirojpur-sadar",
+  "division": "Barishal",
+  "district": "Pirojpur",
+  "city": "Pirojpur",
+  "address": "College Road, Pirojpur 8500",
+  "postalCode": "8500",
+  "phone": "+8801815778801",
+  "email": "pirojpur@fitoragym.com",
+  "coordinates": {
+    "lat": 22.5782,
+    "lng": 89.9786
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Steam Bath",
+    "Shower",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 2950
+  },
+  "trainerCount": 6,
+  "memberCapacity": 210,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1598971639058-a73d17f09d3f"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca02c"
+  },
+  "name": "Fitora River View Fitness — Jhalokathi Sadar",
+  "slug": "fitora-river-view-fitness-jhalokathi-sadar",
+  "division": "Barishal",
+  "district": "Jhalokathi",
+  "city": "Jhalokathi",
+  "address": "Amtala Road, Jhalokathi 8400",
+  "postalCode": "8400",
+  "phone": "+8801815889901",
+  "email": "jhalokathi@fitoragym.com",
+  "coordinates": {
+    "lat": 22.6406,
+    "lng": 90.1987
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Zone",
+    "Locker Room",
+    "Yoga Studio",
+    "Shower",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2150,
+    "premium": 2900
+  },
+  "trainerCount": 5,
+  "memberCapacity": 190,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1518611012118-696072aa579a"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca02d"
+  },
+  "name": "Fitora Ocean Club — Barguna Sadar",
+  "slug": "fitora-ocean-club-barguna-sadar",
+  "division": "Barishal",
+  "district": "Barguna",
+  "city": "Barguna",
+  "address": "College Road, Barguna 8700",
+  "postalCode": "8700",
+  "phone": "+8801815991101",
+  "email": "barguna@fitoragym.com",
+  "coordinates": {
+    "lat": 22.1593,
+    "lng": 90.125
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Locker Room",
+    "Women's Fitness",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1450,
+    "standard": 2100,
+    "premium": 2850
+  },
+  "trainerCount": 5,
+  "memberCapacity": 180,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "21:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca02e"
+  },
+  "name": "Fitora North Star Fitness — Rangpur Modern More",
+  "slug": "fitora-north-star-fitness-rangpur-modern-more",
+  "division": "Rangpur",
+  "district": "Rangpur",
+  "city": "Rangpur",
+  "address": "Modern More, Rangpur 5400",
+  "postalCode": "5400",
+  "phone": "+8801816002201",
+  "email": "modernmore.rangpur@fitoragym.com",
+  "coordinates": {
+    "lat": 25.7466,
+    "lng": 89.2517
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "CrossFit Arena",
+    "Locker Room",
+    "Steam Bath",
+    "Yoga Studio",
+    "Parking",
+    "Protein Bar"
+  ],
+  "membershipPlans": {
+    "basic": 1700,
+    "standard": 2500,
+    "premium": 3400
+  },
+  "trainerCount": 9,
+  "memberCapacity": 330,
+  "operatingHours": {
+    "open": "05:30",
+    "close": "23:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1571902943202-507ec2618e8f"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca02f"
+  },
+  "name": "Fitora Iron District — Rangpur Jahaj Company More",
+  "slug": "fitora-iron-district-rangpur-jahaj-company-more",
+  "division": "Rangpur",
+  "district": "Rangpur",
+  "city": "Rangpur",
+  "address": "Jahaj Company More, Rangpur 5400",
+  "postalCode": "5400",
+  "phone": "+8801816002202",
+  "email": "jahajcompany.rangpur@fitoragym.com",
+  "coordinates": {
+    "lat": 25.7558,
+    "lng": 89.2448
+  },
+  "facilities": [
+    "Powerlifting",
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Shower",
+    "Women's Fitness",
+    "Nutrition Desk"
+  ],
+  "membershipPlans": {
+    "basic": 1750,
+    "standard": 2550,
+    "premium": 3450
+  },
+  "trainerCount": 8,
+  "memberCapacity": 320,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1517838277536-f5f99be501cd"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca030"
+  },
+  "name": "Fitora Victory Gym — Dinajpur Sadar",
+  "slug": "fitora-victory-gym-dinajpur-sadar",
+  "division": "Rangpur",
+  "district": "Dinajpur",
+  "city": "Dinajpur",
+  "address": "Lily More, Dinajpur 5200",
+  "postalCode": "5200",
+  "phone": "+8801816113301",
+  "email": "dinajpur@fitoragym.com",
+  "coordinates": {
+    "lat": 25.6272,
+    "lng": 88.6331
+  },
+  "facilities": [
+    "Cardio Zone",
+    "Strength Training",
+    "Locker Room",
+    "Shower",
+    "Group Classes",
+    "Parking"
+  ],
+  "membershipPlans": {
+    "basic": 1600,
+    "standard": 2350,
+    "premium": 3200
+  },
+  "trainerCount": 7,
+  "memberCapacity": 260,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:30"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca031"
+  },
+  "name": "Fitora Prime Fitness — Nilphamari Sadar",
+  "slug": "fitora-prime-fitness-nilphamari-sadar",
+  "division": "Rangpur",
+  "district": "Nilphamari",
+  "city": "Nilphamari",
+  "address": "Hospital Road, Nilphamari 5300",
+  "postalCode": "5300",
+  "phone": "+8801816224401",
+  "email": "nilphamari@fitoragym.com",
+  "coordinates": {
+    "lat": 25.9319,
+    "lng": 88.856
+  },
+  "facilities": [
+    "Strength Training",
+    "Cardio Zone",
+    "Functional Fitness",
+    "Locker Room",
+    "Yoga Studio",
+    "Shower"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 3000
+  },
+  "trainerCount": 6,
+  "memberCapacity": 220,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77"
+},
+{
+  "_id": {
+    "$oid": "6a940a12b0c7c0f7534ca032"
+  },
+  "name": "Fitora Himalayan Fitness — Thakurgaon Sadar",
+  "slug": "fitora-himalayan-fitness-thakurgaon-sadar",
+  "division": "Rangpur",
+  "district": "Thakurgaon",
+  "city": "Thakurgaon",
+  "address": "College Road, Thakurgaon 5100",
+  "postalCode": "5100",
+  "phone": "+8801816335501",
+  "email": "thakurgaon@fitoragym.com",
+  "coordinates": {
+    "lat": 26.0342,
+    "lng": 88.4697
+  },
+  "facilities": [
+    "Strength Zone",
+    "Cardio Zone",
+    "Locker Room",
+    "Women's Fitness",
+    "Shower",
+    "Personal Trainer"
+  ],
+  "membershipPlans": {
+    "basic": 1500,
+    "standard": 2200,
+    "premium": 2950
+  },
+  "trainerCount": 6,
+  "memberCapacity": 210,
+  "operatingHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "status": "active",
+  "image": "https://images.unsplash.com/photo-1534258936925-c58bed479fcb"
+}]
