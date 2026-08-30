@@ -17,6 +17,7 @@ import {
   Zap,
   Trash2,
 } from "lucide-react";
+import { sendAiChatApi } from "@/services/aiService";
 
 interface Message {
   id: string;
@@ -27,7 +28,9 @@ interface Message {
 
 export default function FloatingAiWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<"chat" | "coach" | null>(null);
+  const [selectedMode, setSelectedMode] = useState<"chat" | "coach" | null>(
+    null,
+  );
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -37,7 +40,10 @@ export default function FloatingAiWidget() {
       id: "1",
       sender: "ai",
       text: "Welcome to FITORA AI Chat! Ask me anything about workout programming, progressive overload, nutrition macros, or gym guidance.",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     },
   ]);
 
@@ -46,7 +52,10 @@ export default function FloatingAiWidget() {
       id: "1",
       sender: "ai",
       text: "Welcome to FITORA AI Personal Coach Studio! What is your primary fitness goal (e.g. Muscle Gain, Fat Loss, Strength) and target timeline?",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     },
   ]);
 
@@ -91,7 +100,10 @@ export default function FloatingAiWidget() {
           id: Date.now().toString(),
           sender: "ai",
           text: "Chat cleared! How can FITORA AI help you with your fitness journey today?",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         },
       ]);
     } else {
@@ -100,13 +112,16 @@ export default function FloatingAiWidget() {
           id: Date.now().toString(),
           sender: "ai",
           text: "Coach session reset! What workout split or calorie target would you like to build?",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         },
       ]);
     }
   };
 
-  const handleSendMessage = (customText?: string) => {
+  const handleSendMessage = async (customText?: string) => {
     const textToSend = customText || inputText;
     if (!textToSend.trim()) return;
 
@@ -114,7 +129,10 @@ export default function FloatingAiWidget() {
       id: Date.now().toString(),
       sender: "user",
       text: textToSend,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
 
     if (selectedMode === "chat") {
@@ -126,24 +144,51 @@ export default function FloatingAiWidget() {
     setInputText("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      let responseText = "";
+    try {
+      const mode = selectedMode === "coach" ? "coach" : "chat";
+      const apiResult = await sendAiChatApi(textToSend, mode);
 
-      if (selectedMode === "chat") {
-        if (textToSend.toLowerCase().includes("protein") || textToSend.toLowerCase().includes("diet") || textToSend.toLowerCase().includes("meal")) {
-          responseText = "For optimal muscle synthesis & recovery, target 1.6 - 2.2g of protein per kg of bodyweight daily. Prioritize whole sources like chicken breast, eggs, fish, lentils, and whey protein isolates.";
-        } else if (textToSend.toLowerCase().includes("split") || textToSend.toLowerCase().includes("routine") || textToSend.toLowerCase().includes("workout")) {
-          responseText = "A 6-day Push-Pull-Legs (PPL) or 4-day Upper-Lower split is optimal for hypertrophy & strength gains. Ensure 10-20 hard sets per muscle group weekly with progressive overload!";
-        } else {
-          responseText = "FITORA AI recommends focusing on progressive overload, adequate hydration (3-4L daily), and 7-8 hours of sleep for peak athletic performance & recovery.";
-        }
+      let responseText = "";
+      if (apiResult.success && apiResult.data?.responseText) {
+        responseText = apiResult.data.responseText;
       } else {
-        if (textToSend.toLowerCase().includes("loss") || textToSend.toLowerCase().includes("fat")) {
-          responseText = "Fat Loss Blueprint Generated: 300 kcal daily deficit + 4-day Resistance Training + 20 min LISS Cardio. You can view your complete macro targets in AI Coach Studio!";
-        } else if (textToSend.toLowerCase().includes("muscle") || textToSend.toLowerCase().includes("gain")) {
-          responseText = "Hypertrophy Program Generated: 250 kcal surplus + 5-day Compound Heavy Split (6-10 rep range). Open full AI Coach Studio to track weekly progress!";
+        // Local Intelligent Fallback
+        if (mode === "chat") {
+          if (
+            textToSend.toLowerCase().includes("protein") ||
+            textToSend.toLowerCase().includes("diet") ||
+            textToSend.toLowerCase().includes("meal")
+          ) {
+            responseText =
+              "For optimal muscle synthesis & recovery, target 1.6 - 2.2g of protein per kg of bodyweight daily. Prioritize whole sources like chicken breast, eggs, fish, lentils, and whey protein isolates.";
+          } else if (
+            textToSend.toLowerCase().includes("split") ||
+            textToSend.toLowerCase().includes("routine") ||
+            textToSend.toLowerCase().includes("workout")
+          ) {
+            responseText =
+              "A 6-day Push-Pull-Legs (PPL) or 4-day Upper-Lower split is optimal for hypertrophy & strength gains. Ensure 10-20 hard sets per muscle group weekly with progressive overload!";
+          } else {
+            responseText =
+              "FITORA AI recommends focusing on progressive overload, adequate hydration (3.5L daily), and 7-8 hours of sleep for peak athletic performance & recovery.";
+          }
         } else {
-          responseText = "Custom Training Routine Generated! You can view detailed macro calculations, calorie targets & workout logs inside the main AI Coach Studio.";
+          if (
+            textToSend.toLowerCase().includes("loss") ||
+            textToSend.toLowerCase().includes("fat")
+          ) {
+            responseText =
+              "Fat Loss Blueprint Generated: 350 kcal daily deficit + 4-day Resistance Training + 25 min LISS Cardio. You can view your complete macro targets in AI Coach Studio!";
+          } else if (
+            textToSend.toLowerCase().includes("muscle") ||
+            textToSend.toLowerCase().includes("gain")
+          ) {
+            responseText =
+              "Hypertrophy Program Generated: 250 kcal surplus + 5-day Compound Heavy Split (6-10 rep range). Open full AI Coach Studio to track weekly progress!";
+          } else {
+            responseText =
+              "Custom Training Routine Generated! You can view detailed macro calculations, calorie targets & workout logs inside the main AI Coach Studio.";
+          }
         }
       }
 
@@ -151,7 +196,10 @@ export default function FloatingAiWidget() {
         id: (Date.now() + 1).toString(),
         sender: "ai",
         text: responseText,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
 
       if (selectedMode === "chat") {
@@ -159,16 +207,18 @@ export default function FloatingAiWidget() {
       } else {
         setCoachMessages((prev) => [...prev, aiMsg]);
       }
-
+    } catch (err) {
+      console.error("AI chat error:", err);
+    } finally {
       setIsTyping(false);
-    }, 1100);
+    }
   };
 
-  const currentMessages = selectedMode === "chat" ? chatMessages : coachMessages;
+  const currentMessages =
+    selectedMode === "chat" ? chatMessages : coachMessages;
 
   return (
     <div ref={widgetRef} className="select-none">
-      
       {/* ─── 1. Viewport Fixed Popover Modal (320px Minimum Mobile Responsive) ─── */}
       <AnimatePresence>
         {isOpen && (
@@ -177,13 +227,11 @@ export default function FloatingAiWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed bottom-18 sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[640px] md:w-[720px] lg:w-[760px] max-w-[760px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[80]"
+            className="fixed bottom-18 sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[640px] md:w-[720px] lg:w-[760px] max-w-[760px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[50]"
           >
-            
             {/* STATE A: Mode Selection Menu (320px Ultra-Compact Mobile Layout) */}
             {!selectedMode ? (
               <div className="p-3 sm:p-5 space-y-3 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black overflow-y-auto max-h-[380px] sm:max-h-[420px]">
-                
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2 border-b border-white/15">
                   <div className="flex items-center gap-2">
@@ -192,7 +240,10 @@ export default function FloatingAiWidget() {
                     </span>
                     <div>
                       <h3 className="text-[11px] sm:text-sm font-black uppercase tracking-wider text-white leading-none">
-                        Fitora AI <span className="font-serif italic font-normal text-gray-400">#Studio</span>
+                        Fitora AI{" "}
+                        <span className="font-serif italic font-normal text-gray-400">
+                          #Studio
+                        </span>
                       </h3>
                       <span className="text-[8px] sm:text-[9px] font-bold text-gray-400 tracking-widest uppercase block mt-0.5">
                         Gym & AI Personal Assistant
@@ -209,12 +260,12 @@ export default function FloatingAiWidget() {
                 </div>
 
                 <p className="text-[10px] sm:text-xs text-gray-300 font-medium leading-relaxed">
-                  Select an AI Assistant module to launch real-time interactive studio chat:
+                  Select an AI Assistant module to launch real-time interactive
+                  studio chat:
                 </p>
 
                 {/* Options Buttons List (Stacked on 320px Mobile) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-                  
                   {/* Option 1: AI Chat Assistant (Pure White Card) */}
                   <button
                     onClick={(e) => {
@@ -266,7 +317,6 @@ export default function FloatingAiWidget() {
                       <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
                     </span>
                   </button>
-
                 </div>
 
                 <div className="pt-2 text-center border-t border-white/10">
@@ -279,7 +329,6 @@ export default function FloatingAiWidget() {
             ) : (
               /* STATE B: Live Floating Chat Window (320px Minimum Mobile Responsive) */
               <div className="flex flex-col h-[calc(100vh-140px)] max-h-[440px] min-h-[280px] bg-black">
-                
                 {/* Chat Window Header (Shrink-0) */}
                 <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-2.5 bg-neutral-900/90 border-b border-white/15 shrink-0">
                   <div className="flex items-center gap-2">
@@ -290,7 +339,7 @@ export default function FloatingAiWidget() {
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
                     </button>
-                    
+
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
                         {selectedMode === "chat" ? (
@@ -301,7 +350,9 @@ export default function FloatingAiWidget() {
                       </div>
                       <div>
                         <h3 className="text-[11px] sm:text-xs font-black uppercase text-white leading-none">
-                          {selectedMode === "chat" ? "Fitora AI Chat" : "Fitora AI Coach"}
+                          {selectedMode === "chat"
+                            ? "Fitora AI Chat"
+                            : "Fitora AI Coach"}
                         </h3>
                         <span className="text-[8px] sm:text-[9px] font-extrabold text-emerald-400 uppercase tracking-wider block mt-0.5">
                           ● Gemini 2.0 Engine Active
@@ -319,7 +370,7 @@ export default function FloatingAiWidget() {
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                     <Link
-                      href="/dashboard/user/ai-coach"
+                      href="/dashboard"
                       onClick={() => setIsOpen(false)}
                       className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-full bg-neutral-800 text-gray-300 hover:text-white flex items-center justify-center transition-colors shrink-0"
                       title="Open Full Studio"
@@ -361,7 +412,9 @@ export default function FloatingAiWidget() {
                         <p className="whitespace-pre-wrap">{msg.text}</p>
                         <span
                           className={`text-[8px] sm:text-[9px] block text-right mt-1 font-bold ${
-                            msg.sender === "user" ? "text-gray-500" : "text-gray-400"
+                            msg.sender === "user"
+                              ? "text-gray-500"
+                              : "text-gray-400"
                           }`}
                         >
                           {msg.timestamp}
@@ -397,19 +450,27 @@ export default function FloatingAiWidget() {
                   {selectedMode === "chat" ? (
                     <>
                       <button
-                        onClick={() => handleSendMessage("Best workout split for muscle gain?")}
+                        onClick={() =>
+                          handleSendMessage(
+                            "Best workout split for muscle gain?",
+                          )
+                        }
                         className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-gray-300 border border-white/15 font-bold transition-all whitespace-nowrap active:scale-95 cursor-pointer text-[9px] sm:text-[10px]"
                       >
                         🏋️ Muscle Split
                       </button>
                       <button
-                        onClick={() => handleSendMessage("High protein meal plan")}
+                        onClick={() =>
+                          handleSendMessage("High protein meal plan")
+                        }
                         className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-gray-300 border border-white/15 font-bold transition-all whitespace-nowrap active:scale-95 cursor-pointer text-[9px] sm:text-[10px]"
                       >
                         🥗 Protein Diet
                       </button>
                       <button
-                        onClick={() => handleSendMessage("Rest time between sets?")}
+                        onClick={() =>
+                          handleSendMessage("Rest time between sets?")
+                        }
                         className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-gray-300 border border-white/15 font-bold transition-all whitespace-nowrap active:scale-95 cursor-pointer text-[9px] sm:text-[10px]"
                       >
                         ⏱️ Rest Time
@@ -418,19 +479,25 @@ export default function FloatingAiWidget() {
                   ) : (
                     <>
                       <button
-                        onClick={() => handleSendMessage("Create Fat Loss Plan")}
+                        onClick={() =>
+                          handleSendMessage("Create Fat Loss Plan")
+                        }
                         className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-gray-300 border border-white/15 font-bold transition-all whitespace-nowrap active:scale-95 cursor-pointer text-[9px] sm:text-[10px]"
                       >
                         🔥 Fat Loss
                       </button>
                       <button
-                        onClick={() => handleSendMessage("Hypertrophy Muscle Plan")}
+                        onClick={() =>
+                          handleSendMessage("Hypertrophy Muscle Plan")
+                        }
                         className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-gray-300 border border-white/15 font-bold transition-all whitespace-nowrap active:scale-95 cursor-pointer text-[9px] sm:text-[10px]"
                       >
                         💪 Hypertrophy
                       </button>
                       <button
-                        onClick={() => handleSendMessage("Calorie Surplus Targets")}
+                        onClick={() =>
+                          handleSendMessage("Calorie Surplus Targets")
+                        }
                         className="px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-gray-300 border border-white/15 font-bold transition-all whitespace-nowrap active:scale-95 cursor-pointer text-[9px] sm:text-[10px]"
                       >
                         🍎 Surplus Macros
@@ -451,7 +518,11 @@ export default function FloatingAiWidget() {
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder={selectedMode === "chat" ? "Ask FITORA AI..." : "Tell coach your goal..."}
+                    placeholder={
+                      selectedMode === "chat"
+                        ? "Ask FITORA AI..."
+                        : "Tell coach your goal..."
+                    }
                     className="bg-black text-[11px] sm:text-sm text-white placeholder-gray-500 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full outline-none w-full border border-white/20 focus:border-white transition-colors font-medium"
                   />
                   <button
@@ -462,10 +533,8 @@ export default function FloatingAiWidget() {
                     <SendHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
                   </button>
                 </form>
-
               </div>
             )}
-
           </motion.div>
         )}
       </AnimatePresence>
@@ -483,7 +552,7 @@ export default function FloatingAiWidget() {
             setIsOpen(true);
           }
         }}
-        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-4 border-white shadow-2xl transition-all duration-300 z-[60] ${
+        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-4 border-white shadow-2xl transition-all duration-300 z-30 ${
           isScrolled
             ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 sm:px-6 sm:py-3 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95"
             : "absolute bottom-[6px] left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"
@@ -515,7 +584,6 @@ export default function FloatingAiWidget() {
           </motion.div>
         )}
       </motion.button>
-
     </div>
   );
 }

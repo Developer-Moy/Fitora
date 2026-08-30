@@ -3,7 +3,7 @@ import { Consultation } from "../models/Consultation.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
 
 /**
- * 1. Public: Create Consultation / Inquiry Lead (`POST /api/consultations`)
+ * 1. Public: Create Consultation Lead Inquiry (`POST /api/consultations`)
  */
 export const createLead = async (req: Request, res: Response) => {
   try {
@@ -20,17 +20,21 @@ export const createLead = async (req: Request, res: Response) => {
     if (!fullName || !email) {
       return res.status(400).json({
         success: false,
-        message: "Full name and email are required fields.",
+        message: "Full Name and Email are required fields.",
       });
     }
 
-    const lead = await Consultation.create({
-      fullName: fullName.trim(),
-      email: email.trim().toLowerCase(),
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = fullName.trim();
+
+    const consultation = await Consultation.create({
+      fullName: cleanName,
+      email: cleanEmail,
       phone: phone?.trim() || "",
-      selectedClass: selectedClass || "General Fitness & Gym Access",
-      preferredBranch: preferredBranch || "Dhaka - Gulshan-2 Branch (Flagship)",
-      preferredProgram: preferredProgram || "Standard Membership",
+      selectedClass: selectedClass?.trim() || "General Fitness & Gym Access",
+      preferredBranch:
+        preferredBranch?.trim() || "Dhaka - Gulshan-2 Branch (Flagship)",
+      preferredProgram: preferredProgram?.trim() || "Standard Gym Membership",
       comment: comment?.trim() || "",
       status: "pending",
     });
@@ -38,14 +42,14 @@ export const createLead = async (req: Request, res: Response) => {
     return res.status(201).json({
       success: true,
       message:
-        "Thank you! Your fitness inquiry has been submitted. A trainer will reach out shortly.",
-      data: lead,
+        "Thank you! Your gym consultation request has been received. Our branch coordinator will contact you shortly.",
+      data: consultation,
     });
   } catch (error: any) {
     console.error("Error creating consultation lead:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error while recording consultation lead.",
+      message: "Internal server error while saving consultation inquiry.",
       error: error.message,
     });
   }
@@ -56,29 +60,46 @@ export const createLead = async (req: Request, res: Response) => {
  */
 export const getAllLeads = async (req: AuthRequest, res: Response) => {
   try {
-    const { status, limit = "50", page = "1" } = req.query;
+    const { branch, status, search, page = "1", limit = "20" } = req.query;
 
     const query: any = {};
-    if (status && status !== "all") {
+
+    if (status) {
       query.status = status;
     }
 
+    if (branch && branch !== "All") {
+      query.preferredBranch = { $regex: String(branch), $options: "i" };
+    }
+
+    if (search) {
+      query.$or = [
+        { fullName: { $regex: String(search), $options: "i" } },
+        { email: { $regex: String(search), $options: "i" } },
+        { phone: { $regex: String(search), $options: "i" } },
+      ];
+    }
+
     const pageNum = parseInt(String(page), 10) || 1;
-    const limitNum = parseInt(String(limit), 10) || 50;
+    const limitNum = parseInt(String(limit), 10) || 20;
     const skip = (pageNum - 1) * limitNum;
 
-    const [leads, total] = await Promise.all([
-      Consultation.find(query).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+    const [leads, totalCount] = await Promise.all([
+      Consultation.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
       Consultation.countDocuments(query),
     ]);
 
     return res.status(200).json({
       success: true,
-      count: leads.length,
-      total,
-      currentPage: pageNum,
-      totalPages: Math.ceil(total / limitNum),
       data: leads,
+      pagination: {
+        total: totalCount,
+        page: pageNum,
+        totalPages: Math.ceil(totalCount / limitNum),
+      },
     });
   } catch (error: any) {
     console.error("Error fetching consultation leads:", error);
@@ -96,55 +117,59 @@ export const getAllLeads = async (req: AuthRequest, res: Response) => {
 export const updateLeadStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, notes } = req.body;
 
-    if (!["pending", "contacted", "enrolled", "cancelled"].includes(status)) {
+    const validStatuses = ["pending", "contacted", "enrolled", "archived"];
+    if (status && !validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid status value provided.",
+        message: `Invalid status. Must be one of: [${validStatuses.join(", ")}]`,
       });
     }
 
     const lead = await Consultation.findByIdAndUpdate(
       id,
-      { status },
-      { new: true }
+      {
+        ...(status && { status }),
+        ...(notes !== undefined && { notes }),
+      },
+      { new: true },
     );
 
     if (!lead) {
       return res.status(404).json({
         success: false,
-        message: "Consultation lead record not found.",
+        message: "Consultation lead not found.",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: `Lead status updated to ${status}.`,
+      message: "Consultation lead status updated successfully.",
       data: lead,
     });
   } catch (error: any) {
     console.error("Error updating lead status:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error while updating lead status.",
+      message: "Internal server error while updating lead.",
       error: error.message,
     });
   }
 };
 
 /**
- * 4. Protected: Delete Consultation Lead (`DELETE /api/consultations/:id`)
+ * 4. Protected: Delete Lead (`DELETE /api/consultations/:id`)
  */
 export const deleteLead = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const deleted = await Consultation.findByIdAndDelete(id);
+    const lead = await Consultation.findByIdAndDelete(id);
 
-    if (!deleted) {
+    if (!lead) {
       return res.status(404).json({
         success: false,
-        message: "Consultation lead record not found.",
+        message: "Consultation lead not found.",
       });
     }
 
@@ -156,7 +181,7 @@ export const deleteLead = async (req: AuthRequest, res: Response) => {
     console.error("Error deleting lead:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error while deleting consultation lead.",
+      message: "Internal server error while deleting lead.",
       error: error.message,
     });
   }

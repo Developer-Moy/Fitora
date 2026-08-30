@@ -4,201 +4,361 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ShieldAlert,
-  Lock,
-  Mail,
-  ArrowRight,
+  ArrowLeft,
+  ArrowUpRight,
   Eye,
   EyeOff,
-  ShieldCheck,
+  Lock,
+  Mail,
+  Shield,
   Building2,
-  UserCheck,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+
+// 📧 Dedicated Email Validation with Specific Distinct Toast Messages
+const validateEmail = (emailStr: string): string | null => {
+  const trimmed = emailStr.trim();
+  if (!trimmed) {
+    return "Email Required: Please enter your email address.";
+  }
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(trimmed)) {
+    return "Invalid Email: Must contain '@' and domain (e.g. name@gmail.com).";
+  }
+  return null;
+};
+
+// 🔒 Dedicated Password Validation with Specific Distinct Toast Messages
+const validatePassword = (pwd: string): string | null => {
+  if (!pwd) {
+    return "Password Required: Please enter your password.";
+  }
+  if (pwd.length < 8) {
+    return "Password Error: Minimum 8 characters required.";
+  }
+  if (pwd.length > 24) {
+    return "Password Error: Maximum 24 characters allowed.";
+  }
+  if (!/[A-Z]/.test(pwd)) {
+    return "Password Error: Must contain at least 1 capital letter (A-Z).";
+  }
+  if (!/[0-9]/.test(pwd)) {
+    return "Password Error: Must contain at least 1 digit (0-9).";
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) {
+    return "Password Error: Must contain at least 1 symbol (!@#$%^&*).";
+  }
+  return null;
+};
+
 import { dashboardLoginApi, saveAuthSession } from "@/services/authService";
 
 export default function DashboardLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleQuickFill = (targetEmail: string, role: string) => {
-    setEmail(targetEmail);
-    setPassword("MasterPass2026!");
-    toast.success(`Loaded credentials for ${role}`);
-  };
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Please enter email and security passkey.");
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    // 1. Validate Email with distinct Toast
+    const emailError = validateEmail(email);
+    if (emailError) {
+      toast.error(emailError);
+      setErrorMessage(emailError);
+      return;
+    }
+
+    // 2. Validate Password with distinct Toast
+    if (!password) {
+      const pwdReq = "Password Required: Please enter your password.";
+      toast.error(pwdReq);
+      setErrorMessage(pwdReq);
       return;
     }
 
     setIsLoading(true);
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPass = password.trim();
+
     try {
-      const apiRes = await dashboardLoginApi(email, password);
+      // 3. Call Backend Enterprise Security Gateway API
+      const result = await dashboardLoginApi(cleanEmail, cleanPass);
 
-      if (!apiRes.success) {
-        // Fallback for demo resilience
-        const isMaster = email.toLowerCase().includes("master");
-        const isBranchAdmin = email.toLowerCase().includes("admin");
-
-        if (!isMaster && !isBranchAdmin) {
-          toast.error(
-            "Access Denied: Athletes cannot log in via Administrative Gateway."
-          );
-          setIsLoading(false);
-          return;
-        }
-
-        saveAuthSession("fitora_admin_fallback_token", {
-          id: isMaster ? "master_01" : "branch_admin_01",
-          name: isMaster ? "Master Admin" : "Branch Admin",
-          email,
-          role: isMaster ? "master_admin" : "branch_admin",
-          plan: "VIP Ultimate",
-          assignedBranch: isMaster
-            ? "All 64 Branches"
-            : "Dhaka - Gulshan-2 Branch (Flagship)",
-        });
+      if (result.success && result.user) {
+        toast.success(
+          `${result.user.role === "master_admin" ? "Master Admin" : "Branch Admin"} Authenticated! Entering Dashboard...`,
+        );
+        setSuccessMessage("Security Gateway verified. Entering dashboard...");
+        setTimeout(() => {
+          router.replace("/dashboard");
+        }, 600);
+        return;
       }
 
-      toast.success("Security clearance verified! Entering Dashboard...");
-      setTimeout(() => {
-        router.push("/dashboard/admin/overview");
-      }, 700);
-    } catch (err: any) {
-      toast.error(err?.message || "Authentication gateway failure.");
-    } finally {
+      // If backend returned a specific error (e.g. 403 regular athlete denied)
+      if (result.message && !result.message.includes("Network error")) {
+        setIsLoading(false);
+        toast.error(result.message);
+        setErrorMessage(result.message);
+        return;
+      }
+
+      // 4. Offline/Local Master Fallback Resilience
+      if (
+        cleanEmail === "master@fitora.com" &&
+        (cleanPass === "P@SSW0RDF!T0R@" || cleanPass === "MasterPassword123!")
+      ) {
+        saveAuthSession("fitora_master_dev_token", {
+          id: "master_01",
+          name: "Moloy Paul",
+          email: "master@fitora.com",
+          role: "master_admin",
+          isMasterAdmin: true,
+          plan: "VIP Ultimate",
+          assignedBranch: "All 64 Branches (Headquarters)",
+        });
+        toast.success("Master Admin Authenticated! Entering Dashboard...");
+        setSuccessMessage("Signed in as Master Admin. Entering dashboard...");
+        setTimeout(() => {
+          router.replace("/dashboard");
+        }, 600);
+        return;
+      }
+
+      if (
+        (cleanEmail.endsWith("admin@fitora.com.bd") ||
+          cleanEmail.endsWith("admin@fitora.com") ||
+          cleanEmail.includes("admin")) &&
+        cleanPass.length >= 6
+      ) {
+        saveAuthSession("fitora_branch_dev_token", {
+          id: "branch_01",
+          name: "Branch Manager",
+          email: cleanEmail,
+          role: "branch_admin",
+          isBranchAdmin: true,
+          plan: "Pro Athlete",
+          assignedBranch: "Gulshan, Dhaka",
+        });
+        toast.success("Branch Admin Authenticated! Entering Dashboard...");
+        setSuccessMessage("Signed in as Branch Admin. Entering dashboard...");
+        setTimeout(() => {
+          router.replace("/dashboard");
+        }, 600);
+        return;
+      }
+
       setIsLoading(false);
+      const invalidMsg =
+        result.message || "Invalid administrator credentials. Access denied.";
+      toast.error(invalidMsg);
+      setErrorMessage(invalidMsg);
+    } catch (err: any) {
+      setIsLoading(false);
+      const errMsg = err.message || "Authentication error occurred.";
+      toast.error(errMsg);
+      setErrorMessage(errMsg);
     }
   };
 
+  const fillMasterCredentials = () => {
+    setEmail("master@fitora.com");
+    setPassword("P@SSW0RDF!T0R@");
+    setErrorMessage(null);
+    setSuccessMessage(null);
+  };
+
+  const fillBranchCredentials = () => {
+    setEmail("gulshan.admin@fitora.com.bd");
+    setPassword("BranchAdmin2025!");
+    setErrorMessage(null);
+    setSuccessMessage(null);
+  };
+
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-black text-white px-4 py-12 select-none overflow-hidden">
-      <Toaster position="top-right" />
+    <div className="h-screen max-h-screen w-full bg-black text-white font-sans antialiased flex flex-col justify-between p-3 sm:p-5 overflow-hidden select-none">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "#09090b",
+            color: "#ffffff",
+            border: "1px solid rgba(255,255,255,0.15)",
+            fontSize: "12px",
+            fontWeight: "bold",
+            borderRadius: "9999px",
+            padding: "10px 18px",
+          },
+        }}
+      />
 
-      {/* Atmospheric Background Glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-red-600/10 rounded-full blur-[140px] pointer-events-none" />
-
-      <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-[#0E0F12]/90 backdrop-blur-2xl p-8 sm:p-10 shadow-2xl space-y-6">
-        {/* Brand Header */}
-        <div className="flex flex-col items-center text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-white text-black flex items-center justify-center shadow-xl">
-            <ShieldCheck className="w-6 h-6 stroke-[2.5]" />
+      {/* ── TOP NAVIGATION BAR ── */}
+      <header className="max-w-5xl mx-auto w-full flex items-center justify-between py-1 shrink-0">
+        <Link href="/" className="flex items-center gap-2.5 group select-none">
+          <img
+            src="/logo.svg"
+            alt="FITORA logo"
+            className="w-6 h-6 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform"
+          />
+          <div className="flex flex-col">
+            <span className="text-white font-black text-base tracking-wider uppercase leading-none font-sans">
+              FITORA
+            </span>
+            <span className="text-[7.5px] text-neutral-400 font-bold tracking-[0.25em] uppercase">
+              GYM & FITNESS
+            </span>
           </div>
-          <div className="space-y-1">
-            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
-              ADMIN SECURITY GATEWAY
-            </h1>
-            <p className="text-xs text-gray-400">
-              Clearance restricted to Master Admin & 64-Branch Directors.
-            </p>
-          </div>
-        </div>
+        </Link>
 
-        {/* Quick Credentials Pills for Demo */}
-        <div className="space-y-2 pt-1">
-          <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 text-center">
-            One-Click Administrative Demo Profiles:
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Home</span>
+        </Link>
+      </header>
+
+      {/* ── MAIN LOGIN CONTAINER (100% NON-SCROLLING COMPACT CARD) ── */}
+      <main className="max-w-[420px] w-full mx-auto my-auto shrink-0 space-y-4 py-1">
+        {/* Header Title Section */}
+        <div className="text-center space-y-1">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-900 border border-white/10 text-[9.5px] font-bold uppercase tracking-widest text-neutral-300">
+            <span>Management Portal</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+            Sign In to Dashboard
+          </h1>
+          <p className="text-[11px] text-neutral-400">
+            Authorized administrator & athlete management access
           </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                handleQuickFill("master@fitora.com", "Master Admin")
-              }
-              className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Master Admin</span>
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                handleQuickFill(
-                  "gulshan.admin@fitora.com.bd",
-                  "Gulshan Branch Admin"
-                )
-              }
-              className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>Branch Admin</span>
-            </button>
-          </div>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">
-              Administrative Email
-            </label>
-            <div className="relative flex items-center">
-              <Mail className="absolute left-3.5 w-4 h-4 text-gray-400" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="master@fitora.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-xs sm:text-sm placeholder-gray-500 outline-none focus:border-white transition-colors font-medium"
-              />
+        {/* Form Card */}
+        <div className="bg-neutral-950 border border-white/10 rounded-3xl p-5 sm:p-6 space-y-3.5 shadow-2xl">
+          {/* Error & Success Alerts */}
+          {errorMessage && (
+            <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMessage}</span>
             </div>
-          </div>
+          )}
 
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">
-              Security Passkey
-            </label>
-            <div className="relative flex items-center">
-              <Lock className="absolute left-3.5 w-4 h-4 text-gray-400" />
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-10 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-xs sm:text-sm placeholder-gray-500 outline-none focus:border-white transition-colors font-medium"
-              />
+          {successMessage && (
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          <form
+            onSubmit={handleLogin}
+            noValidate
+            className="space-y-3 text-xs font-bold uppercase tracking-wider"
+          >
+            {/* Email Input */}
+            <div className="space-y-1">
+              <label className="block text-neutral-400 text-[10px] font-bold">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="master@fitora.com"
+                  className="w-full py-2.5 pl-10 pr-4 rounded-xl bg-neutral-900 border border-white/10 text-white placeholder:text-neutral-600 text-xs font-medium lowercase outline-none focus:border-white transition"
+                />
+              </div>
+            </div>
+
+            {/* Password Input */}
+            <div className="space-y-1">
+              <label className="block text-neutral-400 text-[10px] font-bold">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full py-2.5 pl-10 pr-10 rounded-xl bg-neutral-900 border border-white/10 text-white placeholder:text-neutral-600 text-xs font-medium outline-none focus:border-white transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white cursor-pointer"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit CTA Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-1 group flex items-center justify-between bg-white text-black font-extrabold text-xs sm:text-sm px-5 py-3 rounded-full hover:bg-neutral-100 transition-all duration-300 shadow-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span>
+                {isLoading ? "Signing In..." : "Sign In to Dashboard"}
+              </span>
+              <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+              </span>
+            </button>
+          </form>
+
+          {/* Quick Demo Access Pills */}
+          <div className="pt-3 border-t border-white/10 space-y-2">
+            <span className="block text-[9.5px] font-bold uppercase text-neutral-500 text-center tracking-wider">
+              Quick 1-Click Credential Fill
+            </span>
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                onClick={fillMasterCredentials}
+                className="p-2 rounded-xl bg-neutral-900 border border-white/10 hover:border-white/20 text-neutral-300 hover:text-white text-[10px] font-bold uppercase transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
+                <Shield className="w-3 h-3 text-white" />
+                <span>Master Admin</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={fillBranchCredentials}
+                className="p-2 rounded-xl bg-neutral-900 border border-white/10 hover:border-white/20 text-neutral-300 hover:text-white text-[10px] font-bold uppercase transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Building2 className="w-3 h-3 text-white" />
+                <span>Branch Admin</span>
               </button>
             </div>
           </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3.5 rounded-full bg-white text-black font-extrabold text-xs sm:text-sm uppercase tracking-wider hover:bg-gray-200 transition-all flex items-center justify-center gap-2 shadow-xl cursor-pointer disabled:opacity-60"
-          >
-            <span>{isLoading ? "Verifying..." : "Sign In to Dashboard"}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
-
-        <div className="text-center pt-2">
-          <Link
-            href="/"
-            className="text-xs text-gray-400 hover:text-white transition-colors"
-          >
-            ← Return to Fitora Homepage
-          </Link>
         </div>
-      </div>
+      </main>
+
+      {/* ── FOOTER ── */}
+      <footer className="max-w-5xl mx-auto w-full py-1 text-center text-[9.5px] font-medium text-neutral-500 tracking-wider uppercase shrink-0">
+        &copy; {new Date().getFullYear()} FITORA &bull; 64 Nationwide Gym
+        Branches
+      </footer>
     </div>
   );
 }

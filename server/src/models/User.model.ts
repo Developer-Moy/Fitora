@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 export type UserRole =
   | "master_admin"
@@ -9,27 +9,35 @@ export type UserRole =
   | "premium_user"
   | "free_user";
 
+export type UserPlan =
+  | "Free Pass"
+  | "Basic Pass"
+  | "Pro Athlete"
+  | "VIP Ultimate";
+
+export type UserStatus = "active" | "suspended" | "pending";
+
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
-  password?: string;
-  passwordHash?: string;
+  passwordHash: string;
   phone?: string;
   role: UserRole;
-  plan: string;
   assignedBranch?: string;
-  status: "active" | "inactive" | "suspended" | "pending";
+  plan: UserPlan;
+  status: UserStatus;
   attendanceStreakDays: number;
   hydrationTargetLiters: number;
   totalPaidBDT: number;
-  isMasterProtected: boolean;
-  avatarUrl?: string;
+  paymentMethod: "bKash" | "Nagad" | "Card" | "None";
+  qrCodeId?: string;
+  isMasterProtected?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const UserSchema: Schema = new Schema(
+const userSchema = new Schema<IUser>(
   {
     name: {
       type: String,
@@ -43,14 +51,13 @@ const UserSchema: Schema = new Schema(
       lowercase: true,
       trim: true,
     },
-    password: {
-      type: String,
-    },
     passwordHash: {
       type: String,
+      required: true,
     },
     phone: {
       type: String,
+      trim: true,
       default: "",
     },
     role: {
@@ -64,19 +71,20 @@ const UserSchema: Schema = new Schema(
         "premium_user",
         "free_user",
       ],
-      default: "athlete",
-    },
-    plan: {
-      type: String,
-      default: "Free Pass",
+      default: "user",
     },
     assignedBranch: {
       type: String,
-      default: "Dhaka - Gulshan-2 Branch (Flagship)",
+      default: "Dhanmondi, Dhaka",
+    },
+    plan: {
+      type: String,
+      enum: ["Free Pass", "Basic Pass", "Pro Athlete", "VIP Ultimate"],
+      default: "Free Pass",
     },
     status: {
       type: String,
-      enum: ["active", "inactive", "suspended", "pending"],
+      enum: ["active", "suspended", "pending"],
       default: "active",
     },
     attendanceStreakDays: {
@@ -91,22 +99,25 @@ const UserSchema: Schema = new Schema(
       type: Number,
       default: 0,
     },
+    paymentMethod: {
+      type: String,
+      enum: ["bKash", "Nagad", "Card", "None"],
+      default: "None",
+    },
+    qrCodeId: {
+      type: String,
+      default: () =>
+        `FIT-${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+    },
     isMasterProtected: {
       type: Boolean,
       default: false,
     },
-    avatarUrl: {
-      type: String,
-      default: "",
-    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-UserSchema.index({ email: 1 });
-UserSchema.index({ role: 1 });
-
-export const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
+export const User = mongoose.model<IUser>("User", userSchema);
 export default User;

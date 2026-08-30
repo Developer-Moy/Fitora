@@ -1,12 +1,14 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IAiMessage extends Document {
-  userId: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
+  sessionId?: string;
+  mode: "chat" | "coach";
   promptText: string;
   responseText: string;
   sender: "user" | "ai" | "system";
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const AiMessageSchema: Schema = new Schema(
@@ -14,8 +16,19 @@ const AiMessageSchema: Schema = new Schema(
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
       index: true,
+    },
+    sessionId: {
+      type: String,
+      default: () =>
+        `SESSION_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      index: true,
+    },
+    mode: {
+      type: String,
+      enum: ["chat", "coach"],
+      default: "chat",
     },
     promptText: {
       type: String,
@@ -36,8 +49,13 @@ const AiMessageSchema: Schema = new Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export const AiMessage = mongoose.model<IAiMessage>("AiMessage", AiMessageSchema);
+AiMessageSchema.index({ createdAt: -1 });
+
+export const AiMessage = mongoose.model<IAiMessage>(
+  "AiMessage",
+  AiMessageSchema,
+);
 export default AiMessage;

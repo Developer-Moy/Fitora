@@ -162,44 +162,13 @@ export default function AuthFlowContainer({
 
   // Social Login Handler
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
     try {
-      if (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
-        await authClient.signIn.social({
-          provider: "google",
-          callbackURL: "/dashboard",
-        });
-        return;
-      }
-
-      // One-Click Fast Google Auth Simulator for Demo
-      saveAuthSession("fitora_google_auth_token", {
-        id: "google_user_01",
-        name: "Google Athlete",
-        email: "athlete.google@gmail.com",
-        role: "athlete",
-        plan: "Free Pass",
-        assignedBranch: "Dhaka - Gulshan-2 Branch (Flagship)",
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard",
       });
-      toast.success("Google Account Authenticated! Entering Dashboard...");
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 700);
     } catch (err: any) {
-      saveAuthSession("fitora_google_auth_token", {
-        id: "google_user_01",
-        name: "Google Athlete",
-        email: "athlete.google@gmail.com",
-        role: "athlete",
-        plan: "Free Pass",
-        assignedBranch: "Dhaka - Gulshan-2 Branch (Flagship)",
-      });
-      toast.success("Signed in with Google! Entering Dashboard...");
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 700);
-    } finally {
-      setIsLoading(false);
+      toast.error(err?.message || "Could not sign in with Google.");
     }
   };
 
