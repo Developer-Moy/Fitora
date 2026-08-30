@@ -32,7 +32,7 @@ export async function dashboardLoginApi(
     const res = await fetch(`${API_URL}/auth/dashboard-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password: secretPass, secretPass }),
+      body: JSON.stringify({ email, secretPass }),
     });
 
     const data = await res.json().catch(() => null);
@@ -193,16 +193,9 @@ export function saveAuthSession(token: string, user?: AuthUser) {
   if (typeof window === "undefined") return;
   localStorage.setItem("fitora_token", token);
   localStorage.setItem("fitora_auth_token", token);
-  localStorage.setItem("fitora_auth_session", "true");
   if (user) {
     localStorage.setItem("fitora_user", JSON.stringify(user));
-    if (user.role) {
-      localStorage.setItem("fitora_user_role", user.role);
-      localStorage.setItem("fitora_active_role", user.role);
-    }
-    if (user.assignedBranch) {
-      localStorage.setItem("fitora_active_branch", user.assignedBranch);
-    }
+    if (user.role) localStorage.setItem("fitora_user_role", user.role);
     if (user.email) localStorage.setItem("fitora_user_email", user.email);
     if (user.name) localStorage.setItem("fitora_user_name", user.name);
   }
@@ -232,9 +225,6 @@ export function clearAuthSession() {
   if (typeof window === "undefined") return;
   localStorage.removeItem("fitora_token");
   localStorage.removeItem("fitora_auth_token");
-  localStorage.removeItem("fitora_auth_session");
-  localStorage.removeItem("fitora_active_role");
-  localStorage.removeItem("fitora_active_branch");
   localStorage.removeItem("fitora_user");
   localStorage.removeItem("fitora_user_role");
   localStorage.removeItem("fitora_user_email");
