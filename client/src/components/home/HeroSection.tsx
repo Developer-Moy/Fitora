@@ -75,7 +75,7 @@ export default function HeroSection() {
             <h1
               className="text-white leading-none whitespace-nowrap select-none tracking-tight text-center font-sans uppercase font-black"
               style={{
-                fontSize: "clamp(2rem, 5.5vw, 4.5rem)",
+                fontSize: "clamp(2.4rem, 6.8vw, 5.8rem)",
               }}
             >
               Build Your Body
