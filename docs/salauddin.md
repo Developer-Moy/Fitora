@@ -202,3 +202,8 @@ Monthly / Yearly billing toggle switch.
 
 ### 27-Aug-26
 * Progressive Workout Program, Set/Rep & 1RM PR Engine (Brzycki Formula) and Exercise Encyclopedia & Multi-Muscle Group Filter (/exercises)
+
+
+### 30-Aug-26
+* Seed 50+ Exercise Encyclopedia & Video Guides
+* Curate 50+ gym exercises across all muscle groups with equipment tags, difficulty, execution tips, photo URLs, and valid YouTube demo video IDs in exercises collection. Submit as exercises.json.
