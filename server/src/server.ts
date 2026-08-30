@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import { setupSocketHandlers } from './sockets/index.js';
 import apiRouter from './routes/index.js';
+import { seedStopwatchPresets } from './data/stopwatch.seed.js';
 
 dotenv.config();
 
@@ -46,6 +47,7 @@ const startServer = async () => {
     console.log(`[Fitora Server] Running on http://localhost:${PORT}`);
   });
   await connectDB();
+  await seedStopwatchPresets();
 };
 
 startServer();
