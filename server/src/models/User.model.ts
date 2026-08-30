@@ -17,28 +17,46 @@ export type UserPlan =
 
 export type UserStatus = "active" | "suspended" | "pending";
 
+export type PaymentMethod =
+  | "bKash"
+  | "Nagad"
+  | "Card"
+  | "Bank Transfer"
+  | "None";
+
 export interface IUser extends Document {
   _id: mongoose.Types.ObjectId;
+
+  // Basic Info
   name: string;
   email: string;
   passwordHash: string;
-  phone?: string;
+  phone: string;
+
+  // Role & Membership
   role: UserRole;
-  assignedBranch?: string;
+  assignedBranch: string;
+  assignedBranchSlug: string;
   plan: UserPlan;
   status: UserStatus;
+
+  // User Stats
   attendanceStreakDays: number;
   hydrationTargetLiters: number;
   totalPaidBDT: number;
-  paymentMethod: "bKash" | "Nagad" | "Card" | "None";
-  qrCodeId?: string;
-  isMasterProtected?: boolean;
+  paymentMethod: PaymentMethod;
+
+  // QR & Security
+  qrCodeId: string;
+  isMasterProtected: boolean;
+
   createdAt: Date;
   updatedAt: Date;
 }
 
 const userSchema = new Schema<IUser>(
   {
+    // Basic Info
     name: {
       type: String,
       required: true,
@@ -57,11 +75,14 @@ const userSchema = new Schema<IUser>(
     },
     phone: {
       type: String,
+      required: true,
       trim: true,
-      default: "",
     },
+
+    // Role & Membership
     role: {
       type: String,
+      required: true,
       enum: [
         "master_admin",
         "branch_admin",
@@ -71,43 +92,54 @@ const userSchema = new Schema<IUser>(
         "premium_user",
         "free_user",
       ],
-      default: "user",
     },
     assignedBranch: {
       type: String,
-      default: "Dhanmondi, Dhaka",
+      required: true,
+      trim: true,
+    },
+    assignedBranchSlug: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
     },
     plan: {
       type: String,
+      required: true,
       enum: ["Free Pass", "Basic Pass", "Pro Athlete", "VIP Ultimate"],
-      default: "Free Pass",
     },
     status: {
       type: String,
+      required: true,
       enum: ["active", "suspended", "pending"],
-      default: "active",
     },
+
+    // User Stats
     attendanceStreakDays: {
       type: Number,
-      default: 0,
+      required: true,
     },
     hydrationTargetLiters: {
       type: Number,
-      default: 3.5,
+      required: true,
     },
     totalPaidBDT: {
       type: Number,
-      default: 0,
+      required: true,
     },
     paymentMethod: {
       type: String,
-      enum: ["bKash", "Nagad", "Card", "None"],
-      default: "None",
+      required: true,
+      enum: ["bKash", "Nagad", "Card", "Bank Transfer", "None"],
     },
+
+    // QR & Security
     qrCodeId: {
       type: String,
-      default: () =>
-        `FIT-${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+      required: true,
+      unique: true,
+      trim: true,
     },
     isMasterProtected: {
       type: Boolean,
@@ -116,8 +148,14 @@ const userSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-export const User = mongoose.model<IUser>("User", userSchema);
+// Indexes
+userSchema.index({ role: 1 });
+userSchema.index({ assignedBranchSlug: 1 });
+userSchema.index({ status: 1 });
+
+const User = mongoose.model<IUser>("User", userSchema);
+
 export default User;
