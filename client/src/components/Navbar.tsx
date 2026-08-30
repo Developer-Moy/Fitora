@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -55,7 +55,6 @@ const QUICK_TOOLS = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const profileDropdownRef = useRef<HTMLDivElement | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [chatListOpen, setChatListOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,26 +69,6 @@ export default function Navbar() {
       setLocalUser(session.user);
     }
   }, []);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      if (
-        profileDropdownRef.current &&
-        !profileDropdownRef.current.contains(event.target as Node)
-      ) {
-        setProfileDropdownOpen(false);
-      }
-    };
-    if (profileDropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("touchstart", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [profileDropdownOpen]);
 
   const activeUser = authSession?.user || localUser;
   const isLoggedIn = !!activeUser;
@@ -203,9 +182,9 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="group flex items-center gap-3 bg-white text-black border border-white font-bold text-xs sm:text-sm pl-1.5 pr-4 py-1.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-xl"
+                className="group flex items-center gap-2 bg-white text-black border border-white font-bold text-xs pl-1 pr-3 py-1 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-md"
               >
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black text-white font-black text-sm sm:text-base flex items-center justify-center shrink-0 shadow-md overflow-hidden border border-black/10">
+                <div className="w-8 h-8 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-black/10">
                   {userAvatar ? (
                     <img
                       src={userAvatar}
@@ -216,7 +195,7 @@ export default function Navbar() {
                     <span>{userInitial}</span>
                   )}
                 </div>
-                <span className="max-w-[130px] truncate font-extrabold text-xs sm:text-sm text-black">
+                <span className="max-w-[110px] truncate font-extrabold text-xs text-black">
                   {userName}
                 </span>
                 <FiChevronDown
@@ -229,11 +208,11 @@ export default function Navbar() {
               {/* Profile Dropdown Popup Card */}
               {profileDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-2.5 w-68 bg-[#0E0F12] border border-white/15 rounded-2xl p-3.5 shadow-2xl space-y-2.5 z-50 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute right-0 mt-2.5 w-64 bg-[#0E0F12] border border-white/15 rounded-2xl p-3 shadow-2xl space-y-2 z-50 backdrop-blur-xl"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="px-3.5 py-3 bg-neutral-900/90 rounded-xl border border-white/10 flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-white text-black font-black text-base flex items-center justify-center shrink-0 shadow-md overflow-hidden">
+                  <div className="px-3 py-2 bg-neutral-900/90 rounded-xl border border-white/10 flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md overflow-hidden">
                       {userAvatar ? (
                         <img
                           src={userAvatar}
@@ -245,10 +224,10 @@ export default function Navbar() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-white font-bold text-xs sm:text-sm leading-tight truncate">
+                      <p className="text-white font-bold text-xs leading-tight truncate">
                         {userName}
                       </p>
-                      <p className="text-[10px] text-gray-400 leading-tight truncate mt-0.5">
+                      <p className="text-[10px] text-gray-400 leading-tight truncate">
                         {userEmail}
                       </p>
                     </div>
@@ -411,8 +390,8 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-between px-3.5 py-2.5 bg-white text-black hover:bg-neutral-100 rounded-2xl border border-white transition-all cursor-pointer group shadow-lg"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-11 h-11 rounded-full bg-black text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md overflow-hidden border border-black/10">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 shadow-md overflow-hidden border border-black/10">
                       {userAvatar ? (
                         <img
                           src={userAvatar}
@@ -424,10 +403,10 @@ export default function Navbar() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-black font-bold text-xs sm:text-sm leading-tight truncate">
+                      <p className="text-black font-bold text-xs leading-tight truncate">
                         {userName}
                       </p>
-                      <p className="text-[10px] text-neutral-600 leading-tight truncate mt-0.5">
+                      <p className="text-[10px] text-neutral-600 leading-tight truncate">
                         {userEmail}
                       </p>
                     </div>
