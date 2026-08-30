@@ -131,15 +131,15 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* ─── Z-20: Athlete Cutout Image — Head overlapping text ─── */}
-          <div className="absolute z-20 inset-x-0 bottom-0 top-2 sm:top-3 flex items-end justify-center pointer-events-none overflow-hidden">
-            <div className="relative w-[340px] xs:w-[420px] sm:w-[520px] md:w-[640px] lg:w-[740px] h-[98%] sm:h-full">
+          {/* ─── Z-20: Athlete Cutout Image — Head overlapping text (10% Larger) ─── */}
+          <div className="absolute z-20 inset-x-0 bottom-0 top-0 flex items-end justify-center pointer-events-none overflow-hidden">
+            <div className="relative w-[375px] xs:w-[460px] sm:w-[570px] md:w-[700px] lg:w-[815px] h-full scale-[1.08] origin-bottom">
               <Image
                 src="/hero.png"
                 alt="Bodybuilder Athlete Cutout"
                 fill
                 priority
-                sizes="(max-width: 768px) 500px, 720px"
+                sizes="(max-width: 768px) 550px, 850px"
                 className="object-contain object-bottom"
               />
             </div>
