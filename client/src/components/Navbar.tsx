@@ -13,7 +13,6 @@ import {
   Clock as FiClock,
   Utensils as FiUtensils,
   Dumbbell as FiDumbbell,
-  Home as FiHome,
   ChevronDown as FiChevronDown,
   Sparkles,
 } from "lucide-react";
@@ -22,7 +21,6 @@ import { useSession } from "@/lib/auth-client";
 
 /* ── Desktop Horizontal Navigation Links ── */
 const NAV_LINKS = [
-  { label: "Home", href: "/" },
   { label: "BMI Calculator", href: "/calculator" },
   { label: "Gym Stopwatch", href: "/stopwatch" },
   { label: "Meal Plans", href: "/meals" },
@@ -31,7 +29,6 @@ const NAV_LINKS = [
 
 /* ── Mobile & Tablet Drawer Main Menu Items ── */
 const MENU_ITEMS = [
-  { label: "Home", href: "/", icon: FiHome },
   { label: "Exercise Library", href: "/exercises", icon: FiDumbbell },
   { label: "Meal Plans", href: "/meals", icon: FiUtensils },
   { label: "BMI Calculator", href: "/calculator", icon: FiActivity },
@@ -259,27 +256,29 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* ── 3. Bottom: User Profile Card + Action Button ── */}
+            {/* ── 3. Bottom: User Profile Card (Logged-in Only) + Action Button ── */}
             <div className="px-4 pb-5 pt-3 space-y-3 shrink-0 bg-[#0E0F12] border-t border-white/10">
-              {/* User Profile Row */}
-              <div className="flex items-center justify-between px-2.5 py-2 bg-neutral-900/80 rounded-2xl border border-white/10">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md">
-                    {userInitial}
+              {/* User Profile Row (Only shown when logged in) */}
+              {isLoggedIn && authSession?.user && (
+                <div className="flex items-center justify-between px-2.5 py-2 bg-neutral-900/80 rounded-2xl border border-white/10">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md">
+                      {userInitial}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-white font-bold text-xs leading-tight truncate">
+                        {userName}
+                      </p>
+                      <p className="text-[10px] text-gray-400 leading-tight truncate">
+                        {userEmail}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-white font-bold text-xs leading-tight truncate">
-                      {userName}
-                    </p>
-                    <p className="text-[10px] text-gray-400 leading-tight truncate">
-                      {userEmail}
-                    </p>
-                  </div>
+                  <span className="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-white text-black shrink-0 shadow-sm">
+                    PRO
+                  </span>
                 </div>
-                <span className="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-white text-black shrink-0 shadow-sm">
-                  PRO
-                </span>
-              </div>
+              )}
 
               {/* Main CTA Button */}
               {!isLoggedIn ? (
