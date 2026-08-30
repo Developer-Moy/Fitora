@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -104,9 +104,7 @@ export default function Footer() {
             {/* Right Column: Mission Quote + Location Info + Directions Button */}
             <div className="lg:col-span-6 space-y-4 lg:pl-10 text-left lg:text-right flex flex-col lg:items-end justify-end">
               <p className="text-xs sm:text-sm text-gray-200 max-w-md font-semibold leading-relaxed drop-shadow-md">
-                Bangladesh's premier AI fitness platform. Serving fitness
-                enthusiasts across all 64 districts with real-time workout
-                tracking, AI coaching, and custom nutrition.
+                {"Bangladesh's premier AI fitness platform. Serving fitness enthusiasts across all 64 districts with real-time workout tracking, AI coaching, and custom nutrition."}
               </p>
 
               <div className="space-y-1 drop-shadow-md">
@@ -302,7 +300,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-400">
           {/* Left Side: Copyright & Developer Credit */}
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 font-semibold">
-            <span>FITORA GYM © {new Date().getFullYear()}</span>
+            <span>FITORA GYM © 2026</span>
             <Link
               href="/privacy"
               className="hover:text-white transition-colors"
