@@ -146,9 +146,9 @@ export default function HeroSection() {
           </div>
 
           {/* ─── Z-30: Subtitle locked in LEFT-MIDDLE ─── */}
-          <div className="absolute z-30 left-2.5 xs:left-5 sm:left-6 md:left-8 top-[48%] sm:top-1/2 -translate-y-1/2 max-w-[125px] xs:max-w-[180px] sm:max-w-[260px]">
+          <div className="absolute z-30 left-2.5 xs:left-5 sm:left-6 md:left-8 top-[48%] sm:top-1/2 -translate-y-1/2 max-w-[140px] xs:max-w-[190px] sm:max-w-[260px]">
             <p
-              className="text-gray-200 text-[10px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.5] xs:leading-[1.6] sm:leading-[1.7] font-medium"
+              className="text-gray-200 text-xs sm:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
               style={{ fontStyle: "italic" }}
             >
               Achieve your fitness goals with expert trainers, cutting-edge
@@ -210,11 +210,11 @@ export default function HeroSection() {
           <div className="absolute z-30 right-2.5 xs:right-5 sm:right-6 md:right-8 top-[48%] sm:top-1/2 -translate-y-1/2">
             <Link
               href="#pricing"
-              className="group inline-flex items-center gap-1.5 sm:gap-2 bg-white text-black border border-white font-bold text-[11px] xs:text-xs sm:text-sm px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
+              className="group inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
             >
               <span>See Packages</span>
-              <span className="bg-black text-white w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
-                <ArrowUpRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[2.5]" />
+              <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
+                <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
               </span>
             </Link>
           </div>
