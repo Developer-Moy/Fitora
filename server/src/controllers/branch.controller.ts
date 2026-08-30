@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Branch, IBranch } from "../models/Branch.model";
+import Branch, {  IBranch } from "../models/Branch.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
 
 // All 64 Districts of Bangladesh Grouped by 8 Divisions
