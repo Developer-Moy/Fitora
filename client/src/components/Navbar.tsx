@@ -77,6 +77,11 @@ export default function Navbar() {
   const userEmail = activeUser?.email || "athlete@fitora.com";
   const userInitial = userName.charAt(0).toUpperCase() || "A";
   const userRole = (activeUser as any)?.role || "athlete";
+  const userAvatar =
+    localUser?.avatarUrl ||
+    (activeUser as any)?.image ||
+    (activeUser as any)?.avatarUrl ||
+    "";
   const isMasterAdmin =
     userRole === "master_admin" ||
     userEmail.toLowerCase().includes("master@fitora.com");
@@ -177,10 +182,18 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="group flex items-center gap-2.5 bg-neutral-900 border border-white/20 hover:border-white/50 text-white font-bold text-xs sm:text-sm px-3.5 py-1.5 rounded-full hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-lg"
+                className="group flex items-center gap-2.5 bg-neutral-900 border border-white/20 hover:border-white/50 text-white font-bold text-xs sm:text-sm px-3 py-1.5 rounded-full hover:shadow-[0_0_20px_rgba(255,255,255,0.25)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-lg"
               >
-                <div className="w-7 h-7 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md">
-                  {userInitial}
+                <div className="w-7 h-7 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md overflow-hidden">
+                  {userAvatar ? (
+                    <img
+                      src={userAvatar}
+                      alt={userName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{userInitial}</span>
+                  )}
                 </div>
                 <span className="max-w-[120px] truncate font-extrabold text-xs">
                   {userName}
@@ -199,8 +212,16 @@ export default function Navbar() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="px-3 py-2 bg-neutral-900/90 rounded-xl border border-white/10 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md">
-                      {userInitial}
+                    <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md overflow-hidden">
+                      {userAvatar ? (
+                        <img
+                          src={userAvatar}
+                          alt={userName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span>{userInitial}</span>
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-white font-bold text-xs leading-tight truncate">
@@ -370,8 +391,16 @@ export default function Navbar() {
                   className="flex items-center justify-between px-3 py-2.5 bg-neutral-900/90 hover:bg-neutral-800 rounded-2xl border border-white/10 hover:border-white/25 transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md">
-                      {userInitial}
+                    <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md overflow-hidden">
+                      {userAvatar ? (
+                        <img
+                          src={userAvatar}
+                          alt={userName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span>{userInitial}</span>
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-white font-bold text-xs leading-tight truncate">

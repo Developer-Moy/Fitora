@@ -12,6 +12,15 @@ export interface AuthUser {
   assignedBranch?: string;
   status?: string;
   avatarUrl?: string;
+  image?: string;
+  phone?: string;
+  gender?: string;
+  weight?: string;
+  height?: string;
+  bio?: string;
+  fitnessGoal?: string;
+  activityLevel?: string;
+  joinedDate?: string;
   isMasterAdmin?: boolean;
   isBranchAdmin?: boolean;
 }
