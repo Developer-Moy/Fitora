@@ -223,13 +223,10 @@ export default function HeroSection() {
           </div>
 
           {/* ─── Z-40: Notch SVG Background Arc + AI Widget (Locked 1-to-1) ─── */}
-          <div
-            className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 flex justify-center items-end"
-            style={{ width: "180px", height: "65px" }}
-          >
+          <div className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 w-[180px] h-[65px] pointer-events-none">
             <svg
               viewBox="0 -16 180 91"
-              className="w-[180px] h-[65px] text-white fill-current block pointer-events-none"
+              className="absolute inset-0 w-[180px] h-[65px] text-white fill-current block pointer-events-none"
             >
               <path d="M 0 75 C 36 75 44 60 44 38 A 46 46 0 0 1 136 38 C 136 60 144 75 180 75 Z" />
             </svg>

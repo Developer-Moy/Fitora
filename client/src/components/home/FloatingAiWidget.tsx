@@ -217,7 +217,7 @@ export default function FloatingAiWidget() {
     selectedMode === "chat" ? chatMessages : coachMessages;
 
   return (
-    <div ref={widgetRef} className="relative z-50 select-none">
+    <div ref={widgetRef} className="absolute inset-0 select-none pointer-events-none">
       {/* ─── 1. Viewport Fixed Popover Modal (320px Minimum Mobile Responsive) ─── */}
       <AnimatePresence>
         {isOpen && (
@@ -226,7 +226,7 @@ export default function FloatingAiWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed bottom-18 sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[640px] md:w-[720px] lg:w-[760px] max-w-[760px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[80]"
+            className="fixed bottom-18 sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[640px] md:w-[720px] lg:w-[760px] max-w-[760px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[80] pointer-events-auto"
           >
             {/* STATE A: Mode Selection Menu (320px Ultra-Compact Mobile Layout) */}
             {!selectedMode ? (
