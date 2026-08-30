@@ -116,7 +116,7 @@ export default function ProfilePage() {
 
         // Update user state and localStorage
         const updatedUser: AuthUser = {
-          ...(localUser || { email: userEmail, role: userRole }),
+          ...(localUser || { name: userName, email: userEmail, role: userRole }),
           avatarUrl: finalUrl,
           image: finalUrl,
         };
@@ -129,7 +129,7 @@ export default function ProfilePage() {
       } else {
         // Still save local data url if upload failed
         const updatedUser: AuthUser = {
-          ...(localUser || { email: userEmail, role: userRole }),
+          ...(localUser || { name: userName, email: userEmail, role: userRole }),
           avatarUrl: localDataUrl,
           image: localDataUrl,
         };
@@ -146,7 +146,7 @@ export default function ProfilePage() {
   const handleRemovePhoto = () => {
     setEditAvatarUrl("");
     const updatedUser: AuthUser = {
-      ...(localUser || { email: userEmail, role: userRole }),
+      ...(localUser || { name: userName, email: userEmail, role: userRole }),
       avatarUrl: "",
       image: "",
     };
@@ -170,7 +170,7 @@ export default function ProfilePage() {
     }
 
     const updatedUser: AuthUser = {
-      ...(localUser || { email: userEmail, role: userRole }),
+      ...(localUser || { name: userName, email: userEmail, role: userRole }),
       name: editName.trim(),
       phone: editPhone.trim(),
       gender: editGender,
