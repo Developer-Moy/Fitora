@@ -58,7 +58,7 @@ export default function ProfilePage() {
   const userName = activeUser?.name || "Athlete Member";
   const userEmail = activeUser?.email || "athlete@fitora.com";
   const userInitial = userName.charAt(0).toUpperCase() || "A";
-  const userRole = activeUser?.role || "athlete";
+  const userRole = (activeUser as any)?.role || "athlete";
   const isMasterAdmin =
     userRole === "master_admin" ||
     userEmail.toLowerCase().includes("master@fitora.com");
