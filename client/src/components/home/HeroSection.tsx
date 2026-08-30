@@ -67,18 +67,18 @@ export default function HeroSection() {
       {/* ════════════════════════════════════════════════════════════
           HERO CONTAINER — Locked Centered Layout (Zoom & Ultrawide Proof)
           ════════════════════════════════════════════════════════════ */}
-      <div className="relative w-full bg-black text-white overflow-hidden min-h-[440px] sm:min-h-[480px] md:min-h-[500px] lg:min-h-[540px]">
+      <div className="relative w-full bg-black text-white overflow-hidden min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
         {/* ─── Centered max-w-7xl container to lock relative positions on Zoom & UltraWide ─── */}
-        <div className="relative w-full max-w-7xl mx-auto h-full min-h-[440px] sm:min-h-[480px] md:min-h-[500px] lg:min-h-[540px]">
+        <div className="relative w-full max-w-7xl mx-auto h-full min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
           {/* ─── Z-10: "Build Your Body" Title Case Serif Italic Headline ─── */}
-          <div className="absolute z-10 top-4 sm:top-6 md:top-7 inset-x-0 flex flex-col items-center pointer-events-none px-3 sm:px-4">
+          <div className="absolute z-10 top-6 sm:top-8 md:top-10 inset-x-0 flex flex-col items-center pointer-events-none px-3 sm:px-4">
             <h1
               className="text-white leading-none whitespace-nowrap select-none tracking-tight text-center"
               style={{
                 fontFamily: "'Georgia', 'Times New Roman', serif",
                 fontWeight: 900,
                 fontStyle: "italic",
-                fontSize: "clamp(2rem, 8vw, 8rem)",
+                fontSize: "clamp(2.2rem, 8.5vw, 8.5rem)",
               }}
             >
               Build Your Body
