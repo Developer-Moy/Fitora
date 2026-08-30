@@ -104,20 +104,20 @@ export default function Navbar() {
           {!isLoggedIn ? (
             <Link
               href="/login"
-              className="hidden lg:inline-flex group items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-gray-200 transition-all duration-300 shadow-xl cursor-pointer"
+              className="hidden lg:inline-flex group items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
             >
               <span>Join Now</span>
-              <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+              <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
                 <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
               </span>
             </Link>
           ) : (
             <Link
               href="/dashboard"
-              className="hidden lg:inline-flex group items-center gap-2 bg-white/10 border border-white/20 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-white hover:text-black transition-all duration-300 shadow-xl cursor-pointer"
+              className="hidden lg:inline-flex group items-center gap-2 bg-black text-white border border-white/25 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-white hover:text-black hover:border-white hover:shadow-[0_0_25px_rgba(255,255,255,0.45)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
             >
               <span>Dashboard</span>
-              <span className="bg-white text-black group-hover:bg-black group-hover:text-white w-6 h-6 rounded-full flex items-center justify-center transition-colors">
+              <span className="bg-white text-black group-hover:bg-black group-hover:text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
                 <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
               </span>
             </Link>
@@ -154,10 +154,10 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-between bg-white text-black font-extrabold text-sm px-5 py-3 rounded-2xl shadow-xl hover:bg-gray-200 transition-all group cursor-pointer"
+                  className="w-full flex items-center justify-between bg-white text-black border border-white font-extrabold text-sm px-5 py-3 rounded-2xl shadow-xl hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all group cursor-pointer"
                 >
                   <span>Join Now</span>
-                  <span className="bg-black text-white w-7 h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                  <span className="bg-black text-white w-7 h-7 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
                     <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                   </span>
                 </Link>
@@ -165,10 +165,10 @@ export default function Navbar() {
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-between bg-white/10 text-white font-extrabold text-sm px-5 py-3 rounded-2xl border border-white/20 shadow-xl hover:bg-white hover:text-black transition-all group cursor-pointer"
+                  className="w-full flex items-center justify-between bg-black text-white border border-white/25 font-extrabold text-sm px-5 py-3 rounded-2xl shadow-xl hover:bg-white hover:text-black hover:border-white hover:shadow-[0_0_25px_rgba(255,255,255,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all group cursor-pointer"
                 >
                   <span>Open Dashboard</span>
-                  <span className="bg-white text-black group-hover:bg-black group-hover:text-white w-7 h-7 rounded-full flex items-center justify-center transition-colors">
+                  <span className="bg-white text-black group-hover:bg-black group-hover:text-white w-7 h-7 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
                     <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                   </span>
                 </Link>

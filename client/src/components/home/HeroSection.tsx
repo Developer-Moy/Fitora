@@ -210,10 +210,10 @@ export default function HeroSection() {
           <div className="absolute z-30 right-3 xs:right-5 sm:right-6 md:right-8 top-1/2 -translate-y-1/2">
             <Link
               href="#pricing"
-              className="group inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-gray-200 transition-all duration-300 shadow-xl cursor-pointer"
+              className="group inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
             >
               <span>See Packages</span>
-              <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+              <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
                 <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
               </span>
             </Link>
