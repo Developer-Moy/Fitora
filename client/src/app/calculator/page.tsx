@@ -251,13 +251,10 @@ Macros:
 
               {/* Full Color Image Banner (Positioned in the Middle, Object-Top to avoid cutting head) */}
               <div className="group relative h-[250px] sm:h-[300px] lg:h-[320px] my-auto overflow-hidden rounded-3xl border border-white/15 shadow-2xl">
-                <Image
+                <img
                   src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1400&q=80"
-                  alt="BMI fitness color banner"
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover object-top transition duration-700 group-hover:scale-105 brightness-100 contrast-105"
+                  alt="BMI fitness banner"
+                  className="w-full h-full object-cover object-top transition duration-700 group-hover:scale-105 brightness-100 contrast-105"
                 />
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
@@ -418,8 +415,18 @@ Macros:
                       }
                       className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none cursor-pointer focus:border-white"
                     >
-                      <option value="male" className="bg-neutral-950 text-white">Male</option>
-                      <option value="female" className="bg-neutral-950 text-white">Female</option>
+                      <option
+                        value="male"
+                        className="bg-neutral-950 text-white"
+                      >
+                        Male
+                      </option>
+                      <option
+                        value="female"
+                        className="bg-neutral-950 text-white"
+                      >
+                        Female
+                      </option>
                     </select>
                   </div>
 
@@ -484,13 +491,24 @@ Macros:
                       <option value={1.2} className="bg-neutral-950 text-white">
                         Sedentary (Little/no exercise)
                       </option>
-                      <option value={1.375} className="bg-neutral-950 text-white">
+                      <option
+                        value={1.375}
+                        className="bg-neutral-950 text-white"
+                      >
                         Lightly Active (1–3 days/wk)
                       </option>
-                      <option value={1.55} className="bg-neutral-950 text-white">
+                      <option
+                        value={1.55}
+                        className="bg-neutral-950 text-white"
+                      >
                         Moderately Active (3–5 days/wk)
                       </option>
-                      <option value={1.725} className="bg-neutral-950 text-white">Very Active (6–7 days/wk)</option>
+                      <option
+                        value={1.725}
+                        className="bg-neutral-950 text-white"
+                      >
+                        Very Active (6–7 days/wk)
+                      </option>
                       <option value={1.9} className="bg-neutral-950 text-white">
                         Extremely Active (Physical Job)
                       </option>
