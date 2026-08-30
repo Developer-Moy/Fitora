@@ -38,7 +38,9 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editGoal, setEditGoal] = useState("Bulking & Muscle Gain");
-  const [editBranch, setEditBranch] = useState("Dhaka - Gulshan-2 Branch (Flagship)");
+  const [editBranch, setEditBranch] = useState(
+    "Dhaka - Gulshan-2 Branch (Flagship)",
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -47,7 +49,8 @@ export default function ProfilePage() {
       setLocalUser(session.user);
       setEditName(session.user.name || "");
       if (session.user.plan) setEditGoal(session.user.plan);
-      if (session.user.assignedBranch) setEditBranch(session.user.assignedBranch);
+      if (session.user.assignedBranch)
+        setEditBranch(session.user.assignedBranch);
     }
   }, []);
 
