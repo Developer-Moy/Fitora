@@ -67,7 +67,7 @@ export default function HeroSection() {
       {/* ════════════════════════════════════════════════════════════
           HERO CONTAINER — Locked Centered Layout (Zoom & Ultrawide Proof)
           ════════════════════════════════════════════════════════════ */}
-      <div className="relative w-full bg-black text-white overflow-hidden min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
+      <div className="relative w-full bg-black text-white overflow-x-clip min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
         {/* ─── Centered max-w-7xl container to lock relative positions on Zoom & UltraWide ─── */}
         <div className="relative w-full max-w-7xl mx-auto h-full min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
           {/* ─── Z-10: "Build Your Body" Title Case Serif Italic Headline ─── */}

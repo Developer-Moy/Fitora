@@ -65,12 +65,11 @@ export default function FloatingAiWidget() {
   // Smooth scroll listener for morphing position
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 180) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
+      if (typeof window !== "undefined") {
+        setIsScrolled(window.scrollY > 160);
       }
     };
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -218,7 +217,7 @@ export default function FloatingAiWidget() {
     selectedMode === "chat" ? chatMessages : coachMessages;
 
   return (
-    <div ref={widgetRef} className="select-none">
+    <div ref={widgetRef} className="relative z-50 select-none">
       {/* ─── 1. Viewport Fixed Popover Modal (320px Minimum Mobile Responsive) ─── */}
       <AnimatePresence>
         {isOpen && (
@@ -552,10 +551,10 @@ export default function FloatingAiWidget() {
             setIsOpen(true);
           }
         }}
-        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-4 border-white shadow-2xl transition-all duration-300 z-50 ${
+        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 z-50 pointer-events-auto ${
           isScrolled
             ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 sm:px-6 sm:py-3 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95"
-            : "absolute bottom-1 sm:bottom-2 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"
+            : "absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"
         }`}
         aria-label="Open FITORA AI"
       >
