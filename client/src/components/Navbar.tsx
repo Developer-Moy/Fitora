@@ -143,16 +143,16 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Mobile & Tablet Toggle (< 1024px) */}
+          {/* Mobile & Tablet Toggle (< 1024px) — White Background & Black Icon */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="text-white hover:text-gray-300 transition-colors lg:hidden cursor-pointer shrink-0 p-2 rounded-xl bg-white/10 border border-white/20 active:scale-95"
+            className="lg:hidden cursor-pointer shrink-0 p-2 rounded-xl bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center"
             aria-label="Toggle Navigation Menu"
           >
             {mobileMenuOpen ? (
-              <FiClose className="w-5 h-5" />
+              <FiClose className="w-5 h-5 text-black stroke-[2.5]" />
             ) : (
-              <FiSidebar className="w-5 h-5" />
+              <FiSidebar className="w-5 h-5 text-black stroke-[2.5]" />
             )}
           </button>
         </div>
