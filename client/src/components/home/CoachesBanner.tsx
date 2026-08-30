@@ -46,7 +46,10 @@ export default function CoachesBanner() {
           >
             Elite Coaches
           </h2>
-          <p className="text-gray-600 text-sm sm:text-base leading-relaxed max-w-xl">
+          <p
+            className="text-gray-600 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium max-w-xl"
+            style={{ fontStyle: "italic" }}
+          >
             Get personalized guidance from certified master fitness coaches
             across Bangladesh. Our mentors craft custom training & recovery
             regimes tailored specifically to your body goals.

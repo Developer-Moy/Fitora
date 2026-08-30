@@ -56,7 +56,10 @@ export default function MeetTrainers() {
           >
             Meet Our Expert Trainers
           </h2>
-          <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
+          <p
+            className="text-gray-300 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
+            style={{ fontStyle: "italic" }}
+          >
             Certified experts dedicated to helping you unlock your full athletic
             potential.
           </p>

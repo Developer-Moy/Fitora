@@ -50,7 +50,10 @@ export default function WhyChooseUs() {
             >
               Why Choose Fitora?
             </h2>
-            <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
+            <p
+              className="text-gray-300 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
+              style={{ fontStyle: "italic" }}
+            >
               Discover the Benefits That Set Us Apart and Propel Your Fitness
               Journey Forward.
             </p>

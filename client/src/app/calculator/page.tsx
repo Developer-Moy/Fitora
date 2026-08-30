@@ -242,7 +242,10 @@ Macros:
                   </span>
                 </h1>
 
-                <p className="max-w-md text-xs leading-relaxed text-gray-300 font-medium">
+                <p
+                  className="max-w-md text-gray-300 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
+                  style={{ fontStyle: "italic" }}
+                >
                   BMI calculates your body mass relative to height. Use your
                   result alongside TDEE to plan your daily calories and fitness
                   targets.

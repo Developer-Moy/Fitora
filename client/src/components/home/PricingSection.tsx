@@ -80,7 +80,10 @@ export default function PricingSection() {
           >
             Join Today & Shape Your Body
           </h2>
-          <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+          <p
+            className="text-gray-600 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
+            style={{ fontStyle: "italic" }}
+          >
             Choose the perfect membership tier tailored to your fitness goals
             across all 64 branches in Bangladesh.
           </p>

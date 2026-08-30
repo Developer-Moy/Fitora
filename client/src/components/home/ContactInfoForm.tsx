@@ -74,7 +74,10 @@ export default function ContactInfoForm() {
               We are here for help you! To Shape Your Body.
             </h2>
 
-            <p className="text-gray-500 text-sm sm:text-base leading-relaxed font-normal pt-2">
+            <p
+              className="text-gray-600 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium pt-2"
+              style={{ fontStyle: "italic" }}
+            >
               At Fitora, we are dedicated to helping athletes and fitness
               enthusiasts across all 64 districts of Bangladesh achieve the body
               of their dreams. Our expert trainers and AI engines create

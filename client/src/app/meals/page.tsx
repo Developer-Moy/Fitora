@@ -68,7 +68,10 @@ export default function MealsPage() {
             Healthy Meals Catalog
           </h1>
 
-          <p className="text-gray-400 text-sm sm:text-base leading-relaxed font-medium">
+          <p
+            className="text-gray-300 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
+            style={{ fontStyle: "italic" }}
+          >
             Discover our curated collection of protein-packed, macro-balanced
             meals designed to fuel your fitness transformation and support your
             health targets.
