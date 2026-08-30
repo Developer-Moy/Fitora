@@ -25,6 +25,7 @@ import { useSession } from "@/lib/auth-client";
 import {
   getAuthSession,
   clearAuthSession,
+  logoutUser,
   AuthUser,
 } from "@/services/authService";
 
@@ -89,17 +90,14 @@ export default function ProfilePage() {
     toast.success("Profile updated successfully!");
   };
 
-  const handleLogout = () => {
-    clearAuthSession();
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("fitora_auth_session");
-      localStorage.removeItem("fitora_active_role");
-    }
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {}
     toast.success("Logged out successfully. See you soon, Champion!");
     setTimeout(() => {
-      router.push("/");
-      window.location.reload();
-    }, 600);
+      window.location.href = "/";
+    }, 400);
   };
 
   if (!isMounted) return null;

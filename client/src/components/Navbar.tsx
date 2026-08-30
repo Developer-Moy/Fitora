@@ -23,6 +23,7 @@ import { useSession } from "@/lib/auth-client";
 import {
   getAuthSession,
   clearAuthSession,
+  logoutUser,
   AuthUser,
 } from "@/services/authService";
 
@@ -84,19 +85,17 @@ export default function Navbar() {
     userEmail.toLowerCase().includes("admin@fitora");
   const isAdmin = isMasterAdmin || isBranchAdmin;
 
-  const handleLogout = () => {
-    clearAuthSession();
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("fitora_auth_session");
-      localStorage.removeItem("fitora_active_role");
-    }
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {}
     toast.success("Logged out successfully.");
     setLocalUser(null);
     setProfileDropdownOpen(false);
     setMobileMenuOpen(false);
     setTimeout(() => {
-      window.location.reload();
-    }, 400);
+      window.location.href = "/";
+    }, 300);
   };
 
   if (
