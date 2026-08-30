@@ -4,6 +4,13 @@ import mongoose from "mongoose";
 import BMIHistory from "../models/BMIHistory.model";
 import Goal from "../models/Goal.model";
 
+// Alfaaz Ahmed Task Imports
+import Branch from "../models/Branch.model";
+import User from "../models/User.model";
+
+import branches from "./branches.json";
+import usersData from "./users.json";
+
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
@@ -59,17 +66,17 @@ const calculateBMR = (
   if (gender === "male") {
     return Math.round(
       10 * weight +
-        6.25 * height -
-        5 * age +
-        5
+      6.25 * height -
+      5 * age +
+      5
     );
   }
 
   return Math.round(
     10 * weight +
-      6.25 * height -
-      5 * age -
-      161
+    6.25 * height -
+    5 * age -
+    161
   );
 };
 
@@ -220,7 +227,7 @@ const calculateMacros = (
       (calories -
         proteinCalories -
         fatCalories) /
-        4
+      4
     )
   );
 
@@ -669,6 +676,18 @@ const seedDatabase = async (): Promise<void> => {
     console.log(
       `Found ${users.length} users.`
     );
+
+    // -----------------------------
+    // Seed Branches & Users
+    // -----------------------------
+    await Branch.deleteMany({});
+    await User.deleteMany({});
+
+    const insertedBranches = await Branch.insertMany(branches);
+    console.log(`Inserted ${insertedBranches.length} branches.`);
+
+    const insertedUsers = await User.insertMany(usersData);
+    console.log(`Inserted ${insertedUsers.length} users.`);
 
     // ------------------------------------------------
     // Create BMI History records
