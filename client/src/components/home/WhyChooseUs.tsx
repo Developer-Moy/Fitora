@@ -39,11 +39,13 @@ export default function WhyChooseUs() {
         <div className="lg:col-span-6 space-y-6">
           <div className="space-y-3">
             <h2
-              className="text-3xl sm:text-5xl font-black tracking-tight text-white"
+              className="text-white tracking-tight select-none"
               style={{
                 fontFamily: "'Georgia', 'Times New Roman', serif",
-                fontStyle: "italic",
                 fontWeight: 900,
+                fontStyle: "italic",
+                fontSize: "clamp(2.2rem, 5.5vw, 4.2rem)",
+                lineHeight: 1.1,
               }}
             >
               Why Choose Fitora?

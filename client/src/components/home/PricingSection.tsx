@@ -69,11 +69,13 @@ export default function PricingSection() {
             PRICING PLAN
           </span>
           <h2
-            className="text-3xl sm:text-5xl font-black tracking-tight text-black"
+            className="text-black tracking-tight select-none"
             style={{
               fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontStyle: "italic",
               fontWeight: 900,
+              fontStyle: "italic",
+              fontSize: "clamp(2.2rem, 5.5vw, 4.2rem)",
+              lineHeight: 1.1,
             }}
           >
             Join Today & Shape Your Body

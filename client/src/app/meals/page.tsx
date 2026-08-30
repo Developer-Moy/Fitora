@@ -56,11 +56,13 @@ export default function MealsPage() {
         {/* Header Section */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
           <h1
-            className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-none"
+            className="text-white tracking-tight select-none"
             style={{
               fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontStyle: "italic",
               fontWeight: 900,
+              fontStyle: "italic",
+              fontSize: "clamp(2.2rem, 5.5vw, 4.2rem)",
+              lineHeight: 1.1,
             }}
           >
             Healthy Meals Catalog

@@ -227,11 +227,13 @@ Macros:
               {/* Header */}
               <div className="space-y-2">
                 <h1
-                  className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-white"
+                  className="text-white tracking-tight select-none"
                   style={{
                     fontFamily: "'Georgia', 'Times New Roman', serif",
-                    fontStyle: "italic",
                     fontWeight: 900,
+                    fontStyle: "italic",
+                    fontSize: "clamp(2.2rem, 5.5vw, 4.2rem)",
+                    lineHeight: 1.1,
                   }}
                 >
                   Understand Your <br />

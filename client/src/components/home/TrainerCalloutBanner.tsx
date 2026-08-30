@@ -55,11 +55,13 @@ export default function TrainerCalloutBanner({
           className="max-w-xl flex flex-col items-start text-left space-y-5"
         >
           <h2
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight"
+            className="text-white tracking-tight select-none"
             style={{
               fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontStyle: "italic",
               fontWeight: 900,
+              fontStyle: "italic",
+              fontSize: "clamp(2.2rem, 5.5vw, 4.2rem)",
+              lineHeight: 1.1,
             }}
           >
             {title}
