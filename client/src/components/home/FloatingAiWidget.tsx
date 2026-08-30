@@ -553,18 +553,18 @@ export default function FloatingAiWidget() {
         }}
         className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 z-[90] pointer-events-auto select-none ${
           isScrolled
-            ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 sm:px-6 sm:py-3 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
+            ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
             : "absolute bottom-1 sm:bottom-1.5 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"
         }`}
         aria-label="Open FITORA AI"
       >
         {isScrolled ? (
           <div className="flex items-center gap-2">
-            <span className="font-extrabold uppercase tracking-wider text-[11px] sm:text-sm">
+            <span className="font-extrabold uppercase tracking-wider text-xs sm:text-sm">
               Fitora AI
             </span>
-            <span className="bg-white text-black w-5.5 h-5.5 sm:w-6.5 sm:h-6.5 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
-              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-black stroke-none" />
+            <span className="bg-white text-black w-6 h-6 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
+              <Sparkles className="w-3 h-3 fill-black stroke-none" />
             </span>
           </div>
         ) : (
