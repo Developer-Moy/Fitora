@@ -66,9 +66,7 @@ export default function FloatingAiWidget() {
   useEffect(() => {
     const handleScroll = () => {
       if (typeof window !== "undefined") {
-        const scrollY =
-          window.scrollY || document.documentElement.scrollTop || 0;
-        setIsScrolled(scrollY > 80);
+        setIsScrolled(window.scrollY > 160);
       }
     };
     handleScroll();
@@ -541,8 +539,10 @@ export default function FloatingAiWidget() {
         )}
       </AnimatePresence>
 
-      {/* ─── 2. Morphing Button (320px Minimum Mobile Responsive) ─── */}
-      <button
+      {/* ─── 2. Framer Motion Morphing Button (320px Minimum Mobile Responsive) ─── */}
+      <motion.button
+        layout
+        transition={{ type: "spring", stiffness: 220, damping: 24 }}
         onClick={(e) => {
           e.stopPropagation();
           if (isOpen) {
@@ -552,10 +552,10 @@ export default function FloatingAiWidget() {
             setIsOpen(true);
           }
         }}
-        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 pointer-events-auto ${
+        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 z-50 pointer-events-auto ${
           isScrolled
-            ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 sm:px-6 sm:py-3 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95 z-[99]"
-            : "absolute bottom-1 sm:bottom-1.5 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110 z-50"
+            ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 sm:px-6 sm:py-3 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 active:scale-95"
+            : "absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"
         }`}
         aria-label="Open FITORA AI"
       >
@@ -583,7 +583,7 @@ export default function FloatingAiWidget() {
             <Sparkles className="w-4.5 h-4.5 sm:w-6 sm:h-6 fill-white stroke-none drop-shadow-[0_0_10px_rgba(255,255,255,0.9)] group-hover:rotate-12 transition-transform duration-300" />
           </motion.div>
         )}
-      </button>
+      </motion.button>
     </div>
   );
 }

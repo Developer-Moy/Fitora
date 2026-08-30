@@ -11,6 +11,9 @@ import userRoutes from "./user.routes";
 import consultationRoutes from "./consultation.routes";
 import branchRoutes from "./branch.routes";
 import newsletterRoutes from "./newsletter.routes";
+import stopwatchRoutes from "./stopwatch.routes";
+import exerciseRoutes from "./exercise.routes";
+import nutritionRoutes from "./nutrition.routes";
 
 const apiRouter = Router();
 
@@ -30,13 +33,16 @@ apiRouter.get("/health", (req: Request, res: Response) => {
   });
 });
 
-// Mounted Central API Routes
+// Mounted Central API Routes across all 6 Team Members
 apiRouter.use("/workouts", workoutRoutes);
+apiRouter.use("/exercises", exerciseRoutes);
 apiRouter.use("/ai", aiRoutes);
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/goals", goalRoutes);
 apiRouter.use("/meal-charts", mealChartRoutes);
+apiRouter.use("/nutrition", nutritionRoutes);
 apiRouter.use("/bmi", bmiRoutes);
+apiRouter.use("/stopwatch", stopwatchRoutes);
 apiRouter.use("/ads", adRoutes);
 apiRouter.use("/dashboard", userRoutes);
 apiRouter.use("/consultations", consultationRoutes);

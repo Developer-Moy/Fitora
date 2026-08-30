@@ -1,12 +1,12 @@
 import { Router, Request, Response } from "express";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { authMiddleware } from "../middlewares/auth.middleware";
 import {
   getPresets,
   createCustomPreset,
   getUserPresets,
   markSessionComplete,
   getRecentSessions,
-} from "../controllers/stopwatch.controller.js";
+} from "../controllers/stopwatch.controller";
 
 const router = Router();
 

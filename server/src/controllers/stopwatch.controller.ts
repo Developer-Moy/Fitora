@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { User } from "../models/User.model.js";
+import { User } from "../models/User.model";
 
 // In-memory storage for stopwatch presets and sessions (for offline development)
 // In production, these would be stored in MongoDB
