@@ -25,7 +25,6 @@ import { useSession } from "@/lib/auth-client";
 import {
   getAuthSession,
   clearAuthSession,
-  logoutUser,
   AuthUser,
 } from "@/services/authService";
 
