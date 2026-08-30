@@ -61,7 +61,7 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${inter.className} bg-black text-white antialiased min-h-screen flex flex-col justify-between overflow-x-hidden`}
+        className={inter.className + " bg-black text-white antialiased min-h-screen flex flex-col justify-between overflow-x-hidden"}
       >
         <Providers>
           <Navbar />
