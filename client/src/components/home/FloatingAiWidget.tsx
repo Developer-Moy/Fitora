@@ -18,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { sendAiChatApi } from "@/services/aiService";
+import toast from "react-hot-toast";
 
 interface Message {
   id: string;
@@ -118,6 +119,7 @@ export default function FloatingAiWidget() {
         },
       ]);
     }
+    toast.success("Conversation history cleared!");
   };
 
   const handleSendMessage = async (customText?: string) => {

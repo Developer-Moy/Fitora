@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export type NotificationItem = {
   id: number;
@@ -74,10 +75,12 @@ export default function NotificationDropdown() {
 
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    toast.success("All notifications marked as read", { id: "notif-read" });
   };
 
   const clearAll = () => {
     setNotifications([]);
+    toast("All notifications cleared", { icon: "🗑️", id: "notif-clear" });
   };
 
   const toggleReadStatus = (id: number) => {

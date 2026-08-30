@@ -6,6 +6,7 @@ import { Droplet, RotateCcw, Trophy } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { FaGlassWaterDroplet } from "react-icons/fa6";
+import toast from "react-hot-toast";
 
 /** Utility for clean tailwind class merging */
 function cn(...inputs: ClassValue[]) {
@@ -151,6 +152,9 @@ export default function HydrationTracker() {
 
         if (newIntake >= goal && !hasCelebrated) {
             triggerCelebration();
+            toast.success("🎉 Daily hydration goal completed! Great job!", { duration: 4000 });
+        } else {
+            toast.success(`+${ADD_AMOUNT}ml logged (${newIntake}ml / ${goal}ml) 💧`, { id: "water-intake" });
         }
     }, [isLoaded, isCompleted, intake, goal, hasCelebrated, persistData, triggerCelebration]);
 
@@ -160,6 +164,7 @@ export default function HydrationTracker() {
         setHasCelebrated(false);
         setConfirmReset(false);
         setShowConfetti(false);
+        toast("Hydration tracker reset to 0ml", { icon: "🔄", id: "water-reset" });
     }, [goal, persistData]);
 
     // Cancel reset confirmation if not interacted with
