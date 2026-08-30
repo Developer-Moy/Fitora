@@ -61,7 +61,14 @@ export default function ContactInfoForm() {
         {/* Left Column: Office Info */}
         <div className="lg:col-span-6 space-y-8 lg:pr-6">
           <div className="space-y-4">
-            <h2 className="text-3xl sm:text-4xl xl:text-5xl font-black text-black tracking-tight leading-[1.15]">
+            <h2
+              className="text-3xl sm:text-4xl xl:text-5xl font-black text-black tracking-tight leading-[1.15]"
+              style={{
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontStyle: "italic",
+                fontWeight: 900,
+              }}
+            >
               We are here for help you! To Shape Your Body.
             </h2>
 

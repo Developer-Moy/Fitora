@@ -34,8 +34,15 @@ export default function CoachesBanner() {
           <span className="text-xs sm:text-sm font-extrabold text-gray-500 tracking-widest uppercase">
             Are you looking for a Mentor?
           </span>
-          <h2 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-black leading-none">
-            Coaches
+          <h2
+            className="text-4xl sm:text-6xl font-black tracking-tight text-black leading-none"
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontStyle: "italic",
+              fontWeight: 900,
+            }}
+          >
+            Elite Coaches
           </h2>
           <p className="text-gray-600 text-sm sm:text-base leading-relaxed max-w-xl">
             Get personalized guidance from certified master fitness coaches

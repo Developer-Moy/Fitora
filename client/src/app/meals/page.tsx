@@ -55,7 +55,14 @@ export default function MealsPage() {
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Header Section */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white leading-none font-sans">
+          <h1
+            className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-none"
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontStyle: "italic",
+              fontWeight: 900,
+            }}
+          >
             Healthy Meals Catalog
           </h1>
 

@@ -44,8 +44,15 @@ export default function MeetTrainers() {
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
-            Meet Our Trainers
+          <h2
+            className="text-3xl sm:text-5xl font-black tracking-tight text-white"
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontStyle: "italic",
+              fontWeight: 900,
+            }}
+          >
+            Meet Our Expert Trainers
           </h2>
           <p className="text-gray-400 text-sm sm:text-base leading-relaxed">
             Certified experts dedicated to helping you unlock your full athletic potential.

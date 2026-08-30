@@ -226,7 +226,14 @@ Macros:
             <div className="flex flex-col justify-between lg:col-span-6 space-y-5">
               {/* Header */}
               <div className="space-y-2">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase leading-tight tracking-tight text-white font-sans">
+                <h1
+                  className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight text-white"
+                  style={{
+                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontStyle: "italic",
+                    fontWeight: 900,
+                  }}
+                >
                   Understand Your <br />
                   <span className="text-gray-400 font-normal">
                     BMI & Body Composition.
@@ -320,7 +327,14 @@ Macros:
                   01 / INTERACTIVE SLIDERS
                 </span>
 
-                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
+                <h2
+                  className="text-2xl sm:text-3xl font-black tracking-tight text-white"
+                  style={{
+                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontStyle: "italic",
+                    fontWeight: 900,
+                  }}
+                >
                   Calculate Your BMI.
                 </h2>
               </div>
@@ -350,7 +364,14 @@ Macros:
                     02 / PERSONAL PROFILE
                   </span>
 
-                  <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-black">
+                  <h2
+                    className="text-2xl sm:text-3xl font-black tracking-tight text-black"
+                    style={{
+                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontStyle: "italic",
+                      fontWeight: 900,
+                    }}
+                  >
                     Tell Us{" "}
                     <span className="text-gray-500 font-normal">
                       About You.
@@ -540,7 +561,14 @@ Macros:
                     03 / NUTRITION & ENERGY TARGETS
                   </span>
 
-                  <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-black font-sans">
+                  <h2
+                    className="text-2xl sm:text-3xl font-black tracking-tight text-black"
+                    style={{
+                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontStyle: "italic",
+                      fontWeight: 900,
+                    }}
+                  >
                     Your Daily{" "}
                     <span className="text-gray-400 font-normal">
                       Breakdown.

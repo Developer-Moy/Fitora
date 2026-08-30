@@ -54,7 +54,14 @@ export default function TrainerCalloutBanner({
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="max-w-xl flex flex-col items-start text-left space-y-5"
         >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-tight">
+          <h2
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight"
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontStyle: "italic",
+              fontWeight: 900,
+            }}
+          >
             {title}
           </h2>
 

@@ -68,8 +68,15 @@ export default function PricingSection() {
           <span className="text-xs font-extrabold uppercase tracking-widest text-gray-500">
             PRICING PLAN
           </span>
-          <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-black">
-            JOIN TODAY & SHAPE YOUR BODY
+          <h2
+            className="text-3xl sm:text-5xl font-black tracking-tight text-black"
+            style={{
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontStyle: "italic",
+              fontWeight: 900,
+            }}
+          >
+            Join Today & Shape Your Body
           </h2>
           <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
             Choose the perfect membership tier tailored to your fitness goals

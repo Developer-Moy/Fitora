@@ -1149,8 +1149,15 @@ export default function ExercisePage() {
                   EXERCISE LIBRARY
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
-                ALL EXERCISES
+              <h1
+                className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white"
+                style={{
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontStyle: "italic",
+                  fontWeight: 900,
+                }}
+              >
+                All Exercises & PR Studio
               </h1>
             </div>
 
