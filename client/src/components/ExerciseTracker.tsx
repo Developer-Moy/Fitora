@@ -1336,7 +1336,7 @@ function ExerciseCard({
   return (
     <article
       onClick={onClick}
-      className="group relative min-h-[380px] sm:min-h-[420px] overflow-hidden rounded-2xl bg-neutral-900 border border-white/10 hover:border-white/30 transition-all duration-300 cursor-pointer shadow-xl"
+      className="group relative h-[280px] sm:h-[310px] overflow-hidden rounded-2xl bg-neutral-900 border border-white/10 hover:border-white/30 transition-all duration-300 cursor-pointer shadow-xl select-none"
     >
       {/* Image */}
       <img
@@ -1355,64 +1355,53 @@ function ExerciseCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
 
       {/* Number */}
-      <div className="absolute top-5 left-5">
-        <span className="bg-white text-black px-3 py-1.5 rounded-full text-[10px] font-black tracking-wider">
+      <div className="absolute top-4 left-4">
+        <span className="bg-white text-black px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider">
           {String(index + 1).padStart(2, "0")}
         </span>
       </div>
 
       {/* Play */}
-      <div className="absolute top-5 right-5">
-        <div className="w-11 h-11 rounded-full bg-white text-black flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-          <Play className="w-4 h-4 fill-black ml-0.5" />
+      <div className="absolute top-4 right-4">
+        <div className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+          <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
         </div>
       </div>
 
       {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-        <div className="flex flex-wrap gap-2 mb-4">
-          <span className="px-3 py-1.5 rounded-full border border-white/20 bg-black/50 text-[9px] font-bold tracking-wider">
+      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 space-y-2">
+        <div className="flex flex-wrap gap-1.5">
+          <span className="px-2.5 py-0.5 rounded-full border border-white/20 bg-black/60 text-[9px] font-bold tracking-wider">
             {exercise.category}
           </span>
 
-          <span className="px-3 py-1.5 rounded-full border border-white/20 bg-black/50 text-[9px] font-bold tracking-wider">
+          <span className="px-2.5 py-0.5 rounded-full border border-white/20 bg-black/60 text-[9px] font-bold tracking-wider">
             {exercise.difficulty}
           </span>
         </div>
 
-        <h3 className="text-3xl sm:text-4xl font-black uppercase tracking-tight leading-none">
+        <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-tight line-clamp-1">
           {exercise.name}
         </h3>
 
-        <div className="flex flex-wrap items-center gap-4 mt-5 text-white/50">
-          <span className="flex items-center gap-2 text-[10px] font-bold">
-            <Clock3 className="w-4 h-4" />
-            {exercise.duration}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/10">
+          <div className="flex flex-wrap items-center gap-3 text-white/60 text-[10px] font-bold">
+            <span className="flex items-center gap-1">
+              <Clock3 className="w-3.5 h-3.5" />
+              {exercise.duration}
+            </span>
 
-          <span className="flex items-center gap-2 text-[10px] font-bold">
-            <Dumbbell className="w-4 h-4" />
-            {exercise.equipment}
-          </span>
+            <span className="flex items-center gap-1">
+              <Dumbbell className="w-3.5 h-3.5" />
+              {exercise.equipment}
+            </span>
+          </div>
 
-          <span className="flex items-center gap-2 text-[10px] font-bold">
-            <Target className="w-4 h-4" />
-            {exercise.muscle}
+          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-white hover:underline">
+            TECHNIQUE
+            <ArrowUpRight className="w-3 h-3" />
           </span>
         </div>
-
-        <button
-          onClick={(event) => {
-            event.stopPropagation();
-            onClick();
-          }}
-          className="group/btn inline-flex items-center gap-2 mt-6 text-xs font-black uppercase tracking-wider"
-        >
-          WATCH TECHNIQUE
-          <span className="w-6 h-6 rounded-full border border-white/30 flex items-center justify-center group-hover/btn:bg-white group-hover/btn:text-black transition">
-            <ArrowUpRight className="w-3 h-3 group-hover/btn:rotate-45 transition-transform" />
-          </span>
-        </button>
       </div>
     </article>
   );

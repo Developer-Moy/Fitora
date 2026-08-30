@@ -71,18 +71,18 @@ export default function HeroSection() {
         {/* ─── Centered max-w-7xl container to lock relative positions on Zoom & UltraWide ─── */}
         <div className="relative w-full max-w-7xl mx-auto h-full min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
           {/* ─── Z-10: "Build Your Body" Title Case Serif Italic Headline ─── */}
-          <div className="absolute z-10 top-6 sm:top-8 md:top-10 inset-x-0 flex flex-col items-center pointer-events-none px-3 sm:px-4">
+          <div className="absolute z-10 top-5 sm:top-8 md:top-10 inset-x-0 flex flex-col items-center pointer-events-none px-2 sm:px-4">
             <h1
               className="text-white leading-none whitespace-nowrap select-none tracking-tight text-center font-sans uppercase font-black"
               style={{
-                fontSize: "clamp(2.4rem, 6.8vw, 5.8rem)",
+                fontSize: "clamp(1.75rem, 6.8vw, 5.8rem)",
               }}
             >
               Build Your Body
             </h1>
 
             {/* Mobile Social Icons centered directly under Build Your Body (No BG) */}
-            <div className="flex sm:hidden items-center justify-center gap-4 text-white/80 mt-2.5 pointer-events-auto">
+            <div className="flex sm:hidden items-center justify-center gap-3 text-white/80 mt-2 pointer-events-auto">
               <a
                 href="https://facebook.com"
                 target="_blank"
@@ -90,7 +90,7 @@ export default function HeroSection() {
                 className="hover:text-white transition-colors cursor-pointer"
                 aria-label="Facebook"
               >
-                <Facebook className="w-4 h-4" />
+                <Facebook className="w-3.5 h-3.5" />
               </a>
               <a
                 href="https://instagram.com"
@@ -99,7 +99,7 @@ export default function HeroSection() {
                 className="hover:text-white transition-colors cursor-pointer"
                 aria-label="Instagram"
               >
-                <Instagram className="w-4 h-4" />
+                <Instagram className="w-3.5 h-3.5" />
               </a>
               <a
                 href="https://tiktok.com"
@@ -108,7 +108,7 @@ export default function HeroSection() {
                 className="hover:text-white transition-colors cursor-pointer"
                 aria-label="TikTok"
               >
-                <TikTokIcon className="w-4 h-4" />
+                <TikTokIcon className="w-3.5 h-3.5" />
               </a>
               <a
                 href="https://wa.me/8801700000000"
@@ -117,7 +117,7 @@ export default function HeroSection() {
                 className="hover:text-white transition-colors cursor-pointer"
                 aria-label="WhatsApp"
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-3.5 h-3.5" />
               </a>
               <a
                 href="https://youtube.com"
@@ -126,29 +126,29 @@ export default function HeroSection() {
                 className="hover:text-white transition-colors cursor-pointer"
                 aria-label="YouTube"
               >
-                <Youtube className="w-4 h-4" />
+                <Youtube className="w-3.5 h-3.5" />
               </a>
             </div>
           </div>
 
-          {/* ─── Z-20: Athlete Cutout Image — Head overlapping text ─── */}
-          <div className="absolute z-20 inset-x-0 bottom-0 top-2 sm:top-3 flex items-end justify-center pointer-events-none overflow-hidden">
-            <div className="relative w-[340px] xs:w-[420px] sm:w-[520px] md:w-[640px] lg:w-[740px] h-[98%] sm:h-full">
+          {/* ─── Z-20: Athlete Cutout Image — Head overlapping text (10% Larger & Mobile Optimized) ─── */}
+          <div className="absolute z-20 inset-x-0 bottom-0 top-0 flex items-end justify-center pointer-events-none overflow-hidden">
+            <div className="relative w-[340px] xs:w-[440px] sm:w-[570px] md:w-[700px] lg:w-[815px] h-[92%] sm:h-full scale-[1.12] sm:scale-[1.08] origin-bottom">
               <Image
                 src="/hero.png"
                 alt="Bodybuilder Athlete Cutout"
                 fill
                 priority
-                sizes="(max-width: 768px) 500px, 720px"
+                sizes="(max-width: 768px) 550px, 850px"
                 className="object-contain object-bottom"
               />
             </div>
           </div>
 
           {/* ─── Z-30: Subtitle locked in LEFT-MIDDLE ─── */}
-          <div className="absolute z-30 left-3 xs:left-5 sm:left-6 md:left-8 top-1/2 -translate-y-1/2 max-w-[140px] xs:max-w-[190px] sm:max-w-[260px]">
+          <div className="absolute z-30 left-2.5 xs:left-5 sm:left-6 md:left-8 top-[48%] sm:top-1/2 -translate-y-1/2 max-w-[140px] xs:max-w-[190px] sm:max-w-[260px]">
             <p
-              className="text-gray-200 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
+              className="text-gray-200 text-xs sm:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
               style={{ fontStyle: "italic" }}
             >
               Achieve your fitness goals with expert trainers, cutting-edge
@@ -207,14 +207,14 @@ export default function HeroSection() {
           </div>
 
           {/* ─── Z-30: "See Packages" Button locked in RIGHT-MIDDLE ─── */}
-          <div className="absolute z-30 right-3 xs:right-5 sm:right-6 md:right-8 top-1/2 -translate-y-1/2">
+          <div className="absolute z-30 right-2.5 xs:right-5 sm:right-6 md:right-8 top-[48%] sm:top-1/2 -translate-y-1/2">
             <Link
               href="#pricing"
-              className="group inline-flex items-center gap-2 bg-white text-black font-bold text-[11px] xs:text-xs sm:text-sm px-3.5 py-2 sm:px-5 sm:py-3 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-[0_4px_20px_rgba(255,255,255,0.15)]"
+              className="group inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
             >
               <span>See Packages</span>
-              <span className="bg-black text-white w-5.5 h-5.5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-                <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+              <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
+                <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
               </span>
             </Link>
           </div>

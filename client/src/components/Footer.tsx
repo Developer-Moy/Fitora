@@ -112,7 +112,7 @@ export default function Footer() {
                 href="https://maps.google.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black font-black text-xs hover:bg-gray-100 transition-all shadow-2xl hover:scale-105 active:scale-95 cursor-pointer w-fit"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black border border-white font-black text-xs hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all hover:scale-105 active:scale-95 cursor-pointer w-fit"
               >
                 <span>Get Directions</span>
                 <FiMapPin className="w-4 h-4 text-black stroke-[2.5]" />

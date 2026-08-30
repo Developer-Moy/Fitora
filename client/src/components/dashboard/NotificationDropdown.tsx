@@ -128,7 +128,7 @@ export default function NotificationDropdown() {
         }`}
         aria-label="Notifications"
       >
-        <Bell className="h-4.5 w-4.5" />
+        <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
           <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
         )}
