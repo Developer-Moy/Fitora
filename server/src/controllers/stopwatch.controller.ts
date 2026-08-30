@@ -44,9 +44,30 @@ const inMemoryPresets: StopwatchPreset[] = [
     defaultDurationSeconds: 20,
     defaultRestSeconds: 10,
     exercises: [
-      { _id: "ex-01", name: "Jumping Jacks", targetDurationSeconds: 30, targetRestSeconds: 15, sets: 3, reps: 20 },
-      { _id: "ex-02", name: "Burpees", targetDurationSeconds: 30, targetRestSeconds: 15, sets: 3, reps: 10 },
-      { _id: "ex-03", name: "Mountain Climbers", targetDurationSeconds: 30, targetRestSeconds: 15, sets: 3, reps: 20 },
+      {
+        _id: "ex-01",
+        name: "Jumping Jacks",
+        targetDurationSeconds: 30,
+        targetRestSeconds: 15,
+        sets: 3,
+        reps: 20,
+      },
+      {
+        _id: "ex-02",
+        name: "Burpees",
+        targetDurationSeconds: 30,
+        targetRestSeconds: 15,
+        sets: 3,
+        reps: 10,
+      },
+      {
+        _id: "ex-03",
+        name: "Mountain Climbers",
+        targetDurationSeconds: 30,
+        targetRestSeconds: 15,
+        sets: 3,
+        reps: 20,
+      },
     ],
   },
   {
@@ -56,16 +77,40 @@ const inMemoryPresets: StopwatchPreset[] = [
     defaultDurationSeconds: 45,
     defaultRestSeconds: 60,
     exercises: [
-      { _id: "ex-04", name: "Push-ups", targetDurationSeconds: 45, targetRestSeconds: 60, sets: 3, reps: 15 },
-      { _id: "ex-05", name: "Squats", targetDurationSeconds: 45, targetRestSeconds: 60, sets: 3, reps: 20 },
-      { _id: "ex-06", name: "Lunges", targetDurationSeconds: 45, targetRestSeconds: 60, sets: 3, reps: 12 },
+      {
+        _id: "ex-04",
+        name: "Push-ups",
+        targetDurationSeconds: 45,
+        targetRestSeconds: 60,
+        sets: 3,
+        reps: 15,
+      },
+      {
+        _id: "ex-05",
+        name: "Squats",
+        targetDurationSeconds: 45,
+        targetRestSeconds: 60,
+        sets: 3,
+        reps: 20,
+      },
+      {
+        _id: "ex-06",
+        name: "Lunges",
+        targetDurationSeconds: 45,
+        targetRestSeconds: 60,
+        sets: 3,
+        reps: 12,
+      },
     ],
   },
 ];
 
 const inMemorySessions: StopwatchSession[] = [];
 
-export const getPresets = async (req: Request, res: Response): Promise<Response> => {
+export const getPresets = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     return res.status(200).json({
       success: true,
@@ -82,9 +127,18 @@ export const getPresets = async (req: Request, res: Response): Promise<Response>
   }
 };
 
-export const createCustomPreset = async (req: Request, res: Response): Promise<Response> => {
+export const createCustomPreset = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
-    const { name, description, defaultDurationSeconds, defaultRestSeconds, exercises } = req.body;
+    const {
+      name,
+      description,
+      defaultDurationSeconds,
+      defaultRestSeconds,
+      exercises,
+    } = req.body;
 
     if (!name || typeof name !== "string" || name.trim() === "") {
       return res.status(400).json({
@@ -119,10 +173,13 @@ export const createCustomPreset = async (req: Request, res: Response): Promise<R
   }
 };
 
-export const getUserPresets = async (req: Request, res: Response): Promise<Response> => {
+export const getUserPresets = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const { userId } = req.query;
-    
+
     // Filter presets by userId if provided
     let userPresets = inMemoryPresets;
     if (userId && typeof userId === "string") {
@@ -144,7 +201,10 @@ export const getUserPresets = async (req: Request, res: Response): Promise<Respo
   }
 };
 
-export const markSessionComplete = async (req: Request, res: Response): Promise<Response> => {
+export const markSessionComplete = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const { sessionId, durationSeconds, caloriesBurned, notes } = req.body;
     const authUser = (req as any).user;
@@ -152,7 +212,9 @@ export const markSessionComplete = async (req: Request, res: Response): Promise<
 
     if (sessionId) {
       // Find and update existing session
-      const sessionIndex = inMemorySessions.findIndex((s) => s._id === sessionId && s.userId === userId);
+      const sessionIndex = inMemorySessions.findIndex(
+        (s) => s._id === sessionId && s.userId === userId,
+      );
       if (sessionIndex !== -1) {
         inMemorySessions[sessionIndex].stoppedAt = new Date();
         inMemorySessions[sessionIndex].durationSeconds = durationSeconds;
@@ -191,14 +253,17 @@ export const markSessionComplete = async (req: Request, res: Response): Promise<
   }
 };
 
-export const getRecentSessions = async (req: Request, res: Response): Promise<Response> => {
+export const getRecentSessions = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const { limit } = req.query;
     const authUser = (req as any).user;
     const userId = authUser?.userId || "guest_user";
 
     let sessions = inMemorySessions.filter((s) => s.userId === userId);
-    
+
     // Sort by startedAt descending (most recent first)
     sessions.sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime());
 
