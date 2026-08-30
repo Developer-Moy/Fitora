@@ -44,11 +44,12 @@ export default function Footer() {
     }
   };
 
-  // Hide footer inside /dashboard, /login, and /register routes
+  // Hide footer inside /dashboard, /login, /register, and /profile routes
   if (
     pathname?.startsWith("/dashboard") ||
     pathname === "/login" ||
-    pathname === "/register"
+    pathname === "/register" ||
+    pathname?.startsWith("/profile")
   ) {
     return null;
   }
