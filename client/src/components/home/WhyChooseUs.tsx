@@ -38,16 +38,7 @@ export default function WhyChooseUs() {
         {/* ── Right Side: Title & Feature Checklist ── */}
         <div className="lg:col-span-6 space-y-6">
           <div className="space-y-3">
-            <h2
-              className="text-white tracking-tight select-none"
-              style={{
-                fontFamily: "'Georgia', 'Times New Roman', serif",
-                fontWeight: 900,
-                fontStyle: "italic",
-                fontSize: "clamp(2.2rem, 5.5vw, 4.2rem)",
-                lineHeight: 1.1,
-              }}
-            >
+            <h2 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
               Why Choose Fitora?
             </h2>
             <p

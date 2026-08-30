@@ -73,11 +73,8 @@ export default function HeroSection() {
           {/* ─── Z-10: "Build Your Body" Title Case Serif Italic Headline ─── */}
           <div className="absolute z-10 top-6 sm:top-8 md:top-10 inset-x-0 flex flex-col items-center pointer-events-none px-3 sm:px-4">
             <h1
-              className="text-white leading-none whitespace-nowrap select-none tracking-tight text-center"
+              className="text-white leading-none whitespace-nowrap select-none tracking-tight text-center font-sans uppercase font-black"
               style={{
-                fontFamily: "'Georgia', 'Times New Roman', serif",
-                fontWeight: 900,
-                fontStyle: "italic",
                 fontSize: "clamp(2.2rem, 8.5vw, 8.5rem)",
               }}
             >

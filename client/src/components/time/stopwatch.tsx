@@ -107,16 +107,7 @@ export default function StopwatchPage({
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
         {/* Page Top Heading */}
         <div className="text-center space-y-3 max-w-3xl mx-auto pt-2 pb-2">
-          <h1
-            className="text-white tracking-tight select-none"
-            style={{
-              fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontWeight: 900,
-              fontStyle: "italic",
-              fontSize: "clamp(2.2rem, 5.5vw, 4.2rem)",
-              lineHeight: 1.1,
-            }}
-          >
+          <h1 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
             HUD Workout Stopwatch
           </h1>
           <p

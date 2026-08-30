@@ -34,16 +34,7 @@ export default function CoachesBanner() {
           <span className="text-xs sm:text-sm font-extrabold text-gray-500 tracking-widest uppercase">
             Are you looking for a Mentor?
           </span>
-          <h2
-            className="text-black tracking-tight select-none"
-            style={{
-              fontFamily: "'Georgia', 'Times New Roman', serif",
-              fontWeight: 900,
-              fontStyle: "italic",
-              fontSize: "clamp(2.2rem, 5.5vw, 4.2rem)",
-              lineHeight: 1.1,
-            }}
-          >
+          <h2 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-black select-none">
             Elite Coaches
           </h2>
           <p
