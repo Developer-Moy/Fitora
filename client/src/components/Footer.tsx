@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -22,6 +22,11 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +49,11 @@ export default function Footer() {
     }
   };
 
+  // Wait until mounted on client to prevent extension attribute and route hydration mismatch
+  if (!isMounted) {
+    return null;
+  }
+
   // Hide footer inside /dashboard, /login, /register, and /profile routes
   if (
     pathname?.startsWith("/dashboard") ||
@@ -55,7 +65,10 @@ export default function Footer() {
   }
 
   return (
-    <footer className="relative bg-black text-white select-none overflow-hidden border-t border-white/10">
+    <footer
+      suppressHydrationWarning
+      className="relative bg-black text-white select-none overflow-hidden border-t border-white/10"
+    >
       {/* ── Main Hero Footer Section (Crystal Clear Gym BG & Polished Bold Design) ── */}
       <div className="relative py-10 sm:py-12 px-6 sm:px-10 lg:px-14 overflow-hidden">
         {/* Crystal Clear High Visibility Gym Background Image */}
