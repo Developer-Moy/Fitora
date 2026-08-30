@@ -9,7 +9,7 @@ import TrainerCalloutBanner from "@/components/home/TrainerCalloutBanner";
 import ContactInfoForm from "@/components/home/ContactInfoForm";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FITORA HOME PAGE — / (main)/page.tsx
+// FITORA HOME PAGE — /page.tsx
 // Sections included:
 // 1. HeroSection (Hero Banner + Stats Counter Strip + Notch AI Widget)
 // 2. WhyChooseUs (Why Choose Fitora? — White BG)
@@ -23,7 +23,6 @@ import ContactInfoForm from "@/components/home/ContactInfoForm";
 export default function Home() {
   return (
     <main className="min-h-screen bg-black text-white">
-
       {/* Section 1: Hero Banner & Stats Counter Strip */}
       <HeroSection />
 
@@ -44,7 +43,6 @@ export default function Home() {
 
       {/* Section 7: Contact & Consult Form */}
       <ContactInfoForm />
-
     </main>
   );
 }
