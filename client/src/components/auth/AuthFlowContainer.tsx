@@ -1103,7 +1103,7 @@ export default function AuthFlowContainer({
                     alt="FITORA Logo"
                     width={30}
                     height={30}
-                    className="w-7.5 h-7.5 object-contain shadow-lg group-hover:scale-105 transition-transform"
+                    className="w-7 h-7 object-contain shadow-lg group-hover:scale-105 transition-transform"
                   />
                   <span className="text-white font-black text-sm tracking-wider uppercase">
                     FITORA
