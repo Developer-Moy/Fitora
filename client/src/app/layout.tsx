@@ -58,9 +58,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${inter.className} bg-black text-white antialiased min-h-screen flex flex-col justify-between overflow-x-hidden`}
+        suppressHydrationWarning
+        className={inter.className + " bg-black text-white antialiased min-h-screen flex flex-col justify-between overflow-x-hidden"}
       >
         <Providers>
           <Navbar />

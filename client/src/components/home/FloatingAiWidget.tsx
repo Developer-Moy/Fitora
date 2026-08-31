@@ -18,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { sendAiChatApi } from "@/services/aiService";
+import toast from "react-hot-toast";
 
 interface Message {
   id: string;
@@ -118,6 +119,7 @@ export default function FloatingAiWidget() {
         },
       ]);
     }
+    toast.success("Conversation history cleared!");
   };
 
   const handleSendMessage = async (customText?: string) => {
@@ -228,7 +230,7 @@ export default function FloatingAiWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed bottom-[72px] sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[640px] md:w-[720px] lg:w-[760px] max-w-[760px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[80] pointer-events-auto"
+            className="fixed bottom-[72px] sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[640px] md:w-[720px] lg:w-[760px] max-w-[760px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[40] pointer-events-auto"
           >
             {!selectedMode ? (
               <div className="p-3 sm:p-5 space-y-3 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black overflow-y-auto max-h-[380px] sm:max-h-[420px]">
@@ -551,7 +553,7 @@ export default function FloatingAiWidget() {
             setIsOpen(true);
           }
         }}
-        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 z-[90] pointer-events-auto select-none ${
+        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 z-[45] pointer-events-auto select-none ${
           isScrolled
             ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
             : "absolute bottom-1 sm:bottom-1.5 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"

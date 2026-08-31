@@ -1,3 +1,5 @@
+import { authClient } from "@/lib/auth-client";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export interface AuthUser {
@@ -10,6 +12,15 @@ export interface AuthUser {
   assignedBranch?: string;
   status?: string;
   avatarUrl?: string;
+  image?: string;
+  phone?: string;
+  gender?: string;
+  weight?: string;
+  height?: string;
+  bio?: string;
+  fitnessGoal?: string;
+  activityLevel?: string;
+  joinedDate?: string;
   isMasterAdmin?: boolean;
   isBranchAdmin?: boolean;
 }
@@ -229,6 +240,25 @@ export function clearAuthSession() {
   localStorage.removeItem("fitora_user_role");
   localStorage.removeItem("fitora_user_email");
   localStorage.removeItem("fitora_user_name");
+  localStorage.removeItem("fitora_auth_session");
+  localStorage.removeItem("fitora_active_role");
+  localStorage.removeItem("fitora_google_auth_token");
+  sessionStorage.clear();
+
+  try {
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+  } catch {}
+}
+
+export async function logoutUser(): Promise<void> {
+  try {
+    await authClient.signOut().catch(() => null);
+  } catch {}
+  clearAuthSession();
 }
 
 export default {
@@ -239,4 +269,5 @@ export default {
   saveAuthSession,
   getAuthSession,
   clearAuthSession,
+  logoutUser,
 };

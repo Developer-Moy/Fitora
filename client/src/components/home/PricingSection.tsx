@@ -140,7 +140,7 @@ export default function PricingSection() {
                   </h3>
                   <p
                     className={`text-xs mt-1 leading-relaxed ${
-                      plan.isPopular ? "text-gray-300" : "text-gray-600"
+                      plan.isPopular ? "text-white/80" : "text-gray-600"
                     }`}
                   >
                     {plan.description}
@@ -153,7 +153,7 @@ export default function PricingSection() {
                   </span>
                   <span
                     className={`text-xs font-semibold ${
-                      plan.isPopular ? "text-gray-300" : "text-gray-500"
+                      plan.isPopular ? "text-white/80" : "text-gray-500"
                     }`}
                   >
                     {plan.period}
@@ -196,7 +196,7 @@ export default function PricingSection() {
                   className={`group inline-flex items-center justify-between w-full gap-2 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-300 shadow-xl cursor-pointer ${
                     plan.isPopular
                       ? "bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98]"
-                      : "bg-black text-white border border-white/25 hover:bg-neutral-900 hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+                      : "bg-black text-white border border-white/25 hover:bg-black hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98]"
                   }`}
                 >
                   <span>{plan.buttonText}</span>
