@@ -324,25 +324,12 @@ const MEAL_SUGGESTIONS_BY_GOAL: Record<
 
 export default function ProfilePage() {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { data: authSession } = useSession();
   const [localUser, setLocalUser] = useState<AuthUser | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [copiedMealIndex, setCopiedMealIndex] = useState<number | null>(null);
 
   // Edit Modal State
-  const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editPhone, setEditPhone] = useState("");
-  const [editGender, setEditGender] = useState("Male");
-  const [editBranch, setEditBranch] = useState("Gulshan-2 Flagship Branch");
-  const [editGoal, setEditGoal] = useState("Bulking & Muscle Gain");
-  const [editWeight, setEditWeight] = useState("74");
-  const [editHeight, setEditHeight] = useState("178");
-  const [editActivity, setEditActivity] = useState("4-5 Days / Week");
-  const [editBio, setEditBio] = useState("");
-  const [editAvatarUrl, setEditAvatarUrl] = useState("");
 
   useEffect(() => {
     setIsMounted(true);
@@ -515,16 +502,7 @@ export default function ProfilePage() {
   return (
     <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-12 sm:py-16 px-6 sm:px-10 lg:px-16 select-none">
       <div className="max-w-6xl mx-auto space-y-12">
-        {/* Hidden File Input for Direct Avatar Upload */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png, image/jpeg, image/webp, image/gif"
-          onChange={handleImageFileChange}
-          className="hidden"
-        />
-
-        {/* ── Page Header (Homepage Style) ── */}
+{/* ── Page Header (Homepage Style) ── */}
         <div className="text-center space-y-3 max-w-2xl mx-auto pt-4">
           <h1 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
             Athlete Profile
@@ -568,15 +546,6 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Camera Upload Button */}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  title="Upload / Change Profile Photo (Local or ImgBB)"
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white text-black border-2 border-black flex items-center justify-center hover:bg-neutral-200 hover:scale-110 active:scale-95 transition-all shadow-lg cursor-pointer"
-                >
-                  <Camera className="w-4 h-4" />
-                </button>
               </div>
 
               {/* Identity & Membership Info */}
