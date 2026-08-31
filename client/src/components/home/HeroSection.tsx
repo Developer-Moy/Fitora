@@ -41,19 +41,16 @@ const CountUp = ({
           const intervalTime = 30; // ms per frame
           const totalSteps = duration / intervalTime;
           const increment = Math.max(1, Math.ceil(end / totalSteps));
-          
-          const timer = setInterval(
-            () => {
-              start += increment;
-              if (start >= end) {
-                setCount(end);
-                clearInterval(timer);
-              } else {
-                setCount(start);
-              }
-            },
-            intervalTime
-          );
+
+          const timer = setInterval(() => {
+            start += increment;
+            if (start >= end) {
+              setCount(end);
+              clearInterval(timer);
+            } else {
+              setCount(start);
+            }
+          }, intervalTime);
         }
       },
       { threshold: 0.2 },

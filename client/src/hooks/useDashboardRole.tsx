@@ -148,24 +148,6 @@ export function DashboardRoleProvider({
         };
     }
   };
-      case "branch_admin":
-        return {
-          name: "Rahim Ahmed (Branch Admin)",
-          email: "gulshan.admin@fitora.com.bd",
-        };
-      case "premium_user":
-        return {
-          name: "Tanvir Hasan (VIP Athlete)",
-          email: "tanvir.athlete@gmail.com",
-        };
-      case "free_user":
-      default:
-        return {
-          name: "Sabbir Hossain (Free Member)",
-          email: "sabbir.member@gmail.com",
-        };
-    }
-  };
 
   const user = getUserDetails();
 
