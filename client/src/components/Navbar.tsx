@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -59,10 +59,26 @@ export default function Navbar() {
   const [chatListOpen, setChatListOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const profileDropdownRef = useRef<HTMLDivElement | null>(null);
 
   const { data: authSession } = useSession();
   const [localUser, setLocalUser] = useState<AuthUser | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
+        setProfileDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
@@ -76,6 +92,7 @@ export default function Navbar() {
   const isLoggedIn = isMounted && !!activeUser;
 
   const userName = activeUser?.name || "Athlete Member";
+  const userFirstName = userName.split(" ")[0];
   const userEmail = activeUser?.email || "athlete@fitora.com";
   const userInitial = userName.charAt(0).toUpperCase() || "A";
   const userRole = (activeUser as any)?.role || "athlete";
@@ -138,7 +155,7 @@ export default function Navbar() {
             <span className="text-white font-black text-lg sm:text-xl tracking-wider uppercase leading-none font-sans">
               FITORA
             </span>
-            <span className="text-[9px] text-gray-400 font-bold tracking-[0.25em] uppercase">
+            <span className="text-[9px] text-white/60 font-bold tracking-[0.25em] uppercase">
               GYM & AI
             </span>
           </div>
@@ -156,7 +173,7 @@ export default function Navbar() {
                   className={`text-xs xl:text-sm font-semibold transition-colors duration-200 whitespace-nowrap ${
                     isActive
                       ? "text-white font-extrabold"
-                      : "text-gray-400 hover:text-white"
+                      : "text-white/60 hover:text-white"
                   }`}
                 >
                   {label}
@@ -197,8 +214,8 @@ export default function Navbar() {
                     <span>{userInitial}</span>
                   )}
                 </div>
-                <span className="max-w-[110px] truncate font-extrabold text-xs text-black">
-                  {userName}
+                <span className="w-auto whitespace-nowrap font-extrabold text-xs text-black">
+                  {userFirstName}
                 </span>
                 <FiChevronDown
                   className={`w-3.5 h-3.5 text-black stroke-[2.5] transition-transform duration-200 ${
@@ -210,10 +227,10 @@ export default function Navbar() {
               {/* Profile Dropdown Popup Card */}
               {profileDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-2.5 w-64 bg-[#0E0F12] border border-white/15 rounded-2xl p-3 shadow-2xl space-y-2 z-50 backdrop-blur-xl"
+                  className="absolute right-0 mt-2.5 w-64 bg-black border border-white/15 rounded-2xl p-3 shadow-2xl space-y-2 z-50 backdrop-blur-xl"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="px-3 py-2 bg-neutral-900/90 rounded-xl border border-white/10 flex items-center gap-2.5">
+                  <div className="px-3 py-2 bg-black rounded-xl border border-white/10 flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md overflow-hidden">
                       {userAvatar ? (
                         <img
@@ -229,7 +246,7 @@ export default function Navbar() {
                       <p className="text-white font-bold text-xs leading-tight truncate">
                         {userName}
                       </p>
-                      <p className="text-[10px] text-gray-400 leading-tight truncate">
+                      <p className="text-[10px] text-white/60 leading-tight truncate">
                         {userEmail}
                       </p>
                     </div>
@@ -241,7 +258,7 @@ export default function Navbar() {
                       onClick={() => setProfileDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
                     >
-                      <FiUser className="w-4 h-4 text-gray-400" />
+                      <FiUser className="w-4 h-4 text-white/60" />
                       <span>My Athlete Profile</span>
                     </Link>
 
@@ -251,7 +268,7 @@ export default function Navbar() {
                         onClick={() => setProfileDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
                       >
-                        <FiSettings className="w-4 h-4 text-gray-400" />
+                        <FiSettings className="w-4 h-4 text-white/60" />
                         <span>Admin Dashboard</span>
                       </Link>
                     )}
@@ -292,7 +309,7 @@ export default function Navbar() {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[360px] h-full bg-[#0E0F12] border-l border-white/10 flex flex-col shadow-2xl z-[100]"
+            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[360px] h-full bg-black border-l border-white/10 flex flex-col shadow-2xl z-[100]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── 1. White Search Box at Top ── */}
@@ -304,7 +321,7 @@ export default function Navbar() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search modules & pages..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white text-black text-xs font-semibold placeholder:text-gray-400 outline-none border-0 shadow-md"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white text-black text-xs font-semibold placeholder:text-white/60 outline-none border-0 shadow-md"
                 />
               </div>
             </div>
@@ -323,11 +340,11 @@ export default function Navbar() {
                     className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs sm:text-sm transition-all duration-150 ${
                       isActive
                         ? "bg-white/15 text-white font-bold border border-white/20"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                        : "text-white/60 hover:text-white hover:bg-white/5"
                     }`}
                   >
                     <Icon
-                      className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-gray-400"}`}
+                      className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-white/60"}`}
                     />
                     <span>{label}</span>
                   </Link>
@@ -340,7 +357,7 @@ export default function Navbar() {
               {/* Collapsible Quick Tools / AI Suite */}
               <button
                 onClick={() => setChatListOpen(!chatListOpen)}
-                className="flex items-center justify-between text-xs font-bold text-gray-400 hover:text-white px-3 py-2 w-full text-left transition-colors cursor-pointer rounded-xl hover:bg-white/5"
+                className="flex items-center justify-between text-xs font-bold text-white/60 hover:text-white px-3 py-2 w-full text-left transition-colors cursor-pointer rounded-xl hover:bg-white/5"
               >
                 <div className="flex items-center gap-2">
                   <FiChevronDown
@@ -348,11 +365,11 @@ export default function Navbar() {
                       chatListOpen ? "" : "-rotate-90"
                     }`}
                   />
-                  <span className="tracking-wide uppercase text-[10px] font-extrabold text-gray-400">
+                  <span className="tracking-wide uppercase text-[10px] font-extrabold text-white/60">
                     Quick AI & Tools
                   </span>
                 </div>
-                <span className="text-[9px] bg-white/10 text-gray-300 px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[9px] bg-white/10 text-white/80 px-2 py-0.5 rounded-full font-bold">
                   {QUICK_TOOLS.length}
                 </span>
               </button>
@@ -369,11 +386,11 @@ export default function Navbar() {
                         className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs transition-all duration-150 ${
                           isActive
                             ? "bg-white/15 text-white font-semibold"
-                            : "text-gray-400 hover:text-white hover:bg-white/5"
+                            : "text-white/60 hover:text-white hover:bg-white/5"
                         }`}
                       >
                         <ToolIcon
-                          className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-gray-400"}`}
+                          className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-white/60"}`}
                         />
                         <span>{label}</span>
                       </Link>
@@ -384,7 +401,7 @@ export default function Navbar() {
             </div>
 
             {/* ── 3. Bottom: User Profile Card (Logged-in Only) + Action Buttons ── */}
-            <div className="px-4 pb-5 pt-3 space-y-3 shrink-0 bg-[#0E0F12] border-t border-white/10">
+            <div className="px-4 pb-5 pt-3 space-y-3 shrink-0 bg-black border-t border-white/10">
               {/* User Profile Row (Only shown when logged in) */}
               {isLoggedIn && (
                 <Link
@@ -406,9 +423,9 @@ export default function Navbar() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-black font-bold text-xs leading-tight truncate">
-                        {userName}
+                        {userFirstName}
                       </p>
-                      <p className="text-[10px] text-neutral-600 leading-tight truncate">
+                      <p className="text-[10px] text-black/60 leading-tight truncate">
                         {userEmail}
                       </p>
                     </div>
@@ -445,7 +462,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex-1 flex items-center justify-center gap-1.5 bg-neutral-900 text-red-400 border border-white/15 hover:border-red-500/40 hover:bg-red-500/10 font-bold text-xs px-4 py-2.5 rounded-full shadow-xl transition-all active:scale-95 cursor-pointer"
+                    className="flex-1 flex items-center justify-center gap-1.5 bg-black text-red-400 border border-white/15 hover:border-red-500/40 hover:bg-red-500/10 font-bold text-xs px-4 py-2.5 rounded-full shadow-xl transition-all active:scale-95 cursor-pointer"
                   >
                     <FiLogOut className="w-3.5 h-3.5" />
                     <span>Sign Out</span>

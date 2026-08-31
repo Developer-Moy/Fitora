@@ -167,7 +167,7 @@ export default function AuthFlowContainer({
       if (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
         await authClient.signIn.social({
           provider: "google",
-          callbackURL: "/dashboard",
+          callbackURL: "/",
         });
         return;
       }
@@ -335,9 +335,7 @@ export default function AuthFlowContainer({
       });
 
       if (apiRes.success) {
-        toast.success(
-          "Account created successfully! Welcome to FITORA.",
-        );
+        toast.success("Account created successfully! Welcome to FITORA.");
         setTimeout(() => {
           router.push("/");
         }, 800);

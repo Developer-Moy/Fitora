@@ -42,7 +42,7 @@ export default function WhyChooseUs() {
               Why Choose Fitora?
             </h2>
             <p
-              className="text-gray-300 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
+              className="text-white/80 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
               style={{ fontStyle: "italic" }}
             >
               Discover the Benefits That Set Us Apart and Propel Your Fitness
@@ -58,7 +58,7 @@ export default function WhyChooseUs() {
                 <h4 className="text-base font-extrabold text-white">
                   Expert Trainers
                 </h4>
-                <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-white/60 leading-relaxed">
                   Our certified trainers provide personalized guidance and
                   expert advice to help you achieve your fitness goals.
                 </p>
@@ -71,7 +71,7 @@ export default function WhyChooseUs() {
                 <h4 className="text-base font-extrabold text-white">
                   State-of-the-Art Equipment
                 </h4>
-                <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-white/60 leading-relaxed">
                   Work out with the latest and most advanced fitness equipment
                   to maximize your results and enhance your experience.
                 </p>
@@ -84,7 +84,7 @@ export default function WhyChooseUs() {
                 <h4 className="text-base font-extrabold text-white">
                   Comprehensive Programs
                 </h4>
-                <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                <p className="text-xs sm:text-sm text-white/60 leading-relaxed">
                   Enjoy a variety of classes and programs tailored to all
                   fitness levels, from beginner to advanced.
                 </p>

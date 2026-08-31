@@ -255,7 +255,7 @@ export default function ContactInfoForm() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="group inline-flex items-center gap-2 bg-black text-white border border-white/25 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-900 hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
+                  className="group inline-flex items-center gap-2 bg-black text-white border border-white/25 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-black hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
                 >
                   <span>SUBMIT NOW</span>
                   <span className="bg-white text-black w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">

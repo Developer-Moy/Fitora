@@ -73,9 +73,9 @@ export default function Footer() {
       <div className="relative py-10 sm:py-12 px-6 sm:px-10 lg:px-14 overflow-hidden">
         {/* Crystal Clear High Visibility Gym Background Image */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-[0.85] contrast-115 z-0 transition-all duration-300"
+          className="absolute inset-0 bg-contain bg-center bg-no-repeat filter brightness-[0.85] contrast-115 z-0 transition-all duration-300"
           style={{
-            backgroundImage: "url('/image1.jpg.jpeg')",
+            backgroundImage: "url('/choose2.jpg.jpeg')",
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20 z-0 pointer-events-none" />
@@ -104,7 +104,9 @@ export default function Footer() {
             {/* Right Column: Mission Quote + Location Info + Directions Button */}
             <div className="lg:col-span-6 space-y-4 lg:pl-10 text-left lg:text-right flex flex-col lg:items-end justify-end">
               <p className="text-xs sm:text-sm text-gray-200 max-w-md font-semibold leading-relaxed drop-shadow-md">
-                {"Bangladesh's premier AI fitness platform. Serving fitness enthusiasts across all 64 districts with real-time workout tracking, AI coaching, and custom nutrition."}
+                {
+                  "Bangladesh's premier AI fitness platform. Serving fitness enthusiasts across all 64 districts with real-time workout tracking, AI coaching, and custom nutrition."
+                }
               </p>
 
               <div className="space-y-1 drop-shadow-md">

@@ -48,7 +48,7 @@ export default function MeetTrainers() {
             Meet Our Expert Trainers
           </h2>
           <p
-            className="text-gray-300 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
+            className="text-white/80 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
             style={{ fontStyle: "italic" }}
           >
             Certified experts dedicated to helping you unlock your full athletic
@@ -61,7 +61,7 @@ export default function MeetTrainers() {
           {trainers.map((trainer, index) => (
             <div
               key={index}
-              className="group relative h-[270px] sm:h-[300px] rounded-2xl overflow-hidden border border-white/15 bg-neutral-900 shadow-xl cursor-pointer"
+              className="group relative h-[270px] sm:h-[300px] rounded-2xl overflow-hidden border border-white/15 bg-black shadow-xl cursor-pointer"
             >
               <img
                 src={trainer.image}
@@ -75,7 +75,7 @@ export default function MeetTrainers() {
                 <h4 className="text-base sm:text-lg font-black text-white uppercase tracking-wider">
                   {trainer.name}
                 </h4>
-                <p className="text-xs font-semibold text-gray-300">
+                <p className="text-xs font-semibold text-white/80">
                   {trainer.role}
                 </p>
               </div>
