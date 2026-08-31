@@ -115,10 +115,12 @@ export default function EditProfilePage() {
     saveAuthSession(activeToken, updatedUser);
 
     if (betterAuthSession?.user) {
-      await authClient.updateUser({
-        name: editName,
-        image: editAvatarUrl || undefined,
-      }).catch(() => null);
+      await authClient
+        .updateUser({
+          name: editName,
+          image: editAvatarUrl || undefined,
+        })
+        .catch(() => null);
     }
 
     toast.success("Profile saved successfully!");
@@ -133,8 +135,6 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
-      
-
       <div className="w-full max-w-lg bg-black border border-white/20 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
         {/* Header */}
         <div className="flex items-center gap-4 border-b border-white/10 pb-5">

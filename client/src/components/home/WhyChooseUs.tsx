@@ -1,14 +1,20 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-
 import Link from "next/link";
 import { CheckCircle2, ArrowUpRight } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
+import { getAuthSession } from "@/services/authService";
 
 export default function WhyChooseUs() {
   const { data: session } = useSession();
-  const isLoggedIn = !!session?.user;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const localSession = getAuthSession();
+    setIsLoggedIn(!!(session?.user || localSession?.user));
+  }, [session]);
 
   return (
     <section
@@ -104,7 +110,7 @@ export default function WhyChooseUs() {
           {/* Free Trial Button */}
           <div className="pt-4">
             <Link
-              href="/register"
+              href={isLoggedIn ? "/profile" : "/register"}
               className="group inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
             >
               <span>Free Trial Today</span>
