@@ -19,13 +19,28 @@ export default function WhyChooseUs() {
         {/* ── Left Side: 3 Stacked Rounded Workout Images ── */}
         <div className="lg:col-span-6 grid grid-cols-2 gap-4">
           <div className="relative col-span-2 aspect-[16/9] rounded-2xl overflow-hidden border border-white/15 shadow-xl">
-            <Image src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=1000&q=80" alt="Battle Ropes Workout" fill className="w-full h-full object-cover filter brightness-90 contrast-110" />
+            <Image
+              src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=1000&q=80"
+              alt="Battle Ropes Workout"
+              fill
+              className="w-full h-full object-cover filter brightness-90 contrast-110"
+            />
           </div>
           <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/15 shadow-xl">
-            <Image src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80" alt="Gym Equipment Athlete" fill className="w-full h-full object-cover filter brightness-90 contrast-110" />
+            <Image
+              src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80"
+              alt="Gym Equipment Athlete"
+              fill
+              className="w-full h-full object-cover filter brightness-90 contrast-110"
+            />
           </div>
           <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-white/15 shadow-xl">
-            <Image src="https://images.unsplash.com/photo-1486218119243-13883505764c?auto=format&fit=crop&w=600&q=80" alt="Outdoor Running Athlete" fill className="w-full h-full object-cover filter brightness-90 contrast-110" />
+            <Image
+              src="https://images.unsplash.com/photo-1486218119243-13883505764c?auto=format&fit=crop&w=600&q=80"
+              alt="Outdoor Running Athlete"
+              fill
+              className="w-full h-full object-cover filter brightness-90 contrast-110"
+            />
           </div>
         </div>
 

@@ -75,12 +75,12 @@ export default function EditProfilePage() {
 
     setIsUploading(true);
     try {
-      const result = await uploadImageToImgBB(file);
+      const result = await uploadToImgBB(file);
       if (result.success && result.url) {
         setEditAvatarUrl(result.url);
         toast.success("Photo uploaded!");
       } else {
-        toast.error("Failed to upload photo.");
+        toast.error(result.error || "Failed to upload photo.");
       }
     } catch {
       toast.error("An error occurred during upload.");
@@ -114,7 +114,7 @@ export default function EditProfilePage() {
 
     saveAuthSession(activeToken, updatedUser);
 
-    if (authSession?.user) {
+    if (betterAuthSession?.user) {
       await authClient.updateUser({
         name: editName,
         image: editAvatarUrl || undefined,
