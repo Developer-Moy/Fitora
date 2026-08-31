@@ -4,8 +4,12 @@ import Image from "next/image";
 
 import Link from "next/link";
 import { CheckCircle2, ArrowUpRight } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 
 export default function WhyChooseUs() {
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
+
   return (
     <section
       id="why-choose"

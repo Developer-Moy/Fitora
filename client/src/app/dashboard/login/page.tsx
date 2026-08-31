@@ -168,20 +168,7 @@ export default function DashboardLoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-black text-white font-sans antialiased flex flex-col justify-between p-4 sm:p-6 select-none overflow-x-hidden">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          style: {
-            background: "#09090b",
-            color: "#ffffff",
-            border: "1px solid rgba(255,255,255,0.15)",
-            fontSize: "12px",
-            fontWeight: "bold",
-            borderRadius: "9999px",
-            padding: "10px 18px",
-          },
-        }}
-      />
+      
 
       {/* Top Bar */}
       <header className="max-w-5xl mx-auto w-full flex items-center justify-between py-2 shrink-0">

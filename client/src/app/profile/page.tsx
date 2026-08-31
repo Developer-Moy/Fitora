@@ -339,7 +339,7 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const activeUser = authSession?.user || localUser;
+  const activeUser = { ...authSession?.user, ...localUser };
   const userName = activeUser?.name || "Athlete Member";
   const userEmail = activeUser?.email || "athlete@fitora.com";
   const userInitial = userName.charAt(0).toUpperCase() || "A";
