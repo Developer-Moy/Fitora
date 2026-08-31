@@ -370,37 +370,7 @@ export default function AuthFlowContainer({
   return (
     <div className="fixed inset-0 z-[100] bg-black text-white flex items-center justify-center p-4 sm:p-6 lg:p-8 xl:p-10 overflow-hidden select-none">
       {/* Premium Theme-Matched Monochrome Glass Toaster */}
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3500,
-          style: {
-            background: "rgba(10, 10, 10, 0.95)",
-            color: "#ffffff",
-            border: "1px solid rgba(255, 255, 255, 0.12)",
-            borderRadius: "9999px",
-            padding: "12px 22px",
-            fontSize: "12px",
-            fontWeight: 700,
-            letterSpacing: "0.02em",
-            boxShadow: "0 20px 50px rgba(0, 0, 0, 0.9)",
-            backdropFilter: "blur(16px)",
-            maxWidth: "440px",
-          },
-          success: {
-            iconTheme: {
-              primary: "#ffffff",
-              secondary: "#000000",
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: "#ef4444",
-              secondary: "#ffffff",
-            },
-          },
-        }}
-      />
+      
 
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 1: PC / DESKTOP (Zero-Border 12-Col Split >= 1024px)
@@ -690,7 +660,7 @@ export default function AuthFlowContainer({
                       {showPassword ? (
                         <EyeOff className="w-4 h-4" />
                       ) : (
-                        <Lock className="w-4 h-4" />
+                        <Eye className="w-4 h-4" />
                       )}
                     </button>
                   </div>
@@ -1205,7 +1175,7 @@ export default function AuthFlowContainer({
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
                     ) : (
-                      <Lock className="w-4 h-4" />
+                      <Eye className="w-4 h-4" />
                     )}
                   </button>
                 </div>

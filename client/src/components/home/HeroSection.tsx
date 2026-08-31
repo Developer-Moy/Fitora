@@ -38,17 +38,21 @@ const CountUp = ({
         if (entry.isIntersecting && !hasAnimated) {
           setHasAnimated(true);
           let start = 0;
-          const stepTime = Math.abs(Math.floor(duration / end));
+          const intervalTime = 30; // ms per frame
+          const totalSteps = duration / intervalTime;
+          const increment = Math.max(1, Math.ceil(end / totalSteps));
+          
           const timer = setInterval(
             () => {
-              start += 1;
-              setCount(start);
+              start += increment;
               if (start >= end) {
                 setCount(end);
                 clearInterval(timer);
+              } else {
+                setCount(start);
               }
             },
-            Math.max(stepTime, 10),
+            intervalTime
           );
         }
       },

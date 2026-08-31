@@ -107,7 +107,9 @@ export default function PricingSection() {
               onClick={() => setIsAnnual(true)}
             >
               Annual{" "}
-              <span className="text-gray-500 font-normal">(Save 20%)</span>
+              <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-400 uppercase tracking-wider border border-emerald-500/20">
+                Save 20%
+              </span>
             </span>
           </div>
         </div>

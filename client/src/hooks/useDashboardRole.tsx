@@ -111,12 +111,43 @@ export function DashboardRoleProvider({
   };
 
   const getUserDetails = () => {
+    let localUser = null;
+    try {
+      const stored = localStorage.getItem("fitora_user");
+      if (stored) localUser = JSON.parse(stored);
+    } catch (e) {}
+
+    if (localUser && localUser.name && localUser.email) {
+      return {
+        name: localUser.name,
+        email: localUser.email,
+      };
+    }
+
     switch (role) {
       case "master_admin":
         return {
           name: "Master",
           email: "master@fitora.com",
         };
+      case "branch_admin":
+        return {
+          name: "Rahim Ahmed (Branch Admin)",
+          email: "gulshan.admin@fitora.com.bd",
+        };
+      case "premium_user":
+        return {
+          name: "Tanvir Hasan (VIP Athlete)",
+          email: "tanvir.athlete@gmail.com",
+        };
+      case "free_user":
+      default:
+        return {
+          name: "Sabbir Hossain (Free Member)",
+          email: "sabbir.member@gmail.com",
+        };
+    }
+  };
       case "branch_admin":
         return {
           name: "Rahim Ahmed (Branch Admin)",

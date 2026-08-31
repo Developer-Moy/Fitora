@@ -13,7 +13,7 @@ import {
 } from "@/services/imageUploadService";
 import { ArrowLeft, Upload, Loader2, Trash2 } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -68,20 +68,22 @@ export default function EditProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    try {
-      setIsUploading(true);
-      const dataUrl = await readFileAsDataURL(file);
-      setEditAvatarUrl(dataUrl); // optimistic
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be smaller than 2MB");
+      return;
+    }
 
-      const result = await uploadToImgBB(file);
+    setIsUploading(true);
+    try {
+      const result = await uploadImageToImgBB(file);
       if (result.success && result.url) {
         setEditAvatarUrl(result.url);
-        toast.success("Photo synced to ImgBB!");
-      } else if (result.error) {
-        toast.error(result.error);
+        toast.success("Photo uploaded!");
+      } else {
+        toast.error("Failed to upload photo.");
       }
-    } catch (error) {
-      toast.error("Failed to upload photo");
+    } catch {
+      toast.error("An error occurred during upload.");
     } finally {
       setIsUploading(false);
     }
@@ -92,7 +94,7 @@ export default function EditProfilePage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!localUser) return;
 
@@ -107,14 +109,23 @@ export default function EditProfilePage() {
       fitnessGoal: editGoal,
       bio: editBio,
       avatarUrl: editAvatarUrl,
+      image: editAvatarUrl,
     };
 
     saveAuthSession(activeToken, updatedUser);
+
+    if (authSession?.user) {
+      await authClient.updateUser({
+        name: editName,
+        image: editAvatarUrl || undefined,
+      }).catch(() => null);
+    }
+
     toast.success("Profile saved successfully!");
 
     // Slight delay before redirect so user sees the toast
     setTimeout(() => {
-      router.push("/profile");
+      window.location.href = "/profile";
     }, 800);
   };
 
@@ -122,18 +133,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          style: {
-            background: "#fff",
-            color: "#000",
-            fontWeight: "bold",
-            borderRadius: "99px",
-            fontSize: "12px",
-          },
-        }}
-      />
+      
 
       <div className="w-full max-w-lg bg-black border border-white/20 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
         {/* Header */}
