@@ -324,50 +324,20 @@ const MEAL_SUGGESTIONS_BY_GOAL: Record<
 
 export default function ProfilePage() {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { data: authSession } = useSession();
   const [localUser, setLocalUser] = useState<AuthUser | null>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [copiedMealIndex, setCopiedMealIndex] = useState<number | null>(null);
 
   // Edit Modal State
-  const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editPhone, setEditPhone] = useState("");
-  const [editGender, setEditGender] = useState("Male");
-  const [editBranch, setEditBranch] = useState("Gulshan-2 Flagship Branch");
-  const [editGoal, setEditGoal] = useState("Bulking & Muscle Gain");
-  const [editWeight, setEditWeight] = useState("74");
-  const [editHeight, setEditHeight] = useState("178");
-  const [editActivity, setEditActivity] = useState("4-5 Days / Week");
-  const [editBio, setEditBio] = useState("");
-  const [editAvatarUrl, setEditAvatarUrl] = useState("");
 
   useEffect(() => {
     setIsMounted(true);
     const session = getAuthSession();
     if (session.user) {
       setLocalUser(session.user);
-      populateForm(session.user);
     }
   }, []);
-
-  const populateForm = (user: AuthUser) => {
-    setEditName(user.name || "");
-    setEditPhone(user.phone || "+880 1700-000000");
-    setEditGender(user.gender || "Male");
-    setEditBranch(user.assignedBranch || "Gulshan-2 Flagship Branch");
-    setEditGoal(user.fitnessGoal || user.plan || "Bulking & Muscle Gain");
-    setEditWeight(user.weight || "74");
-    setEditHeight(user.height || "178");
-    setEditActivity(user.activityLevel || "4-5 Days / Week");
-    setEditBio(
-      user.bio ||
-        "Passionate athlete aiming for peak strength & aesthetic physique.",
-    );
-    setEditAvatarUrl(user.avatarUrl || user.image || "");
-  };
 
   const activeUser = authSession?.user || localUser;
   const userName = activeUser?.name || "Athlete Member";
@@ -394,104 +364,6 @@ export default function ProfilePage() {
     MEAL_SUGGESTIONS_BY_GOAL["Bulking & Muscle Gain"];
 
   // Handle direct file selection & upload (Local Preview + ImgBB Cloud Sync)
-  const handleImageFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setIsUploading(true);
-      const localDataUrl = await readFileAsDataURL(file);
-      setEditAvatarUrl(localDataUrl);
-
-      const uploadRes = await uploadToImgBB(file);
-      if (uploadRes.success && uploadRes.url) {
-        const finalUrl = uploadRes.url;
-        setEditAvatarUrl(finalUrl);
-
-        const updatedUser: AuthUser = {
-          ...(localUser || {
-            name: userName,
-            email: userEmail,
-            role: userRole,
-          }),
-          avatarUrl: finalUrl,
-          image: finalUrl,
-        };
-        saveUserToStorage(updatedUser);
-        toast.success(
-          uploadRes.isLocal
-            ? "Profile photo updated (Local Storage)!"
-            : "Profile photo uploaded to ImgBB & saved!",
-        );
-      } else {
-        const updatedUser: AuthUser = {
-          ...(localUser || {
-            name: userName,
-            email: userEmail,
-            role: userRole,
-          }),
-          avatarUrl: localDataUrl,
-          image: localDataUrl,
-        };
-        saveUserToStorage(updatedUser);
-        toast.success("Profile photo updated!");
-      }
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to process image file");
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleRemovePhoto = () => {
-    setEditAvatarUrl("");
-    const updatedUser: AuthUser = {
-      ...(localUser || { name: userName, email: userEmail, role: userRole }),
-      avatarUrl: "",
-      image: "",
-    };
-    saveUserToStorage(updatedUser);
-    toast.success("Profile photo removed.");
-  };
-
-  const saveUserToStorage = (user: AuthUser) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("fitora_user", JSON.stringify(user));
-      if (user.name) localStorage.setItem("fitora_user_name", user.name);
-    }
-    setLocalUser(user);
-  };
-
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editName.trim()) {
-      toast.error("Please enter a valid full name");
-      return;
-    }
-
-    const updatedUser: AuthUser = {
-      ...(localUser || { name: userName, email: userEmail, role: userRole }),
-      name: editName.trim(),
-      phone: editPhone.trim(),
-      gender: editGender,
-      assignedBranch: editBranch,
-      fitnessGoal: editGoal,
-      plan: editGoal,
-      weight: editWeight,
-      height: editHeight,
-      activityLevel: editActivity,
-      bio: editBio.trim(),
-      avatarUrl: editAvatarUrl || localUser?.avatarUrl || "",
-      image: editAvatarUrl || localUser?.image || "",
-    };
-
-    saveUserToStorage(updatedUser);
-    setIsEditing(false);
-    toast.success("Profile updated successfully!");
-  };
-
   const handleCopyMeal = (meal: any, index: number) => {
     const textToCopy = `FITORA NUTRITION SUGGESTION (${meal.type})\nMeal: ${meal.name}\nMacros: ${meal.calories} kcal | ${meal.protein} Protein | ${meal.carbs} Carbs | ${meal.fats} Fats\nIngredients: ${meal.ingredients.join(", ")}\nPrep note: ${meal.description}`;
     navigator.clipboard.writeText(textToCopy);
@@ -515,15 +387,6 @@ export default function ProfilePage() {
   return (
     <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-12 sm:py-16 px-6 sm:px-10 lg:px-16 select-none">
       <div className="max-w-6xl mx-auto space-y-12">
-        {/* Hidden File Input for Direct Avatar Upload */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png, image/jpeg, image/webp, image/gif"
-          onChange={handleImageFileChange}
-          className="hidden"
-        />
-
         {/* ── Page Header (Homepage Style) ── */}
         <div className="text-center space-y-3 max-w-2xl mx-auto pt-4">
           <h1 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
@@ -558,25 +421,9 @@ export default function ProfilePage() {
                   ) : (
                     <span>{userInitial}</span>
                   )}
-
-                  {/* Loading Spinner Overlay */}
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-black/75 flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 text-white animate-spin" />
-                    </div>
-                  )}
                 </div>
 
                 {/* Camera Upload Button */}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  title="Upload / Change Profile Photo (Local or ImgBB)"
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white text-black border-2 border-black flex items-center justify-center hover:bg-neutral-200 hover:scale-110 active:scale-95 transition-all shadow-lg cursor-pointer"
-                >
-                  <Camera className="w-4 h-4" />
-                </button>
               </div>
 
               {/* Identity & Membership Info */}
@@ -1015,8 +862,6 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
-
-      
     </div>
   );
 }

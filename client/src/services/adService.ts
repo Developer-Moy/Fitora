@@ -81,7 +81,7 @@ export async function subscribeNewsletterApi(
       success: true,
       message: data?.message || "Successfully subscribed to Fitora newsletter!",
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: true, // Graceful UX fallback
       message: "Thank you for subscribing to Fitora fitness updates!",
