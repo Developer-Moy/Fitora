@@ -59,9 +59,7 @@ export default function EditProfilePage() {
     setEditHeight(resolvedUser.height?.toString() || "");
     setEditGender(resolvedUser.gender || "Male");
     setEditBranch(
-      resolvedUser.assignedBranch ||
-        resolvedUser.branch ||
-        "Gulshan-2 Flagship Branch",
+      resolvedUser.assignedBranch || "Gulshan-2 Flagship Branch",
     );
     setEditGoal(resolvedUser.fitnessGoal || "Bulking & Muscle Gain");
     setEditBio(resolvedUser.bio || "");
@@ -77,10 +75,12 @@ export default function EditProfilePage() {
       const dataUrl = await readFileAsDataURL(file);
       setEditAvatarUrl(dataUrl); // optimistic
 
-      const imgBBUri = await uploadToImgBB(file);
-      if (imgBBUri) {
-        setEditAvatarUrl(imgBBUri);
+      const result = await uploadToImgBB(file);
+      if (result.success && result.url) {
+        setEditAvatarUrl(result.url);
         toast.success("Photo synced to ImgBB!");
+      } else if (result.error) {
+         toast.error(result.error);
       }
     } catch (error) {
       toast.error("Failed to upload photo");
@@ -102,10 +102,9 @@ export default function EditProfilePage() {
       ...localUser,
       name: editName,
       phone: editPhone,
-      weight: editWeight ? Number(editWeight) : undefined,
-      height: editHeight ? Number(editHeight) : undefined,
+      weight: editWeight || undefined,
+      height: editHeight || undefined,
       gender: editGender,
-      branch: editBranch,
       assignedBranch: editBranch,
       fitnessGoal: editGoal,
       bio: editBio,
