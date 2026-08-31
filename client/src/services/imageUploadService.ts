@@ -81,7 +81,7 @@ export async function uploadToImgBB(file: File): Promise<UploadResult> {
       url: localBase64,
       isLocal: true,
     };
-  } catch (err: any) {
+  } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     // Graceful fallback to local Data URL
     try {
       const localBase64 = await readFileAsDataURL(file);

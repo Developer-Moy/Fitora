@@ -63,6 +63,7 @@ export function DashboardRoleProvider({
       localStorage.getItem("fitora_active_branch");
 
     if (isAuth && savedRole) {
+      // eslint-disable-next-line
       setIsAuthenticated(true);
       if (
         ["master_admin", "branch_admin", "premium_user", "free_user"].includes(

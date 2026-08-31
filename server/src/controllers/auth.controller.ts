@@ -36,26 +36,30 @@ export const registerUser = async (req: Request, res: Response) => {
     const { name, email, password, phone, role, assignedBranch } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json(
-        errorResponse(
-          "Name, email, and password are required fields",
-          "VALIDATION_ERROR",
-          400
-        )
-      );
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Name, email, and password are required fields",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
     const cleanEmail = email.trim().toLowerCase();
 
     const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser) {
-      return res.status(409).json(
-        errorResponse(
-          "An account with this email address already exists",
-          "USER_ALREADY_EXISTS",
-          409
-        )
-      );
+      return res
+        .status(409)
+        .json(
+          errorResponse(
+            "An account with this email address already exists",
+            "USER_ALREADY_EXISTS",
+            409,
+          ),
+        );
     }
 
     // Hash password with high work factor
@@ -99,17 +103,19 @@ export const registerUser = async (req: Request, res: Response) => {
           hydrationTargetLiters: user.hydrationTargetLiters,
           totalPaidBDT: user.totalPaidBDT,
         },
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in registerUser:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Internal server error during user registration",
-        error.message,
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Internal server error during user registration",
+          error.message,
+          500,
+        ),
+      );
   }
 };
 
@@ -121,25 +127,43 @@ export const loginUser = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json(
-        errorResponse("Email and password are required", "VALIDATION_ERROR", 400)
-      );
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Email and password are required",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
     const cleanEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
-      return res.status(401).json(
-        errorResponse("Invalid email or password", "INVALID_CREDENTIALS", 401)
-      );
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Invalid email or password",
+            "INVALID_CREDENTIALS",
+            401,
+          ),
+        );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      return res.status(401).json(
-        errorResponse("Invalid email or password", "INVALID_CREDENTIALS", 401)
-      );
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Invalid email or password",
+            "INVALID_CREDENTIALS",
+            401,
+          ),
+        );
     }
 
     const token = signUserToken(user);
@@ -160,17 +184,15 @@ export const loginUser = async (req: Request, res: Response) => {
           hydrationTargetLiters: user.hydrationTargetLiters,
           totalPaidBDT: user.totalPaidBDT,
         },
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in loginUser:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Internal server error during login",
-        error.message,
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse("Internal server error during login", error.message, 500),
+      );
   }
 };
 
@@ -185,13 +207,15 @@ export const dashboardLogin = async (req: Request, res: Response) => {
     const gatewayKey = req.body.gatewayKey;
 
     if (!email || !password) {
-      return res.status(400).json(
-        errorResponse(
-          "Email and password are required for security gateway authentication",
-          "VALIDATION_ERROR",
-          400
-        )
-      );
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Email and password are required for security gateway authentication",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -249,13 +273,15 @@ export const dashboardLogin = async (req: Request, res: Response) => {
     }
 
     if (!user) {
-      return res.status(401).json(
-        errorResponse(
-          "Invalid administrator credentials. Access denied.",
-          "INVALID_CREDENTIALS",
-          401
-        )
-      );
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Invalid administrator credentials. Access denied.",
+            "INVALID_CREDENTIALS",
+            401,
+          ),
+        );
     }
 
     // Compare Password (supports hash or default demo master bypass)
@@ -278,13 +304,15 @@ export const dashboardLogin = async (req: Request, res: Response) => {
     }
 
     if (!isMatch) {
-      return res.status(401).json(
-        errorResponse(
-          "Invalid administrator credentials. Access denied.",
-          "INVALID_CREDENTIALS",
-          401
-        )
-      );
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Invalid administrator credentials. Access denied.",
+            "INVALID_CREDENTIALS",
+            401,
+          ),
+        );
     }
 
     const isAdmin =
@@ -295,13 +323,15 @@ export const dashboardLogin = async (req: Request, res: Response) => {
       cleanEmail.includes("admin");
 
     if (!isAdmin) {
-      return res.status(403).json(
-        errorResponse(
-          "Access Denied: Enterprise Security Gateway requires administrator clearance. Regular athletes must sign in via the main portal.",
-          "FORBIDDEN",
-          403
-        )
-      );
+      return res
+        .status(403)
+        .json(
+          errorResponse(
+            "Access Denied: Enterprise Security Gateway requires administrator clearance. Regular athletes must sign in via the main portal.",
+            "FORBIDDEN",
+            403,
+          ),
+        );
     }
 
     const token = signUserToken(user);
@@ -325,17 +355,19 @@ export const dashboardLogin = async (req: Request, res: Response) => {
           hydrationTargetLiters: user.hydrationTargetLiters,
           totalPaidBDT: user.totalPaidBDT,
         },
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in dashboardLogin controller:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Internal server error during dashboard security authentication",
-        error.message,
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Internal server error during dashboard security authentication",
+          error.message,
+          500,
+        ),
+      );
   }
 };
 
@@ -345,16 +377,18 @@ export const dashboardLogin = async (req: Request, res: Response) => {
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.userId) {
-      return res.status(401).json(
-        errorResponse("User session not authenticated", "UNAUTHORIZED", 401)
-      );
+      return res
+        .status(401)
+        .json(
+          errorResponse("User session not authenticated", "UNAUTHORIZED", 401),
+        );
     }
 
     const user = await User.findById(req.user.userId).select("-passwordHash");
     if (!user) {
-      return res.status(404).json(
-        errorResponse("User profile not found", "USER_NOT_FOUND", 404)
-      );
+      return res
+        .status(404)
+        .json(errorResponse("User profile not found", "USER_NOT_FOUND", 404));
     }
 
     return res.status(200).json(
@@ -377,17 +411,19 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
           paymentMethod: user.paymentMethod,
           qrCodeId: user.qrCodeId,
         },
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in getCurrentUser:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Internal server error while fetching user profile",
-        error.message,
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Internal server error while fetching user profile",
+          error.message,
+          500,
+        ),
+      );
   }
 };
 
@@ -395,9 +431,9 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
  * 5. Logout User (`POST /api/auth/logout`)
  */
 export const logoutUser = async (req: Request, res: Response) => {
-  return res.status(200).json(
-    successResponse("Session terminated successfully", {})
-  );
+  return res
+    .status(200)
+    .json(successResponse("Session terminated successfully", {}));
 };
 
 export default {

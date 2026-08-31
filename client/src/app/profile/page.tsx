@@ -387,7 +387,7 @@ export default function ProfilePage() {
   return (
     <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-12 sm:py-16 px-6 sm:px-10 lg:px-16 select-none">
       <div className="max-w-6xl mx-auto space-y-12">
-{/* ── Page Header (Homepage Style) ── */}
+        {/* ── Page Header (Homepage Style) ── */}
         <div className="text-center space-y-3 max-w-2xl mx-auto pt-4">
           <h1 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
             Athlete Profile
@@ -862,8 +862,6 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
-
-      
     </div>
   );
 }

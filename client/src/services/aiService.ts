@@ -47,7 +47,7 @@ export async function sendAiChatApi(
       success: true,
       data: data.data,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       error: error.message || "Network error — could not reach AI service",

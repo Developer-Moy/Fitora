@@ -66,7 +66,7 @@ export async function dashboardLoginApi(
       token: data.token,
       user: data.user,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       message: "Network error — Could not connect to authentication gateway",
@@ -107,7 +107,7 @@ export async function loginApi(
       token: data.token,
       user: data.user,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       message: "Network error — Could not reach login server",
@@ -151,7 +151,7 @@ export async function registerApi(payload: {
       token: data.token,
       user: data.user,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       message: "Network error — Could not complete registration",
@@ -192,7 +192,7 @@ export async function getCurrentUserApi(): Promise<AuthResponse> {
       user: data.user,
       token,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return { success: false, message: "Could not fetch user claims" };
   }
 }

@@ -58,9 +58,7 @@ export default function EditProfilePage() {
     setEditWeight(resolvedUser.weight?.toString() || "");
     setEditHeight(resolvedUser.height?.toString() || "");
     setEditGender(resolvedUser.gender || "Male");
-    setEditBranch(
-      resolvedUser.assignedBranch || "Gulshan-2 Flagship Branch",
-    );
+    setEditBranch(resolvedUser.assignedBranch || "Gulshan-2 Flagship Branch");
     setEditGoal(resolvedUser.fitnessGoal || "Bulking & Muscle Gain");
     setEditBio(resolvedUser.bio || "");
     setEditAvatarUrl(resolvedUser.avatarUrl || resolvedUser.image || "");
@@ -80,7 +78,7 @@ export default function EditProfilePage() {
         setEditAvatarUrl(result.url);
         toast.success("Photo synced to ImgBB!");
       } else if (result.error) {
-         toast.error(result.error);
+        toast.error(result.error);
       }
     } catch (error) {
       toast.error("Failed to upload photo");

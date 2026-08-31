@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { ArrowUpRight, X, Flame, Utensils, Copy } from "lucide-react";
 import { useState } from "react";
@@ -135,11 +136,7 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
 
             {/* Mobile Top Image */}
             <div className="relative w-full h-44 sm:h-52 shrink-0 overflow-hidden bg-neutral-900">
-              <img
-                src={displayImage}
-                alt={meal.name}
-                className="w-full h-full object-cover brightness-95 contrast-105"
-              />
+              <Image src={displayImage} alt={meal.name} fill className="w-full h-full object-cover brightness-95 contrast-105" />
               <div className="absolute top-3 left-3 z-10">
                 <span className="inline-flex items-center gap-1 bg-black/80 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-[11px] font-black text-white shadow-lg">
                   🔥 {meal.calories} kcal
@@ -213,11 +210,7 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
             <div className="grid grid-cols-12 items-stretch min-h-[380px] lg:min-h-[420px]">
               {/* Left Column: Full-Height Image (5/12 Width) */}
               <div className="relative col-span-5 h-full overflow-hidden bg-neutral-900">
-                <img
-                  src={displayImage}
-                  alt={meal.name}
-                  className="w-full h-full object-cover brightness-95 contrast-105"
-                />
+                <Image src={displayImage} alt={meal.name} fill className="w-full h-full object-cover brightness-95 contrast-105" />
                 <div className="absolute top-4 left-4 z-10">
                   <span className="inline-flex items-center gap-1.5 bg-black/80 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-black text-white shadow-lg">
                     🔥 {meal.calories} kcal
