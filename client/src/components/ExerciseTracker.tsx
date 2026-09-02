@@ -1645,9 +1645,9 @@ function ExerciseModal({
           {/* ========================================================
               RESPONSIVE 50/50 LAYOUT: VIDEO + METADATA (LEFT) & TITLE + TIPS (RIGHT)
           ======================================================== */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
             {/* LEFT COLUMN (50% Width) - Video Player & 3 Metadata Info Boxes */}
-            <div className="space-y-4">
+            <div className="flex flex-col gap-2 lg:h-[78vh] lg:min-h-[640px]">
               {/* YouTube Video Player */}
               <div className="relative w-full aspect-video overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-white/10 shadow-2xl">
                 <iframe
@@ -1678,8 +1678,8 @@ function ExerciseModal({
                 />
               </div>
 
-              {/* Modal Stopwatch */}
-              <div className="w-full bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3">
+              {/* Modal Stopwatch — fills remaining column height */}
+              <div className="flex-1 min-h-0 w-full bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <div className="flex items-center gap-3">
                     <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
