@@ -127,6 +127,19 @@ These components form the responsive header, hero section, pricing, callouts, co
 * Fixed routing boundaries, unauthenticated redirects, and profile edit synchronization
 * Fixed counter animation increment throttling in Hero section and adjusted UI badge styling
 
+### 01-Sep-26
+* Resolved comprehensive QA Bug Report (Batches 1, 2, and 3) covering auth boundaries, UI components, and state management
+* Fixed desktop navbar dropdown navigation and secured `/profile` route with automatic login redirects
+* Replaced static counter interval with dynamic step calculation in `HeroSection.tsx` for instantaneous, smooth number rendering
+* Resolved floating AI trigger button overlapping with the active AI assistant chat modal
+* Styled pricing discount indicator into a modern high-contrast green pill badge (`bg-emerald-500/10 text-emerald-400`)
+* Fixed profile update synchronization by connecting `better-auth` `updateUser` with custom local session persistence
+* Fixed athlete role and profile retention on dashboard page reload inside `useDashboardRole.tsx`
+* Fixed search query bug in `UserManagementTable.tsx` by automatically resetting pagination to page 1 upon filter changes
+* Replaced browser native `window.confirm` with a custom-styled Delete Confirmation Modal for Master Admin user management
+* Populated missing and broken meal plan image slots in `MealsData.ts` with high-resolution fitness food assets
+* Updated "Free Trial Today" CTA logic in `WhyChooseUs.tsx` to conditionally redirect authenticated athletes to `/profile` and guest visitors to `/register`
+
 ### 02-Sep-26
 * Refined Homepage Pricing / Membership Section (`PricingSection.tsx`) with dynamic monthly vs annual pricing & savings calculations
 * Built interactive Luxury Pure B&W **Subscription Checkout Modal** (`SubscriptionModal.tsx`) supporting bKash, Nagad, and Card (Visa/Mastercard) payment simulations
