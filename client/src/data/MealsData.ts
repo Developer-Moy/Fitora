@@ -152,7 +152,7 @@ export const MealsData = [
         ],
         "calories": 400,
         "description": "Experience a taste of the tropics with a perfectly grilled Mahi-Mahi fillet topped with a vibrant, fresh mango and cilantro salsa. The sweet and tangy salsa beautifully complements the firm, mild texture of this popular fish. Served alongside a small portion of jasmine rice, it creates a well-rounded meal ideal for active individuals. It offers a refreshing departure from standard fitness foods while remaining strictly healthy.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/qFRbVXbF/Screenshot-2026-08-25-194746.png"
     },
     {
         "id": "meal-012",
@@ -166,7 +166,7 @@ export const MealsData = [
         ],
         "calories": 330,
         "description": "Shredded green cabbage and tender chicken strips are quickly wok-tossed with ginger and garlic for a fast, flavorful meal. The cabbage acts as a high-volume, low-calorie base that easily absorbs the savory Asian-inspired seasonings. This dish provides an impressive amount of food volume to maximize satiety without breaking the calorie bank. It is an excellent choice for a quick, vegetable-forward dinner on a strict cutting phase.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/KcrTCDtW/Screenshot-2026-08-25-194908.png"
     },
     {
         "id": "meal-013",
@@ -180,7 +180,7 @@ export const MealsData = [
         ],
         "calories": 390,
         "description": "Gently poached in a delicate broth, this salmon remains incredibly moist, tender, and uniquely easy to digest. It is accompanied by lightly steamed asparagus spears that add a vibrant green color and a satisfying snap. This preparation method utilizes zero added oils, focusing entirely on the natural healthy fats found within the fish. It is an ultra-clean, elegant meal that supports cardiovascular health and athletic recovery.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/MknzGgs2/Screenshot-2026-08-25-195050.png"
     },
     {
         "id": "meal-014",
@@ -194,7 +194,7 @@ export const MealsData = [
         ],
         "calories": 420,
         "description": "This modernized, low-carb take on a classic Indian favorite uses riced cauliflower instead of heavy basmati grains. Spiced beautifully with turmeric, cumin, and coriander, it features marinated chicken pieces roasted to tender perfection. The aromatic spices not only provide incredible depth of flavor but also offer potent anti-inflammatory benefits. It is a guilt-free way to enjoy traditional comfort food while adhering strictly to a fitness regimen.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/4nJ3JGHn/Screenshot-2026-08-25-195217.png"
     },
     {
         "id": "meal-015",
@@ -208,7 +208,7 @@ export const MealsData = [
         ],
         "calories": 350,
         "description": "A flaky white fish fillet is baked under a vibrant crust of diced tomatoes, red onions, and a sprinkle of Mediterranean herbs. The rustic flavor profile brings bright, tangy, and savory notes that truly elevate the simple seafood base. Paired with a side of mixed greens, this dish is exceptionally light and easily digestible after an evening workout. It is the perfect dinner for supporting muscle maintenance while prioritizing clean ingredients.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/kV7TjTrh/Screenshot-2026-08-25-195357.png"
     },
     {
         "id": "meal-016",
@@ -222,7 +222,7 @@ export const MealsData = [
         ],
         "calories": 440,
         "description": "Diced chicken breast and cubed sweet potatoes are roasted together with onions and bell peppers for a hearty, rustic hash. The natural sweetness of the potatoes pairs flawlessly with the savory poultry and caramelized vegetables. This meal provides an excellent source of complex carbohydrates, making it highly recommended for a pre-workout energy boost. It is a comforting, filling dish that fuels rigorous training sessions efficiently.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/8gNp5KY8/Screenshot-2026-08-25-195604.png"
     },
     {
         "id": "meal-017",
@@ -236,7 +236,7 @@ export const MealsData = [
         ],
         "calories": 310,
         "description": "A staple of clean Asian cuisine, this premium sea bass is gently steamed with fresh ginger strips and scallions. A light splash of low-sodium soy sauce enhances the delicate, buttery texture of the fish without adding excessive sodium. This cooking method preserves the nutritional integrity of the seafood while keeping total calories remarkably low. It is a sophisticated, protein-dense dish that aligns perfectly with a lean aesthetic goal.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/v6ZcRqLR/Screenshot-2026-08-25-195725.png"
     },
     {
         "id": "meal-018",
@@ -250,7 +250,7 @@ export const MealsData = [
         ],
         "calories": 370,
         "description": "This chilled, plant-powered salad mixes protein-rich quinoa with black beans, corn, and fresh crunchy bell peppers. Tossed in a zesty lime and cilantro vinaigrette, it offers a refreshing and crisp texture with southwestern flair. The combination of beans and grains forms a complete protein, making it highly effective for active vegetarian athletes. It is a vibrant, prep-friendly meal that delivers sustained energy throughout an active afternoon.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/MyN0LzsH/Screenshot-2026-08-25-195840.png"
     },
     {
         "id": "meal-019",
@@ -264,7 +264,7 @@ export const MealsData = [
         ],
         "calories": 340,
         "description": "Marinated chunks of chicken breast and fresh zucchini rounds are threaded onto skewers and grilled over an open flame. The smoky char from the grill adds immense flavor to the simple, exceptionally clean ingredients. Served alongside a crisp side salad, it provides a highly satisfying and protein-packed dining experience. This fun and interactive meal is ideal for summer barbecues while strictly adhering to a diet plan.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/3mCTvH6R/Screenshot-2026-08-25-195945.png"
     },
     {
         "id": "meal-020",
@@ -278,7 +278,7 @@ export const MealsData = [
         ],
         "calories": 350,
         "description": "A rustic and highly nutritious blend of chunk light tuna, creamy cannellini beans, and crisp red onions. Dressed with a touch of olive oil and red wine vinegar, it requires no cooking and is ready in minutes. The beans provide an excellent source of dietary fiber, while the tuna delivers high-quality, lean protein for muscle repair. This Italian-inspired dish is incredibly satiating and perfect for a quick, muscle-building lunch.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/nN1HB5n7/Screenshot-2026-08-25-200054.png"
     },
     {
         "id": "meal-021",
@@ -292,7 +292,7 @@ export const MealsData = [
         ],
         "calories": 330,
         "description": "Fresh cod fillets are baked until perfectly flaky and topped with a bright, briny sauce made of lemon and capers. The acidic punch of the citrus cuts through the mild fish, creating a highly palatable and gourmet experience. Accompanied by a side of roasted cauliflower, this meal is exceptionally low in both calories and carbohydrates. It serves as an elegant, fast-digesting dinner that aligns beautifully with a weight management protocol.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/LXPWzQN7/Screenshot-2026-08-25-200248.png"
     },
     {
         "id": "meal-022",
@@ -306,7 +306,7 @@ export const MealsData = [
         ],
         "calories": 410,
         "description": "Tender pieces of chicken breast are glazed in a light, naturally sweetened teriyaki sauce for a satisfyingly sticky finish. Paired with fresh sugar snap peas, the dish offers a delightful contrast between the savory meat and crunchy vegetables. A small serving of jasmine rice helps soak up the flavorful sauce and provides crucial post-workout carbohydrates. It is a delicious, macro-friendly alternative to heavy, calorie-dense restaurant takeout.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/zgSLtCm/Screenshot-2026-08-25-200431.png"
     },
     {
         "id": "meal-023",
@@ -320,7 +320,7 @@ export const MealsData = [
         ],
         "calories": 320,
         "description": "This vegetarian delight layers thick slices of roasted eggplant with a chunky, garlic-infused tomato sauce and fresh basil. Baked until bubbling and tender, it mimics the comforting qualities of traditional parmigiana without the heavy, greasy cheeses. The high fiber content of the eggplant ensures long-lasting fullness and excellent digestive support throughout the day. It is a fantastic, vegetable-forward dinner choice for those seeking lighter fare after training.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/1tNhtgCJ/Screenshot-2026-08-25-200604.png"
     },
     {
         "id": "meal-024",
@@ -334,7 +334,7 @@ export const MealsData = [
         ],
         "calories": 460,
         "description": "A bold and flavorful meal featuring a rich salmon fillet glazed with a spicy and slightly sweet sriracha marinade. It is served alongside crisp, blistered green beans that naturally balance the intense heat of the fish. The high fat content from the salmon provides sustained energy and supports essential hormone function for active individuals. This fiery dish is a favorite for those who want their healthy food to pack a serious punch.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/Kj7gmtZt/Screenshot-2026-08-25-200735.png"
     },
     {
         "id": "meal-025",
@@ -348,7 +348,7 @@ export const MealsData = [
         ],
         "calories": 380,
         "description": "Thinly sliced chicken is swiftly stir-fried with an abundance of earthy mushrooms and crisp, fresh bok choy. The savory, umami-rich broth clings to the ingredients, creating a deeply satisfying and comforting flavor profile. Mushrooms offer unique antioxidants and immune-boosting properties, making this meal functionally beneficial beyond its basic macros. It is a low-calorie, high-volume dinner that keeps you feeling satisfied on a strict calorie deficit.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/TxPKZxpP/Screenshot-2026-08-25-200920.png"
     },
     {
         "id": "meal-026",
@@ -362,7 +362,7 @@ export const MealsData = [
         ],
         "calories": 370,
         "description": "A fragrant and warming plant-based curry that combines tender cauliflower florets with protein-packed red lentils. Simmered in a rich, light coconut milk-infused tomato broth, it boasts a complex blend of turmeric, cumin, and coriander. This dish is entirely vegan yet incredibly filling, providing a steady release of complex carbohydrates to power your day. It is an exceptional recovery meal that reduces cellular inflammation and warms the soul.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/zh5k4v38/Screenshot-2026-08-25-201101.png"
     },
     {
         "id": "meal-027",
@@ -376,7 +376,7 @@ export const MealsData = [
         ],
         "calories": 350,
         "description": "This minimalist classic features a succulent baked chicken breast heavily seasoned with roasted garlic and fresh lemon zest. It is paired with simple roasted root vegetables, offering a clean, rustic, and highly nutritious plate. The lean poultry provides the vital building blocks for muscle repair, while the vegetables supply crucial vitamins and minerals. It is the epitome of reliable, fitness-focused meal prep that consistently delivers dietary results.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/jk5YLsB4/Screenshot-2026-08-25-201341.png"
     },
     {
         "id": "meal-028",
@@ -390,7 +390,7 @@ export const MealsData = [
         ],
         "calories": 360,
         "description": "A premium, thick-cut halibut steak is lightly grilled to achieve a beautiful outer crust while remaining tender inside. It is generously topped with a raw salsa made from sweet cherry tomatoes, fresh basil, and balsamic vinegar. This incredibly light meal is packed with lean protein and boasts a very low overall fat content. It is a refreshing, elegant dish that easily fits into the strictest of athletic diet plans.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/gMNmSFJK/Screenshot-2026-08-25-201449.png"
     },
     {
         "id": "meal-029",
@@ -404,7 +404,7 @@ export const MealsData = [
         ],
         "calories": 420,
         "description": "A thick, juicy chicken breast is carefully stuffed with wilted spinach and a sprinkle of savory nutritional yeast. This dairy-free alternative provides a rich, cheesy flavor that elevates the dish while keeping the calorie count exceptionally low. Served with a hearty side of steamed broccoli, this meal is an absolute powerhouse for protein and essential micronutrients. It is a highly satisfying, low-carbohydrate option that acts as perfect post-workout fuel.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/cch4C34z/Screenshot-2026-08-25-201610.png"
     },
     {
         "id": "meal-030",
@@ -418,7 +418,7 @@ export const MealsData = [
         ],
         "calories": 440,
         "description": "This sophisticated dish features a pan-seared trout fillet topped with a delicate, crunchy crust of toasted sliced almonds. It is served over a crisp, chilled green bean salad tossed gently in a light lemon vinaigrette. The combination of the fresh fish and nuts provides an outstanding profile of healthy fats and crucial micronutrients. It is a delightfully crunchy, flavorful meal that supports ultimate cardiovascular health and long-term athletic longevity.",
-        "img": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80"
+        "img": "https://i.ibb.co.com/23LhCJpw/Screenshot-2026-08-25-201825.png"
     }
 ]
 

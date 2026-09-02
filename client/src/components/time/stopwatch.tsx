@@ -14,6 +14,10 @@ import {
 } from "lucide-react";
 
 import { fetchExercises } from "@/services/exerciseService";
+import {
+  createCustomPreset,
+  fetchUserPresets,
+} from "@/services/stopwatchService";
 
 export default function StopwatchPage({
   showSetHistory = true,
@@ -29,13 +33,28 @@ export default function StopwatchPage({
 
   useEffect(() => {
     async function init() {
-      const data = await fetchExercises();
-      if (data && data.length > 0) {
-        const names = data.map(d => d.name).sort();
+      try {
+        const [globalRes, userRes] = await Promise.all([
+          fetchExercises(),
+          fetchUserPresets().catch(() => []),
+        ]);
+
+        let combined = new Set<string>();
+        if (globalRes && globalRes.length > 0) {
+          globalRes.forEach((e) => combined.add(e.name));
+        } else {
+          ["Bench Press", "Squat", "Deadlift"].forEach((e) => combined.add(e));
+        }
+
+        if (userRes && userRes.length > 0) {
+          userRes.forEach((p) => combined.add(p.name));
+        }
+
+        const names = Array.from(combined).sort();
         setExercises(names);
-        setSelectedExercise(names[0]);
-      } else {
-        setExercises(["Bench Press", "Squat", "Deadlift"]); // Fallback
+        if (names.length > 0) setSelectedExercise(names[0]);
+      } catch {
+        setExercises(["Bench Press", "Squat", "Deadlift"]);
       }
     }
     init();
@@ -67,7 +86,7 @@ export default function StopwatchPage({
     toast.success(`Exercise selected: ${name}`, { id: "exercise-select" });
   };
 
-  const handleAddCustomExercise = (e: React.FormEvent) => {
+  const handleAddCustomExercise = async (e: React.FormEvent) => {
     e.preventDefault();
     if (customExercise.trim()) {
       const name = customExercise.trim();
@@ -76,6 +95,13 @@ export default function StopwatchPage({
       setCustomExercise("");
       setShowCustomInput(false);
       toast.success(`Custom exercise added: ${name}`);
+      // Persist as a simple custom preset on backend (best-effort)
+      createCustomPreset({
+        name,
+        workDuration: 45,
+        restDuration: 60,
+        rounds: 3,
+      }).catch(() => {});
     }
   };
 

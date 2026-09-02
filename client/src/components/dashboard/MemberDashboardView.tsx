@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { fetchPublicBranches, fetchMemberStats, type BranchInfo as APIBranchInfo, type MemberStatsResponse } from "@/services/dashboardService";
+import { sendAiChatApi } from "@/services/aiService";
 import {
   Crown,
   Lock,
@@ -38,6 +39,7 @@ interface MemberDashboardViewProps {
   userName: string;
   userEmail: string;
   assignedBranch: string;
+  userId: string;
   onUpgradeToPremium?: () => void;
 }
 
@@ -46,6 +48,7 @@ export default function MemberDashboardView({
   userName,
   userEmail,
   assignedBranch,
+  userId,
   onUpgradeToPremium,
 }: MemberDashboardViewProps) {
   const searchParams = useSearchParams();
@@ -98,6 +101,18 @@ export default function MemberDashboardView({
   const [waterGlasses, setWaterGlasses] = useState(6);
   const [aiChatQuery, setAiChatQuery] = useState("");
   const [aiResponse, setAiResponse] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+
+  const [goalId, setGoalId] = useState<string | null>(null);
+  const [goalTargetWeight, setGoalTargetWeight] = useState("");
+  const [weeklyWorkoutFrequency, setWeeklyWorkoutFrequency] = useState("3");
+
+  const [goalUpdating, setGoalUpdating] = useState(false);
+  const [goalError, setGoalError] = useState<string | null>(null);
+  const [goalSuccess, setGoalSuccess] = useState<string | null>(null);
+
+  const [showFitnessGoalModal, setShowFitnessGoalModal] = useState(false);
 
   useEffect(() => {
     if (currentTab === "workout-log") setActiveFeatureModal("workout");
@@ -129,13 +144,144 @@ export default function MemberDashboardView({
     }, 2000);
   };
 
-  const handleAiAsk = (e: React.FormEvent) => {
+  const handleAiAsk = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aiChatQuery) return;
-    setAiResponse(
-      `Based on your athlete profile at ${assignedBranch}: Focus on progressive overload with 4 sets of 8-10 reps for compound movements. Ensure 140g daily protein intake for optimal muscle hypertrophy.`,
+    if (!aiChatQuery.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiResponse(null);
+    const result = await sendAiChatApi(
+      `[Athlete at ${assignedBranch}] ${aiChatQuery}`,
+      "coach"
     );
+    setAiLoading(false);
+    if (result.success && result.data?.responseText) {
+      setAiResponse(result.data.responseText);
+    } else {
+      setAiResponse("AI coach is temporarily unavailable. Try again shortly.");
+    }
   };
+
+
+  const currentWeight = Number(profileWeight);
+  const targetWeight = Number(goalTargetWeight);
+
+  let weightProgress = 0;
+
+  if (currentWeight > 0 && targetWeight > 0) {
+    const difference = Math.abs(currentWeight - targetWeight);
+
+    weightProgress = Math.max(
+      0,
+      Math.min(
+        100,
+        100 -
+        (difference / Math.max(currentWeight, targetWeight)) * 100
+      )
+    );
+  }
+
+  const weightDifference = Math.abs(currentWeight - targetWeight);
+
+  const isGoalReached =
+    currentWeight > 0 &&
+    targetWeight > 0 &&
+    currentWeight === targetWeight;
+
+  const isWeightLoss = currentWeight > targetWeight;
+  const isWeightGain = currentWeight < targetWeight;
+
+    // Update Goal Function
+  const handleUpdateGoal = async () => {
+  try {
+    setGoalUpdating(true);
+    setGoalError(null);
+    setGoalSuccess(null);
+
+    const targetWeight = Number(goalTargetWeight);
+    const workoutFrequency = Number(weeklyWorkoutFrequency);
+
+    if (!targetWeight || targetWeight <= 0) {
+      setGoalError("Please enter a valid target weight.");
+      return;
+    }
+
+    if (!workoutFrequency || workoutFrequency < 1 || workoutFrequency > 7) {
+      setGoalError("Workout frequency must be between 1 and 7 days.");
+      return;
+    }
+
+    let response;
+
+    if (goalId) {
+      // Existing goal → update
+      response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/goals/${goalId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            targetWeight,
+            weeklyWorkoutFrequency: workoutFrequency,
+          }),
+        }
+      );
+    } else {
+      // No goal → create
+      response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/goals`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId,
+            targetWeight,
+            weeklyWorkoutFrequency: workoutFrequency,
+          }),
+        }
+      );
+    }
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "Failed to update fitness goal"
+      );
+    }
+
+    const updatedGoal = result.data;
+
+    setGoalId(updatedGoal._id);
+    setGoalTargetWeight(String(updatedGoal.targetWeight));
+    setWeeklyWorkoutFrequency(
+      String(updatedGoal.weeklyWorkoutFrequency)
+    );
+    setProfileTargetWeight(String(updatedGoal.targetWeight));
+
+    setGoalSuccess("Fitness goal updated successfully!");
+
+    toast.success("Fitness goal updated successfully!");
+
+    setTimeout(() => {
+      setShowFitnessGoalModal(false);
+      setGoalSuccess(null);
+    }, 1200);
+  } catch (error) {
+    console.error("Failed to update fitness goal:", error);
+
+    setGoalError(
+      error instanceof Error
+        ? error.message
+        : "Failed to update fitness goal"
+    );
+  } finally {
+    setGoalUpdating(false);
+  }
+};
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -335,6 +481,163 @@ export default function MemberDashboardView({
           </div>
         </div>
       </div>
+
+
+      {/* My Fitness Goals */}
+      <div className="mt-8 bg-neutral-950">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-2xl font-bold">My Fitness Goals</h2>
+            <p className="text-sm text-white/50">
+              Track your current weight and target weight
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setGoalError(null);
+              setGoalSuccess(null);
+              setShowFitnessGoalModal(true);
+            }}
+            className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black"
+          >
+            Update Goal
+          </button>
+        </div>
+
+        {/* Goal Card */}
+        <div className="rounded-2xl border border-gray-200 bg-neutral-950 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-white/50">Current Weight</p>
+              <p className="text-3xl font-bold">
+                {profileWeight} kg
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-sm text-white/50">Target Weight</p>
+              <p className="text-3xl font-bold">
+                {goalTargetWeight || "--"} kg
+              </p>
+            </div>
+          </div>
+
+          {/* Progress */}
+          <div className="mt-6">
+            <div className="mb-2 flex justify-between text-sm">
+              <span>Progress</span>
+              <span>{Math.round(weightProgress)}%</span>
+            </div>
+
+            <div className="h-3 w-full overflow-hidden rounded-full bg-black">
+              <div
+                className="h-full rounded-full bg-gray-200 transition-all duration-500"
+                style={{ width: `${weightProgress}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 text-sm text-white/50">
+            {isGoalReached
+              ? "Goal reached!"
+              : isWeightLoss
+                ? `${weightDifference.toFixed(1)} kg left to lose`
+                : isWeightGain
+                  ? `${weightDifference.toFixed(1)} kg left to gain`
+                  : ""}
+          </div>
+
+          <div className="mt-3 text-sm text-white/50">
+            Weekly workout frequency:{" "}
+            <span className="font-semibold text-white/50">
+              {weeklyWorkoutFrequency} days / week
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {showFitnessGoalModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="w-full max-w-md rounded-2xl bg-neutral-950 p-6">
+      <h2 className="text-xl font-bold">
+        Update Fitness Goal
+      </h2>
+
+      <div className="mt-6 space-y-4">
+        {/* Target Weight */}
+        <div>
+          <label className="mb-2 block text-sm font-medium">
+            Target Weight (kg)
+          </label>
+
+          <input
+            type="number"
+            value={goalTargetWeight}
+            onChange={(e) => setGoalTargetWeight(e.target.value)}
+            className="w-full rounded-xl border px-4 py-3"
+          />
+        </div>
+
+        {/* Workout Frequency */}
+        <div>
+          <label className="mb-2 block text-sm font-medium">
+            Weekly Workout Frequency
+          </label>
+
+          <select
+            value={weeklyWorkoutFrequency}
+            onChange={(e) =>
+              setWeeklyWorkoutFrequency(e.target.value)
+            }
+            className="w-full rounded-xl border border-white/15 bg-neutral-950 px-4 py-3"
+            required
+          >
+            <option value="1">1 day / week</option>
+            <option value="2">2 days / week</option>
+            <option value="3">3 days / week</option>
+            <option value="4">4 days / week</option>
+            <option value="5">5 days / week</option>
+            <option value="6">6 days / week</option>
+            <option value="7">7 days / week</option>
+          </select>
+        </div>
+
+        {goalError && (
+          <p className="text-sm text-red-500">
+            {goalError}
+          </p>
+        )}
+
+        {goalSuccess && (
+          <p className="text-sm text-green-600">
+            {goalSuccess}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-6 flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => setShowFitnessGoalModal(false)}
+          className="rounded-full border px-5 py-2.5"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          onClick={handleUpdateGoal}
+          disabled={goalUpdating}
+          className="rounded-full bg-white px-5 py-2.5 text-black"
+        >
+          {goalUpdating ? "Updating..." : "Save Goal"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* ── FEATURE MODULES & QUICK ACTIONS ── */}
       <div className="space-y-4">
@@ -555,12 +858,18 @@ export default function MemberDashboardView({
               />
               <button
                 type="submit"
-                className="w-full py-3 rounded-full bg-white text-black font-black uppercase text-xs hover:bg-gray-100 transition shadow-lg"
+                disabled={aiLoading}
+                className="w-full py-3 rounded-full bg-white text-black font-black uppercase text-xs hover:bg-gray-100 transition shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Get Training Guidance
+                {aiLoading ? "AI Thinking..." : "Get Training Guidance"}
               </button>
             </form>
-            {aiResponse && (
+            {aiLoading && (
+              <div className="p-4 rounded-2xl bg-neutral-900 border border-white/10 text-xs text-white/50 animate-pulse">
+                AI Coach is analyzing your query...
+              </div>
+            )}
+            {aiResponse && !aiLoading && (
               <div className="p-4 rounded-2xl bg-neutral-900 border border-white/20 text-xs text-white leading-relaxed">
                 <p className="font-black text-white mb-1 uppercase tracking-wider">
                   Coach Feedback:
@@ -686,11 +995,10 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("bKash")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
-                        selectedGateway === "bKash"
-                          ? "border-white bg-white text-black font-black shadow-lg"
-                          : "border-white/15 bg-neutral-900 text-white/60"
-                      }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "bKash"
+                        ? "border-white bg-white text-black font-black shadow-lg"
+                        : "border-white/15 bg-neutral-900 text-white/60"
+                        }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">bKash</span>
@@ -699,11 +1007,10 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("Nagad")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
-                        selectedGateway === "Nagad"
-                          ? "border-white bg-white text-black font-black shadow-lg"
-                          : "border-white/15 bg-neutral-900 text-white/60"
-                      }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "Nagad"
+                        ? "border-white bg-white text-black font-black shadow-lg"
+                        : "border-white/15 bg-neutral-900 text-white/60"
+                        }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">Nagad</span>
@@ -712,11 +1019,10 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("Card")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
-                        selectedGateway === "Card"
-                          ? "border-white bg-white text-black font-black shadow-lg"
-                          : "border-white/15 bg-neutral-900 text-white/60"
-                      }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "Card"
+                        ? "border-white bg-white text-black font-black shadow-lg"
+                        : "border-white/15 bg-neutral-900 text-white/60"
+                        }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">Card</span>
