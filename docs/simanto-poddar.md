@@ -138,3 +138,7 @@ GET <http://localhost:5000/api/meal-charts/getMealCharts?userId=user_123>
 ## 01-Sep-26
 
 - Finding bug, Make proper document and fix the bug.
+
+## 02-Sep-26
+
+Redesigned the Action Button Footer UI and added the **“Add to Daily Plan”** button to both the Meal Card and Meal Modal for a consistent user experience.
