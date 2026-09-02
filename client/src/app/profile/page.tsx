@@ -45,6 +45,11 @@ import {
   uploadToImgBB,
   readFileAsDataURL,
 } from "@/services/imageUploadService";
+import MealCard from "@/components/meals/MealCard";
+import {
+  getDailyMealPlan,
+  SavedMealPlanItem,
+} from "@/services/dailyMealPlanService";
 
 // Workout History Interface
 interface WorkoutLog {
@@ -328,6 +333,8 @@ export default function ProfilePage() {
   const [localUser, setLocalUser] = useState<AuthUser | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [copiedMealIndex, setCopiedMealIndex] = useState<number | null>(null);
+  const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>([]);
+  const [isLoadingDailyPlan, setIsLoadingDailyPlan] = useState<boolean>(true);
 
   // Edit Modal State
 
@@ -362,6 +369,37 @@ export default function ProfilePage() {
   const goalData =
     MEAL_SUGGESTIONS_BY_GOAL[currentGoalKey] ||
     MEAL_SUGGESTIONS_BY_GOAL["Bulking & Muscle Gain"];
+
+  const resolvedUserId =
+    authSession?.user?.id ||
+    localUser?.id ||
+    localUser?._id ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_email") ?? undefined
+      : undefined);
+
+  useEffect(() => {
+    if (!resolvedUserId) {
+      setIsLoadingDailyPlan(false);
+      return;
+    }
+
+    const fetchDailyPlan = async () => {
+      setIsLoadingDailyPlan(true);
+      try {
+        const res = await getDailyMealPlan(resolvedUserId);
+        if (res.success && res.data) {
+          setDailyPlanMeals(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch daily meal plan:", err);
+      } finally {
+        setIsLoadingDailyPlan(false);
+      }
+    };
+
+    fetchDailyPlan();
+  }, [resolvedUserId]);
 
   // Handle direct file selection & upload (Local Preview + ImgBB Cloud Sync)
   const handleCopyMeal = (meal: any, index: number) => {
@@ -834,6 +872,73 @@ export default function ProfilePage() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* ── 4.5. My Saved Daily Meal Plan Section ── */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2.5">
+              <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
+                 Saved Daily Meal Plan
+                </h2>
+                <p className="text-xs text-white/60">
+                  Meals saved directly to your account
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/meals"
+              className="inline-flex items-center gap-1 text-xs font-bold text-white/80 hover:text-white transition-colors"
+            >
+              <span>Add More Meals</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {isLoadingDailyPlan ? (
+            <div className="bg-black border border-white/20 rounded-2xl p-8 flex items-center justify-center text-white/60">
+              <Loader2 className="w-6 h-6 animate-spin mr-2" />
+              <span className="text-xs font-bold uppercase tracking-wider">
+                Loading Daily Meal Plan...
+              </span>
+            </div>
+          ) : dailyPlanMeals.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {dailyPlanMeals.map((item) => (
+                <MealCard
+                  key={item._id}
+                  id={item.mealId || item._id}
+                  name={item.name}
+                  ingredients={item.ingredients}
+                  calories={item.calories}
+                  description={item.description}
+                  img={item.img}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
+              <Utensils className="w-10 h-10 text-white/20" />
+              <div className="space-y-1">
+                <h3 className="text-base sm:text-lg font-black uppercase text-white">
+                  No Meals Saved Yet
+                </h3>
+                <p className="text-xs text-white/60 max-w-sm mx-auto">
+                  Your daily meal plan is empty. Browse recipes and click "Add to Daily Plan" to save meals here!
+                </p>
+              </div>
+              <Link
+                href="/meals"
+                className="mt-2 inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-xl"
+              >
+                <Utensils className="w-4 h-4" />
+                <span>Explore Recipes</span>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* ── 5. Admin Management Access (If Admin) ── */}
