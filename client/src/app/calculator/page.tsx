@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import BmiCalculator from "@/components/BmiCalculator";
+import { calculateBmr } from "@/utils/calculateBmr";
+import { calculateTdee } from "@/utils/calculateTdee";
 
 type Gender = "male" | "female";
 type Goal = "bulking" | "cutting" | "maintenance";
@@ -55,16 +57,11 @@ export default function CalculatorPage() {
   const [activeTab, setActiveTab] = useState<CalculatorTab>("bmi");
 
   const bmr = useMemo(() => {
-    const value =
-      gender === "male"
-        ? 10 * weight + 6.25 * height - 5 * age + 5
-        : 10 * weight + 6.25 * height - 5 * age - 161;
-
-    return Math.max(Math.round(value), 0);
+    return calculateBmr(age, gender, weight, height);
   }, [age, gender, height, weight]);
 
   const tdee = useMemo(() => {
-    return Math.max(Math.round(bmr * activityLevel), 0);
+    return calculateTdee(bmr, activityLevel);
   }, [bmr, activityLevel]);
 
   const targetCalories = useMemo(() => {
