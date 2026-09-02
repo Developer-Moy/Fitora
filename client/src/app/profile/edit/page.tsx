@@ -11,6 +11,7 @@ import {
   uploadToImgBB,
   readFileAsDataURL,
 } from "@/services/imageUploadService";
+import { fetchPublicBranches } from "@/services/dashboardService";
 import { ArrowLeft, Upload, Loader2, Trash2 } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
 import { useSession, authClient } from "@/lib/auth-client";
@@ -31,9 +32,19 @@ export default function EditProfilePage() {
   const [editGoal, setEditGoal] = useState("Bulking & Muscle Gain");
   const [editBio, setEditBio] = useState("");
   const [editAvatarUrl, setEditAvatarUrl] = useState("");
+  const [branches, setBranches] = useState<string[]>([]);
 
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch branches on mount
+  useEffect(() => {
+    fetchPublicBranches().then((res) => {
+      if (res && res.length > 0) {
+        setBranches(res.map((b) => b.name));
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (isPending) return; // Wait for BetterAuth
@@ -253,15 +264,17 @@ export default function EditProfilePage() {
                   onChange={(e) => setEditBranch(e.target.value)}
                   className="w-full bg-black border border-white/20 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white transition-colors"
                 >
-                  <option value="Gulshan-2 Flagship Branch">
-                    Gulshan-2 Flagship
-                  </option>
-                  <option value="Banani Platinum Lounge">
-                    Banani Platinum
-                  </option>
-                  <option value="Dhanmondi Athletic Center">
-                    Dhanmondi Athletic
-                  </option>
+                  {branches.length > 0 ? (
+                    branches.map((branch) => (
+                      <option key={branch} value={branch}>{branch}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Gulshan-2 Flagship Branch">Gulshan-2 Flagship</option>
+                      <option value="Banani Platinum Lounge">Banani Platinum</option>
+                      <option value="Dhanmondi Athletic Center">Dhanmondi Athletic</option>
+                    </>
+                  )}
                 </select>
               </div>
             </div>

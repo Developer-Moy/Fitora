@@ -1,11 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  INITIAL_BRANCHES,
-  BANGLADESH_DIVISIONS,
-  BranchInfo,
-} from "@/data/dashboardData";
+import React, { useState, useEffect, useCallback } from "react";
+import { BANGLADESH_DIVISIONS, BranchInfo } from "@/data/dashboardData";
+import { fetchAdminBranches, fetchPublicBranches } from "@/services/dashboardService";
 import {
   Building2,
   Users,
@@ -30,7 +27,8 @@ interface BranchManagementViewProps {
 export default function BranchManagementView({
   currentRole,
 }: BranchManagementViewProps) {
-  const [branches, setBranches] = useState<BranchInfo[]>(INITIAL_BRANCHES);
+  const [branches, setBranches] = useState<BranchInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedDivision, setSelectedDivision] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -38,13 +36,31 @@ export default function BranchManagementView({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(6);
 
+  // Fetch branches from API
+  const loadBranches = useCallback(async () => {
+    setIsLoading(true);
+    const isAdmin = currentRole === "master_admin" || currentRole === "branch_admin";
+    const result = isAdmin ? await fetchAdminBranches() : await fetchPublicBranches();
+    if (result && result.length > 0) {
+      setBranches(result as any);
+    }
+    setIsLoading(false);
+  }, [currentRole]);
+
+  useEffect(() => {
+    loadBranches();
+  }, [loadBranches]);
+
   const filteredBranches = branches.filter((branch) => {
     const matchesDivision =
-      selectedDivision === "all" || branch.division === selectedDivision;
+      selectedDivision === "all" ||
+      branch.division === selectedDivision ||
+      branch.division === selectedDivision.replace(" Division", "") ||
+      `${branch.division} Division` === selectedDivision;
     const matchesSearch =
       branch.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       branch.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      branch.adminName.toLowerCase().includes(searchQuery.toLowerCase());
+      (branch.adminName || "").toLowerCase().includes(searchQuery.toLowerCase());
     return matchesDivision && matchesSearch;
   });
 
@@ -63,6 +79,16 @@ export default function BranchManagementView({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
+      {isLoading && (
+        <div className="flex items-center justify-center py-16">
+          <div className="flex flex-col items-center gap-3 text-white/40">
+            <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            <span className="text-xs font-bold uppercase tracking-wider">Loading branches from backend...</span>
+          </div>
+        </div>
+      )}
+      {!isLoading && (
+      <>
       {/* Top Telemetry Stats (Monochrome with Green numbers only) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
         <div className="p-6 rounded-3xl bg-neutral-950 border border-white/10 shadow-xl space-y-2">
@@ -335,6 +361,8 @@ export default function BranchManagementView({
             </button>
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );

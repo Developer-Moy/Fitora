@@ -45,24 +45,14 @@ import {
   uploadToImgBB,
   readFileAsDataURL,
 } from "@/services/imageUploadService";
+import { getWorkoutLogs } from "@/services/workoutService";
+import type { WorkoutLog } from "@/types/workout";
 import MealCard from "@/components/meals/MealCard";
 import {
   getDailyMealPlan,
   SavedMealPlanItem,
 } from "@/services/dailyMealPlanService";
-
-// Workout History Interface
-interface WorkoutLog {
-  id: string;
-  title: string;
-  category: string;
-  date: string;
-  duration: string;
-  calories: number;
-  exercisesCount: number;
-  exercises: string[];
-  badge?: string;
-}
+import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
 
 interface BMIHistory {
   _id: string;
@@ -375,7 +365,7 @@ export default function ProfilePage() {
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (!response.ok) {
@@ -413,42 +403,64 @@ export default function ProfilePage() {
     userRole === "branch_admin" ||
     userEmail.toLowerCase().includes("admin@fitora");
 
-  const currentGoalKey =
-    localUser?.fitnessGoal || localUser?.plan || "Bulking & Muscle Gain";
-
-  const goalData =
-    MEAL_SUGGESTIONS_BY_GOAL[currentGoalKey] ||
-    MEAL_SUGGESTIONS_BY_GOAL["Bulking & Muscle Gain"];
-
   const resolvedUserId =
     authSession?.user?.id ||
     localUser?.id ||
     localUser?._id ||
     (typeof window !== "undefined"
-      ? localStorage.getItem("fitora_user_email") ?? undefined
+      ? (localStorage.getItem("fitora_user_email") ?? undefined)
       : undefined);
+
+  const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+
+  const [mealChart, setMealChart] = useState<MealChart | null>(null);
+
+  const currentGoalKey =
+    mealChart?.goals?.fitnessGoal ||
+    localUser?.fitnessGoal ||
+    localUser?.plan ||
+    "Bulking & Muscle Gain";
+
+  const goalData =
+    MEAL_SUGGESTIONS_BY_GOAL[currentGoalKey] ||
+    MEAL_SUGGESTIONS_BY_GOAL["Bulking & Muscle Gain"];
 
   useEffect(() => {
     if (!resolvedUserId) {
       setIsLoadingDailyPlan(false);
+      setIsLoadingWorkouts(false);
       return;
     }
 
-    const fetchDailyPlan = async () => {
+    const fetchData = async () => {
       setIsLoadingDailyPlan(true);
+      setIsLoadingWorkouts(true);
       try {
-        const res = await getDailyMealPlan(resolvedUserId);
-        if (res.success && res.data) {
-          setDailyPlanMeals(res.data);
+        const [dailyPlanRes, workoutsRes, mealChartsRes] = await Promise.all([
+          getDailyMealPlan(resolvedUserId),
+          getWorkoutLogs(resolvedUserId, 20).catch(() => ({ logs: [] })),
+          fetchMealCharts(resolvedUserId).catch(() => []),
+        ]);
+
+        if (dailyPlanRes.success && dailyPlanRes.data) {
+          setDailyPlanMeals(dailyPlanRes.data);
+        }
+        if (workoutsRes && workoutsRes.logs) {
+          setWorkoutLogs(workoutsRes.logs);
+        }
+        if (mealChartsRes && mealChartsRes.length > 0) {
+          setMealChart(mealChartsRes[0]);
         }
       } catch (err) {
-        console.error("Failed to fetch daily meal plan:", err);
+        console.error("Failed to fetch profile data:", err);
       } finally {
         setIsLoadingDailyPlan(false);
+        setIsLoadingWorkouts(false);
       }
     };
 
-    fetchDailyPlan();
+    fetchData();
   }, [resolvedUserId]);
 
   // Handle direct file selection & upload (Local Preview + ImgBB Cloud Sync)
@@ -463,7 +475,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch { }
+    } catch {}
     toast.success("Logged out successfully. See you soon, Champion!");
     setTimeout(() => {
       window.location.href = "/";
@@ -676,7 +688,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-white/60 font-medium hidden sm:inline">
-                {(localUser as any)?.workouts?.length || 0} Logged Sessions
+                {workoutLogs.length} Logged Sessions
               </span>
               <Link
                 href="/stopwatch"
@@ -690,56 +702,59 @@ export default function ProfilePage() {
 
           <div className="space-y-3">
             {/* Dynamic Rendering: Show workouts if they exist, otherwise show Empty State */}
-            {(localUser as any)?.workouts &&
-              (localUser as any).workouts.length > 0 ? (
-              (localUser as any).workouts.map((log: any) => (
+            {isLoadingWorkouts ? (
+              <div className="bg-black border border-white/20 rounded-2xl p-8 flex justify-center text-white/50 text-sm">
+                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading
+                workouts...
+              </div>
+            ) : workoutLogs && workoutLogs.length > 0 ? (
+              workoutLogs.map((log) => (
                 <div
-                  key={log.id}
+                  key={log._id || Math.random().toString()}
                   className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-5 sm:p-6 transition-all space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/20 pb-3">
                     <div>
                       <div className="flex items-center gap-2.5 flex-wrap">
                         <h3 className="text-base font-extrabold uppercase text-white">
-                          {log.title}
+                          {log.exerciseName || "Workout"}
                         </h3>
-                        {log.badge && (
-                          <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white text-black">
-                            {log.badge}
-                          </span>
-                        )}
                       </div>
-                      <p className="text-xs text-white/60 mt-0.5">{log.date}</p>
+                      <p className="text-xs text-white/60 mt-0.5">
+                        {log.date
+                          ? new Date(log.date).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "Recently"}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0 text-xs font-bold text-white/80">
                       <span className="inline-flex items-center gap-1 bg-black border border-white/20 px-3 py-1.5 rounded-full">
                         <Clock className="w-3.5 h-3.5 text-white/60" />
-                        {log.duration}
+                        {log.durationMinutes} min
                       </span>
-                      <span className="inline-flex items-center gap-1 bg-black border border-white/20 px-3 py-1.5 rounded-full text-white">
-                        <Flame className="w-3.5 h-3.5 text-white" />
-                        {log.calories} kcal
-                      </span>
+                      {log.weight && log.weight > 0 ? (
+                        <span className="inline-flex items-center gap-1 bg-black border border-white/20 px-3 py-1.5 rounded-full text-white">
+                          <Dumbbell className="w-3.5 h-3.5 text-white" />
+                          {log.weight} kg
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">
-                      Logged Exercises (
-                      {log.exercisesCount || log.exercises?.length}):
+                      Stats ({log.setsCount} Sets, {log.repsCount} Reps)
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {log.exercises?.map((exercise: string, idx: number) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-2 text-xs text-white/80 bg-black px-3 py-2 rounded-xl border border-white/5"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                          <span className="truncate">{exercise}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {log.notes && (
+                      <div className="flex items-center gap-2 text-xs text-white/80 bg-black px-3 py-2 rounded-xl border border-white/5">
+                        <span className="truncate">{log.notes}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -792,9 +807,7 @@ export default function ProfilePage() {
             </div>
           ) : historyError ? (
             <div className="bg-black border border-red-500/20 rounded-2xl p-6 text-center">
-              <p className="text-sm text-red-400">
-                {historyError}
-              </p>
+              <p className="text-sm text-red-400">{historyError}</p>
             </div>
           ) : history.length === 0 ? (
             <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-3">
@@ -814,25 +827,15 @@ export default function ProfilePage() {
                 <table className="w-full min-w-[700px] text-left">
                   <thead>
                     <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-white/50">
-                      <th className="px-5 py-4 font-bold">
-                        Date
-                      </th>
+                      <th className="px-5 py-4 font-bold">Date</th>
 
-                      <th className="px-5 py-4 font-bold">
-                        Weight
-                      </th>
+                      <th className="px-5 py-4 font-bold">Weight</th>
 
-                      <th className="px-5 py-4 font-bold">
-                        BMI
-                      </th>
+                      <th className="px-5 py-4 font-bold">BMI</th>
 
-                      <th className="px-5 py-4 font-bold">
-                        BMR
-                      </th>
+                      <th className="px-5 py-4 font-bold">BMR</th>
 
-                      <th className="px-5 py-4 font-bold">
-                        TDEE
-                      </th>
+                      <th className="px-5 py-4 font-bold">TDEE</th>
                     </tr>
                   </thead>
 
@@ -1035,7 +1038,7 @@ export default function ProfilePage() {
               <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
               <div>
                 <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
-                 Saved Daily Meal Plan
+                  Saved Daily Meal Plan
                 </h2>
                 <p className="text-xs text-white/60">
                   Meals saved directly to your account
@@ -1081,7 +1084,8 @@ export default function ProfilePage() {
                   No Meals Saved Yet
                 </h3>
                 <p className="text-xs text-white/60 max-w-sm mx-auto">
-                  Your daily meal plan is empty. Browse recipes and click "Add to Daily Plan" to save meals here!
+                  Your daily meal plan is empty. Browse recipes and click "Add
+                  to Daily Plan" to save meals here!
                 </p>
               </div>
               <Link

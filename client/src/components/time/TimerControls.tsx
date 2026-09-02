@@ -1,7 +1,16 @@
 "use client";
 
 import React from "react";
-import { Play, Pause, RotateCcw, Volume2, VolumeX, CheckCircle2, Timer, ClipboardList } from "lucide-react";
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+  CheckCircle2,
+  Timer,
+  ClipboardList,
+} from "lucide-react";
 
 interface TimerControlsProps {
   isRunning: boolean;
@@ -16,9 +25,8 @@ interface TimerControlsProps {
   onToggleSound: () => void;
   onSetTarget: (amount: number) => void;
   onQuickLog: () => void;
+  quickTargets?: number[];
 }
-
-const QUICK_TARGETS = [30, 60, 90] as const;
 
 export const TimerControls: React.FC<TimerControlsProps> = ({
   isRunning,
@@ -33,9 +41,11 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
   onToggleSound,
   onSetTarget,
   onQuickLog,
+  quickTargets,
 }) => {
   // Remaining seconds when a target is active
-  const remaining = targetSeconds !== null ? Math.max(0, targetSeconds - seconds) : null;
+  const remaining =
+    targetSeconds !== null ? Math.max(0, targetSeconds - seconds) : null;
 
   return (
     <div className="flex flex-col items-center gap-3 w-full">
@@ -44,14 +54,18 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
         <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest flex items-center gap-1 mr-0.5">
           <Timer className="w-3.5 h-3.5 text-white" /> Rest Target
         </span>
-        {QUICK_TARGETS.map((amount) => {
+        {(quickTargets?.length ? quickTargets : [30, 60, 90]).map((amount) => {
           const isActive = targetSeconds === amount;
           return (
             <button
               key={amount}
               type="button"
               onClick={() => onSetTarget(amount)}
-              title={isActive ? "Click to clear rest target" : `Set ${amount}s rest countdown`}
+              title={
+                isActive
+                  ? "Click to clear rest target"
+                  : `Set ${amount}s rest countdown`
+              }
               className={`relative px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all duration-200 active:scale-95 cursor-pointer overflow-hidden ${
                 isActive
                   ? "bg-white text-black border-white shadow-[0_0_14px_rgba(255,255,255,0.3)]"
@@ -62,7 +76,9 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
               {isActive && targetSeconds && seconds > 0 && (
                 <span
                   className="absolute inset-0 bg-black/15 origin-left transition-none"
-                  style={{ transform: `scaleX(${Math.min(1, seconds / targetSeconds)})` }}
+                  style={{
+                    transform: `scaleX(${Math.min(1, seconds / targetSeconds)})`,
+                  }}
                 />
               )}
               <span className="relative z-10">
@@ -119,8 +135,8 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
                 {seconds > 0
                   ? "Resume"
                   : targetSeconds
-                  ? `Start ${targetSeconds}s Rest`
-                  : "Start Set"}
+                    ? `Start ${targetSeconds}s Rest`
+                    : "Start Set"}
               </span>
             </>
           )}

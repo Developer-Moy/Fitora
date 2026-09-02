@@ -21,8 +21,8 @@ import { dashboardLoginApi, saveAuthSession } from "@/services/authService";
 
 export default function DashboardLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState<string>("master@fitora.com");
-  const [password, setPassword] = useState<string>("P@SSW0RDF!T0R@");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

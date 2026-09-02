@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import BmiCalculator from "@/components/BmiCalculator";
 import { calculateBmr } from "@/utils/calculateBmr";
 import { calculateTdee } from "@/utils/calculateTdee";
+import { calculateNutritionApi } from "@/services/nutritionService";
 
 type Gender = "male" | "female";
 type Goal = "bulking" | "cutting" | "maintenance";
@@ -58,6 +59,16 @@ export default function CalculatorPage() {
   const [bmi, setBmi] = useState(0);
   const [isSavingHistory, setIsSavingHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serverMacros, setServerMacros] = useState<{ tdee: number; protein: number; carbs: number; fats: number } | null>(null);
+
+  // Sync with backend nutrition API when inputs change
+  useEffect(() => {
+    const timeout = setTimeout(async () => {
+      const result = await calculateNutritionApi({ age, gender, height, weight, activityLevel });
+      if (result) setServerMacros(result);
+    }, 600);
+    return () => clearTimeout(timeout);
+  }, [age, gender, height, weight, activityLevel]);
 
   const bmr = useMemo(() => {
     return calculateBmr(age, gender, weight, height);
@@ -107,7 +118,15 @@ export default function CalculatorPage() {
     }
   }, [goal]);
 
+  // Prefer server-verified macros, fall back to client-side calculation
   const macros = useMemo(() => {
+    if (serverMacros) {
+      return {
+        protein: serverMacros.protein,
+        carbs: serverMacros.carbs,
+        fats: serverMacros.fats,
+      };
+    }
     const proteinCalories = targetCalories * (macroPercentages.protein / 100);
     const carbsCalories = targetCalories * (macroPercentages.carbs / 100);
     const fatsCalories = targetCalories * (macroPercentages.fats / 100);
@@ -117,7 +136,7 @@ export default function CalculatorPage() {
       carbs: Math.round(carbsCalories / 4),
       fats: Math.round(fatsCalories / 9),
     };
-  }, [targetCalories, macroPercentages]);
+  }, [serverMacros, targetCalories, macroPercentages]);
 
   const maxMacro = Math.max(macros.protein, macros.carbs, macros.fats, 1);
 
