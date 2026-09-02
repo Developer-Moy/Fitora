@@ -64,6 +64,18 @@ interface WorkoutLog {
   badge?: string;
 }
 
+interface BMIHistory {
+  _id: string;
+  age: number;
+  gender: "male" | "female";
+  height: number;
+  weight: number;
+  bmi: number;
+  bmr: number;
+  tdee: number;
+  createdAt: string;
+}
+
 // Removed DEFAULT_WORKOUT_HISTORY
 
 // Meal Plan Suggestions tailored by Fitness Goal
@@ -336,6 +348,10 @@ export default function ProfilePage() {
   const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>([]);
   const [isLoadingDailyPlan, setIsLoadingDailyPlan] = useState<boolean>(true);
 
+  const [history, setHistory] = useState<BMIHistory[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState("");
+
   // Edit Modal State
 
   useEffect(() => {
@@ -344,6 +360,40 @@ export default function ProfilePage() {
     if (session.user) {
       setLocalUser(session.user);
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchBMIHistory = async () => {
+      try {
+        setHistoryLoading(true);
+        setHistoryError("");
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/bmi/history`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch BMI history");
+        }
+
+        const data = await response.json();
+
+        setHistory(data?.data || data?.history || []);
+      } catch (error) {
+        console.error("BMI history fetch error:", error);
+        setHistoryError("Failed to load your calculation history.");
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    fetchBMIHistory();
   }, []);
 
   const activeUser = { ...authSession?.user, ...localUser };
@@ -413,7 +463,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch {}
+    } catch { }
     toast.success("Logged out successfully. See you soon, Champion!");
     setTimeout(() => {
       window.location.href = "/";
@@ -641,7 +691,7 @@ export default function ProfilePage() {
           <div className="space-y-3">
             {/* Dynamic Rendering: Show workouts if they exist, otherwise show Empty State */}
             {(localUser as any)?.workouts &&
-            (localUser as any).workouts.length > 0 ? (
+              (localUser as any).workouts.length > 0 ? (
               (localUser as any).workouts.map((log: any) => (
                 <div
                   key={log.id}
@@ -718,7 +768,111 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* ── 4. Meal Suggestion According to Profile ── */}
+        {/* ── 4. BMI, BMR & TDEE Calculation History ── */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2.5">
+              <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
+                  Calculation History
+                </h2>
+
+                <p className="text-xs text-white/60 mt-1">
+                  Your previous BMI, BMR and TDEE calculations
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {historyLoading ? (
+            <div className="bg-black border border-white/20 rounded-2xl p-10 flex items-center justify-center">
+              <Loader2 className="w-7 h-7 animate-spin text-white/60" />
+            </div>
+          ) : historyError ? (
+            <div className="bg-black border border-red-500/20 rounded-2xl p-6 text-center">
+              <p className="text-sm text-red-400">
+                {historyError}
+              </p>
+            </div>
+          ) : history.length === 0 ? (
+            <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-3">
+              <TrendingUp className="w-10 h-10 text-white/20" />
+
+              <h3 className="text-base sm:text-lg font-black uppercase text-white">
+                No Calculation History
+              </h3>
+
+              <p className="text-xs text-white/60 max-w-sm">
+                Your BMI, BMR and TDEE calculation history will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-black border border-white/20 rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[700px] text-left">
+                  <thead>
+                    <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-white/50">
+                      <th className="px-5 py-4 font-bold">
+                        Date
+                      </th>
+
+                      <th className="px-5 py-4 font-bold">
+                        Weight
+                      </th>
+
+                      <th className="px-5 py-4 font-bold">
+                        BMI
+                      </th>
+
+                      <th className="px-5 py-4 font-bold">
+                        BMR
+                      </th>
+
+                      <th className="px-5 py-4 font-bold">
+                        TDEE
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {history.map((item) => (
+                      <tr
+                        key={item._id}
+                        className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors"
+                      >
+                        <td className="px-5 py-4 text-sm text-white/70">
+                          {new Date(item.createdAt).toLocaleDateString()}
+                        </td>
+
+                        <td className="px-5 py-4 text-sm font-semibold text-white">
+                          {item.weight} kg
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <span className="text-sm font-black text-white">
+                            {item.bmi.toFixed(1)}
+                          </span>
+                        </td>
+
+                        <td className="px-5 py-4 text-sm text-white/70">
+                          {item.bmr} kcal
+                        </td>
+
+                        <td className="px-5 py-4 text-sm text-white/70">
+                          {item.tdee} kcal
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── 5. Meal Suggestion According to Profile ── */}
         <div className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
