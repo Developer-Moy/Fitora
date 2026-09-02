@@ -64,3 +64,39 @@ export const addToDailyPlan = async (
     );
   }
 };
+
+/**
+ * GET /api/daily-plan/:userId
+ * Returns all daily plan entries saved by the given user, newest first.
+ */
+export const getDailyMealPlan = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json(
+        errorResponse("userId is required", "VALIDATION_ERROR", 400)
+      );
+    }
+
+    const entries = await UserDailyMealPlan.find({ userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json(
+      successResponse("Daily meal plan retrieved successfully", entries)
+    );
+  } catch (error) {
+    console.error("[DailyMealPlan] getDailyMealPlan error:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Failed to retrieve daily meal plan",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
+  }
+};
