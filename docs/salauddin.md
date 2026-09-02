@@ -207,3 +207,13 @@ Monthly / Yearly billing toggle switch.
 ### 30-Aug-26
 * Seed 50+ Exercise Encyclopedia & Video Guides
 * Curate 50+ gym exercises across all muscle groups with equipment tags, difficulty, execution tips, photo URLs, and valid YouTube demo video IDs in exercises collection. Submit as exercises.json.
+
+### 31-Aug-26
+* Bug Hunting
+
+### 01-Sep-26
+* Finding bug, Make proper document and fix the bug.
+
+### 02-Sep-26
+* Goals Frontend UI & Dashboard Sync
+* Creates my fitness goals visual widgets.
