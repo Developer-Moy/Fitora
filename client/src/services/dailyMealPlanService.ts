@@ -9,6 +9,19 @@ export interface MealPayload {
   img: string;
 }
 
+export interface SavedMealPlanItem {
+  _id: string;
+  userId: string;
+  mealId: string;
+  name: string;
+  calories: number;
+  description: string;
+  ingredients: string[];
+  img: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface DailyPlanResponse {
   success: boolean;
   message: string;
@@ -41,6 +54,27 @@ export async function addMealToDailyPlan(
   });
 
   const data: DailyPlanResponse = await res.json().catch(() => ({
+    success: false,
+    message: "Unexpected server response",
+  }));
+
+  return data;
+}
+
+/**
+ * all saved meals in the user's daily plan.
+ */
+export async function getDailyMealPlan(
+  userId: string
+): Promise<{ success: boolean; message: string; data?: SavedMealPlanItem[] }> {
+  const res = await fetch(`${API_URL}/daily-plan/${encodeURIComponent(userId)}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await res.json().catch(() => ({
     success: false,
     message: "Unexpected server response",
   }));
