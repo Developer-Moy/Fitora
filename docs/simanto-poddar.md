@@ -130,3 +130,11 @@ GET <http://localhost:5000/api/meal-charts/getMealCharts?userId=user_123>
 ## 30-Aug-26
 
 - add mealcharts.json (Fitora\client\src\data\mealcharts.json)
+
+## 31-Aug-26
+
+- Finding bug, Make a document.
+
+## 01-Sep-26
+
+- Finding bug, Make proper document and fix the bug.
