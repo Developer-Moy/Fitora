@@ -182,17 +182,17 @@ export default function CalculatorPage() {
   }, [goal]);
 
   const handleSaveHistory = async () => {
+    
     try {
       setIsSavingHistory(true);
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/bmi/history`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/bmi/history`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
           body: JSON.stringify({
             age,
             gender,
