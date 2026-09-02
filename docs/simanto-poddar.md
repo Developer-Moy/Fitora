@@ -142,3 +142,5 @@ GET <http://localhost:5000/api/meal-charts/getMealCharts?userId=user_123>
 ## 02-Sep-26
 
 Redesigned the Action Button Footer UI and added the **“Add to Daily Plan”** button to both the Meal Card and Meal Modal for a consistent user experience.
+
+- When a logged-in user clicks "Add to Daily Plan" on any meal card or modal, the client first resolves the user's ID from any available login session (Better Auth or localStorage). It then sends a POST /api/daily-plan request with that userId plus the full meal data (name, calories, ingredients, etc.). The Express server receives the request, validates the fields, and saves a new document containing the userId and meal data into the MongoDB collection usersdailymealplan. If the user is not logged in, a toast error is shown and nothing is saved.

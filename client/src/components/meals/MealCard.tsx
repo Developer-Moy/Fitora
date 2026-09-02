@@ -5,6 +5,9 @@ import { ArrowUpRight, X, Flame, Copy } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { FaPlus } from "react-icons/fa6";
+import { getAuthSession } from "@/services/authService";
+import { addMealToDailyPlan } from "@/services/dailyMealPlanService";
+import { useSession } from "@/lib/auth-client";
 
 interface MealProps {
   id: string;
@@ -16,10 +19,56 @@ interface MealProps {
 }
 
 const MealCard = (meal: MealProps) => {
+  const { data: session } = useSession();
   const [imageError, setImageError] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddingToPlan, setIsAddingToPlan] = useState(false);
   const fallbackImage = "https://i.ibb.co.com/8g7PMCnQ/no-img.png";
   const displayImage = !meal.img || imageError ? fallbackImage : meal.img;
+
+  const handleAddToDailyPlan = async () => {
+    // Resolve userId from any available auth source:
+    // 1. Better Auth session (Google / email via Better Auth)
+    // 2. Custom JWT path — user object stored in localStorage by loginApi()
+    // 3. Email as last-resort identifier when only an admin-shortcut session exists
+    const { user: localUser } = getAuthSession();
+    const userId =
+      session?.user?.id ||
+      localUser?.id ||
+      localUser?._id ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("fitora_user_email") ?? undefined
+        : undefined);
+
+    if (!userId) {
+      toast.error("Please log in to add meals to your daily plan.");
+      return;
+    }
+
+    setIsAddingToPlan(true);
+    try {
+      const result = await addMealToDailyPlan(
+        {
+          id: meal.id,
+          name: meal.name,
+          calories: meal.calories,
+          description: meal.description,
+          ingredients: meal.ingredients,
+          img: meal.img,
+        },
+        userId
+      );
+      if (result.success) {
+        toast.success(`${meal.name} added to your daily plan!`);
+      } else {
+        toast.error(result.message || "Failed to add meal to daily plan.");
+      }
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setIsAddingToPlan(false);
+    }
+  };
 
   const handleCopyRecipe = async () => {
     const recipeText = `FITORA MEAL PLAN: ${meal.name}
@@ -93,7 +142,9 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
             {/* Add to My Daily Plan */}
             <button
               type="button"
-              className="group/btn inline-flex items-center gap-1.5 sm:gap-2 bg-neutral-900 text-white border border-white/20 font-extrabold text-[11px] sm:text-xs px-2.5 sm:px-4 py-2 rounded-full uppercase tracking-wider hover:bg-neutral-800 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 cursor-pointer shadow-xl shrink-0"
+              onClick={handleAddToDailyPlan}
+              disabled={isAddingToPlan}
+              className="group/btn inline-flex items-center gap-1.5 sm:gap-2 bg-neutral-900 text-white border border-white/20 font-extrabold text-[11px] sm:text-xs px-2.5 sm:px-4 py-2 rounded-full uppercase tracking-wider hover:bg-neutral-800 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 cursor-pointer shadow-xl shrink-0 disabled:opacity-60 disabled:pointer-events-none"
             >
               <span>Daily Plan</span>
               <span className="bg-white text-black w-5 h-5 rounded-full flex items-center justify-center group-hover/btn:rotate-90 group-hover/btn:scale-110 transition-all duration-300 shadow-md shrink-0">
@@ -188,7 +239,9 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
               <div className="pt-2 flex flex-col gap-2">
                 <button
                   type="button"
-                  className="w-full inline-flex items-center justify-center gap-2 bg-neutral-900 text-white border border-white/20 font-extrabold hover:bg-neutral-800 transition-all py-2.5 rounded-full uppercase text-xs tracking-wider cursor-pointer shadow-lg active:scale-95"
+                  onClick={handleAddToDailyPlan}
+                  disabled={isAddingToPlan}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-neutral-900 text-white border border-white/20 font-extrabold hover:bg-neutral-800 transition-all py-2.5 rounded-full uppercase text-xs tracking-wider cursor-pointer shadow-lg active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
                 >
                   <FaPlus className="w-3.5 h-3.5" />
                   <span>Add to Daily Plan</span>
@@ -276,7 +329,9 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
 
                   <button
                     type="button"
-                    className="flex-1 inline-flex items-center justify-center gap-2 bg-neutral-900 text-white border border-white/20 font-extrabold hover:bg-neutral-800 transition-all px-5 py-2.5 rounded-full uppercase text-xs tracking-wider cursor-pointer shadow-xl active:scale-95"
+                    onClick={handleAddToDailyPlan}
+                    disabled={isAddingToPlan}
+                    className="flex-1 inline-flex items-center justify-center gap-2 bg-neutral-900 text-white border border-white/20 font-extrabold hover:bg-neutral-800 transition-all px-5 py-2.5 rounded-full uppercase text-xs tracking-wider cursor-pointer shadow-xl active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
                   >
                     <FaPlus className="w-3.5 h-3.5" />
                     <span>Add to Daily Plan</span>
