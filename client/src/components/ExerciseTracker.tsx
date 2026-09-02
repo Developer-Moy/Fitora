@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -9,7 +9,9 @@ import {
   Clock3,
   Dumbbell,
   Flame,
+  Pause,
   Play,
+  RotateCcw,
   Search,
   Target,
   X,
@@ -1441,6 +1443,50 @@ function ExerciseModal({
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Modal-scoped stopwatch state
+  const [swRunning, setSwRunning] = useState<boolean>(false);
+  const [swElapsedMs, setSwElapsedMs] = useState<number>(0);
+  const swStartedAtRef = useRef<number | null>(null);
+  const swTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (swTickRef.current) clearInterval(swTickRef.current);
+    };
+  }, []);
+
+  const startStopwatch = () => {
+    if (swRunning) return;
+    swStartedAtRef.current = Date.now() - swElapsedMs;
+    swTickRef.current = setInterval(() => {
+      setSwElapsedMs(Date.now() - (swStartedAtRef.current ?? Date.now()));
+    }, 100);
+    setSwRunning(true);
+  };
+
+  const pauseStopwatch = () => {
+    if (!swRunning) return;
+    if (swTickRef.current) clearInterval(swTickRef.current);
+    swTickRef.current = null;
+    setSwRunning(false);
+  };
+
+  const resetStopwatch = () => {
+    if (swTickRef.current) clearInterval(swTickRef.current);
+    swTickRef.current = null;
+    swStartedAtRef.current = null;
+    setSwElapsedMs(0);
+    setSwRunning(false);
+  };
+
+  const formatStopwatch = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const centi = Math.floor((ms % 1000) / 10);
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(centi).padStart(2, "0")}`;
+  };
+
   const validate = (): string | null => {
     const s = Number(sets);
     const r = Number(reps);
@@ -1630,6 +1676,65 @@ function ExerciseModal({
                   label="TARGET"
                   value={exercise.muscle}
                 />
+              </div>
+
+              {/* Modal Stopwatch */}
+              <div className="w-full bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
+                      <Clock3 className="w-3.5 h-3.5" />
+                    </span>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-white">
+                      REST STOPWATCH
+                    </h3>
+                  </div>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">
+                    {swRunning ? "RUNNING" : swElapsedMs > 0 ? "PAUSED" : "READY"}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-center w-full py-1">
+                  <span
+                    className={`block w-full text-center font-black tracking-tight tabular-nums text-4xl sm:text-5xl ${
+                      swRunning ? "text-white" : "text-white/80"
+                    }`}
+                    style={{ fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {formatStopwatch(swElapsedMs)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {!swRunning ? (
+                    <button
+                      type="button"
+                      onClick={startStopwatch}
+                      className="col-span-2 inline-flex items-center justify-center gap-1.5 bg-white text-black font-extrabold text-[10px] uppercase tracking-wider px-3 py-2 rounded-full hover:bg-gray-100 transition shadow-md cursor-pointer"
+                    >
+                      <Play className="w-3 h-3 fill-black" />
+                      <span>{swElapsedMs > 0 ? "Resume" : "Start"}</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={pauseStopwatch}
+                      className="col-span-2 inline-flex items-center justify-center gap-1.5 bg-white text-black font-extrabold text-[10px] uppercase tracking-wider px-3 py-2 rounded-full hover:bg-gray-100 transition shadow-md cursor-pointer"
+                    >
+                      <Pause className="w-3 h-3 fill-black" />
+                      <span>Pause</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={resetStopwatch}
+                    disabled={swElapsedMs === 0 && !swRunning}
+                    className="inline-flex items-center justify-center gap-1.5 bg-neutral-950 border border-white/15 text-white font-extrabold text-[10px] uppercase tracking-wider px-3 py-2 rounded-full hover:border-white/40 transition shadow-md cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Reset</span>
+                  </button>
+                </div>
               </div>
             </div>
 
