@@ -15,6 +15,7 @@ import stopwatchRoutes from "./stopwatch.routes";
 import exerciseRoutes from "./exercise.routes";
 import nutritionRoutes from "./nutrition.routes";
 import dailyMealPlanRoutes from "./dailyMealPlan.routes";
+import searchRoutes from "./search.routes";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
 const apiRouter = Router();
@@ -60,5 +61,6 @@ apiRouter.use("/consultations", consultationRoutes);
 apiRouter.use("/branches", branchRoutes);
 apiRouter.use("/newsletter", newsletterRoutes);
 apiRouter.use("/daily-plan", dailyMealPlanRoutes);
+apiRouter.use("/search", searchRoutes);
 
 export default apiRouter;

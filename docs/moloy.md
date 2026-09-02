@@ -178,4 +178,7 @@ These components form the responsive header, hero section, pricing, callouts, co
 * Built interactive Luxury Pure B&W **Subscription Checkout Modal** (`SubscriptionModal.tsx`) supporting bKash, Nagad, and Card (Visa/Mastercard) payment simulations
 * Implemented smart authentication routing: automatic redirect to `/register?plan=...` for guest visitors and instant in-app checkout modal for logged-in athletes
 * Synchronized active subscription tier (`Basic Pass`, `Pro Athlete`, `VIP Ultimate`) with `useDashboardRole`, local session state, and Member Dashboard
+* Implemented Global Multi-Entity Dashboard Search API (`GET /api/search?q=...`) in `search.controller.ts` & `search.routes.ts` querying MongoDB Athletes, Branches, Financials, and Telemetry
+* Built debounced interactive `GlobalSearchBar.tsx` with instant dropdown results, category filter pills (All, Athletes, Branches, Financials, Telemetry), loading state, empty state, and keyboard shortcuts
+* Integrated Global Search Bar into `DashboardLayout` header with smooth routing and keyboard navigation
 * Validated 100% clean production builds across client and server with zero compilation errors
