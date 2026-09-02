@@ -1288,6 +1288,7 @@ export default function ExercisePage() {
       ====================================================== */}
       {selectedExercise && (
         <ExerciseModal
+          key={selectedExercise.id}
           exercise={selectedExercise}
           onClose={() => setSelectedExercise(null)}
         />
@@ -1436,8 +1437,8 @@ function ExerciseModal({
   onClose: () => void;
 }) {
   const [history, setHistory] = useState<WorkoutLog[]>([]);
-  const [sets, setSets] = useState<string>("3");
-  const [reps, setReps] = useState<string>("10");
+  const [sets, setSets] = useState<string>("0");
+  const [reps, setReps] = useState<string>("0");
   const [weight, setWeight] = useState<string>("0");
   const [notes, setNotes] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
