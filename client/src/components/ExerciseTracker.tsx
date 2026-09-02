@@ -1412,6 +1412,20 @@ function ExerciseCard({
   /* EXERCISE MODAL */
 }
 
+type WorkoutLog = {
+  _id: string;
+  exerciseName: string;
+  setsCount: number;
+  repsCount: number;
+  weight: number;
+  notes?: string;
+  caloriesBurned?: number;
+  date: string;
+};
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5002/api";
+
 function ExerciseModal({
   exercise,
   onClose,
@@ -1419,6 +1433,109 @@ function ExerciseModal({
   exercise: Exercise;
   onClose: () => void;
 }) {
+  const [history, setHistory] = useState<WorkoutLog[]>([]);
+  const [sets, setSets] = useState<string>("3");
+  const [reps, setReps] = useState<string>("10");
+  const [weight, setWeight] = useState<string>("0");
+  const [notes, setNotes] = useState<string>("");
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const validate = (): string | null => {
+    const s = Number(sets);
+    const r = Number(reps);
+    const w = Number(weight);
+    if (!sets || isNaN(s) || s <= 0 || !Number.isInteger(s)) {
+      return "Sets must be a positive whole number";
+    }
+    if (!reps || isNaN(r) || r <= 0 || !Number.isInteger(r)) {
+      return "Reps must be a positive whole number";
+    }
+    if (weight === "" || isNaN(w) || w < 0) {
+      return "Weight must be 0 or a positive number";
+    }
+    if (notes.length > 280) {
+      return "Notes must be 280 characters or fewer";
+    }
+    return null;
+  };
+
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
+    event.preventDefault();
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    setError(null);
+    setSubmitting(true);
+
+    const payload = {
+      exerciseName: exercise.name,
+      setsCount: Number(sets),
+      repsCount: Number(reps),
+      weight: Number(weight),
+      notes: notes.trim(),
+      date: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/workouts/log`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}`;
+        try {
+          const data = await response.json();
+          message =
+            (data && (data.message || data.error)) || message;
+        } catch {
+          // ignore non-JSON response
+        }
+        throw new Error(message);
+      }
+
+      const result = await response.json();
+      const created: WorkoutLog = (result?.data ||
+        result?.payload ||
+        result) as WorkoutLog;
+
+      const normalized: WorkoutLog = {
+        _id: created._id ?? `local-${Date.now()}`,
+        exerciseName: created.exerciseName ?? exercise.name,
+        setsCount: Number(created.setsCount ?? payload.setsCount),
+        repsCount: Number(created.repsCount ?? payload.repsCount),
+        weight: Number(created.weight ?? payload.weight),
+        notes: created.notes ?? payload.notes,
+        caloriesBurned: Number(created.caloriesBurned ?? 0),
+        date: created.date ?? payload.date,
+      };
+
+      setHistory((prev) => [normalized, ...prev]);
+      setNotes("");
+      toast.success(
+        `${exercise.name} logged: ${normalized.setsCount} × ${normalized.repsCount} @ ${normalized.weight}kg`,
+        { duration: 3000 },
+      );
+    } catch (submitError) {
+      const message =
+        submitError instanceof Error
+          ? submitError.message
+          : "Failed to log workout";
+      setError(message);
+      toast.error(message, { duration: 3500 });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div
       className="
@@ -1567,27 +1684,180 @@ function ExerciseModal({
                 </div>
               </div>
 
-              {/* Start Exercise CTA Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  toast.success(
-                    `Starting ${exercise.name} session! Head over to Gym Stopwatch to log sets.`,
-                    { duration: 4000 },
-                  );
-                  onClose();
-                }}
-                className="group w-full inline-flex items-center justify-center gap-2.5 bg-white text-black font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl cursor-pointer"
+              {/* Log This Exercise */}
+              <form
+                onSubmit={handleSubmit}
+                className="bg-neutral-900/80 border border-white/10 rounded-2xl p-5 space-y-4"
+                noValidate
               >
-                <span>START THIS EXERCISE</span>
-                <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-                  <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                </span>
-              </button>
+                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+                  <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
+                    <Zap className="w-3.5 h-3.5" />
+                  </span>
+                  <h3 className="text-xs font-black uppercase tracking-wider text-white">
+                    LOG THIS EXERCISE
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <NumberField
+                    label="SETS"
+                    value={sets}
+                    onChange={setSets}
+                    min={1}
+                  />
+                  <NumberField
+                    label="REPS"
+                    value={reps}
+                    onChange={setReps}
+                    min={1}
+                  />
+                  <NumberField
+                    label="WEIGHT (KG)"
+                    value={weight}
+                    onChange={setWeight}
+                    min={0}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-black tracking-[0.2em] text-white/40 mb-2">
+                    NOTES (OPTIONAL)
+                  </label>
+                  <textarea
+                    value={notes}
+                    onChange={(event) => setNotes(event.target.value)}
+                    rows={2}
+                    maxLength={280}
+                    placeholder="How did this set feel?"
+                    className="w-full bg-neutral-950 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 outline-none focus:border-white transition resize-none"
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-red-400 border border-red-500/30 bg-red-500/10 rounded-lg px-3 py-2">
+                    {error}
+                  </p>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="group flex-1 inline-flex items-center justify-center gap-2.5 bg-white text-black font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <span>
+                      {submitting ? "LOGGING..." : "FINISH & LOG SET"}
+                    </span>
+                    <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+                      <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                    </span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Recent History For This Exercise */}
+              <HistoryList logs={history} />
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   INFO BOX
+============================================================ */
+
+/* ============================================================
+   NUMBER FIELD
+============================================================ */
+
+function NumberField({
+  label,
+  value,
+  onChange,
+  min,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  min: number;
+}) {
+  return (
+    <div>
+      <label className="block text-[9px] font-black tracking-[0.2em] text-white/40 mb-2">
+        {label}
+      </label>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={min}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-full bg-neutral-950 border border-white/10 rounded-xl px-3 py-2.5 text-sm font-black text-white outline-none focus:border-white transition [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      />
+    </div>
+  );
+}
+
+/* ============================================================
+   HISTORY LIST
+============================================================ */
+
+function HistoryList({ logs }: { logs: WorkoutLog[] }) {
+  if (logs.length === 0) {
+    return (
+      <div className="border border-dashed border-white/10 rounded-2xl p-5 text-center">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">
+          No sets logged yet for this session
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-neutral-900/80 border border-white/10 rounded-2xl p-5 space-y-3">
+      <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+        <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
+          <Flame className="w-3.5 h-3.5" />
+        </span>
+        <h3 className="text-xs font-black uppercase tracking-wider text-white">
+          UPDATED HISTORY
+        </h3>
+      </div>
+
+      <ul className="space-y-2">
+        {logs.map((log) => (
+          <li
+            key={log._id}
+            className="flex items-center justify-between gap-3 border border-white/10 bg-neutral-950 rounded-xl px-3 py-2.5"
+          >
+            <div className="min-w-0">
+              <p className="text-xs font-black text-white truncate">
+                {log.setsCount} × {log.repsCount} @ {log.weight}kg
+              </p>
+              {log.notes && (
+                <p className="text-[10px] text-white/50 truncate">
+                  {log.notes}
+                </p>
+              )}
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-[10px] font-black text-white">
+                {log.caloriesBurned ? `${log.caloriesBurned} kcal` : "—"}
+              </p>
+              <p className="text-[9px] uppercase tracking-wider text-white/40">
+                {new Date(log.date).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

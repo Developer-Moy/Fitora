@@ -23,7 +23,19 @@ const io = new SocketIOServer(server, {
 });
 
 // Middleware
-app.use(cors({ origin: '*' }));
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:3000',
+  'http://localhost:3000',
+];
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(null, true);
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // Root Health Check Route
