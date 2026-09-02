@@ -104,6 +104,14 @@ These components form the responsive header, hero section, pricing, callouts, co
 ### 20-Aug-26
 * Standardized Pure Black & White theme across Header Navbar and Footer
 
+### 21-Aug-26
+* Developed floating AI fitness assistant trigger widget and response message streaming container
+* Implemented client-side message state management with auto-scrolling bubble views
+
+### 22-Aug-26
+* Fine-tuned high-contrast typography and border contrast across navigation elements
+* Structured mobile hamburger menu drawer interactions and backdrop blur effects in `Navbar.tsx`
+
 ### 23-Aug-26
 * Redesigned Mobile & Tablet drawer (`< 1024px`) with right slide-in Brainwave UI layout, white search bar, and smooth CSS keyframe animations
 
