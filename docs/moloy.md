@@ -56,6 +56,22 @@ Redesigned the global Footer (`client/src/components/Footer.tsx`) matching the 1
 
 ---
 
+## 6. Membership Subscription & Payment Checkout Flow (`PricingSection.tsx` & `SubscriptionModal.tsx`)
+
+Implemented the complete membership tier selection and single-screen luxury payment checkout experience.
+
+### Key Implementation:
+* **Interactive Pricing Grid**: 3-tier membership pricing cards (`Basic Pass`, `Pro Athlete`, `VIP Ultimate`) with dynamic Monthly / Annual billing discount toggle (Save 20%) and instant price recalculations.
+* **Smart Authentication Routing**:
+  - Unauthenticated / Guest visitors clicking any plan are redirected to `/register?plan=<selected_plan>&billing=<annual|monthly>`.
+  - Logged-in athletes clicking a plan trigger the in-app **Subscription Checkout Modal** without page reload or 404 redirection.
+* **Single-Screen Luxury Checkout Modal (`SubscriptionModal.tsx`)**:
+  - **Zero-Scroll Architecture**: Optimized wide 2-column layout (Desktop/Tablet) and compact summary strip (Mobile) designed to fit 100% within one viewport without vertical scrollbars.
+  - **Payment Gateways**: Simulated instant checkouts for **bKash** (Mobile Wallet), **Nagad** (Instant Pay), and **Card** (Visa/Mastercard) with real-time BDT (৳) currency conversion.
+  - **State & Role Sync**: Upgrades member status to `premium_user` and activates purchased plan tier (`fitora_user_plan`) in `useDashboardRole` upon payment completion.
+
+---
+
 ## Overview
 
 These components form the responsive header, hero section, pricing, callouts, contact form, and footer of **Fitora**.
@@ -88,6 +104,14 @@ These components form the responsive header, hero section, pricing, callouts, co
 ### 20-Aug-26
 * Standardized Pure Black & White theme across Header Navbar and Footer
 
+### 21-Aug-26
+* Developed floating AI fitness assistant trigger widget and response message streaming container
+* Implemented client-side message state management with auto-scrolling bubble views
+
+### 22-Aug-26
+* Fine-tuned high-contrast typography and border contrast across navigation elements
+* Structured mobile hamburger menu drawer interactions and backdrop blur effects in `Navbar.tsx`
+
 ### 23-Aug-26
 * Redesigned Mobile & Tablet drawer (`< 1024px`) with right slide-in Brainwave UI layout, white search bar, and smooth CSS keyframe animations
 
@@ -105,3 +129,53 @@ These components form the responsive header, hero section, pricing, callouts, co
 * Removed unused old component files (`MealChartSection.tsx`, `PricingAndReviews.tsx`, `TrainersSection.tsx`, `AiTrainerSection.tsx`, `CalculatorSection.tsx`, `GymTimerSection.tsx`, `MeetTrainers.tsx`)
 * Standardized 100% brand consistency under **FITORA** / **FITORA GYM & AI**
 * Updated all project documentation (`README.md`, `docs/moloy.md`, `docs/project_architecture.md`)
+
+### 26-Aug-26
+* Conducted cross-device responsive layout testing for the Pure Black & White theme across desktop, tablet, and mobile breakpoints
+* Fine-tuned HeroSection cutout positioning and SVG bottom notch geometry to prevent clipping on mobile viewports
+* Optimized drawer opening and closing animations with custom cubic-bezier transitions in `Navbar.tsx`
+
+### 27-Aug-26
+* Audited image assets and Next.js `<Image />` loaders to eliminate layout shift and improve Largest Contentful Paint (LCP)
+* Standardized global toast notification provider in `providers.tsx` to handle authentication and action alerts
+* Implemented client-side auth session hydration bridging BetterAuth tokens with local persistence
+
+### 28-Aug-26
+* Refactored `DashboardSidebar.tsx` navigation items and unified role-switching logic inside `useDashboardRole.tsx`
+* Designed high-contrast stat widgets and interactive metrics layout for Master Admin overview
+* Standardized button hover effects with glowing backdrop filter styling across dark dashboard elements
+
+### 29-Aug-26
+* Performed codebase-wide TypeScript type checking and cleaned redundant type casts across client components
+* Standardized brand naming to strictly **FITORA** / **FITORA GYM & AI** across all page metadata and layout titles
+* Refactored responsive padding and container boundaries across `/profile`, `/calculator`, and `/stopwatch` routes
+
+### 30-Aug-26
+* Implemented search filtering and role-based user management table handlers in `UserManagementTable.tsx`
+* Conducted pre-QA sprint walkthrough and validated component modularity for seamless multi-developer integration
+* Prepared detailed QA test plans and verified end-to-end user navigation flows
+
+### 31-Aug-26
+* Conducted QA and resolved post-merge build issues on `moloy` branch
+* Fixed routing boundaries, unauthenticated redirects, and profile edit synchronization
+* Fixed counter animation increment throttling in Hero section and adjusted UI badge styling
+
+### 01-Sep-26
+* Resolved comprehensive QA Bug Report (Batches 1, 2, and 3) covering auth boundaries, UI components, and state management
+* Fixed desktop navbar dropdown navigation and secured `/profile` route with automatic login redirects
+* Replaced static counter interval with dynamic step calculation in `HeroSection.tsx` for instantaneous, smooth number rendering
+* Resolved floating AI trigger button overlapping with the active AI assistant chat modal
+* Styled pricing discount indicator into a modern high-contrast green pill badge (`bg-emerald-500/10 text-emerald-400`)
+* Fixed profile update synchronization by connecting `better-auth` `updateUser` with custom local session persistence
+* Fixed athlete role and profile retention on dashboard page reload inside `useDashboardRole.tsx`
+* Fixed search query bug in `UserManagementTable.tsx` by automatically resetting pagination to page 1 upon filter changes
+* Replaced browser native `window.confirm` with a custom-styled Delete Confirmation Modal for Master Admin user management
+* Populated missing and broken meal plan image slots in `MealsData.ts` with high-resolution fitness food assets
+* Updated "Free Trial Today" CTA logic in `WhyChooseUs.tsx` to conditionally redirect authenticated athletes to `/profile` and guest visitors to `/register`
+
+### 02-Sep-26
+* Refined Homepage Pricing / Membership Section (`PricingSection.tsx`) with dynamic monthly vs annual pricing & savings calculations
+* Built interactive Luxury Pure B&W **Subscription Checkout Modal** (`SubscriptionModal.tsx`) supporting bKash, Nagad, and Card (Visa/Mastercard) payment simulations
+* Implemented smart authentication routing: automatic redirect to `/register?plan=...` for guest visitors and instant in-app checkout modal for logged-in athletes
+* Synchronized active subscription tier (`Basic Pass`, `Pro Athlete`, `VIP Ultimate`) with `useDashboardRole`, local session state, and Member Dashboard
+* Validated 100% clean production builds across client and server with zero compilation errors

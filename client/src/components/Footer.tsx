@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -22,6 +22,11 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,24 +49,33 @@ export default function Footer() {
     }
   };
 
-  // Hide footer inside /dashboard, /login, and /register routes
+  // Wait until mounted on client to prevent extension attribute and route hydration mismatch
+  if (!isMounted) {
+    return null;
+  }
+
+  // Hide footer inside /dashboard, /login, /register, and /profile routes
   if (
     pathname?.startsWith("/dashboard") ||
     pathname === "/login" ||
-    pathname === "/register"
+    pathname === "/register" ||
+    pathname?.startsWith("/profile")
   ) {
     return null;
   }
 
   return (
-    <footer className="relative bg-black text-white select-none overflow-hidden border-t border-white/10">
+    <footer
+      suppressHydrationWarning
+      className="relative bg-black text-white select-none overflow-hidden border-t border-white/10"
+    >
       {/* ── Main Hero Footer Section (Crystal Clear Gym BG & Polished Bold Design) ── */}
       <div className="relative py-10 sm:py-12 px-6 sm:px-10 lg:px-14 overflow-hidden">
         {/* Crystal Clear High Visibility Gym Background Image */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-[0.85] contrast-115 z-0 transition-all duration-300"
+          className="absolute inset-0 bg-contain bg-center bg-no-repeat filter brightness-[0.85] contrast-115 z-0 transition-all duration-300"
           style={{
-            backgroundImage: "url('/image1.jpg.jpeg')",
+            backgroundImage: "url('/choose2.jpg.jpeg')",
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20 z-0 pointer-events-none" />
@@ -90,9 +104,9 @@ export default function Footer() {
             {/* Right Column: Mission Quote + Location Info + Directions Button */}
             <div className="lg:col-span-6 space-y-4 lg:pl-10 text-left lg:text-right flex flex-col lg:items-end justify-end">
               <p className="text-xs sm:text-sm text-gray-200 max-w-md font-semibold leading-relaxed drop-shadow-md">
-                Bangladesh's premier AI fitness platform. Serving fitness
-                enthusiasts across all 64 districts with real-time workout
-                tracking, AI coaching, and custom nutrition.
+                {
+                  "Bangladesh's premier AI fitness platform. Serving fitness enthusiasts across all 64 districts with real-time workout tracking, AI coaching, and custom nutrition."
+                }
               </p>
 
               <div className="space-y-1 drop-shadow-md">
@@ -288,7 +302,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-gray-400">
           {/* Left Side: Copyright & Developer Credit */}
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 font-semibold">
-            <span>FITORA GYM © {new Date().getFullYear()}</span>
+            <span>FITORA GYM © 2026</span>
             <Link
               href="/privacy"
               className="hover:text-white transition-colors"

@@ -12,6 +12,7 @@ import {
   Dumbbell,
   ShieldCheck,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import BmiCalculator from "@/components/BmiCalculator";
 
 type Gender = "male" | "female";
@@ -50,7 +51,6 @@ export default function CalculatorPage() {
   const [weight, setWeight] = useState(65);
   const [activityLevel, setActivityLevel] = useState(1.55);
   const [goal, setGoal] = useState<Goal>("maintenance");
-  const [toast, setToast] = useState("");
 
   const bmr = useMemo(() => {
     const value =
@@ -180,16 +180,6 @@ export default function CalculatorPage() {
     }
   }, [goal]);
 
-  useEffect(() => {
-    if (!toast) return;
-
-    const timer = setTimeout(() => {
-      setToast("");
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [toast]);
-
   const handleExport = async () => {
     const metrics = `FITORA NUTRITION & BMI REPORT
 Goal: ${goalLabel}
@@ -208,9 +198,9 @@ Macros:
 
     try {
       await navigator.clipboard.writeText(metrics);
-      setToast("Metrics copied to clipboard!");
+      toast.success("Metrics and nutrition plan copied to clipboard!");
     } catch {
-      setToast("Failed to copy metrics.");
+      toast.error("Failed to copy metrics to clipboard.");
     }
   };
 
@@ -852,20 +842,6 @@ Macros:
           </div>
         </div>
       </section>
-
-      {/* =====================================================
-          TOAST NOTIFICATION
-      ====================================================== */}
-      {toast && (
-        <motion.div
-          initial={{ opacity: 0, y: 15, x: "-50%" }}
-          animate={{ opacity: 1, y: 0, x: "-50%" }}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-black/90 text-white border border-white/20 px-5 py-3 rounded-full text-xs font-extrabold uppercase tracking-wide shadow-2xl backdrop-blur-xl flex items-center gap-2"
-        >
-          <CheckCircle className="w-4 h-4 text-white" />
-          <span>{toast}</span>
-        </motion.div>
-      )}
     </div>
   );
 }

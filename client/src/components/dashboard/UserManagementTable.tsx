@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   UserRecord,
   INITIAL_USERS,
@@ -49,6 +49,7 @@ export default function UserManagementTable({
 
   // Edit Modal State
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
+  const [userToDelete, setUserToDelete] = useState<UserRecord | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Add User Modal State
@@ -75,6 +76,10 @@ export default function UserManagementTable({
   // Pagination State
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(5);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, roleFilter, statusFilter, branchFilter]);
 
   // Filter Users
   const filteredUsers = users.filter((user) => {
@@ -136,17 +141,21 @@ export default function UserManagementTable({
     showToast(`User "${editingUser.name}" details updated successfully!`);
   };
 
-  const handleDeleteUser = (userId: string, userName: string) => {
-    if (userId === "USR-1001" || userName.toLowerCase() === "master") {
+  const handleDeleteUserClick = (user: UserRecord) => {
+    if (user.id === "USR-1001" || user.name.toLowerCase() === "master") {
       toast.error("Master Admin account is permanent and cannot be deleted.");
       showToast("Master Admin account is permanent and cannot be deleted.");
       return;
     }
-    if (window.confirm(`Are you sure you want to remove user "${userName}"?`)) {
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
-      toast.success(`User "${userName}" removed from the platform.`);
-      showToast(`User "${userName}" removed from the platform.`);
-    }
+    setUserToDelete(user);
+  };
+
+  const confirmDeleteUser = () => {
+    if (!userToDelete) return;
+    setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+    toast.success(`User "${userToDelete.name}" removed from the platform.`);
+    showToast(`User "${userToDelete.name}" removed from the platform.`);
+    setUserToDelete(null);
   };
 
   const handleCreateUser = (e: React.FormEvent) => {
@@ -457,7 +466,7 @@ export default function UserManagementTable({
 
                         {currentRole === "master_admin" && (
                           <button
-                            onClick={() => handleDeleteUser(user.id, user.name)}
+                            onClick={() => handleDeleteUserClick(user)}
                             className="p-2 rounded-full bg-neutral-900 border border-white/15 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors cursor-pointer"
                             title="Remove User"
                           >
@@ -553,6 +562,43 @@ export default function UserManagementTable({
           </div>
         )}
       </div>
+
+      
+      {/* ── DELETE CONFIRMATION MODAL ── */}
+      {userToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <h3 className="text-lg font-black text-rose-500 uppercase tracking-tight">
+                Remove User
+              </h3>
+              <button
+                onClick={() => setUserToDelete(null)}
+                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-300">
+              Are you sure you want to completely remove <strong>{userToDelete.name}</strong> from the platform? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setUserToDelete(null)}
+                className="flex-1 py-3 bg-neutral-900 border border-white/15 text-white font-bold rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer text-xs uppercase"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteUser}
+                className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-xl hover:bg-rose-600 transition-colors shadow-lg cursor-pointer text-xs uppercase"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── LIVE EDIT USER MODAL (HOMEPAGE LUXURY DARK) ── */}
       {isEditModalOpen && editingUser && (

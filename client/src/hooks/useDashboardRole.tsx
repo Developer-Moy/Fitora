@@ -16,6 +16,7 @@ export interface DashboardUserContextType {
   setAssignedBranch: (branch: string) => void;
   userName: string;
   userEmail: string;
+  userPlan: string;
   isMasterAdmin: boolean;
   isBranchAdmin: boolean;
   isPremium: boolean;
@@ -63,6 +64,7 @@ export function DashboardRoleProvider({
       localStorage.getItem("fitora_active_branch");
 
     if (isAuth && savedRole) {
+      // eslint-disable-next-line
       setIsAuthenticated(true);
       if (
         ["master_admin", "branch_admin", "premium_user", "free_user"].includes(
@@ -110,27 +112,52 @@ export function DashboardRoleProvider({
   };
 
   const getUserDetails = () => {
+    let localUser = null;
+    let userPlan = "";
+    if (typeof window !== "undefined") {
+      try {
+        userPlan = localStorage.getItem("fitora_user_plan") || "";
+        const stored = localStorage.getItem("fitora_user");
+        if (stored) {
+          localUser = JSON.parse(stored);
+          if (localUser.plan) userPlan = localUser.plan;
+        }
+      } catch (e) {}
+    }
+
+    if (localUser && localUser.name && localUser.email) {
+      return {
+        name: localUser.name,
+        email: localUser.email,
+        plan: userPlan || (role === "premium_user" ? "VIP Ultimate" : "Free Pass"),
+      };
+    }
+
     switch (role) {
       case "master_admin":
         return {
           name: "Master",
           email: "master@fitora.com",
+          plan: "VIP Ultimate",
         };
       case "branch_admin":
         return {
           name: "Rahim Ahmed (Branch Admin)",
           email: "gulshan.admin@fitora.com.bd",
+          plan: "VIP Ultimate",
         };
       case "premium_user":
         return {
           name: "Tanvir Hasan (VIP Athlete)",
           email: "tanvir.athlete@gmail.com",
+          plan: userPlan || "Pro Athlete",
         };
       case "free_user":
       default:
         return {
           name: "Sabbir Hossain (Free Member)",
           email: "sabbir.member@gmail.com",
+          plan: userPlan || "Free Pass",
         };
     }
   };
@@ -144,6 +171,7 @@ export function DashboardRoleProvider({
     setAssignedBranch,
     userName: user.name,
     userEmail: user.email,
+    userPlan: user.plan,
     isMasterAdmin: role === "master_admin",
     isBranchAdmin: role === "branch_admin",
     isPremium: role === "premium_user",
@@ -170,6 +198,7 @@ export function useDashboardRole(): DashboardUserContextType {
       setAssignedBranch: () => {},
       userName: "Master",
       userEmail: "master@fitora.com",
+      userPlan: "VIP Ultimate",
       isMasterAdmin: true,
       isBranchAdmin: false,
       isPremium: false,

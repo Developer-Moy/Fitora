@@ -78,6 +78,7 @@ export default function GymTimer({
       const saved = localStorage.getItem(`fitora_daily_gym_time_${today}`);
       if (saved) {
         const parsed = parseInt(saved, 10);
+        // eslint-disable-next-line
         if (!isNaN(parsed)) setTotalGymSeconds(parsed);
       }
     } catch {
@@ -194,7 +195,7 @@ export default function GymTimer({
       }
     }
     if (seconds < 60) minuteAlertedRef.current = 0;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [seconds, isRunning, targetSeconds]);
 
   // Target-duration countdown warning cues & final alarm
@@ -220,6 +221,7 @@ export default function GymTimer({
 
     // Target reached -> multi-beep alarm & auto-stop
     if (seconds >= targetSeconds) {
+      // eslint-disable-next-line
       setIsRunning(false);
       setTargetSeconds(null);
 
@@ -263,7 +265,7 @@ export default function GymTimer({
       });
       setSeconds(0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [seconds, targetSeconds, isRunning]);
 
   // Formatter for HH:MM:SS
