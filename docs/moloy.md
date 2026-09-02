@@ -56,6 +56,22 @@ Redesigned the global Footer (`client/src/components/Footer.tsx`) matching the 1
 
 ---
 
+## 6. Membership Subscription & Payment Checkout Flow (`PricingSection.tsx` & `SubscriptionModal.tsx`)
+
+Implemented the complete membership tier selection and single-screen luxury payment checkout experience.
+
+### Key Implementation:
+* **Interactive Pricing Grid**: 3-tier membership pricing cards (`Basic Pass`, `Pro Athlete`, `VIP Ultimate`) with dynamic Monthly / Annual billing discount toggle (Save 20%) and instant price recalculations.
+* **Smart Authentication Routing**:
+  - Unauthenticated / Guest visitors clicking any plan are redirected to `/register?plan=<selected_plan>&billing=<annual|monthly>`.
+  - Logged-in athletes clicking a plan trigger the in-app **Subscription Checkout Modal** without page reload or 404 redirection.
+* **Single-Screen Luxury Checkout Modal (`SubscriptionModal.tsx`)**:
+  - **Zero-Scroll Architecture**: Optimized wide 2-column layout (Desktop/Tablet) and compact summary strip (Mobile) designed to fit 100% within one viewport without vertical scrollbars.
+  - **Payment Gateways**: Simulated instant checkouts for **bKash** (Mobile Wallet), **Nagad** (Instant Pay), and **Card** (Visa/Mastercard) with real-time BDT (৳) currency conversion.
+  - **State & Role Sync**: Upgrades member status to `premium_user` and activates purchased plan tier (`fitora_user_plan`) in `useDashboardRole` upon payment completion.
+
+---
+
 ## Overview
 
 These components form the responsive header, hero section, pricing, callouts, contact form, and footer of **Fitora**.
