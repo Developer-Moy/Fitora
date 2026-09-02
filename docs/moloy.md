@@ -105,3 +105,15 @@ These components form the responsive header, hero section, pricing, callouts, co
 * Removed unused old component files (`MealChartSection.tsx`, `PricingAndReviews.tsx`, `TrainersSection.tsx`, `AiTrainerSection.tsx`, `CalculatorSection.tsx`, `GymTimerSection.tsx`, `MeetTrainers.tsx`)
 * Standardized 100% brand consistency under **FITORA** / **FITORA GYM & AI**
 * Updated all project documentation (`README.md`, `docs/moloy.md`, `docs/project_architecture.md`)
+
+### 31-Aug-26
+* Conducted QA and resolved post-merge build issues on `moloy` branch
+* Fixed routing boundaries, unauthenticated redirects, and profile edit synchronization
+* Fixed counter animation increment throttling in Hero section and adjusted UI badge styling
+
+### 02-Sep-26
+* Refined Homepage Pricing / Membership Section (`PricingSection.tsx`) with dynamic monthly vs annual pricing & savings calculations
+* Built interactive Luxury Pure B&W **Subscription Checkout Modal** (`SubscriptionModal.tsx`) supporting bKash, Nagad, and Card (Visa/Mastercard) payment simulations
+* Implemented smart authentication routing: automatic redirect to `/register?plan=...` for guest visitors and instant in-app checkout modal for logged-in athletes
+* Synchronized active subscription tier (`Basic Pass`, `Pro Athlete`, `VIP Ultimate`) with `useDashboardRole`, local session state, and Member Dashboard
+* Validated 100% clean production builds across client and server with zero compilation errors
