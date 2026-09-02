@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Search, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
+import GlobalSearchBar from "@/components/dashboard/GlobalSearchBar";
 import {
   DashboardRoleProvider,
   useDashboardRole,
@@ -56,9 +57,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           isCollapsed ? "lg:ml-20" : "lg:ml-64"
         }`}
       >
-        {/* Top Navbar Header — ONLY Search Bar & Notification Panel */}
+        {/* Top Navbar Header — Global Search Bar & Notification Panel */}
         <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/10 bg-black/90 backdrop-blur-md px-4 lg:px-8">
-          {/* Left: Mobile Drawer Trigger & Search Bar */}
+          {/* Left: Mobile Drawer Trigger & Global Search Bar */}
           <div className="flex items-center gap-4 flex-1 max-w-xl">
             <button
               onClick={() => setIsMobileOpen(true)}
@@ -68,15 +69,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
             </button>
 
-            {/* Global Search Bar */}
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-              <input
-                type="text"
-                placeholder="Search athletes, branches, financials, telemetry..."
-                className="w-full rounded-full border border-white/15 bg-neutral-900/90 py-2 pl-10 pr-4 text-xs font-medium text-white placeholder:text-white/40 outline-none transition-all focus:border-white focus:ring-1 focus:ring-white"
-              />
-            </div>
+            {/* Global Multi-Entity Search Bar */}
+            <GlobalSearchBar />
           </div>
 
           {/* Right: ONLY Notification Panel */}

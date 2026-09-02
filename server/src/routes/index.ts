@@ -14,6 +14,7 @@ import newsletterRoutes from "./newsletter.routes";
 import stopwatchRoutes from "./stopwatch.routes";
 import exerciseRoutes from "./exercise.routes";
 import nutritionRoutes from "./nutrition.routes";
+import searchRoutes from "./search.routes";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
 const apiRouter = Router();
@@ -58,5 +59,6 @@ apiRouter.use("/dashboard", userRoutes);
 apiRouter.use("/consultations", consultationRoutes);
 apiRouter.use("/branches", branchRoutes);
 apiRouter.use("/newsletter", newsletterRoutes);
+apiRouter.use("/search", searchRoutes);
 
 export default apiRouter;
