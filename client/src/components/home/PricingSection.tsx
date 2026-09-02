@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ArrowUpRight, ShieldCheck, Sparkles } from "lucide-react";
+import { Check, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
-import { getAuthSession, saveAuthSession, AuthUser } from "@/services/authService";
+import {
+  getAuthSession,
+  saveAuthSession,
+  AuthUser,
+} from "@/services/authService";
 import SubscriptionModal from "@/components/home/SubscriptionModal";
 import toast from "react-hot-toast";
 
@@ -98,7 +101,7 @@ export default function PricingSection() {
   const handlePlanSelect = (plan: PlanItem) => {
     if (!isLoggedIn) {
       router.push(
-        `/register?plan=${plan.id}&billing=${isAnnual ? "annual" : "monthly"}`
+        `/register?plan=${plan.id}&billing=${isAnnual ? "annual" : "monthly"}`,
       );
       return;
     }
@@ -108,7 +111,7 @@ export default function PricingSection() {
   const handleSubscriptionSuccess = (
     plan: PlanItem,
     isAnnualPlan: boolean,
-    paymentMethod: string
+    paymentMethod: string,
   ) => {
     const sessionData = getAuthSession();
     const currentUser = sessionData.user || (session?.user as any as AuthUser);
@@ -128,7 +131,7 @@ export default function PricingSection() {
     toast.success(
       `🎉 Payment Successful via ${paymentMethod}! Welcome to ${plan.name} (${
         isAnnualPlan ? "Annual" : "Monthly"
-      })!`
+      })!`,
     );
 
     setTimeout(() => {
