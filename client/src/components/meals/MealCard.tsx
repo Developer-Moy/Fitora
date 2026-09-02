@@ -1,9 +1,13 @@
 "use client";
 import Image from "next/image";
 
-import { ArrowUpRight, X, Flame, Utensils, Copy } from "lucide-react";
+import { ArrowUpRight, X, Flame, Copy } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { FaPlus } from "react-icons/fa6";
+import { getAuthSession } from "@/services/authService";
+import { addMealToDailyPlan } from "@/services/dailyMealPlanService";
+import { useSession } from "@/lib/auth-client";
 
 interface MealProps {
   id: string;
@@ -15,10 +19,56 @@ interface MealProps {
 }
 
 const MealCard = (meal: MealProps) => {
+  const { data: session } = useSession();
   const [imageError, setImageError] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddingToPlan, setIsAddingToPlan] = useState(false);
   const fallbackImage = "https://i.ibb.co.com/8g7PMCnQ/no-img.png";
   const displayImage = !meal.img || imageError ? fallbackImage : meal.img;
+
+  const handleAddToDailyPlan = async () => {
+    // Resolve userId from any available auth source:
+    // 1. Better Auth session (Google / email via Better Auth)
+    // 2. Custom JWT path — user object stored in localStorage by loginApi()
+    // 3. Email as last-resort identifier when only an admin-shortcut session exists
+    const { user: localUser } = getAuthSession();
+    const userId =
+      session?.user?.id ||
+      localUser?.id ||
+      localUser?._id ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("fitora_user_email") ?? undefined
+        : undefined);
+
+    if (!userId) {
+      toast.error("Please log in to add meals to your daily plan.");
+      return;
+    }
+
+    setIsAddingToPlan(true);
+    try {
+      const result = await addMealToDailyPlan(
+        {
+          id: meal.id,
+          name: meal.name,
+          calories: meal.calories,
+          description: meal.description,
+          ingredients: meal.ingredients,
+          img: meal.img,
+        },
+        userId
+      );
+      if (result.success) {
+        toast.success(`${meal.name} added to your daily plan!`);
+      } else {
+        toast.error(result.message || "Failed to add meal to daily plan.");
+      }
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setIsAddingToPlan(false);
+    }
+  };
 
   const handleCopyRecipe = async () => {
     const recipeText = `FITORA MEAL PLAN: ${meal.name}
@@ -55,7 +105,7 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
             </span>
           </div>
 
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/20 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-neutral-950 via-neutral-950/20 to-transparent" />
         </div>
 
         {/* Card Content */}
@@ -88,20 +138,28 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
           </div>
 
           {/* Action Button Footer */}
-          <div className="pt-2.5 border-t border-white/10 flex items-center justify-between gap-4">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-              <Utensils className="w-3.5 h-3.5 text-white" />
-              <span>Nutrition Plan</span>
-            </span>
+          <div className="pt-2.5 border-t border-white/10 flex items-center justify-between gap-2 sm:gap-4">
+            {/* Add to My Daily Plan */}
+            <button
+              type="button"
+              onClick={handleAddToDailyPlan}
+              disabled={isAddingToPlan}
+              className="group/btn inline-flex items-center gap-1.5 sm:gap-2 bg-neutral-900 text-white border border-white/20 font-extrabold text-[11px] sm:text-xs px-2.5 sm:px-4 py-2 rounded-full uppercase tracking-wider hover:bg-neutral-800 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 cursor-pointer shadow-xl shrink-0 disabled:opacity-60 disabled:pointer-events-none"
+            >
+              <span>Daily Plan</span>
+              <span className="bg-white text-black w-5 h-5 rounded-full flex items-center justify-center group-hover/btn:rotate-90 group-hover/btn:scale-110 transition-all duration-300 shadow-md shrink-0">
+                <FaPlus className="w-3 h-3 stroke-[2.5]" />
+              </span>
+            </button>
 
             {/* View Details Signature Pill Button */}
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="group/btn inline-flex items-center gap-2 bg-white text-black border border-white font-extrabold text-xs px-4 py-2 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
+              className="group/btn inline-flex items-center gap-1.5 sm:gap-2 bg-white text-black border border-white font-extrabold text-[11px] sm:text-xs px-2.5 sm:px-4 py-2 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer shrink-0"
             >
               <span>View Details</span>
-              <span className="bg-black text-white w-5 h-5 rounded-full flex items-center justify-center group-hover/btn:rotate-45 group-hover/btn:scale-110 transition-all duration-300 shadow-md">
+              <span className="bg-black text-white w-5 h-5 rounded-full flex items-center justify-center group-hover/btn:rotate-45 group-hover/btn:scale-110 transition-all duration-300 shadow-md shrink-0">
                 <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
               </span>
             </button>
@@ -112,7 +170,7 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
       {/* ── Responsive Dark Glassmorphism Modal ── */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 select-none"
+          className="fixed inset-0 z-100 flex items-center justify-center p-3 sm:p-6 select-none"
           onClick={() => setIsModalOpen(false)}
         >
           {/* Backdrop */}
@@ -142,7 +200,7 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
                   🔥 {meal.calories} kcal
                 </span>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-neutral-950 via-transparent to-transparent" />
             </div>
 
             {/* Mobile Modal Details */}
@@ -177,14 +235,24 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
                 </div>
               </div>
 
-              {/* Close Button */}
-              <div className="pt-2">
+              {/* Mobile Action Buttons */}
+              <div className="pt-2 flex flex-col gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="w-full bg-white text-black font-extrabold hover:bg-gray-100 transition-colors py-2.5 rounded-full uppercase text-xs tracking-wider cursor-pointer shadow-lg"
+                  onClick={handleAddToDailyPlan}
+                  disabled={isAddingToPlan}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-neutral-900 text-white border border-white/20 font-extrabold hover:bg-neutral-800 transition-all py-2.5 rounded-full uppercase text-xs tracking-wider cursor-pointer shadow-lg active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
                 >
-                  Close Recipe
+                  <FaPlus className="w-3.5 h-3.5" />
+                  <span>Add to Daily Plan</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCopyRecipe}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-white text-black font-extrabold hover:bg-gray-100 transition-all py-2.5 rounded-full uppercase text-xs tracking-wider cursor-pointer shadow-lg active:scale-95"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Copy Recipe</span>
                 </button>
               </div>
             </div>
@@ -207,7 +275,7 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
             </button>
 
             {/* Desktop 2 Columns Split */}
-            <div className="grid grid-cols-12 items-stretch min-h-[380px] lg:min-h-[420px]">
+            <div className="grid grid-cols-12 items-stretch min-h-95 lg:min-h-105">
               {/* Left Column: Full-Height Image (5/12 Width) */}
               <div className="relative col-span-5 h-full overflow-hidden bg-neutral-900">
                 <Image src={displayImage} alt={meal.name} fill className="w-full h-full object-cover brightness-95 contrast-105" />
@@ -216,7 +284,7 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
                     🔥 {meal.calories} kcal
                   </span>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-neutral-950/80" />
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-transparent to-neutral-950/80" />
               </div>
 
               {/* Right Column: Details & Ingredients (7/12 Width) */}
@@ -258,13 +326,17 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
                     <Copy className="w-3.5 h-3.5" />
                     <span>Copy Recipe</span>
                   </button>
+
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 bg-neutral-900 text-white border border-white/20 font-extrabold hover:bg-neutral-800 transition-all px-5 py-2.5 rounded-full uppercase text-xs tracking-wider cursor-pointer shadow-xl active:scale-95"
+                    onClick={handleAddToDailyPlan}
+                    disabled={isAddingToPlan}
+                    className="flex-1 inline-flex items-center justify-center gap-2 bg-neutral-900 text-white border border-white/20 font-extrabold hover:bg-neutral-800 transition-all px-5 py-2.5 rounded-full uppercase text-xs tracking-wider cursor-pointer shadow-xl active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
                   >
-                    Close
+                    <FaPlus className="w-3.5 h-3.5" />
+                    <span>Add to Daily Plan</span>
                   </button>
+
                 </div>
               </div>
             </div>
