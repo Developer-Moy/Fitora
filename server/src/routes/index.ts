@@ -24,23 +24,29 @@ apiRouter.get("/health", (req: Request, res: Response) => {
   try {
     const dbState = mongoose.connection.readyState;
     const dbStatus =
-      dbState === 1 ? "connected" : dbState === 2 ? "connecting" : "disconnected";
+      dbState === 1
+        ? "connected"
+        : dbState === 2
+          ? "connecting"
+          : "disconnected";
 
     return res.status(200).json(
       successResponse("Fitora API & Socket Server is running smoothly", {
         uptimeSeconds: Math.floor(process.uptime()),
         databaseStatus: dbStatus,
         environment: process.env.NODE_ENV || "development",
-      })
+      }),
     );
   } catch (error) {
-    return res.status(500).json(
-      errorResponse(
-        "Health check failed",
-        error instanceof Error ? error.message : "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Health check failed",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 });
 

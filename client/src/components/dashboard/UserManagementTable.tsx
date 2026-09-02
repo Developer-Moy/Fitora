@@ -1,11 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   UserRecord,
-  INITIAL_USERS,
   INITIAL_BRANCHES,
 } from "@/data/dashboardData";
+import {
+  fetchAllUsers,
+  fetchPublicBranches,
+  createUserAPI,
+  updateUserAPI,
+  deleteUserAPI,
+  type BranchInfo,
+} from "@/services/dashboardService";
 import {
   Search,
   Filter,
@@ -41,7 +48,10 @@ export default function UserManagementTable({
   currentRole,
   assignedBranch,
 }: UserManagementTableProps) {
-  const [users, setUsers] = useState<UserRecord[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<UserRecord[]>([]);
+  const [branches, setBranches] = useState<BranchInfo[]>(INITIAL_BRANCHES);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -59,7 +69,7 @@ export default function UserManagementTable({
     email: "",
     phone: "",
     role: "free_user",
-    assignedBranch: INITIAL_BRANCHES[0].name,
+    assignedBranch: "Dhaka - Gulshan-2 Branch (Flagship)",
     plan: "Free Pass",
     status: "active",
     paymentMethod: "None",
@@ -77,9 +87,39 @@ export default function UserManagementTable({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(5);
 
+  // ── Fetch users from API ──────────────────────────────────────────────────
+  const loadUsers = useCallback(async () => {
+    setIsLoading(true);
+    setFetchError(null);
+    const result = await fetchAllUsers({ limit: 200 });
+    if (result) {
+      setUsers(result.users);
+    } else {
+      setFetchError("Could not connect to backend. Showing cached data.");
+      // Fallback: leave empty array, UX shows empty state
+    }
+    setIsLoading(false);
+  }, []);
+
+  // ── Fetch branches from API ───────────────────────────────────────────────
+  const loadBranches = useCallback(async () => {
+    const result = await fetchPublicBranches();
+    if (result && result.length > 0) {
+      setBranches(result as any);
+      setNewUser((prev) => ({ ...prev, assignedBranch: result[0].name }));
+    }
+    // fallback: keep INITIAL_BRANCHES already set
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+    loadBranches();
+  }, [loadUsers, loadBranches]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, roleFilter, statusFilter, branchFilter]);
+
 
   // Filter Users
   const filteredUsers = users.filter((user) => {
@@ -118,12 +158,11 @@ export default function UserManagementTable({
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
 
     if (
-      editingUser.id === "USR-1001" ||
       editingUser.email === "master@fitora.com" ||
       editingUser.role === "master_admin"
     ) {
@@ -133,16 +172,30 @@ export default function UserManagementTable({
       return;
     }
 
+    // Optimistic update
     setUsers((prev) =>
       prev.map((u) => (u.id === editingUser.id ? editingUser : u)),
     );
     setIsEditModalOpen(false);
     toast.success(`User "${editingUser.name}" details updated successfully!`);
     showToast(`User "${editingUser.name}" details updated successfully!`);
+
+    // Persist to backend
+    await updateUserAPI(editingUser.id, {
+      name: editingUser.name,
+      email: editingUser.email,
+      phone: editingUser.phone,
+      role: editingUser.role,
+      assignedBranch: editingUser.assignedBranch,
+      plan: editingUser.plan,
+      status: editingUser.status,
+      paymentMethod: editingUser.paymentMethod,
+      expiryDate: editingUser.expiryDate,
+    });
   };
 
   const handleDeleteUserClick = (user: UserRecord) => {
-    if (user.id === "USR-1001" || user.name.toLowerCase() === "master") {
+    if (user.email === "master@fitora.com") {
       toast.error("Master Admin account is permanent and cannot be deleted.");
       showToast("Master Admin account is permanent and cannot be deleted.");
       return;
@@ -150,15 +203,18 @@ export default function UserManagementTable({
     setUserToDelete(user);
   };
 
-  const confirmDeleteUser = () => {
+  const confirmDeleteUser = async () => {
     if (!userToDelete) return;
+    // Optimistic remove
     setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
     toast.success(`User "${userToDelete.name}" removed from the platform.`);
     showToast(`User "${userToDelete.name}" removed from the platform.`);
     setUserToDelete(null);
+    // Persist to backend
+    await deleteUserAPI(userToDelete.id);
   };
 
-  const handleCreateUser = (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUser.name || !newUser.email || !newUser.phone) {
       toast.error("Please fill all required fields");
@@ -170,13 +226,13 @@ export default function UserManagementTable({
       return;
     }
 
-    const created: UserRecord = {
+    const optimisticUser: UserRecord = {
       id: `USR-${Math.floor(1000 + Math.random() * 9000)}`,
       name: newUser.name!,
       email: newUser.email!,
       phone: newUser.phone!,
       role: (newUser.role as any) || "free_user",
-      assignedBranch: newUser.assignedBranch || INITIAL_BRANCHES[0].name,
+      assignedBranch: newUser.assignedBranch || branches[0]?.name || "Dhaka - Gulshan-2 Branch (Flagship)",
       plan: (newUser.role === "premium_user"
         ? "Pro Athlete"
         : newUser.plan || "Free Pass") as any,
@@ -192,19 +248,32 @@ export default function UserManagementTable({
       qrCodeId: `FIT-QR-${Math.floor(1000 + Math.random() * 9000)}`,
     };
 
-    setUsers([created, ...users]);
+    // Optimistic add
+    setUsers([optimisticUser, ...users]);
     setIsAddModalOpen(false);
     setNewUser({
       name: "",
       email: "",
       phone: "",
       role: "free_user",
-      assignedBranch: INITIAL_BRANCHES[0].name,
+      assignedBranch: branches[0]?.name || "Dhaka - Gulshan-2 Branch (Flagship)",
       plan: "Free Pass",
       status: "active",
     });
-    toast.success(`New user "${created.name}" created successfully!`);
-    showToast(`New user "${created.name}" created successfully!`);
+    toast.success(`New user "${optimisticUser.name}" created successfully!`);
+    showToast(`New user "${optimisticUser.name}" created successfully!`);
+
+    // Persist to backend
+    await createUserAPI({
+      name: optimisticUser.name,
+      email: optimisticUser.email,
+      phone: optimisticUser.phone,
+      role: optimisticUser.role,
+      assignedBranch: optimisticUser.assignedBranch,
+      plan: optimisticUser.plan,
+      status: optimisticUser.status,
+      paymentMethod: optimisticUser.paymentMethod,
+    });
   };
 
   const getRoleBadge = (role: UserRecord["role"]) => {
@@ -327,7 +396,7 @@ export default function UserManagementTable({
               className="w-full px-4 py-2.5 bg-neutral-900 border border-white/15 rounded-full text-xs font-bold text-white outline-none focus:border-white cursor-pointer truncate uppercase"
             >
               <option value="all">All 64 Branches</option>
-              {INITIAL_BRANCHES.map((b) => (
+              {branches.map((b) => (
                 <option key={b.id} value={b.name}>
                   {b.name}
                 </option>
@@ -352,7 +421,22 @@ export default function UserManagementTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {filteredUsers.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-3 text-white/40">
+                    <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Loading members from backend...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : fetchError ? (
+              <tr>
+                <td colSpan={7} className="py-8 text-center text-rose-400 text-xs font-bold uppercase">
+                  {fetchError}
+                </td>
+              </tr>
+            ) : filteredUsers.length === 0 ? (
               <tr>
                 <td
                   colSpan={7}

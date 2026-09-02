@@ -21,9 +21,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   // If on dedicated dashboard login page, render full screen without sidebar/navbar
   if (isLoginPage) {
-    return (
-      <main className="min-h-screen bg-black text-white">{children}</main>
-    );
+    return <main className="min-h-screen bg-black text-white">{children}</main>;
   }
 
   if (isLoading) {

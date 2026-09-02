@@ -13,44 +13,33 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-const ALL_GYM_EXERCISES = [
-  "Bench Press",
-  "Barbell Squat",
-  "Deadlift",
-  "Overhead Shoulder Press",
-  "Pull-Ups",
-  "Barbell Rows",
-  "Incline Dumbbell Press",
-  "Leg Press",
-  "Lat Pulldown",
-  "Dumbbell Bicep Curls",
-  "Triceps Rope Pushdown",
-  "Romanian Deadlift",
-  "Bulgarian Split Squat",
-  "Cable Chest Flyes",
-  "Lateral Raises",
-  "Face Pulls",
-  "Leg Curls",
-  "Leg Extension",
-  "Calf Raises",
-  "Dips",
-  "Hanging Leg Raises",
-  "Plank Hold",
-  "Treadmill Run",
-  "Rowing Ergometer",
-];
+import { fetchExercises } from "@/services/exerciseService";
 
 export default function StopwatchPage({
   showSetHistory = true,
 }: {
   showSetHistory?: boolean;
 }) {
-  const [exercises, setExercises] = useState(ALL_GYM_EXERCISES);
+  const [exercises, setExercises] = useState<string[]>([]);
   const [selectedExercise, setSelectedExercise] = useState("Bench Press");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customExercise, setCustomExercise] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [targetSets] = useState(5);
+
+  useEffect(() => {
+    async function init() {
+      const data = await fetchExercises();
+      if (data && data.length > 0) {
+        const names = data.map(d => d.name).sort();
+        setExercises(names);
+        setSelectedExercise(names[0]);
+      } else {
+        setExercises(["Bench Press", "Squat", "Deadlift"]); // Fallback
+      }
+    }
+    init();
+  }, []);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 

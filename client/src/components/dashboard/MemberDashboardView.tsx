@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { INITIAL_BRANCHES } from "@/data/dashboardData";
+import { fetchPublicBranches, fetchMemberStats, type BranchInfo as APIBranchInfo, type MemberStatsResponse } from "@/services/dashboardService";
 import {
   Crown,
   Lock,
@@ -69,12 +69,27 @@ export default function MemberDashboardView({
   const [profileWeight, setProfileWeight] = useState("74.5");
   const [profileTargetWeight, setProfileTargetWeight] = useState("78.0");
   const [profileToast, setProfileToast] = useState<string | null>(null);
+  const [branches, setBranches] = useState<APIBranchInfo[]>([]);
+  const [memberStats, setMemberStats] = useState<MemberStatsResponse | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     setProfileName(userName);
     setProfileEmail(userEmail);
     setProfileBranch(assignedBranch);
   }, [userName, userEmail, assignedBranch]);
+
+  useEffect(() => {
+    fetchPublicBranches().then(res => {
+      if (res && res.length > 0) setBranches(res as any);
+    });
+
+    setStatsLoading(true);
+    fetchMemberStats().then(res => {
+      if (res) setMemberStats(res);
+      setStatsLoading(false);
+    });
+  }, []);
 
   // Interactive Modals for Features
   const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(
@@ -258,14 +273,14 @@ export default function MemberDashboardView({
             </div>
             <div className="pt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-white tracking-tight">
-                18
+                {statsLoading ? "..." : ((memberStats as any)?.workoutCount ?? memberStats?.workoutsThisMonth ?? 18)}
               </span>
               <span className="text-xs font-bold text-emerald-400 uppercase">
                 +3 vs last month
               </span>
             </div>
             <p className="text-xs text-white/40 mt-1">
-              Target: 20 sessions / month
+              Target: {memberStats?.targetWorkouts ?? 20} sessions / month
             </p>
           </div>
 
@@ -276,13 +291,13 @@ export default function MemberDashboardView({
             </div>
             <div className="pt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-white tracking-tight">
-                11,400
+                {statsLoading ? "..." : (((memberStats as any)?.burnedCalories ?? memberStats?.caloriesBurned)?.toLocaleString() ?? "11,400")}
               </span>
               <span className="text-xs font-bold text-white/50 uppercase">
                 kcal
               </span>
             </div>
-            <p className="text-xs text-white/40 mt-1">Weekly avg: 2,850 kcal</p>
+            <p className="text-xs text-white/40 mt-1">Weekly avg: {Math.round((((memberStats as any)?.burnedCalories ?? memberStats?.caloriesBurned) ?? 11400) / 4).toLocaleString()} kcal</p>
           </div>
 
           <div className="p-6 rounded-3xl bg-neutral-950 border border-white/10 shadow-xl space-y-2">
@@ -292,13 +307,13 @@ export default function MemberDashboardView({
             </div>
             <div className="pt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-emerald-400 tracking-tight">
-                {isPremium ? "14" : "3"}
+                {statsLoading ? "..." : (memberStats?.streakDays ?? (isPremium ? "14" : "3"))}
               </span>
               <span className="text-xs font-bold text-emerald-400 uppercase">
                 Days Streak
               </span>
             </div>
-            <p className="text-xs text-white/40 mt-1">Consistency score: 92%</p>
+            <p className="text-xs text-white/40 mt-1">Consistency score: {memberStats?.consistencyScore ?? 92}%</p>
           </div>
 
           <div className="p-6 rounded-3xl bg-neutral-950 border border-white/10 shadow-xl space-y-2">
@@ -809,7 +824,7 @@ export default function MemberDashboardView({
                   onChange={(e) => setProfileBranch(e.target.value)}
                   className="w-full p-3 rounded-2xl bg-neutral-900 border border-white/15 text-white outline-none focus:border-white cursor-pointer uppercase"
                 >
-                  {INITIAL_BRANCHES.map((b) => (
+                  {branches.map((b) => (
                     <option key={b.id} value={b.name}>
                       {b.name} ({b.district})
                     </option>

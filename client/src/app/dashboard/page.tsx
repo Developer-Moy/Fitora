@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useDashboardRole, DashboardRole } from "@/hooks/useDashboardRole";
 import {
-  INITIAL_PLATFORM_STATS,
   REVENUE_MONTHLY_CHART,
-  PAYMENT_GATEWAY_BREAKDOWN,
-  PACKAGE_SALES_BREAKDOWN,
   INITIAL_CHECKINS,
-  INITIAL_BRANCHES,
 } from "@/data/dashboardData";
+import {
+  fetchPlatformStats,
+  type PlatformStats,
+  type CheckInRecord,
+  type PaymentGatewayBreakdown,
+  type PackageSalesBreakdown,
+} from "@/services/dashboardService";
 import UserManagementTable from "@/components/dashboard/UserManagementTable";
 import BranchManagementView from "@/components/dashboard/BranchManagementView";
 import MemberDashboardView from "@/components/dashboard/MemberDashboardView";
@@ -54,11 +57,35 @@ export default function MasterDashboardPage() {
   const tabParam = searchParams.get("tab") as string | null;
 
   const [activeTab, setActiveTab] = useState<string>("overview");
+
+  // ── Dynamic Platform Stats ───────────────────────────────────────────────
+  const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
+  const [checkIns, setCheckIns] = useState<CheckInRecord[]>(INITIAL_CHECKINS);
+  const [gatewayBreakdown, setGatewayBreakdown] = useState<PaymentGatewayBreakdown[]>([]);
+  const [packageBreakdown, setPackageBreakdown] = useState<PackageSalesBreakdown[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  const loadPlatformStats = useCallback(async () => {
+    if (role !== "master_admin" && role !== "branch_admin") return;
+    setStatsLoading(true);
+    const data = await fetchPlatformStats();
+    if (data) {
+      setPlatformStats(data.platformStats);
+      if (data.recentCheckIns?.length > 0) setCheckIns(data.recentCheckIns);
+      if (data.paymentGatewayBreakdown?.length > 0) setGatewayBreakdown(data.paymentGatewayBreakdown);
+      if (data.packageSalesBreakdown?.length > 0) setPackageBreakdown(data.packageSalesBreakdown);
+    }
+    setStatsLoading(false);
+  }, [role]);
+
+  useEffect(() => {
+    loadPlatformStats();
+  }, [loadPlatformStats]);
+
   const [checkinPage, setCheckinPage] = useState<number>(1);
   const checkinsPerPage = 4;
-  const totalCheckinPages =
-    Math.ceil(INITIAL_CHECKINS.length / checkinsPerPage) || 1;
-  const paginatedCheckins = INITIAL_CHECKINS.slice(
+  const totalCheckinPages = Math.ceil(checkIns.length / checkinsPerPage) || 1;
+  const paginatedCheckins = checkIns.slice(
     (checkinPage - 1) * checkinsPerPage,
     checkinPage * checkinsPerPage,
   );
@@ -68,6 +95,7 @@ export default function MasterDashboardPage() {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
+
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300 select-none">
@@ -111,13 +139,18 @@ export default function MasterDashboardPage() {
                   </div>
                   <div className="pt-2">
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                      ৳{isMasterAdmin ? "84,50,000" : "6,80,000"}
+                      ৳{platformStats
+                        ? (isMasterAdmin
+                            ? platformStats.totalRevenueBDT
+                            : platformStats.mrrBDT
+                          ).toLocaleString("en-IN")
+                        : isMasterAdmin ? "84,50,000" : "6,80,000"}
                     </span>
                   </div>
                   {/* Growth delta: ONLY Green or Red for numbers */}
                   <div className="pt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
                     <TrendingUp className="w-4 h-4 stroke-[2.5]" />
-                    <span>+18.5% Growth (Quarterly)</span>
+                    <span>+{platformStats?.revenueGrowthPercent ?? 18.5}% Growth (Quarterly)</span>
                   </div>
                 </div>
 
@@ -128,7 +161,9 @@ export default function MasterDashboardPage() {
                   </div>
                   <div className="pt-2">
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                      ৳{isMasterAdmin ? "14,20,000" : "1,95,000"}
+                      ৳{platformStats
+                        ? platformStats.mrrBDT.toLocaleString("en-IN")
+                        : isMasterAdmin ? "14,20,000" : "1,95,000"}
                     </span>
                   </div>
                   <div className="pt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
@@ -148,7 +183,12 @@ export default function MasterDashboardPage() {
                   </div>
                   <div className="pt-2">
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                      {isMasterAdmin ? "4,850" : "480"}
+                      {platformStats
+                        ? (isMasterAdmin
+                            ? platformStats.totalMembers
+                            : platformStats.activeMembersToday
+                          ).toLocaleString()
+                        : isMasterAdmin ? "4,850" : "480"}
                     </span>
                     <span className="text-xs font-black text-white/40 ml-2 uppercase">
                       Athletes
@@ -156,7 +196,7 @@ export default function MasterDashboardPage() {
                   </div>
                   <div className="pt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
                     <TrendingUp className="w-4 h-4 stroke-[2.5]" />
-                    <span>+12.3% New Signups</span>
+                    <span>+{platformStats?.membersGrowthPercent ?? 12.3}% New Signups</span>
                   </div>
                 </div>
 
@@ -167,7 +207,7 @@ export default function MasterDashboardPage() {
                   </div>
                   <div className="pt-2">
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                      24.8%
+                      {platformStats?.conversionRatePercent ?? 24.8}%
                     </span>
                   </div>
                   <div className="pt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
@@ -325,12 +365,12 @@ export default function MasterDashboardPage() {
                   <strong className="text-white font-bold">
                     {Math.min(
                       checkinPage * checkinsPerPage,
-                      INITIAL_CHECKINS.length,
+                      checkIns.length,
                     )}
                   </strong>{" "}
                   of{" "}
                   <strong className="text-white font-bold">
-                    {INITIAL_CHECKINS.length}
+                    {checkIns.length}
                   </strong>{" "}
                   check-ins
                 </span>
@@ -380,7 +420,14 @@ export default function MasterDashboardPage() {
               </div>
 
               <div className="space-y-4 pt-2">
-                {PAYMENT_GATEWAY_BREAKDOWN.map((gw, idx) => (
+                {(gatewayBreakdown.length > 0
+                  ? gatewayBreakdown
+                  : [
+                      { name: "bKash Direct", percentage: 62, amountBDT: 5239000, color: "#E2136E" },
+                      { name: "Nagad Gateway", percentage: 26, amountBDT: 2197000, color: "#F7941D" },
+                      { name: "Visa / Mastercard", percentage: 12, amountBDT: 1014000, color: "#00579F" },
+                    ]
+                ).map((gw, idx) => (
                   <div
                     key={idx}
                     className="p-5 rounded-2xl bg-neutral-900 border border-white/5 space-y-2.5"
@@ -418,7 +465,15 @@ export default function MasterDashboardPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {PACKAGE_SALES_BREAKDOWN.map((pkg, idx) => (
+                {(packageBreakdown.length > 0
+                  ? packageBreakdown
+                  : [
+                      { name: "Free Tier (Trial)", members: 3200, priceBDT: 0, share: "66%" },
+                      { name: "Basic Pass", members: 680, priceBDT: 2500, share: "14%" },
+                      { name: "Pro Athlete (AI Suite)", members: 820, priceBDT: 4900, share: "17%" },
+                      { name: "VIP Ultimate (All-Branch)", members: 150, priceBDT: 9900, share: "3%" },
+                    ]
+                ).map((pkg, idx) => (
                   <div
                     key={idx}
                     className="p-6 rounded-3xl bg-neutral-900 border border-white/10 space-y-3"
