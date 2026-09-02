@@ -57,6 +57,7 @@ export default function CalculatorPage() {
   const [activeTab, setActiveTab] = useState<CalculatorTab>("bmi");
   const [bmi, setBmi] = useState(0);
   const [isSavingHistory, setIsSavingHistory] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const bmr = useMemo(() => {
     return calculateBmr(age, gender, weight, height);
@@ -181,11 +182,41 @@ export default function CalculatorPage() {
     }
   }, [goal]);
 
-  const handleSaveHistory = async () => {
-    
-    try {
-      setIsSavingHistory(true);
+  const validateCalculatorInput = (): boolean => {
+    setError(null);
 
+    if (age < 10 || age > 100) {
+      setError("Age must be between 10 and 100 years.");
+      return false;
+    }
+
+    if (height < 50 || height > 250) {
+      setError("Height must be between 50 and 250 cm.");
+      return false;
+    }
+
+    if (weight < 20 || weight > 300) {
+      setError("Weight must be between 20 and 300 kg.");
+      return false;
+    }
+
+    if (activityLevel <= 0) {
+      setError("Please select a valid activity level.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSaveHistory = async () => {
+    if (!validateCalculatorInput()) {
+      return;
+    }
+
+    setIsSavingHistory(true);
+    setError(null);
+
+    try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/bmi/history`,
         {
@@ -211,18 +242,22 @@ export default function CalculatorPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.message || "Failed to save calculation history");
+        throw new Error(
+          data?.message || "Failed to save calculation history."
+        );
       }
 
       toast.success("Calculation history saved successfully!");
     } catch (error) {
       console.error("Save history error:", error);
 
-      toast.error(
+      setError(
         error instanceof Error
           ? error.message
-          : "Failed to save calculation history"
+          : "Something went wrong while saving your history."
       );
+
+      toast.error("Failed to save your health metrics.");
     } finally {
       setIsSavingHistory(false);
     }
@@ -412,6 +447,13 @@ Macros:
             ================================================= */}
               <div className="lg:col-span-5">
                 <div className="rounded-3xl bg-neutral-950 border border-white/15 p-5 sm:p-6 space-y-4 shadow-xl">
+
+                  {error && (
+                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                      {error}
+                    </div>
+                  )}
+
                   {/* Header */}
                   <div className="space-y-1 border-b border-white/10 pb-3">
                     <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
@@ -442,7 +484,10 @@ Macros:
                         min="10"
                         max="100"
                         value={age}
-                        onChange={(event) => setAge(Number(event.target.value))}
+                        onChange={(event) => {
+                          setAge(Number(event.target.value));
+                          setError(null);
+                        }}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none focus:border-white transition-colors"
                       />
                     </div>
@@ -492,9 +537,10 @@ Macros:
                         min="50"
                         max="250"
                         value={height}
-                        onChange={(event) =>
-                          setHeight(Number(event.target.value))
-                        }
+                        onChange={(event) => {
+                          setHeight(Number(event.target.value));
+                          setError(null);
+                        }}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none focus:border-white transition-colors"
                       />
                     </div>
@@ -513,9 +559,10 @@ Macros:
                         min="20"
                         max="300"
                         value={weight}
-                        onChange={(event) =>
-                          setWeight(Number(event.target.value))
-                        }
+                        onChange={(event) => {
+                          setWeight(Number(event.target.value));
+                          setError(null);
+                        }}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none focus:border-white transition-colors"
                       />
                     </div>
@@ -531,9 +578,10 @@ Macros:
                       <select
                         id="activity"
                         value={activityLevel}
-                        onChange={(event) =>
-                          setActivityLevel(Number(event.target.value))
-                        }
+                        onChange={(event) => {
+                          setActivityLevel(Number(event.target.value));
+                          setError(null);
+                        }}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none cursor-pointer focus:border-white"
                       >
                         <option value={1.2} className="bg-neutral-950 text-white">
