@@ -89,9 +89,27 @@ Curated and prepared large-scale seed data for the Fitora platform to simulate a
 - Included default credentials and branch assignment data for testing and access validation.
 - Submitted the seed dataset as `branches.json` for collection import and setup.
 
+## 8. Previous Task: Branch Seeding & Login Flow
+
+Completed the foundation work required for branch-based access and authentication.
+
+### Completed Areas:
+- Seeded branch records for the Bangladesh gym network with branch identity, location, capacity, manager, and operational details.
+- Added role-based test users, including `master_admin`, `branch_admin`, and athlete/member accounts.
+- Connected branch assignments to user records so branch admins can be scoped to their own branch.
+- Implemented and refined the login flow with validation, authentication feedback, and role-aware dashboard access.
+- Verified that seeded credentials and branch assignments support local testing of admin and member flows.
+
+### Implementation Approach:
+1. Prepare consistent branch records before creating dependent user records.
+2. Seed users with explicit roles and branch assignments.
+3. Authenticate users through the login flow and persist the authenticated session/token.
+4. Resolve the dashboard view from the authenticated role.
+5. Apply branch restrictions to branch-admin data access while keeping master-admin access broader.
+
 ---
 
-## 8. Epic 2: Master Admin Command, RBAC User Management, Branch Portal & Live Check-ins — Alfaaz
+## 9. Epic 2: Master Admin Command, RBAC User Management, Branch Portal & Live Check-ins — Alfaaz
 
 ### 🎫 `FIT-201`: [Story] Master Admin Command Center & National Revenue Aggregator
 * **Assignee**: `Alfaaz` | **Estimate**: `8 Story Points` | **Priority**: `Highest`
@@ -131,12 +149,51 @@ Curated and prepared large-scale seed data for the Fitora platform to simulate a
 ### 🎫 `FIT-204`: [Story] Live Attendance Check-in Engine & Real-time Socket Counters
 * **Assignee**: `Alfaaz` | **Estimate**: `5 Story Points` | **Priority**: `High`
 * **Target Endpoints**:
-  * `POST /api/checkins` — Record member check-in at a branch, increment live counter.
-  * `POST /api/checkins/checkout` — Record member check-out, calculate elapsed workout duration.
-  * `GET /api/checkins/live/:branchId` — List currently active members in a specific branch.
+  * `GET /api/branches/:id/checkins` — Read the branch attendance records for a date.
+  * `POST /api/branches/:id/checkins` — Record a member check-in for the branch.
+  * `PATCH /api/branches/:id/checkins/:checkinId/checkout` — Record check-out and calculate workout duration.
+  * `GET /api/branches/:id/occupancy` — Read current active members, capacity, availability, and occupancy percentage.
 
 * **Acceptance Criteria (AC)**:
-  - [x] Real-time live attendance update emitted over Socket.io `member_checkin_update`.
+  - [x] Branch-admin and master-admin authorization is enforced.
+  - [x] Duplicate active check-ins for the same member and date are rejected.
+  - [x] Check-out records duration and changes the attendance status.
+  - [x] Occupancy is calculated from active `checked_in` records and branch capacity.
+  - [x] The frontend displays loading, error, empty, occupancy, and paginated attendance states.
+
+---
+
+## 10. Today's Task: Member Check-in, Attendance & Live Occupancy
+
+Implemented the frontend part of the branch-admin attendance feature on top of the completed backend API.
+
+### What Was Implemented:
+- Connected the dashboard attendance tab to the branch overview, occupancy, and check-in endpoints.
+- Resolved the branch from the authenticated user's assigned branch.
+- Added a live occupancy panel showing current members, total capacity, available spots, percentage used, and branch status.
+- Added the current day's check-in list with member name, source, check-in time, and checked-in/checked-out status.
+- Added pagination for attendance records.
+- Added loading, API error, no-branch, and no-check-in empty states.
+- Removed mock attendance rows so unavailable backend data is never presented as real attendance.
+
+### How These Two Tasks Are Implemented:
+1. **Prepare branch and login data:** seed branches first, then create users with roles and branch assignments.
+2. **Authenticate the dashboard user:** use the login session/token to identify the user's role and assigned branch.
+3. **Resolve the target branch:** load the branch overview and match the authenticated branch-admin assignment to a branch record.
+4. **Load live metrics:** request occupancy and check-in data for the resolved branch in parallel.
+5. **Render operational information:** show current occupancy, capacity usage, available spots, branch status, and today's attendance records.
+6. **Handle operational states:** show a loading state during requests, an error state for failed requests, and an empty state when the branch has no records.
+7. **Protect the data path:** keep authentication and branch-access checks on the backend; the frontend only presents data returned by authorized API requests.
+8. **Validate the workflow:** test with a seeded branch-admin account, confirm the assigned branch resolves, verify check-in/check-out records, and confirm occupancy decreases or increases correctly.
+
+### Relevant Frontend Areas:
+- `client/src/app/dashboard/page.tsx` — attendance dashboard UI and data loading flow.
+- `client/src/services/branchService.ts` — typed client requests for branch overview, occupancy, and attendance.
+
+### Relevant Backend Areas:
+- `server/src/models/BranchCheckin.model.ts` — attendance record structure and indexes.
+- `server/src/controllers/branch.controller.ts` — check-in, check-out, occupancy, and branch-access logic.
+- `server/src/routes/branch.routes.ts` — protected attendance and occupancy routes.
 
 ---
 
@@ -157,7 +214,7 @@ Curated and prepared large-scale seed data for the Fitora platform to simulate a
 
 ---
 
-## 9. Bug Hunting & Stabilization
+## 11. Bug Hunting & Stabilization
 
 Performed targeted debugging and issue resolution across the newly integrated admin, branch, and seeding flows.
 
@@ -271,6 +328,14 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Verified permission issues, seed dataset consistency, and dashboard response reliability.
 - Completed the recent documentation update for the `alfaaz` branch summary.
 
+## 02-Sep-26
+
+- Completed the frontend implementation for **Member Check-in & Attendance**.
+- Connected the branch-admin dashboard to branch overview, occupancy, and check-in APIs.
+- Added live occupancy/capacity indicators and paginated daily check-in records.
+- Added loading, error, and empty states for reliable dashboard behavior.
+- Removed dummy attendance data so the dashboard only displays real API records.
+
 ---
 
 ## Summary of My Contributions
@@ -291,6 +356,7 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - User management CRUD and RBAC controls.
 - Branch admin portal and lead management endpoints.
 - Live check-in and checkout APIs.
+- Branch occupancy and capacity API integration.
 - Athlete dashboard stats and goal management APIs.
 
 ### Seed & Data Work
@@ -303,6 +369,8 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - `PlanCard.tsx`
 - Login form components and validation logic.
 - Dashboard and admin UI card/layout improvements.
+- Branch-admin attendance and live occupancy dashboard UI.
+- Typed branch API client service.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.
