@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, ArrowUpRight, ShieldCheck, Sparkles } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
-import { getAuthSession } from "@/services/authService";
+import { getAuthSession, saveAuthSession, AuthUser } from "@/services/authService";
+import SubscriptionModal from "@/components/home/SubscriptionModal";
+import toast from "react-hot-toast";
 
 export interface PlanItem {
   id: string;
@@ -101,6 +103,37 @@ export default function PricingSection() {
       return;
     }
     setSelectedPlan(plan);
+  };
+
+  const handleSubscriptionSuccess = (
+    plan: PlanItem,
+    isAnnualPlan: boolean,
+    paymentMethod: string
+  ) => {
+    const sessionData = getAuthSession();
+    const currentUser = sessionData.user || (session?.user as any as AuthUser);
+
+    if (currentUser) {
+      const updatedUser: AuthUser = {
+        ...currentUser,
+        plan: plan.planKey,
+        role: "premium_user",
+      };
+      saveAuthSession(sessionData.token || "", updatedUser);
+      localStorage.setItem("fitora_active_role", "premium_user");
+      localStorage.setItem("fitora_user_plan", plan.planKey);
+    }
+
+    setSelectedPlan(null);
+    toast.success(
+      `🎉 Payment Successful via ${paymentMethod}! Welcome to ${plan.name} (${
+        isAnnualPlan ? "Annual" : "Monthly"
+      })!`
+    );
+
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1200);
   };
 
   return (
@@ -283,6 +316,15 @@ export default function PricingSection() {
           <span>Flexible Cancel Anytime &mdash; All 64 Branches Included</span>
         </div>
       </div>
+
+      {/* ── Membership Subscription Checkout Modal ── */}
+      <SubscriptionModal
+        isOpen={!!selectedPlan}
+        onClose={() => setSelectedPlan(null)}
+        plan={selectedPlan}
+        isAnnual={isAnnual}
+        onSuccess={handleSubscriptionSuccess}
+      />
     </section>
   );
 }
