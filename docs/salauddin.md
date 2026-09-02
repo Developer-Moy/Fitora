@@ -210,6 +210,7 @@ Monthly / Yearly billing toggle switch.
 
 ### 31-Aug-26
 * Bug Hunting
+* finding the bug in UI.
 
 ### 01-Sep-26
 * Finding bug, Make proper document and fix the bug.
