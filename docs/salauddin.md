@@ -218,3 +218,6 @@ Monthly / Yearly billing toggle switch.
 ### 02-Sep-26
 * Goals Frontend UI & Dashboard Sync
 * Creates my fitness goals visual widgets.
+
+### 03-Sep-26
+* Check BackEnd and Fix exercise fetch issues.

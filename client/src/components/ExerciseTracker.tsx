@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
-import { fetchExercises, type APIExercise } from "@/services/exerciseService";
+import { useMemo, useState, useEffect } from "react";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -34,6 +33,8 @@ type Exercise = {
   image: string;
 };
 
+
+
 const categories = [
   "ALL",
   "CHEST",
@@ -50,8 +51,11 @@ const categories = [
 ];
 
 export default function ExercisePage() {
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+   const [exercises, setExercises] = useState<Exercise[]>([]);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState("");
+
+
   const [activeCategory, setActiveCategory] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
@@ -96,7 +100,7 @@ export default function ExercisePage() {
 
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [exercises, activeCategory, searchQuery]);
 
   const totalPages = Math.ceil(filteredExercises.length / ITEMS_PER_PAGE);
 
@@ -104,6 +108,39 @@ export default function ExercisePage() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredExercises.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredExercises, currentPage]);
+
+
+
+  useEffect(() => {
+  const fetchExercises = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/exercises`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch exercises");
+      }
+
+      const result = await response.json();
+
+      console.log("Exercise API response:", result);
+
+      setExercises(result.data || []);
+      setCurrentPage(1)
+    } catch (error) {
+      console.error("Exercise fetch error:", error);
+      setError("Failed to load exercises");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchExercises();
+}, []);
 
   return (
     <main className="min-h-screen bg-black text-white">

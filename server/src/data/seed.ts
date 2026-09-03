@@ -1,5 +1,9 @@
 import "dotenv/config";
 import mongoose from "mongoose";
+import { Exercise } from "../models/Exercise.model";
+import { WorkoutLog } from "../models/WorkoutLog.model";
+import { LOCAL_WORKOUTS_DATABASE } from "./workout.data";
+import { EXERCISE_DATABASE } from "./exercise.data";
 
 import BMIHistory from "../models/BMIHistory.model";
 import Goal from "../models/Goal.model";
@@ -673,32 +677,11 @@ const seedDatabase = async (): Promise<void> => {
       );
     }
 
-    console.log(
-      `Found ${users.length} users.`
-    );
+    // =========================
+    // CONNECT TO MONGODB
+    // =========================
 
-    // -----------------------------
-    // Seed Branches & Users
-    // -----------------------------
-    await Branch.deleteMany({});
-    await User.deleteMany({});
-
-    const insertedBranches = await Branch.insertMany(branches);
-    console.log(`Inserted ${insertedBranches.length} branches.`);
-
-    const insertedUsers = await User.insertMany(usersData);
-    console.log(`Inserted ${insertedUsers.length} users.`);
-
-    // ------------------------------------------------
-    // Create BMI History records
-    // ------------------------------------------------
-
-    const bmiHistories = profiles.map(
-      (profile, index) => {
-        const bmi = calculateBMI(
-          profile.weight,
-          profile.height
-        );
+    await mongoose.connect(process.env.MONGODB_URI);
 
         const bmr = calculateBMR(
           profile.age,
@@ -707,10 +690,12 @@ const seedDatabase = async (): Promise<void> => {
           profile.weight
         );
 
-        const tdee = calculateTDEE(
-          bmr,
-          profile.activityLevel
-        );
+    // =========================
+    // CLEAR EXISTING DATA
+    // =========================
+
+    await Exercise.deleteMany({});
+    await WorkoutLog.deleteMany({});
 
         const targetCalories =
           calculateTargetCalories(
@@ -718,38 +703,35 @@ const seedDatabase = async (): Promise<void> => {
             profile.goalType
           );
 
-        const macros = calculateMacros(
-          profile.weight,
-          targetCalories,
-          profile.goalType
-        );
+    // =========================
+    // SEED EXERCISES
+    // =========================
 
-        const idealWeightRange =
-          getIdealWeightRange(
-            profile.height
-          );
+    const exerciseSeedData = EXERCISE_DATABASE.map((exercise) => ({
+      id: exercise.id,
+      name: exercise.name,
+      category: exercise.category,
+      difficulty: exercise.difficulty,
+      duration: exercise.duration,
+      equipment: exercise.equipment,
+      muscle: exercise.muscle,
+      description: exercise.description,
+      tips: exercise.tips,
+      videoId: exercise.videoId,
+      image: exercise.image,
+    }));
 
-        return {
-          userId:
-            users[index % users.length]._id,
-
-          age: profile.age,
-
-          gender: profile.gender,
-
-          height: profile.height,
-
-          weight: profile.weight,
-
-          bmi,
-
-          bmr,
-
-          tdee,
+    const exercises = await Exercise.insertMany(exerciseSeedData);
 
           targetCalories,
 
-          macros,
+    // =========================
+    // SEED WORKOUT LOGS
+    // =========================
+
+    const workoutLogSeedData = LOCAL_WORKOUTS_DATABASE.map(
+      (exercise, index) => ({
+        userId: "guest_user",
 
           bmiCategory:
             getBMICategory(bmi),
@@ -864,8 +846,8 @@ const seedDatabase = async (): Promise<void> => {
       `Inserted ${insertedGoals.length} goal records.`
     );
 
-    console.log(
-      "======================================"
+    const workoutLogs = await WorkoutLog.insertMany(
+      workoutLogSeedData
     );
 
     console.log(
@@ -876,13 +858,11 @@ const seedDatabase = async (): Promise<void> => {
       `BMI Histories: ${insertedBMI.length}`
     );
 
-    console.log(
-      `Goals: ${insertedGoals.length}`
-    );
+    // =========================
+    // SUCCESS
+    // =========================
 
-    console.log(
-      "======================================"
-    );
+    console.log("Database seeding completed successfully");
   } catch (error) {
     console.error(
       "Seed failed:",
