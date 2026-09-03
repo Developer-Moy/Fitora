@@ -68,7 +68,26 @@ export default function GymTimer({
   } | null>(null);
 
   const { data: authSession } = useSession();
-  const authUserId = authSession?.user?.id;
+  const [localUserId, setLocalUserId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const userStr = localStorage.getItem("fitora_user");
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          if (u.id || u._id) {
+            setLocalUserId(u.id || u._id);
+            return;
+          }
+        }
+        const email = localStorage.getItem("fitora_user_email");
+        if (email) setLocalUserId(email);
+      } catch {}
+    }
+  }, []);
+
+  const authUserId = authSession?.user?.id || localUserId;
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const voiceAnnouncedRef = useRef<number | null>(null);

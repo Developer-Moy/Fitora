@@ -32,7 +32,9 @@ interface ApiErrorResponse {
   message?: string;
 }
 
-async function parseResponse<T>(response: Response): Promise<ApiSuccessResponse<T>> {
+async function parseResponse<T>(
+  response: Response,
+): Promise<ApiSuccessResponse<T>> {
   const result = (await response.json().catch(() => null)) as
     | ApiSuccessResponse<T>
     | ApiErrorResponse
@@ -44,13 +46,14 @@ async function parseResponse<T>(response: Response): Promise<ApiSuccessResponse<
     }
     throw new Error(
       (result && "message" in result && result.message) ||
-        `Request failed with status ${response.status}`
+        `Request failed with status ${response.status}`,
     );
   }
 
   if (!result || !("success" in result) || !result.success) {
     throw new Error(
-      (result && "message" in result && result.message) || "Unexpected server response"
+      (result && "message" in result && result.message) ||
+        "Unexpected server response",
     );
   }
 
@@ -58,7 +61,7 @@ async function parseResponse<T>(response: Response): Promise<ApiSuccessResponse<
 }
 
 export async function createWorkoutLog(
-  payload: CreateWorkoutLogPayload
+  payload: CreateWorkoutLogPayload,
 ): Promise<WorkoutLog> {
   let response: Response;
   try {
@@ -80,7 +83,7 @@ export async function createWorkoutLog(
 
 export async function getWorkoutLogs(
   userId?: string,
-  limit: number = 50
+  limit: number = 50,
 ): Promise<WorkoutLogsResult> {
   const params = new URLSearchParams({ limit: String(limit) });
   if (userId) params.set("userId", userId);
@@ -98,6 +101,13 @@ export async function getWorkoutLogs(
     throw new Error("Network error — could not reach the server");
   }
 
-  const result = await parseResponse<WorkoutLog[]>(response);
-  return { logs: Array.isArray(result.data) ? result.data : [], summary: result.summary };
+  const result = await parseResponse<any>(response);
+  const data = result.data;
+  const logs = Array.isArray(data?.logs)
+    ? data.logs
+    : Array.isArray(data)
+      ? data
+      : [];
+  const summary = data?.summary || result.summary;
+  return { logs, summary };
 }

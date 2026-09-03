@@ -432,20 +432,16 @@ export default function ProfilePage() {
     MEAL_SUGGESTIONS_BY_GOAL["Bulking & Muscle Gain"];
 
   useEffect(() => {
-    if (!resolvedUserId) {
-      setIsLoadingDailyPlan(false);
-      setIsLoadingWorkouts(false);
-      return;
-    }
+    const targetId = resolvedUserId || "guest_user";
 
     const fetchData = async () => {
       setIsLoadingDailyPlan(true);
       setIsLoadingWorkouts(true);
       try {
         const [dailyPlanRes, workoutsRes, mealChartsRes] = await Promise.all([
-          getDailyMealPlan(resolvedUserId),
-          getWorkoutLogs(resolvedUserId, 20).catch(() => ({ logs: [] })),
-          fetchMealCharts(resolvedUserId).catch(() => []),
+          getDailyMealPlan(targetId),
+          getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
+          fetchMealCharts(targetId).catch(() => []),
         ]);
 
         if (dailyPlanRes.success && dailyPlanRes.data) {

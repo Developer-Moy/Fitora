@@ -232,4 +232,5 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Fixed `client/src/app/profile/page.tsx` BMI calculation history fetch by replacing buggy hardcoded call with reusable `fetchBmiHistory` service.
   - Attached JWT authorization headers and user IDs across workout logs, exercise tracker submissions, stopwatch presets, and dashboard services.
   - Added graceful public branch fallbacks in `client/src/services/branchService.ts` so non-admin users or initial dashboard loads never encounter unhandled exceptions.
+  - Resolved gym history persistence and profile display bug: fixed response parsing in `client/src/services/workoutService.ts` to properly unpack `data.logs` object, resolved `authUserId` in `GymTimer.tsx` from both Better Auth and JWT local session, ensured `profile/page.tsx` gracefully queries workout history using fallback `guest_user`, and enhanced MongoDB query in `workout.controller.ts` to handle both string and ObjectId user references.
 - Successfully validated 100% clean typechecks and production builds across both client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.
