@@ -59,7 +59,7 @@ export const getExerciseById = async (
   try {
     const { id } = req.params;
 
-    const exercise = await Exercise.findById(id);
+    const exercise = await Exercise.findOne({id});
 
     if (!exercise) {
       res.status(404).json({
