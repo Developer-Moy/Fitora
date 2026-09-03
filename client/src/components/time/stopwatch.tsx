@@ -13,44 +13,52 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-const ALL_GYM_EXERCISES = [
-  "Bench Press",
-  "Barbell Squat",
-  "Deadlift",
-  "Overhead Shoulder Press",
-  "Pull-Ups",
-  "Barbell Rows",
-  "Incline Dumbbell Press",
-  "Leg Press",
-  "Lat Pulldown",
-  "Dumbbell Bicep Curls",
-  "Triceps Rope Pushdown",
-  "Romanian Deadlift",
-  "Bulgarian Split Squat",
-  "Cable Chest Flyes",
-  "Lateral Raises",
-  "Face Pulls",
-  "Leg Curls",
-  "Leg Extension",
-  "Calf Raises",
-  "Dips",
-  "Hanging Leg Raises",
-  "Plank Hold",
-  "Treadmill Run",
-  "Rowing Ergometer",
-];
+import { fetchExercises } from "@/services/exerciseService";
+import {
+  createCustomPreset,
+  fetchUserPresets,
+} from "@/services/stopwatchService";
 
 export default function StopwatchPage({
   showSetHistory = true,
 }: {
   showSetHistory?: boolean;
 }) {
-  const [exercises, setExercises] = useState(ALL_GYM_EXERCISES);
+  const [exercises, setExercises] = useState<string[]>([]);
   const [selectedExercise, setSelectedExercise] = useState("Bench Press");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customExercise, setCustomExercise] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [targetSets] = useState(5);
+
+  useEffect(() => {
+    async function init() {
+      try {
+        const [globalRes, userRes] = await Promise.all([
+          fetchExercises(),
+          fetchUserPresets().catch(() => []),
+        ]);
+
+        let combined = new Set<string>();
+        if (globalRes && globalRes.length > 0) {
+          globalRes.forEach((e) => combined.add(e.name));
+        } else {
+          ["Bench Press", "Squat", "Deadlift"].forEach((e) => combined.add(e));
+        }
+
+        if (userRes && userRes.length > 0) {
+          userRes.forEach((p) => combined.add(p.name));
+        }
+
+        const names = Array.from(combined).sort();
+        setExercises(names);
+        if (names.length > 0) setSelectedExercise(names[0]);
+      } catch {
+        setExercises(["Bench Press", "Squat", "Deadlift"]);
+      }
+    }
+    init();
+  }, []);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +86,7 @@ export default function StopwatchPage({
     toast.success(`Exercise selected: ${name}`, { id: "exercise-select" });
   };
 
-  const handleAddCustomExercise = (e: React.FormEvent) => {
+  const handleAddCustomExercise = async (e: React.FormEvent) => {
     e.preventDefault();
     if (customExercise.trim()) {
       const name = customExercise.trim();
@@ -87,6 +95,13 @@ export default function StopwatchPage({
       setCustomExercise("");
       setShowCustomInput(false);
       toast.success(`Custom exercise added: ${name}`);
+      // Persist as a simple custom preset on backend (best-effort)
+      createCustomPreset({
+        name,
+        workDuration: 45,
+        restDuration: 60,
+        rounds: 3,
+      }).catch(() => {});
     }
   };
 

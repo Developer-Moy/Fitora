@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
-import { Branch, IBranch } from "../models/Branch.model";
+import mongoose from "mongoose";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import Branch, { IBranch } from "../models/Branch.model";
+import BranchCheckin from "../models/BranchCheckin.model";
+import User from "../models/User.model";
+import { errorResponse, successResponse } from "../utils/apiResponse";
 
 // All 64 Districts of Bangladesh Grouped by 8 Divisions
 export const BANGLADESH_64_DISTRICTS = [
@@ -471,19 +475,22 @@ export const getPublicBranches = async (req: Request, res: Response) => {
       );
     }
 
-    return res.status(200).json({
-      success: true,
-      count: filtered.length,
-      totalBranchesNationwide: 64,
-      data: filtered,
-    });
+    return res.status(200).json(
+      successResponse("Public branches retrieved successfully", {
+        count: filtered.length,
+        totalBranchesNationwide: 64,
+        branches: filtered,
+      })
+    );
   } catch (error: any) {
     console.error("Error fetching public branches:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching branch directory.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching branch directory.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -516,23 +523,396 @@ export const getAdminBranches = async (req: AuthRequest, res: Response) => {
       })) as any;
     }
 
-    return res.status(200).json({
-      success: true,
-      count: branches.length,
-      data: branches,
-    });
+    return res.status(200).json(
+      successResponse("Admin branches overview retrieved successfully", {
+        count: branches.length,
+        branches,
+      })
+    );
   } catch (error: any) {
     console.error("Error in getAdminBranches:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching admin branch overview.",
-      error: error.message,
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching admin branch overview.",
+        error.message,
+        500
+      )
+    );
+  }
+};
+
+const getBranchByIdentifier = async (identifier: string) => {
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    return await Branch.findById(identifier);
+  }
+
+  return await Branch.findOne({
+    $or: [{ slug: identifier.toLowerCase() }, { name: new RegExp(`^${identifier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") }],
+  });
+};
+
+const ensureBranchAdminAccess = async (
+  req: AuthRequest,
+  branch: IBranch,
+): Promise<boolean> => {
+  if (!req.user) {
+    return false;
+  }
+
+  if (req.user.role === "master_admin") {
+    return true;
+  }
+
+  if (req.user.role !== "branch_admin") {
+    return false;
+  }
+
+  const assigned = req.user.assignedBranch?.trim().toLowerCase();
+  if (!assigned) {
+    return false;
+  }
+
+  const branchName = branch.name.trim().toLowerCase();
+  const branchSlug = branch.slug?.trim().toLowerCase();
+  const branchCity = branch.city?.trim().toLowerCase();
+
+  return (
+    assigned === branchName ||
+    assigned === branchSlug ||
+    assigned === branchCity ||
+    branchName.includes(assigned) ||
+    assigned.includes(branchName)
+  );
+};
+
+const getTodayKey = () => new Date().toISOString().slice(0, 10);
+
+export const getBranchCheckins = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const branch = await getBranchByIdentifier(id);
+
+    if (!branch) {
+      return res.status(404).json(
+        errorResponse("Branch not found", "Branch not found", 404),
+      );
+    }
+
+    const hasAccess = await ensureBranchAdminAccess(req, branch);
+    if (!hasAccess) {
+      return res.status(403).json(
+        errorResponse(
+          "Forbidden: branch access required",
+          "Forbidden",
+          403,
+        ),
+      );
+    }
+
+    const { date } = req.query;
+    const targetDate = typeof date === "string" ? date : getTodayKey();
+
+    const branchCheckins = await BranchCheckin.find({
+      branchId: branch._id,
+      date: targetDate,
+    }).sort({ checkInTime: -1 });
+
+    const activeCount = branchCheckins.filter(
+      (item) => item.status === "checked_in",
+    ).length;
+
+    return res.status(200).json(
+      successResponse("Branch attendance retrieved successfully", {
+        branchId: branch._id,
+        branchName: branch.name,
+        date: targetDate,
+        totalCheckins: branchCheckins.length,
+        activeMembers: activeCount,
+        capacity: branch.memberCapacity,
+        occupancyPercent: branch.memberCapacity
+          ? Math.round((activeCount / branch.memberCapacity) * 100)
+          : 0,
+        checkins: branchCheckins,
+      }),
+    );
+  } catch (error: any) {
+    console.error("Error fetching branch check-ins:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching branch check-ins.",
+        error.message,
+        500,
+      ),
+    );
+  }
+};
+
+export const createBranchCheckin = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const branch = await getBranchByIdentifier(id);
+
+    if (!branch) {
+      return res.status(404).json(
+        errorResponse("Branch not found", "Branch not found", 404),
+      );
+    }
+
+    const hasAccess = await ensureBranchAdminAccess(req, branch);
+    if (!hasAccess) {
+      return res.status(403).json(
+        errorResponse(
+          "Forbidden: branch access required",
+          "Forbidden",
+          403,
+        ),
+      );
+    }
+
+    const { userId, memberEmail, memberName, source = "manual" } = req.body;
+
+    if (!memberEmail && !userId) {
+      return res.status(400).json(
+        errorResponse(
+          "Either memberEmail or userId is required",
+          "Validation failed",
+          400,
+        ),
+      );
+    }
+
+    let user = null;
+
+    if (userId) {
+      user = await User.findById(userId);
+    }
+
+    if (!user && memberEmail) {
+      user = await User.findOne({ email: String(memberEmail).toLowerCase() });
+    }
+
+    const member = user ?? {
+      _id: new mongoose.Types.ObjectId(),
+      name: memberName || "Guest Member",
+      email: memberEmail || "guest@fitora.local",
+      assignedBranch: branch.name,
+    };
+
+    if (member.assignedBranch && String(member.assignedBranch).trim()) {
+      const assignedLower = String(member.assignedBranch).trim().toLowerCase();
+      const branchNameLower = branch.name.trim().toLowerCase();
+      if (assignedLower !== branchNameLower && !branchNameLower.includes(assignedLower) && !assignedLower.includes(branchNameLower)) {
+        return res.status(400).json(
+          errorResponse(
+            "Member is assigned to a different branch",
+            "Branch mismatch",
+            400,
+          ),
+        );
+      }
+    }
+
+    const today = getTodayKey();
+    const existingActiveCheckin = await BranchCheckin.findOne({
+      branchId: branch._id,
+      userId: member._id,
+      status: "checked_in",
+      date: today,
     });
+
+    if (existingActiveCheckin) {
+      return res.status(409).json(
+        errorResponse(
+          "Member already checked in for this branch today",
+          "Duplicate check-in",
+          409,
+        ),
+      );
+    }
+
+    const payload = {
+      branchId: branch._id,
+      userId: member._id,
+      memberName: member.name || memberName || "Guest Member",
+      memberEmail: (member.email || memberEmail || "guest@fitora.local").toLowerCase(),
+      branchName: branch.name,
+      checkInTime: new Date(),
+      checkOutTime: null,
+      status: "checked_in",
+      source: ["qr", "manual", "staff_entry"].includes(String(source))
+        ? String(source)
+        : "manual",
+      durationMinutes: 0,
+      date: today,
+    };
+
+    const newCheckin = await BranchCheckin.create(payload);
+
+    return res.status(201).json(
+      successResponse("Member checked in successfully", {
+        checkin: newCheckin,
+        activeMembers: await BranchCheckin.countDocuments({
+          branchId: branch._id,
+          status: "checked_in",
+          date: today,
+        }),
+      }),
+    );
+  } catch (error: any) {
+    console.error("Error creating branch check-in:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while processing check-in.",
+        error.message,
+        500,
+      ),
+    );
+  }
+};
+
+export const checkoutBranchCheckin = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id, checkinId } = req.params;
+    const branch = await getBranchByIdentifier(id);
+
+    if (!branch) {
+      return res.status(404).json(
+        errorResponse("Branch not found", "Branch not found", 404),
+      );
+    }
+
+    const hasAccess = await ensureBranchAdminAccess(req, branch);
+    if (!hasAccess) {
+      return res.status(403).json(
+        errorResponse(
+          "Forbidden: branch access required",
+          "Forbidden",
+          403,
+        ),
+      );
+    }
+
+    const checkin = await BranchCheckin.findOne({
+      _id: checkinId,
+      branchId: branch._id,
+    });
+
+    if (!checkin) {
+      return res.status(404).json(
+        errorResponse("Check-in record not found", "Check-in record not found", 404),
+      );
+    }
+
+    if (checkin.status === "checked_out") {
+      return res.status(400).json(
+        errorResponse(
+          "Member is already checked out",
+          "Check-out validation failed",
+          400,
+        ),
+      );
+    }
+
+    const checkOutTime = new Date();
+    const durationMinutes = Math.max(
+      0,
+      Math.floor((checkOutTime.getTime() - new Date(checkin.checkInTime).getTime()) / 60000),
+    );
+
+    checkin.status = "checked_out";
+    checkin.checkOutTime = checkOutTime;
+    checkin.durationMinutes = durationMinutes;
+    await checkin.save();
+
+    return res.status(200).json(
+      successResponse("Member checked out successfully", {
+        checkin,
+      }),
+    );
+  } catch (error: any) {
+    console.error("Error checking out branch member:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while processing check-out.",
+        error.message,
+        500,
+      ),
+    );
+  }
+};
+
+export const getBranchOccupancy = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const branch = await getBranchByIdentifier(id);
+
+    if (!branch) {
+      return res.status(404).json(
+        errorResponse("Branch not found", "Branch not found", 404),
+      );
+    }
+
+    const hasAccess = await ensureBranchAdminAccess(req, branch);
+    if (!hasAccess) {
+      return res.status(403).json(
+        errorResponse(
+          "Forbidden: branch access required",
+          "Forbidden",
+          403,
+        ),
+      );
+    }
+
+    const today = getTodayKey();
+    const activeMembers = await BranchCheckin.countDocuments({
+      branchId: branch._id,
+      status: "checked_in",
+      date: today,
+    });
+
+    const occupancyPercent = branch.memberCapacity
+      ? Math.round((activeMembers / branch.memberCapacity) * 100)
+      : 0;
+
+    const recentCheckins = await BranchCheckin.find({
+      branchId: branch._id,
+      date: today,
+    })
+      .sort({ checkInTime: -1 })
+      .limit(8)
+      .lean();
+
+    return res.status(200).json(
+      successResponse("Branch occupancy retrieved successfully", {
+        branchId: branch._id,
+        branchName: branch.name,
+        memberCapacity: branch.memberCapacity,
+        currentOccupancy: activeMembers,
+        availableSpots: Math.max(branch.memberCapacity - activeMembers, 0),
+        occupancyPercent,
+        isAtCapacity: activeMembers >= branch.memberCapacity,
+        status: occupancyPercent >= 90 ? "full" : occupancyPercent >= 70 ? "high" : occupancyPercent >= 45 ? "moderate" : "low",
+        recentCheckins,
+      }),
+    );
+  } catch (error: any) {
+    console.error("Error fetching branch occupancy:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching branch occupancy.",
+        error.message,
+        500,
+      ),
+    );
   }
 };
 
 export default {
   getPublicBranches,
   getAdminBranches,
+  getBranchCheckins,
+  createBranchCheckin,
+  checkoutBranchCheckin,
+  getBranchOccupancy,
   BANGLADESH_64_DISTRICTS,
 };

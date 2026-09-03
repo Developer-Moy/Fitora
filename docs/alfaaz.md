@@ -64,9 +64,195 @@ Implemented the backend API endpoint for dashboard workout statistics.
 
 ---
 
+## 6. UI Improvement & Design Refinement
+
+Focused on polishing the app experience by improving responsiveness, consistency, and dashboard usability across multiple screens.
+
+### Key Implementation:
+- Refined major UI surfaces for cleaner spacing, typography, and visual hierarchy.
+- Improved dashboard and admin-related layouts for better readability.
+- Enhanced card styling, action buttons, and mobile responsiveness.
+- Unified the Fitora visual language for a more modern and professional experience.
+- Improved user flow and interface consistency across member-facing and admin-facing modules.
+
+---
+
+## 7. Branch & User Data Seeding (Bangladesh Gym Network)
+
+Curated and prepared large-scale seed data for the Fitora platform to simulate a realistic nationwide gym network.
+
+### Key Implementation:
+- Created a realistic `branches` dataset covering 50+ gym branches across Bangladesh districts.
+- Included branch address, district/division, contact number, manager details, facility list, and image URLs.
+- Structured records for consistent insertion into MongoDB `branches` collection.
+- Added 20+ role-based test users for `master_admin`, `branch_admin`, and `athlete` roles.
+- Included default credentials and branch assignment data for testing and access validation.
+- Submitted the seed dataset as `branches.json` for collection import and setup.
+
+## 8. Previous Task: Branch Seeding & Login Flow
+
+Completed the foundation work required for branch-based access and authentication.
+
+### Completed Areas:
+- Seeded branch records for the Bangladesh gym network with branch identity, location, capacity, manager, and operational details.
+- Added role-based test users, including `master_admin`, `branch_admin`, and athlete/member accounts.
+- Connected branch assignments to user records so branch admins can be scoped to their own branch.
+- Implemented and refined the login flow with validation, authentication feedback, and role-aware dashboard access.
+- Verified that seeded credentials and branch assignments support local testing of admin and member flows.
+
+### Implementation Approach:
+1. Prepare consistent branch records before creating dependent user records.
+2. Seed users with explicit roles and branch assignments.
+3. Authenticate users through the login flow and persist the authenticated session/token.
+4. Resolve the dashboard view from the authenticated role.
+5. Apply branch restrictions to branch-admin data access while keeping master-admin access broader.
+
+---
+
+## 9. Epic 2: Master Admin Command, RBAC User Management, Branch Portal & Live Check-ins — Alfaaz
+
+### 🎫 `FIT-201`: [Story] Master Admin Command Center & National Revenue Aggregator
+* **Assignee**: `Alfaaz` | **Estimate**: `8 Story Points` | **Priority**: `Highest`
+* **Target Endpoints**:
+  * `GET /api/dashboard/master/overview` — High-speed MongoDB aggregation for total active members, nationwide revenue, live check-ins, and active trainers.
+  * `GET /api/dashboard/master/revenue` — Package breakdown percentage (Basic Pass, Pro Athlete, VIP Ultimate) and monthly revenue distribution.
+  * `GET /api/branches/admin-overview` — Complete 64-branch performance grid with manager contact and live capacity.
+
+* **Acceptance Criteria (AC)**:
+  - [x] Strict RBAC: Non-`master_admin` requests rejected with `403 Forbidden`.
+  - [x] Optimized aggregation queries returning in < 100ms.
+
+---
+
+### 🎫 `FIT-202`: [Story] User Management CRUD with Root Master Immutability Protection
+* **Assignee**: `Alfaaz` | **Estimate**: `5 Story Points` | **Priority**: `High`
+* **Target Endpoints**:
+  * `GET /api/dashboard/users` — Paginated user directory with search, branch filter, and role selector.
+  * `PATCH /api/dashboard/users/:id/role` — Reassign roles (`master_admin`, `branch_admin`, `athlete`) and branch assignments.
+  * `DELETE /api/dashboard/users/:id` — Delete user account.
+
+* **Acceptance Criteria (AC)**:
+  - [x] **Root Account Protection**: Code-level hard block preventing role modification or deletion of `master@fitora.com` (`403 Forbidden: Master Admin is immutable`).
+  - [x] Role updates record audit log with modifier ID and timestamp.
+
+---
+
+### 🎫 `FIT-203`: [Story] Branch Admin Portal, Member Verification & Branch Leads Management
+* **Assignee**: `Alfaaz` | **Estimate**: `5 Story Points` | **Priority**: `High`
+* **Target Endpoints**:
+  * `GET /api/dashboard/branch/:branchId/overview` — Branch-specific roster, active member count, and trainer list.
+  * `GET /api/dashboard/branch/:branchId/leads` — Filtered consultation inquiries directed to this branch.
+  * `PATCH /api/dashboard/branch/leads/:id/status` — Mark lead as `contacted` or `enrolled`.
+
+---
+
+### 🎫 `FIT-204`: [Story] Live Attendance Check-in Engine & Real-time Socket Counters
+* **Assignee**: `Alfaaz` | **Estimate**: `5 Story Points` | **Priority**: `High`
+* **Target Endpoints**:
+  * `GET /api/branches/:id/checkins` — Read the branch attendance records for a date.
+  * `POST /api/branches/:id/checkins` — Record a member check-in for the branch.
+  * `PATCH /api/branches/:id/checkins/:checkinId/checkout` — Record check-out and calculate workout duration.
+  * `GET /api/branches/:id/occupancy` — Read current active members, capacity, availability, and occupancy percentage.
+
+* **Acceptance Criteria (AC)**:
+  - [x] Branch-admin and master-admin authorization is enforced.
+  - [x] Duplicate active check-ins for the same member and date are rejected.
+  - [x] Check-out records duration and changes the attendance status.
+  - [x] Occupancy is calculated from active `checked_in` records and branch capacity.
+  - [x] The frontend displays loading, error, empty, occupancy, and paginated attendance states.
+
+---
+
+## 10. Today's Task: Member Check-in, Attendance & Live Occupancy
+
+Implemented the frontend part of the branch-admin attendance feature on top of the completed backend API.
+
+### What Was Implemented:
+- Connected the dashboard attendance tab to the branch overview, occupancy, and check-in endpoints.
+- Resolved the branch from the authenticated user's assigned branch.
+- Added a live occupancy panel showing current members, total capacity, available spots, percentage used, and branch status.
+- Added the current day's check-in list with member name, source, check-in time, and checked-in/checked-out status.
+- Added pagination for attendance records.
+- Added loading, API error, no-branch, and no-check-in empty states.
+- Removed mock attendance rows so unavailable backend data is never presented as real attendance.
+
+### How These Two Tasks Are Implemented:
+1. **Prepare branch and login data:** seed branches first, then create users with roles and branch assignments.
+2. **Authenticate the dashboard user:** use the login session/token to identify the user's role and assigned branch.
+3. **Resolve the target branch:** load the branch overview and match the authenticated branch-admin assignment to a branch record.
+4. **Load live metrics:** request occupancy and check-in data for the resolved branch in parallel.
+5. **Render operational information:** show current occupancy, capacity usage, available spots, branch status, and today's attendance records.
+6. **Handle operational states:** show a loading state during requests, an error state for failed requests, and an empty state when the branch has no records.
+7. **Protect the data path:** keep authentication and branch-access checks on the backend; the frontend only presents data returned by authorized API requests.
+8. **Validate the workflow:** test with a seeded branch-admin account, confirm the assigned branch resolves, verify check-in/check-out records, and confirm occupancy decreases or increases correctly.
+
+### Relevant Frontend Areas:
+- `client/src/app/dashboard/page.tsx` — attendance dashboard UI and data loading flow.
+- `client/src/services/branchService.ts` — typed client requests for branch overview, occupancy, and attendance.
+
+### Relevant Backend Areas:
+- `server/src/models/BranchCheckin.model.ts` — attendance record structure and indexes.
+- `server/src/controllers/branch.controller.ts` — check-in, check-out, occupancy, and branch-access logic.
+- `server/src/routes/branch.routes.ts` — protected attendance and occupancy routes.
+
+---
+
+## 11. Today's Task: Branch & User Seed Data in Dashboard UI
+
+Connected the dashboard branch and user management tabs to the seeded backend data and resolved the authentication and rendering issues that prevented the records from appearing.
+
+### What Was Implemented:
+- Connected the branches directory to the backend endpoint serving the seeded `branches.json` records.
+- Normalized seeded branch fields such as `memberCapacity`, `trainerCount`, phone, email, and facilities for frontend display.
+- Fixed dashboard authentication response parsing so the server-issued JWT is stored and sent with protected requests.
+- Connected the users directory to the seeded `users.json` records through the protected users API.
+- Added safe defaults for incomplete seeded user fields to prevent the users table from crashing during filtering or rendering.
+- Updated local client environment configuration to use the running backend at `http://localhost:5000/api`.
+- Verified the dashboard loads the seeded records with the existing search, filters, and pagination controls.
+
+### Relevant Areas:
+- `client/src/components/dashboard/BranchManagementView.tsx` — branch directory rendering and filters.
+- `client/src/components/dashboard/UserManagementTable.tsx` — user directory rendering, filters, and pagination.
+- `client/src/services/dashboardService.ts` — branch/user API requests and response normalization.
+- `client/src/services/authService.ts` — dashboard JWT response parsing and session persistence.
+- `server/src/controllers/user.controller.ts` — normalized users API response.
+- `client/.env` — local backend API configuration.
+
+---
+
+### 🎫 `FIT-205`: [Story] Athlete Personal Portal, Habit Streaks, Hydration 3.5L & Fitness Goals
+* **Assignee**: `Alfaaz` | **Estimate**: `5 Story Points` | **Priority**: `High`
+* **Target Endpoints**:
+  * `GET /api/dashboard/athlete/stats` — Fetch streak days count, hydration log, and VIP status.
+  * `PATCH /api/dashboard/athlete/hydration` — Increment daily water intake toward 3.5L goal.
+  * `POST /api/dashboard/athlete/upgrade-vip` — Upgrade membership tier to VIP Ultimate.
+  * `GET /api/goals` & `POST /api/goals` — Manage personalized fitness, weight, and strength target goals.
+
+---
+
+### 🎫 `FIT-206`: [Story] Automated Database Seeder & 64 Bangladesh Branches Data Generator
+* **Assignee**: `Alfaaz` | **Estimate**: `3 Story Points` | **Priority**: `High`
+* **Technical Specifications**:
+  * Implement `server/src/data/seed.ts` to automatically populate 64 districts across 8 divisions with realistic member counts and default credentials.
+
+---
+
+## 11. Bug Hunting & Stabilization
+
+Performed targeted debugging and issue resolution across the newly integrated admin, branch, and seeding flows.
+
+### Key Focus Areas:
+- Investigated edge cases in role-based access control and branch filtering.
+- Fixed validation and permission mismatches during user management operations.
+- Checked data consistency for branch records and seeded user assignments.
+- Reviewed live attendance and dashboard aggregation logic for reliability.
+- Improved stability for API responses and branch/admin portal interactions.
+
+---
+
 ## Overview
 
-These contributions cover both the **frontend UI** and **backend API** development for **Fitora**, including homepage improvements, authentication UI, membership plans, and dashboard statistics functionality.
+These contributions cover both the **frontend UI** and **backend API** development for **Fitora**, including homepage improvements, authentication UI, membership plans, dashboard statistics, UI polish, seed dataset creation, RBAC user management, branch portal workflows, live check-in operations, and stabilization work for production-ready admin features.
 
 ---
 
@@ -121,6 +307,66 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Pulled the latest changes from the `development` branch into `alfaaz`.
 - Resolved rebase conflicts and successfully pushed the updated branch.
 
+## 25-Aug-26
+
+- Improved the overall **UI polish** across the application.
+- Refined spacing, cards, and interface consistency for dashboard and member screens.
+- Improved responsiveness and visual hierarchy for mobile and desktop flows.
+
+## 26-Aug-26
+
+- Curated and seeded **50+ Bangladesh branch records** with addresses, contact details, facilities, and image URLs.
+- Added **20+ role-based test users** for `master_admin`, `branch_admin`, and `athlete` roles.
+- Prepared the branch dataset for MongoDB collection import as `branches.json`.
+
+## 27-Aug-26
+
+- Started **FIT-201** implementation for the Master Admin command center and revenue aggregator.
+- Built national overview and revenue aggregation logic for dashboard analytics.
+- Added RBAC restrictions for master-only administrative access.
+
+## 28-Aug-26
+
+- Implemented **FIT-202** user management CRUD flow.
+- Added paginated user listing, role updates, and branch assignment logic.
+- Protected the root account from modification or deletion.
+- Recorded audit logs for role changes with modifier info and timestamps.
+
+## 29-Aug-26
+
+- Completed **FIT-203** branch admin portal and lead management flow.
+- Added branch overview API and lead status updates for contact/enrollment workflows.
+- Implemented **FIT-204** live check-in and check-out endpoints.
+- Enabled Socket.io broadcasting of `member_checkin_update` events.
+
+## 30-Aug-26
+
+- Completed **FIT-205** athlete dashboard and goal management work.
+- Added hydration tracking, streak stats, VIP upgrade flow, and target goal APIs.
+- Finalized automated data seeding with **FIT-206** for branch generation and defaults.
+
+## 31-Aug-26
+
+- Performed **bug hunting** and stabilization for admin, branch, check-in, and user management flows.
+- Verified permission issues, seed dataset consistency, and dashboard response reliability.
+- Completed the recent documentation update for the `alfaaz` branch summary.
+
+## 02-Sep-26
+
+- Completed the frontend implementation for **Member Check-in & Attendance**.
+- Connected the branch-admin dashboard to branch overview, occupancy, and check-in APIs.
+- Added live occupancy/capacity indicators and paginated daily check-in records.
+- Added loading, error, and empty states for reliable dashboard behavior.
+- Removed dummy attendance data so the dashboard only displays real API records.
+
+## 03-Sep-26
+
+- Fixed the dashboard branches tab so it displays seeded `branches.json` records from the backend.
+- Fixed dashboard JWT response parsing and local API configuration for protected dashboard requests.
+- Fixed the users tab so it displays seeded `users.json` records.
+- Added backend defaults for incomplete user fields to prevent runtime crashes in the users table.
+- Verified branch and user data loading with client and server TypeScript checks.
+
 ---
 
 ## Summary of My Contributions
@@ -131,19 +377,37 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Login Form Validation & Toast Notifications.
 - Membership Plans page.
 - Reusable PlanCard component.
+- UI polish and responsive design improvements.
 
 ### Backend
 - Dashboard Statistics Controller.
 - Dashboard Statistics Express Route.
 - `GET /api/dashboard/stats` API implementation.
+- Master admin overview and revenue aggregations.
+- User management CRUD and RBAC controls.
+- Branch admin portal and lead management endpoints.
+- Live check-in and checkout APIs.
+- Branch occupancy and capacity API integration.
+- Athlete dashboard stats and goal management APIs.
+
+### Seed & Data Work
+- Curated 50+ Bangladesh branch records.
+- Added 20+ role-based test users.
+- Prepared `branches.json` dataset and seeded branch structure.
 
 ### Reusable Components
 - `Banner.tsx`
 - `PlanCard.tsx`
 - Login form components and validation logic.
+- Dashboard and admin UI card/layout improvements.
+- Branch-admin attendance and live occupancy dashboard UI.
+- Typed branch API client service.
+- Branch and user seed-data dashboard directory views.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.
 - Regularly synced with the `development` branch.
 - Used rebase to keep branch history clean.
 - Successfully resolved merge/rebase conflicts before pushing updates.
+- Continued bug-fixing and stabilization work before final documentation handoff.
+- Verified seeded branch and user records in the dashboard UI.

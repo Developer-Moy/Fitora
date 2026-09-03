@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { saveBmiHistory } from "@/services/bmiService";
 
-const BmiCalculator = () => {
+interface BmiCalculatorProps {
+  onBmiChange?: (bmi: number) => void;
+}
+
+const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
   const [weight, setWeight] = useState(65);
   const [height, setHeight] = useState(170);
 
@@ -11,6 +17,10 @@ const BmiCalculator = () => {
   const bmi = Number(
     (weight / (heightInMeters * heightInMeters)).toFixed(1)
   );
+
+  useEffect(() => {
+  onBmiChange?.(bmi);
+}, [bmi, onBmiChange]);
 
   const getBmiStatus = () => {
     if (bmi < 18.5) return "Underweight";

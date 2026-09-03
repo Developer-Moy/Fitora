@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { User, IUser, UserRole } from "../models/User.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import User, { IUser, UserRole } from "../models/User.model";
+import { errorResponse, successResponse } from "../utils/apiResponse";
 
 const getJwtSecret = (): string => {
   return (
@@ -35,21 +36,30 @@ export const registerUser = async (req: Request, res: Response) => {
     const { name, email, password, phone, role, assignedBranch } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Name, email, and password are required fields",
-      });
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Name, email, and password are required fields",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: "An account with this email address already exists",
-      });
+      return res
+        .status(409)
+        .json(
+          errorResponse(
+            "An account with this email address already exists",
+            "USER_ALREADY_EXISTS",
+            409,
+          ),
+        );
     }
 
     // Hash password with high work factor
@@ -77,31 +87,35 @@ export const registerUser = async (req: Request, res: Response) => {
 
     const token = signUserToken(user);
 
-    return res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        assignedBranch: user.assignedBranch,
-        plan: user.plan,
-        status: user.status,
-        attendanceStreakDays: user.attendanceStreakDays,
-        hydrationTargetLiters: user.hydrationTargetLiters,
-        totalPaidBDT: user.totalPaidBDT,
-      },
-    });
+    return res.status(201).json(
+      successResponse("User registered successfully", {
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          assignedBranch: user.assignedBranch,
+          plan: user.plan,
+          status: user.status,
+          attendanceStreakDays: user.attendanceStreakDays,
+          hydrationTargetLiters: user.hydrationTargetLiters,
+          totalPaidBDT: user.totalPaidBDT,
+        },
+      }),
+    );
   } catch (error: any) {
     console.error("Error in registerUser:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during user registration",
-      error: error.message,
-    });
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Internal server error during user registration",
+          error.message,
+          500,
+        ),
+      );
   }
 };
 
@@ -113,57 +127,72 @@ export const loginUser = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and password are required",
-      });
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Email and password are required",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
     const cleanEmail = email.trim().toLowerCase();
     const user = await User.findOne({ email: cleanEmail });
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Invalid email or password",
+            "INVALID_CREDENTIALS",
+            401,
+          ),
+        );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Invalid email or password",
+            "INVALID_CREDENTIALS",
+            401,
+          ),
+        );
     }
 
     const token = signUserToken(user);
 
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        assignedBranch: user.assignedBranch,
-        plan: user.plan,
-        status: user.status,
-        attendanceStreakDays: user.attendanceStreakDays,
-        hydrationTargetLiters: user.hydrationTargetLiters,
-        totalPaidBDT: user.totalPaidBDT,
-      },
-    });
+    return res.status(200).json(
+      successResponse("Login successful", {
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          assignedBranch: user.assignedBranch,
+          plan: user.plan,
+          status: user.status,
+          attendanceStreakDays: user.attendanceStreakDays,
+          hydrationTargetLiters: user.hydrationTargetLiters,
+          totalPaidBDT: user.totalPaidBDT,
+        },
+      }),
+    );
   } catch (error: any) {
     console.error("Error in loginUser:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during login",
-      error: error.message,
-    });
+    return res
+      .status(500)
+      .json(
+        errorResponse("Internal server error during login", error.message, 500),
+      );
   }
 };
 
@@ -178,11 +207,15 @@ export const dashboardLogin = async (req: Request, res: Response) => {
     const gatewayKey = req.body.gatewayKey;
 
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Email and password are required for security gateway authentication",
-      });
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Email and password are required for security gateway authentication",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -240,10 +273,15 @@ export const dashboardLogin = async (req: Request, res: Response) => {
     }
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid administrator credentials. Access denied.",
-      });
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Invalid administrator credentials. Access denied.",
+            "INVALID_CREDENTIALS",
+            401,
+          ),
+        );
     }
 
     // Compare Password (supports hash or default demo master bypass)
@@ -266,13 +304,17 @@ export const dashboardLogin = async (req: Request, res: Response) => {
     }
 
     if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid administrator credentials. Access denied.",
-      });
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Invalid administrator credentials. Access denied.",
+            "INVALID_CREDENTIALS",
+            401,
+          ),
+        );
     }
 
-    // Strict Administrative Whitelist Enforcement
     const isAdmin =
       user.role === "master_admin" ||
       user.role === "branch_admin" ||
@@ -281,43 +323,51 @@ export const dashboardLogin = async (req: Request, res: Response) => {
       cleanEmail.includes("admin");
 
     if (!isAdmin) {
-      return res.status(403).json({
-        success: false,
-        message:
-          "Access Denied: Enterprise Security Gateway requires administrator clearance. Regular athletes must sign in via the main portal.",
-      });
+      return res
+        .status(403)
+        .json(
+          errorResponse(
+            "Access Denied: Enterprise Security Gateway requires administrator clearance. Regular athletes must sign in via the main portal.",
+            "FORBIDDEN",
+            403,
+          ),
+        );
     }
 
     const token = signUserToken(user);
 
-    return res.status(200).json({
-      success: true,
-      message: "Enterprise Security Gateway Authorization Successful",
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        assignedBranch: user.assignedBranch,
-        plan: user.plan,
-        status: user.status,
-        isMasterAdmin:
-          user.role === "master_admin" || user.email === "master@fitora.com",
-        isBranchAdmin: user.role === "branch_admin",
-        attendanceStreakDays: user.attendanceStreakDays,
-        hydrationTargetLiters: user.hydrationTargetLiters,
-        totalPaidBDT: user.totalPaidBDT,
-      },
-    });
+    return res.status(200).json(
+      successResponse("Enterprise Security Gateway Authorization Successful", {
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          assignedBranch: user.assignedBranch,
+          plan: user.plan,
+          status: user.status,
+          isMasterAdmin:
+            user.role === "master_admin" || user.email === "master@fitora.com",
+          isBranchAdmin: user.role === "branch_admin",
+          attendanceStreakDays: user.attendanceStreakDays,
+          hydrationTargetLiters: user.hydrationTargetLiters,
+          totalPaidBDT: user.totalPaidBDT,
+        },
+      }),
+    );
   } catch (error: any) {
     console.error("Error in dashboardLogin controller:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error during dashboard security authentication",
-      error: error.message,
-    });
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Internal server error during dashboard security authentication",
+          error.message,
+          500,
+        ),
+      );
   }
 };
 
@@ -327,49 +377,53 @@ export const dashboardLogin = async (req: Request, res: Response) => {
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   try {
     if (!req.user?.userId) {
-      return res.status(401).json({
-        success: false,
-        message: "User session not authenticated",
-      });
+      return res
+        .status(401)
+        .json(
+          errorResponse("User session not authenticated", "UNAUTHORIZED", 401),
+        );
     }
 
     const user = await User.findById(req.user.userId).select("-passwordHash");
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User profile not found",
-      });
+      return res
+        .status(404)
+        .json(errorResponse("User profile not found", "USER_NOT_FOUND", 404));
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "User profile retrieved successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        assignedBranch: user.assignedBranch,
-        plan: user.plan,
-        status: user.status,
-        isMasterAdmin:
-          user.role === "master_admin" || user.email === "master@fitora.com",
-        isBranchAdmin: user.role === "branch_admin",
-        attendanceStreakDays: user.attendanceStreakDays,
-        hydrationTargetLiters: user.hydrationTargetLiters,
-        totalPaidBDT: user.totalPaidBDT,
-        paymentMethod: user.paymentMethod,
-        qrCodeId: user.qrCodeId,
-      },
-    });
+    return res.status(200).json(
+      successResponse("User profile retrieved successfully", {
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          assignedBranch: user.assignedBranch,
+          plan: user.plan,
+          status: user.status,
+          isMasterAdmin:
+            user.role === "master_admin" || user.email === "master@fitora.com",
+          isBranchAdmin: user.role === "branch_admin",
+          attendanceStreakDays: user.attendanceStreakDays,
+          hydrationTargetLiters: user.hydrationTargetLiters,
+          totalPaidBDT: user.totalPaidBDT,
+          paymentMethod: user.paymentMethod,
+          qrCodeId: user.qrCodeId,
+        },
+      }),
+    );
   } catch (error: any) {
     console.error("Error in getCurrentUser:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching user profile",
-      error: error.message,
-    });
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Internal server error while fetching user profile",
+          error.message,
+          500,
+        ),
+      );
   }
 };
 
@@ -377,10 +431,9 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
  * 5. Logout User (`POST /api/auth/logout`)
  */
 export const logoutUser = async (req: Request, res: Response) => {
-  return res.status(200).json({
-    success: true,
-    message: "Session terminated successfully",
-  });
+  return res
+    .status(200)
+    .json(successResponse("Session terminated successfully", {}));
 };
 
 export default {

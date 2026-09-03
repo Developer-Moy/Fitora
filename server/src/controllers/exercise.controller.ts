@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Exercise } from "../models/Exercise.model";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 // GET /api/exercises
 export const getExercises = async (
@@ -33,21 +34,19 @@ export const getExercises = async (
       createdAt: -1,
     });
 
-    res.status(200).json({
-      success: true,
-      message: "Exercises fetched successfully",
-      data: exercises,
-      timestamp: new Date().toISOString(),
-    });
+    res.status(200).json(
+      successResponse("Exercises fetched successfully", exercises)
+    );
   } catch (error) {
     console.error("Get exercises error:", error);
 
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch exercises",
-      error: error instanceof Error ? error.message : "Unknown error",
-      statusCode: 500,
-    });
+    res.status(500).json(
+      errorResponse(
+        "Failed to fetch exercises",
+        error instanceof Error ? error.message : "Unknown error",
+        500
+      )
+    );
   }
 };
 
@@ -62,30 +61,25 @@ export const getExerciseById = async (
     const exercise = await Exercise.findOne({id});
 
     if (!exercise) {
-      res.status(404).json({
-        success: false,
-        message: "Exercise not found",
-        error: "EXERCISE_NOT_FOUND",
-        statusCode: 404,
-      });
+      res.status(404).json(
+        errorResponse("Exercise not found", "EXERCISE_NOT_FOUND", 404)
+      );
 
       return;
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Exercise fetched successfully",
-      data: exercise,
-      timestamp: new Date().toISOString(),
-    });
+    res.status(200).json(
+      successResponse("Exercise fetched successfully", exercise)
+    );
   } catch (error) {
     console.error("Get exercise by ID error:", error);
 
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch exercise",
-      error: error instanceof Error ? error.message : "Unknown error",
-      statusCode: 500,
-    });
+    res.status(500).json(
+      errorResponse(
+        "Failed to fetch exercise",
+        error instanceof Error ? error.message : "Unknown error",
+        500
+      )
+    );
   }
 };

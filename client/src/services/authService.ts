@@ -1,3 +1,5 @@
+import { authClient } from "@/lib/auth-client";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export interface AuthUser {
@@ -10,6 +12,15 @@ export interface AuthUser {
   assignedBranch?: string;
   status?: string;
   avatarUrl?: string;
+  image?: string;
+  phone?: string;
+  gender?: string;
+  weight?: string;
+  height?: string;
+  bio?: string;
+  fitnessGoal?: string;
+  activityLevel?: string;
+  joinedDate?: string;
   isMasterAdmin?: boolean;
   isBranchAdmin?: boolean;
 }
@@ -45,17 +56,18 @@ export async function dashboardLoginApi(
       };
     }
 
-    if (data.token) {
-      saveAuthSession(data.token, data.user);
+    const authData = data.data;
+    if (authData?.token) {
+      saveAuthSession(authData.token, authData.user);
     }
 
     return {
       success: true,
       message: data.message || "Dashboard authentication authorized",
-      token: data.token,
-      user: data.user,
+      token: authData?.token,
+      user: authData?.user,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       message: "Network error — Could not connect to authentication gateway",
@@ -96,7 +108,7 @@ export async function loginApi(
       token: data.token,
       user: data.user,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       message: "Network error — Could not reach login server",
@@ -140,7 +152,7 @@ export async function registerApi(payload: {
       token: data.token,
       user: data.user,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       message: "Network error — Could not complete registration",
@@ -181,7 +193,7 @@ export async function getCurrentUserApi(): Promise<AuthResponse> {
       user: data.user,
       token,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return { success: false, message: "Could not fetch user claims" };
   }
 }
@@ -229,6 +241,25 @@ export function clearAuthSession() {
   localStorage.removeItem("fitora_user_role");
   localStorage.removeItem("fitora_user_email");
   localStorage.removeItem("fitora_user_name");
+  localStorage.removeItem("fitora_auth_session");
+  localStorage.removeItem("fitora_active_role");
+  localStorage.removeItem("fitora_google_auth_token");
+  sessionStorage.clear();
+
+  try {
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+  } catch { }
+}
+
+export async function logoutUser(): Promise<void> {
+  try {
+    await authClient.signOut().catch(() => null);
+  } catch { }
+  clearAuthSession();
 }
 
 export default {
@@ -239,4 +270,5 @@ export default {
   saveAuthSession,
   getAuthSession,
   clearAuthSession,
+  logoutUser,
 };

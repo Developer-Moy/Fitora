@@ -1,20 +1,19 @@
 import { Request, Response } from "express";
 import MealPlan from "../models/MealChart.model";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 // Create / Save a meal plan
 export const createMealChart = async (
     req: Request,
     res: Response
-): Promise<void> => {
+): Promise<Response> => {
     try {
         const { userId, profile, goals, dietary, structure } = req.body;
 
         if (!profile || !goals || !dietary || !structure) {
-            res.status(400).json({
-                success: false,
-                message: "Profile, goals, dietary, and structure are required",
-            });
-            return;
+            return res.status(400).json(
+                errorResponse("Profile, goals, dietary, and structure are required", "VALIDATION_ERROR", 400)
+            );
         }
 
         const mealPlan = await MealPlan.create({
@@ -25,18 +24,19 @@ export const createMealChart = async (
             structure,
         });
 
-        res.status(201).json({
-            success: true,
-            message: "Meal plan created successfully",
-            data: mealPlan,
-        });
+        return res.status(201).json(
+            successResponse("Meal plan created successfully", mealPlan)
+        );
     } catch (error) {
         console.error("Create meal chart error:", error);
 
-        res.status(500).json({
-            success: false,
-            message: "Failed to create meal plan",
-        });
+        return res.status(500).json(
+            errorResponse(
+                "Failed to create meal plan",
+                error instanceof Error ? error.message : "Internal Server Error",
+                500
+            )
+        );
     }
 };
 
@@ -44,32 +44,32 @@ export const createMealChart = async (
 export const getMealCharts = async (
     req: Request,
     res: Response
-): Promise<void> => {
+): Promise<Response> => {
     try {
         const { userId } = req.query;
 
         if (!userId || typeof userId !== "string") {
-            res.status(400).json({
-                success: false,
-                message: "userId is required",
-            });
-            return;
+            return res.status(400).json(
+                errorResponse("userId is required", "VALIDATION_ERROR", 400)
+            );
         }
 
         const mealPlans = await MealPlan.find({ userId: String(userId) }).sort({
             createdAt: -1,
         });
 
-        res.status(200).json({
-            success: true,
-            data: mealPlans,
-        });
+        return res.status(200).json(
+            successResponse("Meal plans retrieved successfully", mealPlans)
+        );
     } catch (error) {
         console.error("Get meal charts error:", error);
 
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch meal plans",
-        });
+        return res.status(500).json(
+            errorResponse(
+                "Failed to fetch meal plans",
+                error instanceof Error ? error.message : "Internal Server Error",
+                500
+            )
+        );
     }
 };

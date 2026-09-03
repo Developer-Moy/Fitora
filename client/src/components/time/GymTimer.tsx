@@ -2,9 +2,19 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
-import { Dumbbell, Flame, Timer as TimerIcon, RotateCcw, Trash2 } from "lucide-react";
+import {
+  Dumbbell,
+  Flame,
+  Timer as TimerIcon,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { createWorkoutLog } from "@/services/workoutService";
+import {
+  completeStopwatchSession,
+  fetchStopwatchPresets,
+} from "@/services/stopwatchService";
 import type { CreateWorkoutLogPayload } from "@/types/workout";
 import { GymSessionCard } from "./GymSessionCard";
 import { TimeDisplay } from "./TimeDisplay";
@@ -49,9 +59,13 @@ export default function GymTimer({
   // null = free-running stopwatch, number = target duration in seconds
   const [targetSeconds, setTargetSeconds] = useState<number | null>(null);
   const [isLoggerOpen, setIsLoggerOpen] = useState<boolean>(false);
+  const [quickTargets, setQuickTargets] = useState<number[]>([]);
 
   // Staged weight/reps from the Quick Set Logger — committed to history on Next Set / Stop
-  const [pendingLog, setPendingLog] = useState<{ weight: number; reps: number } | null>(null);
+  const [pendingLog, setPendingLog] = useState<{
+    weight: number;
+    reps: number;
+  } | null>(null);
 
   const { data: authSession } = useSession();
   const authUserId = authSession?.user?.id;
@@ -78,11 +92,28 @@ export default function GymTimer({
       const saved = localStorage.getItem(`fitora_daily_gym_time_${today}`);
       if (saved) {
         const parsed = parseInt(saved, 10);
+        // eslint-disable-next-line
         if (!isNaN(parsed)) setTotalGymSeconds(parsed);
       }
     } catch {
       // ignore
     }
+
+    // Load quick presets
+    fetchStopwatchPresets()
+      .then((res) => {
+        if (res && res.length > 0) {
+          // Find public presets with rest durations, default to [30, 60, 90]
+          const targets = res
+            .filter((p) => p.restDuration && p.restDuration > 0)
+            .map((p) => p.restDuration)
+            .sort((a, b) => a - b);
+          if (targets.length > 0) {
+            setQuickTargets(Array.from(new Set(targets)).slice(0, 4));
+          }
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Save today's accumulated gym time
@@ -94,7 +125,7 @@ export default function GymTimer({
         // ignore
       }
     },
-    [getTodayKey]
+    [getTodayKey],
   );
 
   // Synthesized Web Audio beep generator
@@ -113,7 +144,10 @@ export default function GymTimer({
         osc.type = type;
         osc.frequency.setValueAtTime(freq, ctx.currentTime);
         gain.gain.setValueAtTime(0.15, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          ctx.currentTime + duration,
+        );
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
@@ -122,7 +156,7 @@ export default function GymTimer({
         // AudioContext not permitted yet
       }
     },
-    [soundEnabled]
+    [soundEnabled],
   );
 
   // Browser speech synthesis voice alert (Web Speech API)
@@ -141,7 +175,7 @@ export default function GymTimer({
         // Speech synthesis unavailable
       }
     },
-    [soundEnabled]
+    [soundEnabled],
   );
 
   // Main active timer interval (runs when user clicks Start)
@@ -174,12 +208,17 @@ export default function GymTimer({
 
   // Inform the user at each completed minute of the active stopwatch (1 min, 2 min, ...)
   useEffect(() => {
-    if (isRunning && targetSeconds === null && seconds > 0 && seconds % 60 === 0) {
+    if (
+      isRunning &&
+      targetSeconds === null &&
+      seconds > 0 &&
+      seconds % 60 === 0
+    ) {
       const minutes = seconds / 60;
       if (minuteAlertedRef.current < minutes) {
         minuteAlertedRef.current = minutes;
         speakVoiceAlert(
-          minutes === 1 ? "1 minute completed" : `${minutes} minutes completed`
+          minutes === 1 ? "1 minute completed" : `${minutes} minutes completed`,
         );
         toast.success(
           minutes === 1
@@ -189,12 +228,12 @@ export default function GymTimer({
             icon: "💪",
             id: "minute-milestone",
             duration: 4000,
-          }
+          },
         );
       }
     }
     if (seconds < 60) minuteAlertedRef.current = 0;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [seconds, isRunning, targetSeconds]);
 
   // Target-duration countdown warning cues & final alarm
@@ -220,6 +259,7 @@ export default function GymTimer({
 
     // Target reached -> multi-beep alarm & auto-stop
     if (seconds >= targetSeconds) {
+      // eslint-disable-next-line
       setIsRunning(false);
       setTargetSeconds(null);
 
@@ -242,9 +282,15 @@ export default function GymTimer({
               const osc = ctx.createOscillator();
               const gain = ctx.createGain();
               osc.type = "sine";
-              osc.frequency.setValueAtTime(i < 3 ? 880 : 1200, ctx.currentTime + offset);
+              osc.frequency.setValueAtTime(
+                i < 3 ? 880 : 1200,
+                ctx.currentTime + offset,
+              );
               gain.gain.setValueAtTime(0.25, ctx.currentTime + offset);
-              gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + offset + 0.14);
+              gain.gain.exponentialRampToValueAtTime(
+                0.0001,
+                ctx.currentTime + offset + 0.14,
+              );
               osc.connect(gain);
               gain.connect(ctx.destination);
               osc.start(ctx.currentTime + offset);
@@ -263,7 +309,7 @@ export default function GymTimer({
       });
       setSeconds(0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [seconds, targetSeconds, isRunning]);
 
   // Formatter for HH:MM:SS
@@ -290,7 +336,9 @@ export default function GymTimer({
     triggerAudioFeedback(isRunning ? 440 : 880);
     if (!isRunning) {
       setIsRunning(true);
-      toast.success(seconds > 0 ? "Timer resumed" : "Timer started", { id: "timer-status" });
+      toast.success(seconds > 0 ? "Timer resumed" : "Timer started", {
+        id: "timer-status",
+      });
     } else {
       setIsRunning(false);
       toast("Timer paused", { icon: "⏸️", id: "timer-status" });
@@ -311,7 +359,10 @@ export default function GymTimer({
       if (setsCount === 0 || isSavingLogRef.current) return;
 
       const totalReps = sets.reduce((acc, s) => acc + (s.reps ?? 0), 0);
-      const maxWeight = sets.reduce((max, s) => Math.max(max, s.weight ?? 0), 0);
+      const maxWeight = sets.reduce(
+        (max, s) => Math.max(max, s.weight ?? 0),
+        0,
+      );
       const loggedSetsNotes = sets
         .filter((s) => s.weight !== undefined && s.reps !== undefined)
         .map((s) => `${s.weight}kg×${s.reps}`)
@@ -333,19 +384,26 @@ export default function GymTimer({
       toast.loading("Saving workout...", { id: loadingToastId });
       try {
         await createWorkoutLog(payload);
-        toast.success("Workout saved to your history 💪", { id: loadingToastId, duration: 4000 });
+        // Also mark session complete in stopwatch API for calorie tracking
+        completeStopwatchSession({
+          workoutType: exerciseName,
+          durationMinutes: Math.round(totalSessionSeconds / 60),
+          weightKg: maxWeight > 0 ? maxWeight : undefined,
+        }).catch(() => {});
+        toast.success("Workout saved to your history 💪", {
+          id: loadingToastId,
+          duration: 4000,
+        });
       } catch (error) {
         toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to save workout log",
-          { id: loadingToastId, duration: 5000 }
+          error instanceof Error ? error.message : "Failed to save workout log",
+          { id: loadingToastId, duration: 5000 },
         );
       } finally {
         isSavingLogRef.current = false;
       }
     },
-    [authUserId, exerciseName]
+    [authUserId, exerciseName],
   );
 
   const handleStop = useCallback(() => {
@@ -412,7 +470,18 @@ export default function GymTimer({
       toast("Stopwatch reset to 00:00:00", { icon: "🔄", id: "stop-reset" });
     }
     setSeconds(0);
-  }, [completedSets, currentSet, onSetComplete, pendingLog, persistWorkoutLog, seconds, sessionSeconds, targetSeconds, totalGymSeconds, triggerAudioFeedback]);
+  }, [
+    completedSets,
+    currentSet,
+    onSetComplete,
+    pendingLog,
+    persistWorkoutLog,
+    seconds,
+    sessionSeconds,
+    targetSeconds,
+    totalGymSeconds,
+    triggerAudioFeedback,
+  ]);
 
   const handleNextSet = () => {
     triggerAudioFeedback(950);
@@ -437,7 +506,7 @@ export default function GymTimer({
         },
       ]);
       toast.success(
-        `Set ${currentSet} added to history — ${pendingLog.weight}kg × ${pendingLog.reps}`
+        `Set ${currentSet} added to history — ${pendingLog.weight}kg × ${pendingLog.reps}`,
       );
       setPendingLog(null);
     } else if (!wasRestMode && seconds > 0) {
@@ -454,8 +523,8 @@ export default function GymTimer({
       toast.success(
         `Set ${currentSet} completed (${formatted})! Ready for Set ${Math.min(
           totalSets,
-          currentSet + 1
-        )}`
+          currentSet + 1,
+        )}`,
       );
 
       if (onSetComplete) {
@@ -469,19 +538,27 @@ export default function GymTimer({
     if (currentSet < totalSets) {
       setCurrentSet((prev) => prev + 1);
     } else {
-      toast.success("🎉 All target sets completed! Great workout!", { duration: 4000 });
+      toast.success("🎉 All target sets completed! Great workout!", {
+        duration: 4000,
+      });
     }
     setSeconds(0);
     setIsRunning(false);
   };
 
   // Quick Set Logger: stage weight/reps for the current set (added to history on Next Set / Stop)
-  const handleQuickLogSave = ({ weight, reps }: { weight: number; reps: number }) => {
+  const handleQuickLogSave = ({
+    weight,
+    reps,
+  }: {
+    weight: number;
+    reps: number;
+  }) => {
     setPendingLog({ weight, reps });
     setIsLoggerOpen(false);
     toast.success(
       `${weight}kg × ${reps} ready for Set ${currentSet} — click Next Set to add to history`,
-      { icon: "🏋️", id: "quick-log-save", duration: 4000 }
+      { icon: "🏋️", id: "quick-log-save", duration: 4000 },
     );
   };
 
@@ -501,7 +578,10 @@ export default function GymTimer({
     if (isDeselecting) {
       toast("Rest target cleared", { icon: "⏱️", id: "set-target" });
     } else {
-      toast(`Rest target set: ${amount}s — press Start`, { icon: "⏱️", id: "set-target" });
+      toast(`Rest target set: ${amount}s — press Start`, {
+        icon: "⏱️",
+        id: "set-target",
+      });
     }
   };
 
@@ -557,15 +637,15 @@ export default function GymTimer({
   const progressPercent = targetSeconds
     ? Math.min(100, (seconds / targetSeconds) * 100)
     : seconds === 0
-    ? 0
-    : (seconds % 60) * (100 / 60);
+      ? 0
+      : (seconds % 60) * (100 / 60);
 
   // Average set duration in seconds
   const avgSetDurationSecs =
     completedSets.length > 0
       ? Math.round(
           completedSets.reduce((acc, curr) => acc + curr.duration, 0) /
-            completedSets.length
+            completedSets.length,
         )
       : 0;
 
@@ -575,9 +655,7 @@ export default function GymTimer({
       <div className="relative w-full max-w-4xl px-2 sm:px-4 py-4 sm:py-6 flex flex-col items-center">
         {/* Ambient Backlight Glow — only visible while timer is running */}
         {isRunning && (
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[180px] sm:w-[400px] sm:h-[260px] rounded-full blur-3xl pointer-events-none transition-all duration-700 bg-white/15 scale-110"
-          />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[180px] sm:w-[400px] sm:h-[260px] rounded-full blur-3xl pointer-events-none transition-all duration-700 bg-white/15 scale-110" />
         )}
 
         {/* Inner Card Container */}
@@ -586,7 +664,9 @@ export default function GymTimer({
           <div className="flex flex-col items-center justify-center">
             <div className="text-[11px] font-semibold text-zinc-300 uppercase tracking-widest mb-1 flex items-center gap-1.5 px-1 py-1">
               <Dumbbell className="w-3.5 h-3.5 text-white" />
-              <span className="truncate max-w-[200px] sm:max-w-none">{exerciseName}</span>
+              <span className="truncate max-w-[200px] sm:max-w-none">
+                {exerciseName}
+              </span>
             </div>
             <TimeDisplay
               seconds={seconds}
@@ -657,6 +737,7 @@ export default function GymTimer({
             totalSets={totalSets}
             soundEnabled={soundEnabled}
             targetSeconds={targetSeconds}
+            quickTargets={quickTargets}
             onStartPause={handleStartPause}
             onStop={handleStop}
             onNextSet={handleNextSet}
@@ -672,7 +753,8 @@ export default function GymTimer({
         {/* Set Configuration */}
         <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 flex flex-col justify-between shadow-md">
           <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-            <Dumbbell className="w-4 h-4 text-white" /> Target Sets ({totalSets})
+            <Dumbbell className="w-4 h-4 text-white" /> Target Sets ({totalSets}
+            )
           </div>
           <div className="flex items-center justify-between gap-2 bg-[#181a1f] border border-[#2a303d] rounded-xl px-3 py-2">
             <span className="text-xs text-zinc-400">Target Sets Goal:</span>
@@ -684,7 +766,9 @@ export default function GymTimer({
               >
                 -
               </button>
-              <span className="font-mono font-bold text-white text-sm px-1">{totalSets}</span>
+              <span className="font-mono font-bold text-white text-sm px-1">
+                {totalSets}
+              </span>
               <button
                 type="button"
                 onClick={() => setTotalSets((p) => Math.min(20, p + 1))}
@@ -700,7 +784,8 @@ export default function GymTimer({
         <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 flex flex-col justify-between shadow-md">
           <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center justify-between mb-2">
             <span className="flex items-center gap-1.5">
-              <Flame className="w-4 h-4 text-white" /> Today&apos;s Workout Stats
+              <Flame className="w-4 h-4 text-white" /> Today&apos;s Workout
+              Stats
             </span>
             <button
               type="button"
@@ -740,7 +825,8 @@ export default function GymTimer({
           <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 shadow-lg">
             <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center justify-between mb-3">
               <span className="flex items-center gap-2">
-                <TimerIcon className="w-4 h-4 text-white" /> Today&apos;s Logged Sets
+                <TimerIcon className="w-4 h-4 text-white" /> Today&apos;s Logged
+                Sets
               </span>
               <button
                 type="button"
@@ -761,7 +847,9 @@ export default function GymTimer({
                     <span className="w-5 h-5 rounded-full bg-white/10 border border-white/25 text-white flex items-center justify-center font-bold text-[10px]">
                       {item.set}
                     </span>
-                    <span className="font-medium text-white">Set {item.set}</span>
+                    <span className="font-medium text-white">
+                      Set {item.set}
+                    </span>
                     {item.weight !== undefined && item.reps !== undefined && (
                       <span className="rounded-full bg-white/10 border border-white/20 text-white px-2 py-0.5 font-mono text-[10px] font-semibold">
                         {item.weight}kg × {item.reps}
@@ -770,7 +858,10 @@ export default function GymTimer({
                   </div>
                   <div className="flex items-center gap-2 sm:gap-4 font-mono text-zinc-300 flex-wrap">
                     <span>
-                      Duration: <strong className="text-white">{formatTime(item.duration)}</strong>
+                      Duration:{" "}
+                      <strong className="text-white">
+                        {formatTime(item.duration)}
+                      </strong>
                     </span>
                     <span className="text-zinc-500">{item.timestamp}</span>
                   </div>

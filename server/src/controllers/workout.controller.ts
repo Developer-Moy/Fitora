@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { WorkoutLog, IWorkoutLog } from "../models/WorkoutLog.model.js";
 import { LOCAL_WORKOUTS_DATABASE, WorkoutExercise } from "../data/workout.data.js";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 // In-memory fallback storage for offline development
 interface LocalLogItem {
@@ -98,21 +99,24 @@ export const getWorkouts = async (req: Request, res: Response): Promise<Response
     const startIndex = (pageNum - 1) * limitNum;
     const paginatedResults = results.slice(startIndex, startIndex + limitNum);
 
-    return res.status(200).json({
-      success: true,
-      count: paginatedResults.length,
-      total,
-      page: pageNum,
-      totalPages: Math.ceil(total / limitNum) || 1,
-      data: paginatedResults,
-    });
+    return res.status(200).json(
+      successResponse("Workouts retrieved successfully", {
+        items: paginatedResults,
+        count: paginatedResults.length,
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum) || 1,
+      })
+    );
   } catch (error) {
     console.error("[Workout Controller] getWorkouts Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch workouts",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to fetch workouts",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -126,23 +130,23 @@ export const getWorkoutById = async (req: Request, res: Response): Promise<Respo
     const workout = LOCAL_WORKOUTS_DATABASE.find((w) => w.id === id);
 
     if (!workout) {
-      return res.status(404).json({
-        success: false,
-        message: `Workout with ID '${id}' not found`,
-      });
+      return res.status(404).json(
+        errorResponse(`Workout with ID '${id}' not found`, "WORKOUT_NOT_FOUND", 404)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      data: workout,
-    });
+    return res.status(200).json(
+      successResponse("Workout retrieved successfully", workout)
+    );
   } catch (error) {
     console.error("[Workout Controller] getWorkoutById Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch workout details",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to fetch workout details",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -199,19 +203,22 @@ export const getWorkoutLogs = async (req: Request, res: Response): Promise<Respo
       }
     );
 
-    return res.status(200).json({
-      success: true,
-      count: logs.length,
-      summary,
-      data: logs,
-    });
+    return res.status(200).json(
+      successResponse("Workout logs retrieved successfully", {
+        logs,
+        count: logs.length,
+        summary,
+      })
+    );
   } catch (error) {
     console.error("[Workout Controller] getWorkoutLogs Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to retrieve workout logs",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to retrieve workout logs",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -235,26 +242,27 @@ export const createWorkoutLog = async (req: Request, res: Response): Promise<Res
 
     // Validation
     if (!exerciseName || typeof exerciseName !== "string" || exerciseName.trim() === "") {
-      return res.status(400).json({
-        success: false,
-        message: "exerciseName is required and must be a non-empty string",
-      });
+      return res.status(400).json(
+        errorResponse(
+          "exerciseName is required and must be a non-empty string",
+          "VALIDATION_ERROR",
+          400
+        )
+      );
     }
 
     const sets = Number(setsCount);
     if (isNaN(sets) || sets <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "setsCount must be a positive number",
-      });
+      return res.status(400).json(
+        errorResponse("setsCount must be a positive number", "VALIDATION_ERROR", 400)
+      );
     }
 
     const reps = Number(repsCount);
     if (isNaN(reps) || reps <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "repsCount must be a positive number",
-      });
+      return res.status(400).json(
+        errorResponse("repsCount must be a positive number", "VALIDATION_ERROR", 400)
+      );
     }
 
     const authUser = (req as any).user;
@@ -315,18 +323,18 @@ export const createWorkoutLog = async (req: Request, res: Response): Promise<Res
 
     inMemoryWorkoutLogs.unshift(localItem);
 
-    return res.status(201).json({
-      success: true,
-      message: "Workout logged successfully",
-      data: createdLog || localItem,
-    });
+    return res.status(201).json(
+      successResponse("Workout logged successfully", createdLog || localItem)
+    );
   } catch (error) {
     console.error("[Workout Controller] createWorkoutLog Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to create workout log",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to create workout log",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -355,16 +363,17 @@ export const deleteWorkoutLog = async (req: Request, res: Response): Promise<Res
       inMemoryWorkoutLogs.splice(index, 1);
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Workout log deleted successfully",
-    });
+    return res.status(200).json(
+      successResponse("Workout log deleted successfully", {})
+    );
   } catch (error) {
     console.error("[Workout Controller] deleteWorkoutLog Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Failed to delete workout log",
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to delete workout log",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };

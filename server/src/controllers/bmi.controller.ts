@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import BMI from "../models/bmi.model";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 // POST /api/bmi/history
 export const createBMIHistory = async (
@@ -23,10 +24,9 @@ export const createBMIHistory = async (
       bmr === undefined ||
       tdee === undefined
     ) {
-      return res.status(400).json({
-        success: false,
-        message: "Height, weight, BMI, BMR and TDEE are required",
-      });
+      return res.status(400).json(
+        errorResponse("Height, weight, BMI, BMR and TDEE are required", "VALIDATION_ERROR", 400)
+      );
     }
 
     const history = await BMI.create({
@@ -38,18 +38,19 @@ export const createBMIHistory = async (
       tdee,
     });
 
-    return res.status(201).json({
-      success: true,
-      message: "BMI history saved successfully",
-      data: history,
-    });
+    return res.status(201).json(
+      successResponse("BMI history saved successfully", history)
+    );
   } catch (error) {
     console.error("Create BMI history error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Failed to save BMI history",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to save BMI history",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -69,18 +70,22 @@ export const getBMIHistory = async (
       .sort({ createdAt: -1 })
       .lean();
 
-    return res.status(200).json({
-      success: true,
-      count: history.length,
-      data: history,
-    });
+    return res.status(200).json(
+      successResponse("BMI history retrieved successfully", {
+        count: history.length,
+        history,
+      })
+    );
   } catch (error) {
     console.error("Get BMI history error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Failed to fetch BMI history",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to fetch BMI history",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -102,24 +107,24 @@ export const updateBMIHistory = async (
     );
 
     if (!history) {
-      return res.status(404).json({
-        success: false,
-        message: "BMI history entry not found",
-      });
+      return res.status(404).json(
+        errorResponse("BMI history entry not found", "BMI_ENTRY_NOT_FOUND", 404)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "BMI history updated successfully",
-      data: history,
-    });
+    return res.status(200).json(
+      successResponse("BMI history updated successfully", history)
+    );
   } catch (error) {
     console.error("Update BMI history error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update BMI history",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to update BMI history",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -134,22 +139,23 @@ export const deleteBMIHistory = async (
     const history = await BMI.findByIdAndDelete(id);
 
     if (!history) {
-      return res.status(404).json({
-        success: false,
-        message: "BMI history entry not found",
-      });
+      return res.status(404).json(
+        errorResponse("BMI history entry not found", "BMI_ENTRY_NOT_FOUND", 404)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "BMI history deleted successfully",
-    });
+    return res.status(200).json(
+      successResponse("BMI history deleted successfully", {})
+    );
   } catch (error) {
     console.error("Delete BMI history error:", error);
 
-    return res.status(500).json({
-      success: false,
-      message: "Failed to delete BMI history",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to delete BMI history",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };

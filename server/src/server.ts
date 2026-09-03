@@ -6,12 +6,13 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import { setupSocketHandlers } from './sockets/index.js';
 import apiRouter from './routes/index.js';
+import { seedStopwatchPresets } from './data/stopwatch.seed.js';
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
 // Socket.IO configuration
 const io = new SocketIOServer(server, {
@@ -22,15 +23,30 @@ const io = new SocketIOServer(server, {
 });
 
 // Middleware
-app.use(cors({ origin: '*' }));
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:3000',
+  'http://localhost:3000',
+];
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(null, true);
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // Root Health Check Route
 app.get('/', (req: Request, res: Response) => {
-  res.json({
-    status: 'online',
+  res.status(200).json({
+    success: true,
     message: 'Fitora Server API Running',
-    version: '1.0.0'
+    data: {
+      version: '1.0.0'
+    },
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -46,6 +62,7 @@ const startServer = async () => {
     console.log(`[Fitora Server] Running on http://localhost:${PORT}`);
   });
   await connectDB();
+  await seedStopwatchPresets();
 };
 
 startServer();

@@ -107,4 +107,15 @@ In-memory storage with HIIT Interval and Strength Circuit presets, session track
 
 ---
 
-<p align="right">Updated: 2026-08-27</p>
+## 5. Exercises Page Fixes (2026-09-02)
+
+Fixed two issues on the `/exercises` route in `client/src/components/ExerciseTracker.tsx`:
+
+### Changes Made:
+1. **Exercise card numbering** — Changed from 1-based (01, 02...) to 0-based (00, 01...) display using `String(index).padStart(2, "0")`
+2. **Stopwatch gap fix** — Removed `justify-between` from the rest stopwatch container to eliminate unwanted spacing at the top
+3. **Modal state reset** — Added `key={selectedExercise.id}` to `ExerciseModal` to force re-mount when opening a different exercise, ensuring form state (sets=3, reps=10) resets correctly
+
+---
+
+<p align="right">Updated: 2026-09-02</p>

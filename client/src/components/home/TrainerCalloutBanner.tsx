@@ -64,7 +64,7 @@ export default function TrainerCalloutBanner({
             </span>
             <a
               href={phoneLink}
-              className="text-white hover:text-gray-300 transition-colors inline-flex items-center gap-2 group"
+              className="text-white hover:text-white/80 transition-colors inline-flex items-center gap-2 group"
             >
               <span>{phoneNumber}</span>
               <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white transition-transform group-hover:scale-110" />
