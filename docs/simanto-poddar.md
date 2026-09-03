@@ -152,3 +152,10 @@ GET /api/daily-plan/:userId
 TEST <http://localhost:5000/api/daily-plan/6a97f3f95819d9d4ff781926>
 
 We built a feature that lets users save their favorite food items to a custom "Daily Meal Plan" with one click. When a logged-in user clicks "Add to Daily Plan", the meal gets saved to their account and instantly shows up under a new section on their profile page.
+
+## 03-Sep-26
+
+- Review the work we completed this week and check for any issues.
+- Fixing the bugs i find during the review.
+
+- Protect dashboard route for unauthenticated users
