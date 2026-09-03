@@ -1,9 +1,9 @@
-import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
+import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import User, { IUser, UserRole } from "../models/User.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
-import { successResponse, errorResponse } from "../utils/apiResponse";
+import User, { IUser, UserRole } from "../models/User.model";
+import { errorResponse, successResponse } from "../utils/apiResponse";
 
 const getJwtSecret = (): string => {
   return (
