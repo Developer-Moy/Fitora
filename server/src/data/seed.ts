@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import { Exercise } from "../models/Exercise.model";
 import { WorkoutLog } from "../models/WorkoutLog.model";
 import { LOCAL_WORKOUTS_DATABASE } from "./workout.data";
+import { EXERCISE_DATABASE } from "./exercise.data";
 
 async function seed() {
   try {
@@ -12,50 +13,49 @@ async function seed() {
       throw new Error("MONGODB_URI is missing from .env");
     }
 
-    // Connect MongoDB
+    // =========================
+    // CONNECT TO MONGODB
+    // =========================
+
     await mongoose.connect(process.env.MONGODB_URI);
 
     console.log("MongoDB connected");
 
-    // Clear existing data
+    // =========================
+    // CLEAR EXISTING DATA
+    // =========================
+
     await Exercise.deleteMany({});
     await WorkoutLog.deleteMany({});
 
     console.log("Existing exercise and workout log data cleared");
 
-    // Convert LOCAL_WORKOUTS_DATABASE format
-    // to Exercise model format
-    const exerciseSeedData = LOCAL_WORKOUTS_DATABASE.map((exercise) => ({
+    // =========================
+    // SEED EXERCISES
+    // =========================
+
+    const exerciseSeedData = EXERCISE_DATABASE.map((exercise) => ({
+      id: exercise.id,
       name: exercise.name,
-      description: `${exercise.name} is a ${exercise.difficulty.toLowerCase()} level exercise targeting ${exercise.muscleGroup}.`,
-
-      primaryMuscles: exercise.targetMuscles,
-
-      secondaryMuscles: [],
-
-      equipment: exercise.equipment,
-
+      category: exercise.category,
       difficulty: exercise.difficulty,
-
-      instructions: exercise.instructions,
-
-      commonMistakes: [
-        "Avoid using excessive momentum.",
-        "Maintain proper form throughout the movement.",
-        "Use a controlled range of motion.",
-      ],
-
-      videoUrl: exercise.videoUrl,
-
-      gifUrl: exercise.imageUrl,
+      duration: exercise.duration,
+      equipment: exercise.equipment,
+      muscle: exercise.muscle,
+      description: exercise.description,
+      tips: exercise.tips,
+      videoId: exercise.videoId,
+      image: exercise.image,
     }));
 
-    // Insert exercises
     const exercises = await Exercise.insertMany(exerciseSeedData);
 
     console.log(`Seeded ${exercises.length} exercises`);
 
-    // Create workout logs from the exercises
+    // =========================
+    // SEED WORKOUT LOGS
+    // =========================
+
     const workoutLogSeedData = LOCAL_WORKOUTS_DATABASE.map(
       (exercise, index) => ({
         userId: "guest_user",
@@ -80,12 +80,15 @@ async function seed() {
       })
     );
 
-    // Insert workout logs
     const workoutLogs = await WorkoutLog.insertMany(
       workoutLogSeedData
     );
 
     console.log(`Seeded ${workoutLogs.length} workout logs`);
+
+    // =========================
+    // SUCCESS
+    // =========================
 
     console.log("Database seeding completed successfully");
   } catch (error) {
