@@ -70,18 +70,16 @@ export default function ExercisePage() {
         const mapped = data.map((d: any) => ({
           id: d._id,
           name: d.name,
-          category: (d.primaryMuscles[0] || "FUNCTIONAL").toUpperCase(),
-          difficulty: d.difficulty.toUpperCase() as any,
-          duration: "10 MIN", // Default or fetch if available
-          equipment: d.equipment.toUpperCase(),
-          muscle: (d.primaryMuscles[0] || "").toUpperCase(),
-          description: d.instructions[0] || "",
-          tips: d.instructions,
-          videoId: d.videoUrl
-            ? d.videoUrl.split("v=")[1] || d.videoUrl.split("/").pop() || ""
-            : "",
+          category: (d.category || "FUNCTIONAL").toUpperCase(),
+          difficulty: (d.difficulty || "BEGINNER").toUpperCase() as any,
+          duration: d.duration || "10 MIN",
+          equipment: (d.equipment || "BODYWEIGHT").toUpperCase(),
+          muscle: (d.muscle || "").toUpperCase(),
+          description: d.description || d.tips?.[0] || "",
+          tips: d.tips || [],
+          videoId: d.videoId || "",
           image:
-            d.gifUrl ||
+            d.image ||
             "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=80",
         }));
         setExercises(mapped);
@@ -439,6 +437,54 @@ function ExerciseModal({
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Load existing workout logs for this exercise from API
+  useEffect(() => {
+    let active = true;
+    async function loadExerciseHistory() {
+      try {
+        let userId = "guest_user";
+        if (typeof window !== "undefined") {
+          try {
+            const userStr = localStorage.getItem("fitora_user");
+            if (userStr) {
+              const u = JSON.parse(userStr);
+              if (u.id || u._id) userId = u.id || u._id;
+            }
+          } catch {}
+        }
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("fitora_token") ||
+              localStorage.getItem("fitora_auth_token")
+            : null;
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch(
+          `${API_BASE_URL}/workouts/log?userId=${encodeURIComponent(userId)}&limit=50`,
+          { headers },
+        );
+        if (res.ok) {
+          const json = await res.json();
+          const items: WorkoutLog[] = json?.data || [];
+          const filtered = items.filter(
+            (item: any) =>
+              item.exerciseName?.toLowerCase() === exercise.name.toLowerCase(),
+          );
+          if (active && filtered.length > 0) {
+            setHistory(filtered);
+          }
+        }
+      } catch {}
+    }
+    loadExerciseHistory();
+    return () => {
+      active = false;
+    };
+  }, [exercise.name]);
+
   // Modal-scoped stopwatch state
   const [swRunning, setSwRunning] = useState<boolean>(false);
   const [swElapsedMs, setSwElapsedMs] = useState<number>(0);
@@ -514,6 +560,17 @@ function ExerciseModal({
     setError(null);
     setSubmitting(true);
 
+    let userId = "guest_user";
+    if (typeof window !== "undefined") {
+      try {
+        const userStr = localStorage.getItem("fitora_user");
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          if (u.id || u._id) userId = u.id || u._id;
+        }
+      } catch {}
+    }
+
     const payload = {
       exerciseName: exercise.name,
       setsCount: Number(sets),
@@ -521,14 +578,23 @@ function ExerciseModal({
       weight: Number(weight),
       notes: notes.trim(),
       date: new Date().toISOString(),
+      userId,
     };
 
     try {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("fitora_token") ||
+            localStorage.getItem("fitora_auth_token")
+          : null;
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch(`${API_BASE_URL}/workouts/log`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(payload),
       });
 

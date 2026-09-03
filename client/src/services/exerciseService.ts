@@ -8,15 +8,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export interface APIExercise {
   _id: string;
-  id?: string;
+  id?: number;
   name: string;
-  primaryMuscles: string[];
-  secondaryMuscles: string[];
+  category: string;
+  muscle: string;
   equipment: string;
-  difficulty: "Beginner" | "Intermediate" | "Advanced";
-  instructions: string[];
-  videoUrl: string;
-  gifUrl: string;
+  difficulty: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  duration: string;
+  description: string;
+  tips: string[];
+  videoId: string;
+  image: string;
 }
 
 export async function fetchExercises(params?: {

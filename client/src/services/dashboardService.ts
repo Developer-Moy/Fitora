@@ -4,8 +4,7 @@
  * for user management and platform analytics.
  */
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 function getAuthHeader(): Record<string, string> {
   if (typeof window === "undefined") return {};
@@ -13,7 +12,15 @@ function getAuthHeader(): Record<string, string> {
     const token =
       localStorage.getItem("fitora_token") ||
       localStorage.getItem("fitora_auth_token");
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    if (token) return { Authorization: `Bearer ${token}` };
+
+    const session = localStorage.getItem("fitora_auth_session");
+    if (session) {
+      const parsed = JSON.parse(session);
+      const sessToken = parsed?.token || parsed?.access_token;
+      if (sessToken) return { Authorization: `Bearer ${sessToken}` };
+    }
+    return {};
   } catch {
     return {};
   }
@@ -130,9 +137,12 @@ export async function fetchAllUsers(params?: {
 }): Promise<{ users: UserRecord[]; total: number; totalPages: number } | null> {
   try {
     const query = new URLSearchParams();
-    if (params?.role && params.role !== "all") query.append("role", params.role);
-    if (params?.status && params.status !== "all") query.append("status", params.status);
-    if (params?.branch && params.branch !== "all") query.append("branch", params.branch);
+    if (params?.role && params.role !== "all")
+      query.append("role", params.role);
+    if (params?.status && params.status !== "all")
+      query.append("status", params.status);
+    if (params?.branch && params.branch !== "all")
+      query.append("branch", params.branch);
     if (params?.search) query.append("search", params.search);
     if (params?.page) query.append("page", String(params.page));
     if (params?.limit) query.append("limit", String(params.limit));
@@ -153,7 +163,7 @@ export async function fetchAllUsers(params?: {
 }
 
 export async function createUserAPI(
-  userData: Partial<UserRecord>
+  userData: Partial<UserRecord>,
 ): Promise<{ id: string; name: string } | null> {
   try {
     const res = await fetch(`${API_URL}/dashboard/users`, {
@@ -174,7 +184,7 @@ export async function createUserAPI(
 
 export async function updateUserAPI(
   id: string,
-  updates: Partial<UserRecord>
+  updates: Partial<UserRecord>,
 ): Promise<boolean> {
   try {
     const res = await fetch(`${API_URL}/dashboard/users/${id}`, {
@@ -223,7 +233,10 @@ export async function fetchAdminBranches(): Promise<BranchInfo[] | null> {
     // Normalize _id → id
     return raw.map((b: any) => ({
       ...b,
-      id: b._id || b.id || `BR-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      id:
+        b._id ||
+        b.id ||
+        `BR-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
       adminEmail: b.adminEmail || b.email || "",
       adminPhone: b.adminPhone || b.phone || "",
       totalMembers: b.totalMembers || 0,
@@ -248,16 +261,18 @@ export async function fetchPublicBranches(params?: {
       query.append("division", params.division);
     if (params?.search) query.append("search", params.search);
 
-    const res = await fetch(
-      `${API_URL}/branches/public?${query.toString()}`,
-      { cache: "no-store" }
-    );
+    const res = await fetch(`${API_URL}/branches/public?${query.toString()}`, {
+      cache: "no-store",
+    });
     if (!res.ok) return null;
     const data = await res.json();
     const raw = data.data?.branches || [];
     return raw.map((b: any) => ({
       ...b,
-      id: b._id || b.id || `BR-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      id:
+        b._id ||
+        b.id ||
+        `BR-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
       adminEmail: b.adminEmail || b.email || "",
       adminPhone: b.adminPhone || b.phone || "",
       totalMembers: b.totalMembers || 0,

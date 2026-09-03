@@ -3,11 +3,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 function getAuthHeader(): Record<string, string> {
   if (typeof window === "undefined") return {};
   try {
+    const token =
+      localStorage.getItem("fitora_token") ||
+      localStorage.getItem("fitora_auth_token");
+    if (token) return { Authorization: `Bearer ${token}` };
+
     const session = localStorage.getItem("fitora_auth_session");
-    if (!session) return {};
-    const parsed = JSON.parse(session);
-    const token = parsed?.token || parsed?.access_token;
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    if (session) {
+      const parsed = JSON.parse(session);
+      const sessToken = parsed?.token || parsed?.access_token;
+      if (sessToken) return { Authorization: `Bearer ${sessToken}` };
+    }
+    return {};
   } catch {
     return {};
   }
@@ -27,7 +34,9 @@ export interface StopwatchPreset {
 
 export async function fetchStopwatchPresets(): Promise<StopwatchPreset[]> {
   try {
-    const res = await fetch(`${API_URL}/stopwatch/presets`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/stopwatch/presets`, {
+      cache: "no-store",
+    });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data ?? [];
@@ -93,10 +102,13 @@ export async function completeStopwatchSession(payload: {
 
 export async function fetchRecentSessions(limit = 10) {
   try {
-    const res = await fetch(`${API_URL}/stopwatch/recent-sessions?limit=${limit}`, {
-      headers: { "Content-Type": "application/json", ...getAuthHeader() },
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${API_URL}/stopwatch/recent-sessions?limit=${limit}`,
+      {
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
+        cache: "no-store",
+      },
+    );
     if (!res.ok) return [];
     const data = await res.json();
     return data.data?.sessions ?? [];
