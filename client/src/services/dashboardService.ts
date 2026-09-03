@@ -10,10 +10,9 @@ const API_URL =
 function getAuthHeader(): Record<string, string> {
   if (typeof window === "undefined") return {};
   try {
-    const session = localStorage.getItem("fitora_auth_session");
-    if (!session) return {};
-    const parsed = JSON.parse(session);
-    const token = parsed?.token || parsed?.access_token;
+    const token =
+      localStorage.getItem("fitora_token") ||
+      localStorage.getItem("fitora_auth_token");
     return token ? { Authorization: `Bearer ${token}` } : {};
   } catch {
     return {};
@@ -225,6 +224,14 @@ export async function fetchAdminBranches(): Promise<BranchInfo[] | null> {
     return raw.map((b: any) => ({
       ...b,
       id: b._id || b.id || `BR-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      adminEmail: b.adminEmail || b.email || "",
+      adminPhone: b.adminPhone || b.phone || "",
+      totalMembers: b.totalMembers || 0,
+      maxCapacity: b.maxCapacity || b.memberCapacity || 0,
+      activeNow: b.activeNow || 0,
+      equipmentCount: b.equipmentCount || b.facilities?.length || 0,
+      trainersCount: b.trainersCount || b.trainerCount || 0,
+      monthlyRevenueBDT: b.monthlyRevenueBDT || 0,
     }));
   } catch {
     return null;
@@ -251,6 +258,14 @@ export async function fetchPublicBranches(params?: {
     return raw.map((b: any) => ({
       ...b,
       id: b._id || b.id || `BR-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      adminEmail: b.adminEmail || b.email || "",
+      adminPhone: b.adminPhone || b.phone || "",
+      totalMembers: b.totalMembers || 0,
+      maxCapacity: b.maxCapacity || b.memberCapacity || 0,
+      activeNow: b.activeNow || 0,
+      equipmentCount: b.equipmentCount || b.facilities?.length || 0,
+      trainersCount: b.trainersCount || b.trainerCount || 0,
+      monthlyRevenueBDT: b.monthlyRevenueBDT || 0,
     }));
   } catch {
     return null;

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, createContext, useContext } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 export type DashboardRole =
   | "master_admin"
@@ -49,11 +49,25 @@ export function DashboardRoleProvider({
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    const storedToken = localStorage.getItem("fitora_token");
+    const hasLegacyFakeToken =
+      storedToken === "fitora_master_dev_token" ||
+      storedToken === "fitora_branch_dev_token";
+
+    if (hasLegacyFakeToken) {
+      localStorage.removeItem("fitora_token");
+      localStorage.removeItem("fitora_auth_token");
+      localStorage.removeItem("fitora_user");
+      localStorage.removeItem("fitora_user_role");
+      localStorage.removeItem(STORAGE_KEY_AUTH);
+    }
+
     const isAuth =
-      localStorage.getItem(STORAGE_KEY_AUTH) === "true" ||
-      !!localStorage.getItem("fitora_token") ||
-      !!localStorage.getItem("fitora_auth_token") ||
-      !!localStorage.getItem("fitora_user");
+      !hasLegacyFakeToken &&
+      (localStorage.getItem(STORAGE_KEY_AUTH) === "true" ||
+        !!localStorage.getItem("fitora_token") ||
+        !!localStorage.getItem("fitora_auth_token") ||
+        !!localStorage.getItem("fitora_user"));
 
     const savedRole = (localStorage.getItem(STORAGE_KEY_ROLE) ||
       localStorage.getItem("fitora_user_role") ||
@@ -122,7 +136,7 @@ export function DashboardRoleProvider({
           localUser = JSON.parse(stored);
           if (localUser.plan) userPlan = localUser.plan;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (localUser && localUser.name && localUser.email) {
@@ -193,9 +207,9 @@ export function useDashboardRole(): DashboardUserContextType {
   if (!context) {
     return {
       role: "master_admin",
-      setRole: () => {},
+      setRole: () => { },
       assignedBranch: "Dhaka - Gulshan-2 Branch (Flagship)",
-      setAssignedBranch: () => {},
+      setAssignedBranch: () => { },
       userName: "Master",
       userEmail: "master@fitora.com",
       userPlan: "VIP Ultimate",
@@ -205,7 +219,7 @@ export function useDashboardRole(): DashboardUserContextType {
       isFreeUser: false,
       isAuthenticated: false,
       isLoading: false,
-      logout: () => {},
+      logout: () => { },
     };
   }
   return context;
