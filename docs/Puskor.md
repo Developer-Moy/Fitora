@@ -119,3 +119,104 @@ Fixed two issues on the `/exercises` route in `client/src/components/ExerciseTra
 ---
 
 <p align="right">Updated: 2026-09-02</p>
+
+---
+
+# puskor_roy Branch — Daily Work Summary (2026-09-03)
+
+## 1. Authenticated Workout Log Management (`9861084`)
+Implemented full workout log lifecycle on the profile page with email-based filtering and summary stats.
+
+### Changes:
+- **`server/src/controllers/workout.controller.ts`** — Added server-side filtering by `userEmail` and summary aggregation endpoint logic.
+- **`client/src/services/workoutService.ts`** — Added `getWorkoutLogs({ userEmail, limit })`, `deleteWorkoutLog(id)`, plus auth-aware headers.
+- **`client/src/services/stopwatchService.ts`** — Aligned API params so stopwatch sessions pass user identity.
+- **`client/src/components/time/GymTimer.tsx`** — Wired completed sets → workout log on session finish.
+- **`client/src/app/profile/page.tsx`** — Replaced mock logs with API-backed list, added delete action, summary cards (total sessions, total reps, total volume), and 0-based exercise numbering.
+
+---
+
+## 2. Full Workout History Modal with Search & Filter (`7fd6eef`)
+Built a dedicated modal on the profile page for browsing the complete workout history.
+
+### Changes (in `client/src/app/profile/page.tsx`):
+- **New Modal Component** — Shows all logged sessions, paginated and filterable.
+- **Search Bar** — Text filter across `exerciseName` and `notes`.
+- **Filters** — By exercise, by date range, by min reps/sets.
+- **Sorting** — By date desc/asc, reps, sets.
+- **Delete Action** — Confirm-then-delete flow wired to `deleteWorkoutLog`.
+- **Entry-point CTA** — "View All N Sessions in Full History" button shown when logs > 4.
+
+---
+
+## 3. Manual Workout Saving UI (`06791d3`)
+Replaced auto-only save flow with a dedicated manual save control in the stopwatch HUD.
+
+### Changes:
+- **`client/src/components/time/GymTimer.tsx`** — New `Save` button in the timer controls panel; refactored set completion logic into a reusable handler.
+- **`client/src/components/time/TimerControls.tsx`** — Exposed `onSave` prop and Save/Discard pill buttons.
+- **`client/src/components/time/stopwatch.tsx`** — Threaded save callback through to `GymTimer` and updated session persistence messaging.
+
+---
+
+## 4. Workout Auto-Save + Profile Navigation (`1b01d11`)
+Added background auto-save of completed sessions and navigation from the stopwatch to the profile history.
+
+### Changes:
+- **`server/src/routes/workout.routes.ts`** — Registered new auto-save route.
+- **`server/src/controllers/workout.controller.ts`** — Added `autoSaveWorkoutLog` with debounce-safe upsert.
+- **`client/src/services/workoutService.ts`** — `autoSaveWorkoutLog(payload)` helper.
+- **`client/src/components/time/GymTimer.tsx`** — Auto-save effect on completed set changes; "Auto-saved to Profile ✓" status pill.
+- **`client/src/components/time/TimerControls.tsx`** — Added quick link to `/profile` from HUD.
+- **`client/src/components/time/WorkoutHistoryModal.tsx`** — New 339-line modal (search, filter, list).
+- **`client/src/components/time/index.ts`** — Re-export `WorkoutHistoryModal`.
+- **`client/src/app/profile/page.tsx`** — Render history modal trigger when logs > 4.
+
+---
+
+## 5. History Icon Color Fix (`771748e`)
+Updated the History icon color on the stopwatch page for better visibility against the new dark theme.
+
+### Changes:
+- **`client/src/components/time/stopwatch.tsx`** — Icon color adjusted.
+
+---
+
+## 6. Icon Color Consistency Across Time Components (`2cc7a85`)
+Standardized icon colors between `GymTimer` and `WorkoutHistoryModal` so the stopwatch experience reads as a single design system.
+
+### Changes:
+- **`client/src/components/time/GymTimer.tsx`** — 10 line updates to icon color tokens.
+- **`client/src/components/time/TimerControls.tsx`** — 2 line updates to match.
+- **`client/src/components/time/WorkoutHistoryModal.tsx`** — 4 line updates to match.
+
+---
+
+## 7. Stopwatch Theme Migration to Neutral Slate
+Following the designer's direction to remove the black/white-only look from `/stopwatch`, recolored the stopwatch surface area with neutral slate grays and removed all green/emerald accents from the History icons and auto-save status pills (still kept black/white elsewhere in the app).
+
+### Color System Applied:
+| Element | Treatment |
+|---|---|
+| Page background | `bg-slate-800 text-slate-100` |
+| Cards / inputs / chips | `bg-slate-700 border-slate-300/20` |
+| Selected chip / primary CTA | `bg-slate-200 text-slate-900` |
+| Borders & subtle surfaces | `border-slate-300/*`, `bg-slate-300/*` |
+| Status / History icons | `text-slate-300` (no emerald) |
+| Auto-save pill | `text-slate-300 bg-slate-300/10 border-slate-300/25` |
+
+### Files Touched:
+- `client/src/app/stopwatch/page.tsx` — page wrapper
+- `client/src/components/time/stopwatch.tsx` — chips, custom-exercise input, fullscreen toggle
+- `client/src/components/time/GymTimer.tsx` — auto-save pill + History icon
+- `client/src/components/time/TimerControls.tsx` — History icon
+- `client/src/components/time/WorkoutHistoryModal.tsx` — modal header + Timer icons
+
+---
+
+## 8. Profile Page JSX Build Fix (2026-09-03)
+Resolved a Turbopack parse error (`Expected '</', got ';'`) at `client/src/app/profile/page.tsx:909` caused by a stray `);` placed inside the workout logs `.slice(0, 4).map` callback. Corrected the closing sequence to `);` (return) followed by `})` (map callback).
+
+---
+
+<p align="right">Updated: 2026-09-03</p>
