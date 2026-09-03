@@ -155,7 +155,7 @@ export default function StopwatchPage({
                 title="View full workout history on your profile"
                 className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white transition cursor-pointer shadow-md"
               >
-                <History className="w-3.5 h-3.5 text-emerald-400" />
+                <History className="w-3.5 h-3.5 text-slate-300" />
                 <span>History</span>
               </Link>
 
