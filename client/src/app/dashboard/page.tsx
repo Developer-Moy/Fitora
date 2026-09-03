@@ -1,49 +1,40 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
-import { useDashboardRole, DashboardRole } from "@/hooks/useDashboardRole";
+import BranchManagementView from "@/components/dashboard/BranchManagementView";
+import MemberDashboardView from "@/components/dashboard/MemberDashboardView";
+import UserManagementTable from "@/components/dashboard/UserManagementTable";
 import {
-  REVENUE_MONTHLY_CHART,
   INITIAL_CHECKINS,
-  PACKAGE_SALES_BREAKDOWN,
-  PAYMENT_GATEWAY_BREAKDOWN,
+  REVENUE_MONTHLY_CHART
 } from "@/data/dashboardData";
-import {
-  fetchPlatformStats,
-  type PlatformStats,
-  type CheckInRecord,
-  type PaymentGatewayBreakdown,
-  type PackageSalesBreakdown,
-} from "@/services/dashboardService";
+import { useDashboardRole } from "@/hooks/useDashboardRole";
 import {
   fetchBranchCheckins,
   fetchBranchOccupancy,
   fetchBranchOverview,
 } from "@/services/branchService";
 import {
+  fetchPlatformStats,
+  type CheckInRecord,
+  type PackageSalesBreakdown,
+  type PaymentGatewayBreakdown,
+  type PlatformStats,
+} from "@/services/dashboardService";
+import {
   Activity,
-  Bell,
   Building2,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
   CreditCard,
-  Crown,
   DollarSign,
-  Dumbbell,
-  Flame,
   QrCode,
-  ShieldCheck,
   TrendingUp,
-  Trophy,
   Users,
-  Zap,
+  Zap
 } from "lucide-react";
-import UserManagementTable from "@/components/dashboard/UserManagementTable";
-import BranchManagementView from "@/components/dashboard/BranchManagementView";
-import MemberDashboardView from "@/components/dashboard/MemberDashboardView";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 export default function MasterDashboardPage() {
   const {
@@ -178,9 +169,9 @@ export default function MasterDashboardPage() {
       {(role === "premium_user" || role === "free_user") && (
         <>
           {activeTab === "branches" ? (
-            <BranchManagementView currentRole={role} />
+            <BranchManagementView />
           ) : (
-            <MemberDashboardView userId={userEmail} 
+            <MemberDashboardView userId={userEmail}
               isPremium={role === "premium_user"}
               userName={userName}
               userEmail={userEmail}
@@ -214,9 +205,9 @@ export default function MasterDashboardPage() {
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                       ৳{platformStats
                         ? (isMasterAdmin
-                            ? platformStats.totalRevenueBDT
-                            : platformStats.mrrBDT
-                          ).toLocaleString("en-IN")
+                          ? platformStats.totalRevenueBDT
+                          : platformStats.mrrBDT
+                        ).toLocaleString("en-IN")
                         : isMasterAdmin ? "84,50,000" : "6,80,000"}
                     </span>
                   </div>
@@ -258,9 +249,9 @@ export default function MasterDashboardPage() {
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                       {platformStats
                         ? (isMasterAdmin
-                            ? platformStats.totalMembers
-                            : platformStats.activeMembersToday
-                          ).toLocaleString()
+                          ? platformStats.totalMembers
+                          : platformStats.activeMembersToday
+                        ).toLocaleString()
                         : isMasterAdmin ? "4,850" : "480"}
                     </span>
                     <span className="text-xs font-black text-white/40 ml-2 uppercase">
@@ -366,7 +357,7 @@ export default function MasterDashboardPage() {
 
           {/* TAB 3: 64 NATIONWIDE BRANCHES */}
           {activeTab === "branches" && isMasterAdmin && (
-            <BranchManagementView currentRole={role} />
+            <BranchManagementView />
           )}
 
           {/* TAB 4: LIVE ATTENDANCE FEED & QR SCANNER */}
@@ -510,8 +501,8 @@ export default function MasterDashboardPage() {
                         <div className="space-y-1 text-right">
                           <span
                             className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${checkin.status === "checked_in"
-                                ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                                : "border border-white/20 bg-white/10 text-white"
+                              ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                              : "border border-white/20 bg-white/10 text-white"
                               }`}
                           >
                             {checkin.status === "checked_in"
@@ -588,10 +579,10 @@ export default function MasterDashboardPage() {
                 {(gatewayBreakdown.length > 0
                   ? gatewayBreakdown
                   : [
-                      { name: "bKash Direct", percentage: 62, amountBDT: 5239000, color: "#E2136E" },
-                      { name: "Nagad Gateway", percentage: 26, amountBDT: 2197000, color: "#F7941D" },
-                      { name: "Visa / Mastercard", percentage: 12, amountBDT: 1014000, color: "#00579F" },
-                    ]
+                    { name: "bKash Direct", percentage: 62, amountBDT: 5239000, color: "#E2136E" },
+                    { name: "Nagad Gateway", percentage: 26, amountBDT: 2197000, color: "#F7941D" },
+                    { name: "Visa / Mastercard", percentage: 12, amountBDT: 1014000, color: "#00579F" },
+                  ]
                 ).map((gw, idx) => (
                   <div
                     key={idx}
@@ -633,11 +624,11 @@ export default function MasterDashboardPage() {
                 {(packageBreakdown.length > 0
                   ? packageBreakdown
                   : [
-                      { name: "Free Tier (Trial)", members: 3200, priceBDT: 0, share: "66%" },
-                      { name: "Basic Pass", members: 680, priceBDT: 2500, share: "14%" },
-                      { name: "Pro Athlete (AI Suite)", members: 820, priceBDT: 4900, share: "17%" },
-                      { name: "VIP Ultimate (All-Branch)", members: 150, priceBDT: 9900, share: "3%" },
-                    ]
+                    { name: "Free Tier (Trial)", members: 3200, priceBDT: 0, share: "66%" },
+                    { name: "Basic Pass", members: 680, priceBDT: 2500, share: "14%" },
+                    { name: "Pro Athlete (AI Suite)", members: 820, priceBDT: 4900, share: "17%" },
+                    { name: "VIP Ultimate (All-Branch)", members: 150, priceBDT: 9900, share: "3%" },
+                  ]
                 ).map((pkg, idx) => (
                   <div
                     key={idx}
