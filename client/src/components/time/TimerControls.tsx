@@ -176,7 +176,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
             className="bg-[#181a1f] hover:bg-[#22262e] text-zinc-300 hover:text-white border border-[#2b313d] hover:border-zinc-500 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 flex items-center gap-1.5 cursor-pointer"
             title="View full workout history"
           >
-            <History className="w-4 h-4 text-emerald-400" />
+            <History className="w-4 h-4 text-slate-300" />
             <span>History</span>
           </button>
         )}

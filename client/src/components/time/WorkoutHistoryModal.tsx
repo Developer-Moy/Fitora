@@ -120,7 +120,7 @@ export default function WorkoutHistoryModal({
             <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4 shrink-0">
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5">
-                  <History className="w-6 h-6 text-emerald-400" />
+                  <History className="w-6 h-6 text-slate-300" />
                   <h2 className="text-xl sm:text-2xl font-black uppercase text-white tracking-tight">
                     Gym & Workout History
                   </h2>
@@ -267,7 +267,7 @@ export default function WorkoutHistoryModal({
                           </strong>
                           {isStopwatch && (
                             <span className="inline-flex items-center gap-1 font-mono text-[10px] font-bold text-white bg-white/15 border border-white/20 px-2 py-0.5 rounded-full">
-                              <TimerIcon className="w-3 h-3 text-emerald-400" />
+                              <TimerIcon className="w-3 h-3 text-slate-300" />
                               Stopwatch
                             </span>
                           )}

@@ -812,8 +812,8 @@ export default function GymTimer({
                 </span>
               )}
               {autoSaveStatus === "saved" && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-emerald-400 bg-emerald-400/10 border border-emerald-400/25 px-2 py-0.5 rounded-full transition-all">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-slate-300 bg-slate-300/10 border border-slate-300/25 px-2 py-0.5 rounded-full transition-all">
+                  <CheckCircle2 className="w-3 h-3 text-slate-300" />
                   Auto-saved to Profile ✓
                 </span>
               )}
@@ -1028,8 +1028,8 @@ export default function GymTimer({
             {/* Auto-Saved History Status Bar */}
             <div className="flex items-center justify-between flex-wrap gap-2 pt-3 border-t border-white/10 mt-3">
               <div className="flex items-center gap-2 text-xs text-zinc-400">
-                <span className="inline-flex items-center gap-1 font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 rounded-full">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                <span className="inline-flex items-center gap-1 font-mono text-slate-300 bg-slate-300/10 border border-slate-300/20 px-2.5 py-1 rounded-full">
+                  <CheckCircle2 className="w-3 h-3 text-slate-300" />
                   Auto-saved to Profile ({completedSets.length} sets)
                 </span>
               </div>
@@ -1039,7 +1039,7 @@ export default function GymTimer({
                   onClick={() => setIsHistoryModalOpen(true)}
                   className="bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold px-4 py-2 rounded-full transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  <History className="w-3.5 h-3.5 text-emerald-400" />
+                  <History className="w-3.5 h-3.5 text-slate-300" />
                   <span>View History</span>
                 </button>
                 <Link
