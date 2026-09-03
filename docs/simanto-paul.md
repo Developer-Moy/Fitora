@@ -75,6 +75,7 @@ Built the dedicated `/calculator` page with complete fitness calculations.
 * Export Metrics functionality
 * Clipboard-based metric export
 * User-friendly calculation visualization
+* Calculation History save workflow
 
 ---
 
@@ -132,6 +133,7 @@ Implemented backend nutrition calculation logic using **Express + TypeScript**.
 * Input validation
 * Reusable backend calculation utilities
 * Controller-based calculation architecture
+* Frontend-to-backend nutrition calculation integration
 
 ---
 
@@ -154,10 +156,14 @@ Implemented the backend structure for storing and managing users' historical hea
 * TDEE storage
 * Height & Weight history
 * Age & Gender information
-* Weekly health progress support
+* Historical health progress support
 * Authenticated history access
 * CRUD controller structure
 * BMI history route integration
+* Frontend history retrieval
+* Frontend history deletion
+* Delete operation feedback using toast notifications
+* Automatic UI update after history deletion
 
 ### Main Controllers:
 
@@ -204,6 +210,9 @@ Worked on integrating BMI, nutrition and goal-related data with MongoDB.
 * `insertMany()` based seed approach
 * MongoDB Atlas integration
 * Backend database connection testing
+* MongoDB SRV/DNS connection troubleshooting
+* Mongoose connection issue investigation
+* API/database integration debugging
 
 ---
 
@@ -235,27 +244,57 @@ The seed data structure was prepared to support future goal recommendations and 
 
 ---
 
+## 12. API Integration & Bug Fixing
+
+Worked on frontend/backend integration and resolved calculator-related API issues.
+
+### Key Fixes:
+
+* Fixed BMI History API endpoint configuration
+* Fixed API base URL handling
+* Resolved incorrect `/api` path construction
+* Fixed double-slash API URL issue
+* Debugged `404 Not Found` API responses
+* Investigated `400 Bad Request` validation issues
+* Connected frontend BMI History with backend API
+* Added BMI History DELETE API integration
+* Improved history deletion handling
+* Added success/error toast feedback
+* Updated UI state after successful deletion
+* Reviewed frontend and backend payload consistency
+
+### Recent Fix:
+
+Fixed the BMI calculation history deletion workflow by connecting the frontend Delete action with:
+
+`DELETE /api/bmi/history/:id`
+
+---
+
 # Overall Contribution
 
-My primary contribution to **FITORA** focuses on the complete **BMI & Nutrition Calculation System**, covering frontend UI, scientific fitness algorithms, goal-based nutrition planning, health classification, backend APIs, database integration and historical progress tracking.
+My primary contribution to **FITORA** focuses on the complete **BMI & Nutrition Calculation System**, covering frontend UI, scientific fitness algorithms, goal-based nutrition planning, health classification, backend APIs, MongoDB integration and historical progress tracking.
 
 ### Main Flow:
 
-`BMI → BMR → TDEE → Health Risk → Goal → Calories → Macros → History`
+`BMI → BMR → TDEE → Health Risk → Goal → Calories → Macros → History → Progress Tracking`
 
 ---
 
 # My Branch & Links
 
 **Developer:** Simanto Paul
+
 **GitHub:** https://github.com/simantopal
 
 **Repository:** Fitora
+
 https://github.com/Developer-Moy/Fitora
 
 **Branch:** `simanto-paul`
 
 **Branch Link:**
+
 https://github.com/Developer-Moy/Fitora/tree/simanto-paul
 
 ---
@@ -372,3 +411,58 @@ https://github.com/Developer-Moy/Fitora/tree/simanto-paul
 * Reviewed API and database integration.
 * Documented project development progress.
 * Continued overall project quality improvement.
+
+### 01-Sep-26
+
+* Reviewed existing Fitora fitness and calculator features.
+* Performed bug hunting across calculator-related functionality.
+* Reviewed BMI Calculator validation and user interaction.
+* Checked frontend/backend API integration.
+* Reviewed profile and calculation history workflow.
+* Identified API and UI issues requiring fixes.
+
+### 02-Sep-26
+
+* Worked on BMI Calculation History integration.
+* Connected calculator history with the Profile page.
+* Added BMI, BMR and TDEE history display.
+* Integrated historical calculation data with MongoDB.
+* Debugged BMI History API requests.
+* Investigated MongoDB/Mongoose connection issues.
+* Troubleshot MongoDB Atlas SRV/DNS connectivity.
+* Reviewed authentication and history data flow.
+* Fixed API endpoint configuration issues.
+
+### 03-Sep-26
+
+* Fixed BMI History API URL configuration.
+* Resolved incorrect API path and double-slash URL issue.
+* Debugged `404 Not Found` and `400 Bad Request` responses.
+* Updated BMI API service for history operations.
+* Added BMI History deletion functionality.
+* Connected Profile page Delete button with `DELETE /api/bmi/history/:id`.
+* Added success/error toast feedback for deletion.
+* Updated history state after successful deletion.
+* Reviewed frontend/backend payload consistency.
+* Continued backend database and API integration debugging.
+* Improved overall BMI History management workflow.
+
+---
+
+# Current Status
+
+The BMI & Nutrition system now covers the complete development flow from calculation to historical tracking:
+
+`BMI Calculation`
+→ `BMR Calculation`
+→ `TDEE Calculation`
+→ `Health Classification`
+→ `Goal Selection`
+→ `Target Calories`
+→ `Macro Distribution`
+→ `API Integration`
+→ `MongoDB Storage`
+→ `Profile History`
+→ `History Deletion`
+
+The latest work focused on improving **API reliability, MongoDB integration, calculation history management, and frontend/backend synchronization**.

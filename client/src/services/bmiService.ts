@@ -1,7 +1,7 @@
 /**
  * BMI API Service
  */
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function getAuthHeader(): Record<string, string> {
   if (typeof window === "undefined") return {};
@@ -23,7 +23,7 @@ export async function saveBmiHistory(payload: {
   statusCategory: string;
 }): Promise<boolean> {
   try {
-    const res = await fetch(`${API_URL}/bmi/history`, {
+    const res = await fetch(`${API_URL}/api/bmi/history`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -31,6 +31,22 @@ export async function saveBmiHistory(payload: {
       },
       body: JSON.stringify(payload),
     });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// Delete BMI History
+export async function deleteBmiHistory(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/api/bmi/history/${id}`, {
+      method: "DELETE",
+      headers: {
+        ...getAuthHeader(),
+      },
+    });
+
     return res.ok;
   } catch {
     return false;

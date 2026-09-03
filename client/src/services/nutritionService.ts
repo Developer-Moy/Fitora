@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export interface NutritionResult {
   tdee: number;
@@ -15,7 +15,7 @@ export async function calculateNutritionApi(payload: {
   activityLevel: number;
 }): Promise<NutritionResult | null> {
   try {
-    const res = await fetch(`${API_URL}/nutrition/calculate`, {
+    const res = await fetch(`${API_URL}/api/nutrition/calculate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

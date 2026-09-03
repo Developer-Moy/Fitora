@@ -224,27 +224,6 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
             />
           </div>
         </div>
-        {/* Save Button */}
-        <div className="pt-2">
-          <button
-            onClick={async () => {
-              const success = await saveBmiHistory({
-                heightCm: height,
-                weightKg: weight,
-                bmiScore: bmi,
-                statusCategory: bmiStatus
-              });
-              if (success) {
-                toast.success("BMI Profile Saved");
-              } else {
-                toast.error("Failed to save BMI");
-              }
-            }}
-            className={`w-full py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all ${statusTheme.cardBg} hover:opacity-80`}
-          >
-            Save BMI Profile
-          </button>
-        </div>
       </div>
     </div>
   );
