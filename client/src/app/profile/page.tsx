@@ -52,7 +52,7 @@ import {
   getDailyMealPlan,
   SavedMealPlanItem,
 } from "@/services/dailyMealPlanService";
-import { deleteBmiHistory } from "@/services/bmiService";
+import { deleteBmiHistory, fetchBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
 
 interface BMIHistory {
@@ -359,28 +359,8 @@ export default function ProfilePage() {
         setHistoryLoading(true);
         setHistoryError("");
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/bmi/history`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch BMI history");
-        }
-
-        const data = await response.json();
-
-        console.log("BMI HISTORY API RESPONSE:", data);
-
-        const historyData = Array.isArray(data?.data?.history)
-          ? data.data.history
-          : [];
-
+        const userId = (localUser?.id || localUser?._id) as string | undefined;
+        const historyData = await fetchBmiHistory(userId);
         setHistory(historyData);
       } catch (error) {
         console.error("BMI history fetch error:", error);
@@ -391,7 +371,7 @@ export default function ProfilePage() {
     };
 
     fetchBMIHistory();
-  }, []);
+  }, [localUser?.id, localUser?._id]);
 
   const handleDeleteHistory = async (id: string) => {
     try {
@@ -500,7 +480,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch { }
+    } catch {}
     toast.success("Logged out successfully. See you soon, Champion!");
     setTimeout(() => {
       window.location.href = "/";
@@ -748,11 +728,11 @@ export default function ProfilePage() {
                       <p className="text-xs text-white/60 mt-0.5">
                         {log.date
                           ? new Date(log.date).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
                           : "Recently"}
                       </p>
                     </div>
@@ -901,7 +881,6 @@ export default function ProfilePage() {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-red-200/30 text-red-200 hover:bg-red-500/10 hover:border-red-500/50 transition-all text-xs font-bold"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                            
                           </button>
                         </td>
                       </tr>

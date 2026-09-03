@@ -28,25 +28,25 @@ const goalOptions: {
   calories: string;
   icon: string;
 }[] = [
-    {
-      value: "bulking",
-      label: "Bulking",
-      calories: "+500 kcal",
-      icon: "↑",
-    },
-    {
-      value: "cutting",
-      label: "Cutting",
-      calories: "-500 kcal",
-      icon: "↓",
-    },
-    {
-      value: "maintenance",
-      label: "Maintenance",
-      calories: "TDEE",
-      icon: "↔",
-    },
-  ];
+  {
+    value: "bulking",
+    label: "Bulking",
+    calories: "+500 kcal",
+    icon: "↑",
+  },
+  {
+    value: "cutting",
+    label: "Cutting",
+    calories: "-500 kcal",
+    icon: "↓",
+  },
+  {
+    value: "maintenance",
+    label: "Maintenance",
+    calories: "TDEE",
+    icon: "↔",
+  },
+];
 
 export default function CalculatorPage() {
   const [age, setAge] = useState(25);
@@ -59,12 +59,23 @@ export default function CalculatorPage() {
   const [bmi, setBmi] = useState(0);
   const [isSavingHistory, setIsSavingHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [serverMacros, setServerMacros] = useState<{ tdee: number; protein: number; carbs: number; fats: number } | null>(null);
+  const [serverMacros, setServerMacros] = useState<{
+    tdee: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+  } | null>(null);
 
   // Sync with backend nutrition API when inputs change
   useEffect(() => {
     const timeout = setTimeout(async () => {
-      const result = await calculateNutritionApi({ age, gender, height, weight, activityLevel });
+      const result = await calculateNutritionApi({
+        age,
+        gender,
+        height,
+        weight,
+        activityLevel,
+      });
       if (result) setServerMacros(result);
     }, 600);
     return () => clearTimeout(timeout);
@@ -236,34 +247,60 @@ export default function CalculatorPage() {
     setError(null);
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/bmi/history`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            age,
-            gender,
-            height,
-            weight,
-            activityLevel,
-            bmi,
-            bmr,
-            tdee,
-            targetCalories,
-            macros,
-          }),
-        }
-      );
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const endpoint = apiUrl.endsWith("/api")
+        ? `${apiUrl}/bmi/history`
+        : `${apiUrl}/api/bmi/history`;
 
-      const data = await response.json();
+      let userId = "guest_user";
+      let token = "";
+      if (typeof window !== "undefined") {
+        try {
+          token =
+            localStorage.getItem("fitora_token") ||
+            localStorage.getItem("fitora_auth_token") ||
+            "";
+          const userStr = localStorage.getItem("fitora_user");
+          if (userStr) {
+            const u = JSON.parse(userStr);
+            if (u.id || u._id) userId = u.id || u._id;
+          }
+        } catch {}
+      }
 
-      if (!response.ok) {
-        throw new Error(
-          data?.message || "Failed to save calculation history."
-        );
+      const calculatedBmi =
+        bmi > 0
+          ? bmi
+          : Number((weight / ((height / 100) * (height / 100))).toFixed(1));
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          userId,
+          age,
+          gender,
+          height,
+          weight,
+          activityLevel,
+          bmi: calculatedBmi,
+          bmr,
+          tdee,
+          targetCalories,
+          macros,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.message || "Failed to save calculation history.");
       }
 
       toast.success("Calculation history saved successfully!");
@@ -273,7 +310,7 @@ export default function CalculatorPage() {
       setError(
         error instanceof Error
           ? error.message
-          : "Something went wrong while saving your history."
+          : "Something went wrong while saving your history.",
       );
 
       toast.error("Failed to save your health metrics.");
@@ -308,16 +345,16 @@ Macros:
 
   return (
     <div className="w-full bg-black text-white selection:bg-white selection:text-black">
-
       <div className="mx-auto w-10/12 max-w-7xl pt-6">
         <div className="mx-auto flex max-w-xl rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setActiveTab("bmi")}
-            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${activeTab === "bmi"
-              ? "bg-white text-black shadow-lg"
-              : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
+            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${
+              activeTab === "bmi"
+                ? "bg-white text-black shadow-lg"
+                : "text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
           >
             BMI Calculator
           </button>
@@ -325,10 +362,11 @@ Macros:
           <button
             type="button"
             onClick={() => setActiveTab("nutrition")}
-            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${activeTab === "nutrition"
-              ? "bg-white text-black shadow-lg"
-              : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
+            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${
+              activeTab === "nutrition"
+                ? "bg-white text-black shadow-lg"
+                : "text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
           >
             BMR & Daily Calorie
           </button>
@@ -358,8 +396,8 @@ Macros:
                     style={{ fontStyle: "italic" }}
                   >
                     BMI calculates your body mass relative to height. Use your
-                    result alongside TDEE to plan your daily calories and fitness
-                    targets.
+                    result alongside TDEE to plan your daily calories and
+                    fitness targets.
                   </p>
                 </div>
 
@@ -466,7 +504,6 @@ Macros:
             ================================================= */}
               <div className="lg:col-span-5">
                 <div className="rounded-3xl bg-neutral-950 border border-white/15 p-5 sm:p-6 space-y-4 shadow-xl">
-
                   {error && (
                     <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
                       {error}
@@ -603,7 +640,10 @@ Macros:
                         }}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none cursor-pointer focus:border-white"
                       >
-                        <option value={1.2} className="bg-neutral-950 text-white">
+                        <option
+                          value={1.2}
+                          className="bg-neutral-950 text-white"
+                        >
                           Sedentary (Little/no exercise)
                         </option>
                         <option
@@ -624,7 +664,10 @@ Macros:
                         >
                           Very Active (6–7 days/wk)
                         </option>
-                        <option value={1.9} className="bg-neutral-950 text-white">
+                        <option
+                          value={1.9}
+                          className="bg-neutral-950 text-white"
+                        >
                           Extremely Active (Physical Job)
                         </option>
                       </select>
@@ -646,17 +689,19 @@ Macros:
                             key={item.value}
                             type="button"
                             onClick={() => setGoal(item.value)}
-                            className={`flex w-full items-center justify-between p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${isActive
-                              ? "border-white bg-white text-black shadow-lg"
-                              : "border-white/15 bg-neutral-900 text-white hover:border-white/30 hover:bg-neutral-800"
-                              }`}
+                            className={`flex w-full items-center justify-between p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${
+                              isActive
+                                ? "border-white bg-white text-black shadow-lg"
+                                : "border-white/15 bg-neutral-900 text-white hover:border-white/30 hover:bg-neutral-800"
+                            }`}
                           >
                             <div className="flex items-center gap-2.5">
                               <span
-                                className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black transition-colors ${isActive
-                                  ? "bg-black text-white"
-                                  : "bg-neutral-800 text-white"
-                                  }`}
+                                className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black transition-colors ${
+                                  isActive
+                                    ? "bg-black text-white"
+                                    : "bg-neutral-800 text-white"
+                                }`}
                               >
                                 {item.icon}
                               </span>
@@ -667,10 +712,11 @@ Macros:
                             </div>
 
                             <span
-                              className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${isActive
-                                ? "bg-black text-white font-black"
-                                : "bg-neutral-800 text-gray-300"
-                                }`}
+                              className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
+                                isActive
+                                  ? "bg-black text-white font-black"
+                                  : "bg-neutral-800 text-gray-300"
+                              }`}
                             >
                               {item.calories}
                             </span>
@@ -993,7 +1039,9 @@ Macros:
                   className="group inline-flex items-center justify-between w-full bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-[1.01] active:scale-[0.99] font-extrabold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-300 shadow-2xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span>
-                    {isSavingHistory ? "SAVING HISTORY..." : "SAVE CALCULATION HISTORY"}
+                    {isSavingHistory
+                      ? "SAVING HISTORY..."
+                      : "SAVE CALCULATION HISTORY"}
                   </span>
 
                   <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">

@@ -98,15 +98,16 @@ export async function loginApi(
       };
     }
 
-    if (data.token) {
-      saveAuthSession(data.token, data.user);
+    const authData = data.data;
+    if (authData?.token) {
+      saveAuthSession(authData.token, authData.user);
     }
 
     return {
       success: true,
       message: data.message || "Login successful",
-      token: data.token,
-      user: data.user,
+      token: authData?.token,
+      user: authData?.user,
     };
   } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
@@ -142,15 +143,16 @@ export async function registerApi(payload: {
       };
     }
 
-    if (data.token) {
-      saveAuthSession(data.token, data.user);
+    const authData = data.data;
+    if (authData?.token) {
+      saveAuthSession(authData.token, authData.user);
     }
 
     return {
       success: true,
       message: data.message || "Registration successful",
-      token: data.token,
-      user: data.user,
+      token: authData?.token,
+      user: authData?.user,
     };
   } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
@@ -190,7 +192,7 @@ export async function getCurrentUserApi(): Promise<AuthResponse> {
     return {
       success: true,
       message: "User verified",
-      user: data.user,
+      user: data.data?.user,
       token,
     };
   } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {

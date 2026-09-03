@@ -14,10 +14,7 @@ export const getExercises = async (
 
     // Muscle group filter
     if (muscleGroup) {
-      filter.$or = [
-        { primaryMuscles: muscleGroup },
-        { secondaryMuscles: muscleGroup },
-      ];
+      filter.muscle = muscleGroup;
     }
 
     // Equipment filter

@@ -7,6 +7,18 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+function getAuthHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const token =
+      localStorage.getItem("fitora_token") ||
+      localStorage.getItem("fitora_auth_token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
+
 interface ApiSuccessResponse<T> {
   success: true;
   data: T;
@@ -52,7 +64,10 @@ export async function createWorkoutLog(
   try {
     response = await fetch(`${API_URL}/workouts/log`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
       body: JSON.stringify(payload),
     });
   } catch {
@@ -74,7 +89,10 @@ export async function getWorkoutLogs(
   try {
     response = await fetch(`${API_URL}/workouts/log?${params.toString()}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
     });
   } catch {
     throw new Error("Network error — could not reach the server");
