@@ -197,6 +197,29 @@ Implemented the frontend part of the branch-admin attendance feature on top of t
 
 ---
 
+## 11. Today's Task: Branch & User Seed Data in Dashboard UI
+
+Connected the dashboard branch and user management tabs to the seeded backend data and resolved the authentication and rendering issues that prevented the records from appearing.
+
+### What Was Implemented:
+- Connected the branches directory to the backend endpoint serving the seeded `branches.json` records.
+- Normalized seeded branch fields such as `memberCapacity`, `trainerCount`, phone, email, and facilities for frontend display.
+- Fixed dashboard authentication response parsing so the server-issued JWT is stored and sent with protected requests.
+- Connected the users directory to the seeded `users.json` records through the protected users API.
+- Added safe defaults for incomplete seeded user fields to prevent the users table from crashing during filtering or rendering.
+- Updated local client environment configuration to use the running backend at `http://localhost:5000/api`.
+- Verified the dashboard loads the seeded records with the existing search, filters, and pagination controls.
+
+### Relevant Areas:
+- `client/src/components/dashboard/BranchManagementView.tsx` — branch directory rendering and filters.
+- `client/src/components/dashboard/UserManagementTable.tsx` — user directory rendering, filters, and pagination.
+- `client/src/services/dashboardService.ts` — branch/user API requests and response normalization.
+- `client/src/services/authService.ts` — dashboard JWT response parsing and session persistence.
+- `server/src/controllers/user.controller.ts` — normalized users API response.
+- `client/.env` — local backend API configuration.
+
+---
+
 ### 🎫 `FIT-205`: [Story] Athlete Personal Portal, Habit Streaks, Hydration 3.5L & Fitness Goals
 * **Assignee**: `Alfaaz` | **Estimate**: `5 Story Points` | **Priority**: `High`
 * **Target Endpoints**:
@@ -336,6 +359,14 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Added loading, error, and empty states for reliable dashboard behavior.
 - Removed dummy attendance data so the dashboard only displays real API records.
 
+## 03-Sep-26
+
+- Fixed the dashboard branches tab so it displays seeded `branches.json` records from the backend.
+- Fixed dashboard JWT response parsing and local API configuration for protected dashboard requests.
+- Fixed the users tab so it displays seeded `users.json` records.
+- Added backend defaults for incomplete user fields to prevent runtime crashes in the users table.
+- Verified branch and user data loading with client and server TypeScript checks.
+
 ---
 
 ## Summary of My Contributions
@@ -371,6 +402,7 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Dashboard and admin UI card/layout improvements.
 - Branch-admin attendance and live occupancy dashboard UI.
 - Typed branch API client service.
+- Branch and user seed-data dashboard directory views.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.
@@ -378,3 +410,4 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Used rebase to keep branch history clean.
 - Successfully resolved merge/rebase conflicts before pushing updates.
 - Continued bug-fixing and stabilization work before final documentation handoff.
+- Verified seeded branch and user records in the dashboard UI.
