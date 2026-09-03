@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { usePathname } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
@@ -13,11 +13,18 @@ import {
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isLoginPage = pathname === "/dashboard/login";
 
   const { isAuthenticated, isLoading } = useDashboardRole();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isLoginPage && !isLoading && !isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isLoginPage, isLoading, isAuthenticated, router]);
 
   // If on dedicated dashboard login page, render full screen without sidebar/navbar
   if (isLoginPage) {
