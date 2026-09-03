@@ -22,6 +22,7 @@ interface TimerControlsProps {
   onStartPause: () => void;
   onStop: () => void;
   onNextSet: () => void;
+  onFinishWorkout?: () => void;
   onToggleSound: () => void;
   onSetTarget: (amount: number) => void;
   onQuickLog: () => void;
@@ -38,6 +39,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
   onStartPause,
   onStop,
   onNextSet,
+  onFinishWorkout,
   onToggleSound,
   onSetTarget,
   onQuickLog,
@@ -162,6 +164,19 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
           >
             <ClipboardList className="w-4 h-4" />
             <span>Log Set</span>
+          </button>
+        )}
+
+        {/* Finish & Save Workout Button */}
+        {onFinishWorkout && (
+          <button
+            type="button"
+            onClick={onFinishWorkout}
+            className="bg-white hover:bg-neutral-200 text-black border border-white rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+            title="Save your entire workout session to profile history"
+          >
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>Save Workout</span>
           </button>
         )}
 

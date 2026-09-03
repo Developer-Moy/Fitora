@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import toast from "react-hot-toast";
 import {
   Dumbbell,
@@ -8,6 +9,8 @@ import {
   Timer as TimerIcon,
   RotateCcw,
   Trash2,
+  CheckCircle2,
+  ArrowUpRight,
 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { getAuthSession } from "@/services/authService";
@@ -385,22 +388,35 @@ export default function GymTimer({
         .join(", ");
 
       const finalDuration = Math.max(1, Math.round(totalSessionSeconds / 60));
+
+      // Resolve user ID synchronously from available session providers
+      const session = getAuthSession();
+      const currentUserId =
+        authSession?.user?.id ||
+        localUserId ||
+        session?.user?.id ||
+        session?.user?._id ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("fitora_user_email") || undefined
+          : undefined) ||
+        "guest_user";
+
       const payload: CreateWorkoutLogPayload = {
         exerciseName,
         setsCount,
-        repsCount: totalReps > 0 ? totalReps : 1,
+        repsCount: totalReps > 0 ? totalReps : setsCount * 10,
         weight: maxWeight,
         durationMinutes: finalDuration,
         notes: loggedSetsNotes
           ? `HUD Stopwatch — ${loggedSetsNotes}`
           : `Timed stopwatch session (${Math.floor(totalSessionSeconds / 60)}m ${totalSessionSeconds % 60}s)`,
         date: new Date().toISOString(),
-        ...(effectiveUserId ? { userId: effectiveUserId } : {}),
+        userId: currentUserId,
       };
 
       isSavingLogRef.current = true;
       const loadingToastId = "workout-log-save";
-      toast.loading("Saving workout...", { id: loadingToastId });
+      toast.loading("Saving workout to your profile...", { id: loadingToastId });
       try {
         await createWorkoutLog(payload);
         // Also mark session complete in stopwatch API for calorie tracking
@@ -409,9 +425,9 @@ export default function GymTimer({
           durationMinutes: finalDuration,
           weightKg: maxWeight > 0 ? maxWeight : undefined,
         }).catch(() => {});
-        toast.success("Workout saved to your history 💪", {
+        toast.success("Workout saved to your history 💪 Check your profile!", {
           id: loadingToastId,
-          duration: 4000,
+          duration: 5000,
         });
       } catch (error) {
         toast.error(
@@ -422,8 +438,65 @@ export default function GymTimer({
         isSavingLogRef.current = false;
       }
     },
-    [effectiveUserId, exerciseName],
+    [authSession?.user?.id, exerciseName, localUserId],
   );
+
+  const handleFinishAndSaveWorkout = useCallback(async () => {
+    triggerAudioFeedback(440);
+    setIsRunning(false);
+    setTargetSeconds(null);
+    voiceAnnouncedRef.current = null;
+
+    let setsForSave = [...completedSets];
+    if (pendingLog) {
+      setsForSave.push({
+        set: currentSet,
+        duration: seconds,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        weight: pendingLog.weight,
+        reps: pendingLog.reps,
+      });
+      setPendingLog(null);
+    } else if (seconds > 0) {
+      setsForSave.push({
+        set: currentSet,
+        duration: seconds,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      });
+    }
+
+    if (setsForSave.length === 0 && sessionSeconds === 0 && seconds === 0) {
+      toast("No sets or time recorded yet. Start the timer or log your reps first!", {
+        icon: "ℹ️",
+        id: "empty-save-notice",
+      });
+      return;
+    }
+
+    setCompletedSets(setsForSave);
+    const totalSecs = Math.max(sessionSeconds, seconds);
+    await persistWorkoutLog({
+      sets: setsForSave,
+      timedSeconds: seconds,
+      totalSessionSeconds: totalSecs,
+    });
+    setSeconds(0);
+    setSessionSeconds(0);
+  }, [
+    completedSets,
+    currentSet,
+    pendingLog,
+    persistWorkoutLog,
+    seconds,
+    sessionSeconds,
+    triggerAudioFeedback,
+  ]);
 
   const handleStop = useCallback(() => {
     triggerAudioFeedback(350);
@@ -431,74 +504,18 @@ export default function GymTimer({
     setTargetSeconds(null);
     voiceAnnouncedRef.current = null;
 
-    // Rest time is not exercise — only genuine logged/timed sets count
-    const wasRestMode = targetSeconds !== null;
-
-    // Flush the staged quick-log (if any) into history before saving
-    let setsForSave = completedSets;
-    if (pendingLog) {
-      setsForSave = [
-        ...completedSets,
-        {
-          set: currentSet,
-          duration: seconds,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          weight: pendingLog.weight,
-          reps: pendingLog.reps,
-        },
-      ];
-      setCompletedSets(setsForSave);
-      setPendingLog(null);
-    }
-
-    // Session complete -> persist to MongoDB exactly once
-    void persistWorkoutLog({
-      sets: setsForSave,
-      timedSeconds: wasRestMode ? 0 : seconds,
-      totalSessionSeconds: sessionSeconds,
-    });
-    setSessionSeconds(0);
-
-    if (!wasRestMode && seconds > 0) {
-      // Log completed set
-      const formatted = formatTime(seconds);
-      const newEntry = {
-        set: currentSet,
-        duration: seconds,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      };
-      if (setsForSave === completedSets) {
-        setCompletedSets((prev) => [newEntry, ...prev]);
-      }
-      toast.success(`Set ${currentSet} saved (${formatted})`);
-
-      if (onSetComplete) {
-        onSetComplete({
-          set: currentSet,
-          duration: seconds,
-          totalGymTime: totalGymSeconds,
-        });
-      }
+    // If there is any active session or completed sets, save it!
+    if (completedSets.length > 0 || seconds > 0 || pendingLog) {
+      void handleFinishAndSaveWorkout();
     } else {
       toast("Stopwatch reset to 00:00:00", { icon: "🔄", id: "stop-reset" });
     }
     setSeconds(0);
   }, [
-    completedSets,
-    currentSet,
-    onSetComplete,
+    completedSets.length,
+    handleFinishAndSaveWorkout,
     pendingLog,
-    persistWorkoutLog,
     seconds,
-    sessionSeconds,
-    targetSeconds,
-    totalGymSeconds,
     triggerAudioFeedback,
   ]);
 
@@ -557,9 +574,12 @@ export default function GymTimer({
     if (currentSet < totalSets) {
       setCurrentSet((prev) => prev + 1);
     } else {
-      toast.success("🎉 All target sets completed! Great workout!", {
+      toast.success("🎉 All target sets completed! Saving workout to your profile...", {
         duration: 4000,
       });
+      setTimeout(() => {
+        void handleFinishAndSaveWorkout();
+      }, 400);
     }
     setSeconds(0);
     setIsRunning(false);
@@ -760,6 +780,7 @@ export default function GymTimer({
             onStartPause={handleStartPause}
             onStop={handleStop}
             onNextSet={handleNextSet}
+            onFinishWorkout={handleFinishAndSaveWorkout}
             onToggleSound={handleToggleSound}
             onSetTarget={handleSetTarget}
             onQuickLog={() => setIsLoggerOpen(true)}
@@ -886,6 +907,30 @@ export default function GymTimer({
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Save to Profile Action Bar */}
+            <div className="flex items-center justify-between flex-wrap gap-2 pt-3 border-t border-white/10 mt-3">
+              <div className="text-xs text-zinc-400">
+                <strong className="text-white">{completedSets.length}</strong> sets logged
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleFinishAndSaveWorkout}
+                  className="bg-white hover:bg-neutral-200 text-black text-xs font-black px-4 py-2 rounded-full transition-all cursor-pointer shadow-md flex items-center gap-1.5 uppercase"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Save Workout to Profile</span>
+                </button>
+                <Link
+                  href="/profile"
+                  className="bg-neutral-900 hover:bg-neutral-800 text-zinc-300 hover:text-white border border-white/20 text-xs font-bold px-4 py-2 rounded-full transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>View in Profile</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>

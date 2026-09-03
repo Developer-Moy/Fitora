@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { GymTimer } from "@/components/time";
 import toast from "react-hot-toast";
 import {
@@ -11,6 +12,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  History,
 } from "lucide-react";
 
 import { fetchExercises } from "@/services/exerciseService";
@@ -147,7 +149,16 @@ export default function StopwatchPage({
               </strong>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link
+                href="/profile"
+                title="View full workout history on your profile"
+                className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white transition cursor-pointer shadow-md"
+              >
+                <History className="w-3.5 h-3.5 text-emerald-400" />
+                <span>History</span>
+              </Link>
+
               <button
                 type="button"
                 onClick={() => setShowCustomInput((p) => !p)}
