@@ -84,6 +84,28 @@ export async function createWorkoutLog(
   return result.data;
 }
 
+export async function updateWorkoutLog(
+  id: string,
+  payload: Partial<CreateWorkoutLogPayload>
+): Promise<WorkoutLog> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/workouts/log/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    throw new Error("Network error — could not reach the server");
+  }
+
+  const result = await parseResponse<WorkoutLog>(response);
+  return result.data;
+}
+
 export async function getWorkoutLogs(
   userId?: string,
   limit: number = 50,

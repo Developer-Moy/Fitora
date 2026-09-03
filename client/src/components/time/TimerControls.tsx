@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Timer,
   ClipboardList,
+  History,
 } from "lucide-react";
 
 interface TimerControlsProps {
@@ -22,7 +23,7 @@ interface TimerControlsProps {
   onStartPause: () => void;
   onStop: () => void;
   onNextSet: () => void;
-  onFinishWorkout?: () => void;
+  onOpenHistory?: () => void;
   onToggleSound: () => void;
   onSetTarget: (amount: number) => void;
   onQuickLog: () => void;
@@ -39,7 +40,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
   onStartPause,
   onStop,
   onNextSet,
-  onFinishWorkout,
+  onOpenHistory,
   onToggleSound,
   onSetTarget,
   onQuickLog,
@@ -167,16 +168,16 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
           </button>
         )}
 
-        {/* Finish & Save Workout Button */}
-        {onFinishWorkout && (
+        {/* History Button */}
+        {onOpenHistory && (
           <button
             type="button"
-            onClick={onFinishWorkout}
-            className="bg-white hover:bg-neutral-200 text-black border border-white rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-            title="Save your entire workout session to profile history"
+            onClick={onOpenHistory}
+            className="bg-[#181a1f] hover:bg-[#22262e] text-zinc-300 hover:text-white border border-[#2b313d] hover:border-zinc-500 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            title="View full workout history"
           >
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Save Workout</span>
+            <History className="w-4 h-4 text-emerald-400" />
+            <span>History</span>
           </button>
         )}
 

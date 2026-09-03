@@ -5,3 +5,5 @@ export * from "./TimerControls";
 export * from "./GymSessionCard";
 export { default as QuickSetLogger } from "./QuickSetLogger";
 export * from "./QuickSetLogger";
+export { default as WorkoutHistoryModal } from "./WorkoutHistoryModal";
+export * from "./WorkoutHistoryModal";

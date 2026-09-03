@@ -349,6 +349,59 @@ export const createWorkoutLog = async (req: Request, res: Response): Promise<Res
 };
 
 /**
+ * PUT /api/workouts/log/:id
+ * Update an existing workout log (e.g. auto-save incremental sets & duration)
+ */
+export const updateWorkoutLog = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    if (!id) {
+      return res.status(400).json(errorResponse("Workout log ID is required", "VALIDATION_ERROR", 400));
+    }
+
+    let updated: any = null;
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    if (isDbConnected && mongoose.Types.ObjectId.isValid(id)) {
+      try {
+        updated = await WorkoutLog.findByIdAndUpdate(id, updateData, { new: true });
+      } catch (dbErr) {
+        console.warn("[Workout Controller] DB update failed, checking in-memory:", dbErr);
+      }
+    }
+
+    if (!updated) {
+      const idx = inMemoryWorkoutLogs.findIndex((l) => l._id === id);
+      if (idx !== -1) {
+        inMemoryWorkoutLogs[idx] = {
+          ...inMemoryWorkoutLogs[idx],
+          ...updateData,
+          updatedAt: new Date(),
+        };
+        updated = inMemoryWorkoutLogs[idx];
+      }
+    }
+
+    if (!updated) {
+      return res.status(404).json(errorResponse("Workout log not found", "NOT_FOUND", 404));
+    }
+
+    return res.status(200).json(successResponse("Workout log updated successfully", updated));
+  } catch (error) {
+    console.error("[Workout Controller] updateWorkoutLog Error:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Failed to update workout log",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
+  }
+};
+
+/**
  * DELETE /api/workouts/log/:id
  * Delete a specific workout log entry
  */

@@ -11,10 +11,11 @@ import {
   Trash2,
   CheckCircle2,
   ArrowUpRight,
+  History,
 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { getAuthSession } from "@/services/authService";
-import { createWorkoutLog } from "@/services/workoutService";
+import { createWorkoutLog, updateWorkoutLog } from "@/services/workoutService";
 import {
   completeStopwatchSession,
   fetchStopwatchPresets,
@@ -24,6 +25,7 @@ import { GymSessionCard } from "./GymSessionCard";
 import { TimeDisplay } from "./TimeDisplay";
 import { TimerControls } from "./TimerControls";
 import QuickSetLogger from "./QuickSetLogger";
+import WorkoutHistoryModal from "./WorkoutHistoryModal";
 
 export interface GymTimerProps {
   exerciseName?: string;
@@ -104,6 +106,10 @@ export default function GymTimer({
   // Current session duration (active + rest time since last Stop) used for the workout log
   const [sessionSeconds, setSessionSeconds] = useState<number>(0);
   const isSavingLogRef = useRef<boolean>(false);
+  const activeWorkoutLogIdRef = useRef<string | null>(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -351,26 +357,21 @@ export default function GymTimer({
       .padStart(2, "0")}`;
   };
 
-  const handleStartPause = useCallback(() => {
-    triggerAudioFeedback(isRunning ? 440 : 880);
-    if (!isRunning) {
-      setIsRunning(true);
-      toast.success(seconds > 0 ? "Timer resumed" : "Timer started", {
-        id: "timer-status",
-      });
-    } else {
-      setIsRunning(false);
-      toast("Timer paused", { icon: "⏸️", id: "timer-status" });
-    }
-  }, [isRunning, seconds, triggerAudioFeedback]);
+  useEffect(() => {
+    activeWorkoutLogIdRef.current = null;
+    setAutoSaveStatus("idle");
+  }, [exerciseName]);
 
-  // Persist the completed session to MongoDB via POST /api/workouts/log
+  // Persist or auto-update the session to MongoDB via POST or PUT /api/workouts/log
   const persistWorkoutLog = useCallback(
-    async (snapshot: {
-      sets: Array<{ weight?: number; reps?: number }>;
-      timedSeconds: number;
-      totalSessionSeconds: number;
-    }) => {
+    async (
+      snapshot: {
+        sets: Array<{ weight?: number; reps?: number }>;
+        timedSeconds: number;
+        totalSessionSeconds: number;
+      },
+      options: { silent?: boolean } = { silent: false },
+    ) => {
       const { sets, timedSeconds, totalSessionSeconds } = snapshot;
 
       const setsCount =
@@ -415,31 +416,94 @@ export default function GymTimer({
       };
 
       isSavingLogRef.current = true;
+      setAutoSaveStatus("saving");
+
       const loadingToastId = "workout-log-save";
-      toast.loading("Saving workout to your profile...", { id: loadingToastId });
+      if (!options.silent) {
+        toast.loading("Saving workout to your profile...", { id: loadingToastId });
+      }
+
       try {
-        await createWorkoutLog(payload);
+        if (activeWorkoutLogIdRef.current) {
+          await updateWorkoutLog(activeWorkoutLogIdRef.current, payload);
+        } else {
+          const created = await createWorkoutLog(payload);
+          const newId = (created as any)?._id || (created as any)?.id;
+          if (newId) {
+            activeWorkoutLogIdRef.current = String(newId);
+          }
+        }
+
         // Also mark session complete in stopwatch API for calorie tracking
         completeStopwatchSession({
           workoutType: exerciseName,
           durationMinutes: finalDuration,
           weightKg: maxWeight > 0 ? maxWeight : undefined,
         }).catch(() => {});
-        toast.success("Workout saved to your history 💪 Check your profile!", {
-          id: loadingToastId,
-          duration: 5000,
-        });
+
+        setAutoSaveStatus("saved");
+        if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = setTimeout(() => {
+          setAutoSaveStatus("idle");
+        }, 4000);
+
+        if (!options.silent) {
+          toast.success("Workout saved to your history 💪 Check your profile!", {
+            id: loadingToastId,
+            duration: 5000,
+          });
+        }
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to save workout log",
-          { id: loadingToastId, duration: 5000 },
-        );
+        setAutoSaveStatus("idle");
+        if (!options.silent) {
+          toast.error(
+            error instanceof Error ? error.message : "Failed to save workout log",
+            { id: loadingToastId, duration: 5000 },
+          );
+        }
       } finally {
         isSavingLogRef.current = false;
       }
     },
     [authSession?.user?.id, exerciseName, localUserId],
   );
+
+  const handleStartPause = useCallback(() => {
+    triggerAudioFeedback(isRunning ? 440 : 880);
+    if (!isRunning) {
+      setIsRunning(true);
+      toast.success(seconds > 0 ? "Timer resumed" : "Timer started", {
+        id: "timer-status",
+      });
+    } else {
+      setIsRunning(false);
+      toast("Timer paused & progress auto-saved ✓", { icon: "⏸️", id: "timer-status" });
+      if (completedSets.length > 0 || seconds >= 3) {
+        let setsToSave = [...completedSets];
+        if (seconds > 0 && !completedSets.some((s) => s.set === currentSet && s.duration === seconds)) {
+          setsToSave = [
+            {
+              set: currentSet,
+              duration: seconds,
+              timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            },
+            ...completedSets,
+          ];
+        }
+        void persistWorkoutLog(
+          {
+            sets: setsToSave,
+            timedSeconds: seconds,
+            totalSessionSeconds: Math.max(sessionSeconds, seconds),
+          },
+          { silent: true },
+        );
+      }
+    }
+  }, [completedSets, currentSet, isRunning, persistWorkoutLog, seconds, sessionSeconds, triggerAudioFeedback]);
 
   const handleFinishAndSaveWorkout = useCallback(async () => {
     triggerAudioFeedback(440);
@@ -481,11 +545,14 @@ export default function GymTimer({
 
     setCompletedSets(setsForSave);
     const totalSecs = Math.max(sessionSeconds, seconds);
-    await persistWorkoutLog({
-      sets: setsForSave,
-      timedSeconds: seconds,
-      totalSessionSeconds: totalSecs,
-    });
+    await persistWorkoutLog(
+      {
+        sets: setsForSave,
+        timedSeconds: seconds,
+        totalSessionSeconds: totalSecs,
+      },
+      { silent: false },
+    );
     setSeconds(0);
     setSessionSeconds(0);
   }, [
@@ -507,6 +574,7 @@ export default function GymTimer({
     // If there is any active session or completed sets, save it!
     if (completedSets.length > 0 || seconds > 0 || pendingLog) {
       void handleFinishAndSaveWorkout();
+      activeWorkoutLogIdRef.current = null;
     } else {
       toast("Stopwatch reset to 00:00:00", { icon: "🔄", id: "stop-reset" });
     }
@@ -526,28 +594,28 @@ export default function GymTimer({
     setTargetSeconds(null);
     voiceAnnouncedRef.current = null;
 
+    let updatedSets = completedSets;
     // Commit the staged quick-log (if any) into history now
     if (pendingLog) {
-      setCompletedSets((prev) => [
-        ...prev,
-        {
-          set: currentSet,
-          duration: seconds,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          weight: pendingLog.weight,
-          reps: pendingLog.reps,
-        },
-      ]);
+      const entry = {
+        set: currentSet,
+        duration: seconds,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        weight: pendingLog.weight,
+        reps: pendingLog.reps,
+      };
+      updatedSets = [entry, ...completedSets];
+      setCompletedSets(updatedSets);
       toast.success(
-        `Set ${currentSet} added to history — ${pendingLog.weight}kg × ${pendingLog.reps}`,
+        `Set ${currentSet} saved & auto-saved to profile ✓ (${pendingLog.weight}kg × ${pendingLog.reps})`,
       );
       setPendingLog(null);
     } else if (!wasRestMode && seconds > 0) {
       const formatted = formatTime(seconds);
-      const newEntry = {
+      const entry = {
         set: currentSet,
         duration: seconds,
         timestamp: new Date().toLocaleTimeString([], {
@@ -555,12 +623,10 @@ export default function GymTimer({
           minute: "2-digit",
         }),
       };
-      setCompletedSets((prev) => [newEntry, ...prev]);
+      updatedSets = [entry, ...completedSets];
+      setCompletedSets(updatedSets);
       toast.success(
-        `Set ${currentSet} completed (${formatted})! Ready for Set ${Math.min(
-          totalSets,
-          currentSet + 1,
-        )}`,
+        `Set ${currentSet} completed (${formatted}) & auto-saved ✓`,
       );
 
       if (onSetComplete) {
@@ -571,21 +637,31 @@ export default function GymTimer({
         });
       }
     }
+
+    // Auto-save set immediately to MongoDB in background!
+    if (updatedSets.length > 0) {
+      void persistWorkoutLog(
+        {
+          sets: updatedSets,
+          timedSeconds: 0,
+          totalSessionSeconds: Math.max(sessionSeconds, seconds),
+        },
+        { silent: true },
+      );
+    }
+
     if (currentSet < totalSets) {
       setCurrentSet((prev) => prev + 1);
     } else {
-      toast.success("🎉 All target sets completed! Saving workout to your profile...", {
+      toast.success("🎉 All target sets completed! Auto-saved to your profile.", {
         duration: 4000,
       });
-      setTimeout(() => {
-        void handleFinishAndSaveWorkout();
-      }, 400);
     }
     setSeconds(0);
     setIsRunning(false);
   };
 
-  // Quick Set Logger: stage weight/reps for the current set (added to history on Next Set / Stop)
+  // Quick Set Logger: stage weight/reps for the current set and auto-save immediately
   const handleQuickLogSave = ({
     weight,
     reps,
@@ -593,11 +669,32 @@ export default function GymTimer({
     weight: number;
     reps: number;
   }) => {
-    setPendingLog({ weight, reps });
+    const entry = {
+      set: currentSet,
+      duration: seconds,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      weight,
+      reps,
+    };
+    const updatedSets = [entry, ...completedSets];
+    setCompletedSets(updatedSets);
+    setPendingLog(null);
     setIsLoggerOpen(false);
     toast.success(
-      `${weight}kg × ${reps} ready for Set ${currentSet} — click Next Set to add to history`,
-      { icon: "🏋️", id: "quick-log-save", duration: 4000 },
+      `Set ${currentSet} logged (${weight}kg × ${reps}) & auto-saved to profile ✓`,
+      { icon: "⚡", id: "quick-log-save", duration: 3500 },
+    );
+    // Auto-save immediately to MongoDB!
+    void persistWorkoutLog(
+      {
+        sets: updatedSets,
+        timedSeconds: 0,
+        totalSessionSeconds: Math.max(sessionSeconds, seconds),
+      },
+      { silent: true },
     );
   };
 
@@ -701,11 +798,30 @@ export default function GymTimer({
         <div className="relative z-20 w-full flex flex-col justify-between min-h-[220px] p-4 sm:p-6 md:p-7">
           {/* Center Area: Exercise label + Time Display */}
           <div className="flex flex-col items-center justify-center">
-            <div className="text-[11px] font-semibold text-zinc-300 uppercase tracking-widest mb-1 flex items-center gap-1.5 px-1 py-1">
-              <Dumbbell className="w-3.5 h-3.5 text-white" />
-              <span className="truncate max-w-[200px] sm:max-w-none">
-                {exerciseName}
-              </span>
+            <div className="flex items-center gap-2 mb-1 flex-wrap justify-center">
+              <div className="text-[11px] font-semibold text-zinc-300 uppercase tracking-widest flex items-center gap-1.5 px-1 py-1">
+                <Dumbbell className="w-3.5 h-3.5 text-white" />
+                <span className="truncate max-w-[200px] sm:max-w-none">
+                  {exerciseName}
+                </span>
+              </div>
+              {autoSaveStatus === "saving" && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-amber-300 bg-amber-400/10 border border-amber-400/25 px-2 py-0.5 rounded-full animate-pulse">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                  Auto-saving...
+                </span>
+              )}
+              {autoSaveStatus === "saved" && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-emerald-400 bg-emerald-400/10 border border-emerald-400/25 px-2 py-0.5 rounded-full transition-all">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  Auto-saved to Profile ✓
+                </span>
+              )}
+              {autoSaveStatus === "idle" && completedSets.length > 0 && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-zinc-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                  ⚡ Auto-sync On
+                </span>
+              )}
             </div>
             <TimeDisplay
               seconds={seconds}
@@ -780,7 +896,7 @@ export default function GymTimer({
             onStartPause={handleStartPause}
             onStop={handleStop}
             onNextSet={handleNextSet}
-            onFinishWorkout={handleFinishAndSaveWorkout}
+            onOpenHistory={() => setIsHistoryModalOpen(true)}
             onToggleSound={handleToggleSound}
             onSetTarget={handleSetTarget}
             onQuickLog={() => setIsLoggerOpen(true)}
@@ -909,25 +1025,28 @@ export default function GymTimer({
               ))}
             </div>
 
-            {/* Save to Profile Action Bar */}
+            {/* Auto-Saved History Status Bar */}
             <div className="flex items-center justify-between flex-wrap gap-2 pt-3 border-t border-white/10 mt-3">
-              <div className="text-xs text-zinc-400">
-                <strong className="text-white">{completedSets.length}</strong> sets logged
+              <div className="flex items-center gap-2 text-xs text-zinc-400">
+                <span className="inline-flex items-center gap-1 font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 rounded-full">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  Auto-saved to Profile ({completedSets.length} sets)
+                </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
-                  onClick={handleFinishAndSaveWorkout}
-                  className="bg-white hover:bg-neutral-200 text-black text-xs font-black px-4 py-2 rounded-full transition-all cursor-pointer shadow-md flex items-center gap-1.5 uppercase"
+                  onClick={() => setIsHistoryModalOpen(true)}
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold px-4 py-2 rounded-full transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Save Workout to Profile</span>
+                  <History className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>View History</span>
                 </button>
                 <Link
                   href="/profile"
                   className="bg-neutral-900 hover:bg-neutral-800 text-zinc-300 hover:text-white border border-white/20 text-xs font-bold px-4 py-2 rounded-full transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>View in Profile</span>
+                  <span>Open in Profile</span>
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -943,6 +1062,18 @@ export default function GymTimer({
         totalSets={totalSets}
         onClose={() => setIsLoggerOpen(false)}
         onSave={handleQuickLogSave}
+      />
+
+      {/* Workout History Modal */}
+      <WorkoutHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        userId={effectiveUserId}
+        userEmail={
+          typeof window !== "undefined"
+            ? localStorage.getItem("fitora_user_email") || undefined
+            : undefined
+        }
       />
     </div>
   );

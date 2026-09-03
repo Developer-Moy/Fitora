@@ -500,6 +500,22 @@ export default function ProfilePage() {
     fetchData();
   }, [resolvedUserId, userEmail]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const checkHash = () => {
+        if (
+          window.location.hash === "#workout-history" ||
+          window.location.search.includes("history=true")
+        ) {
+          setIsFullHistoryOpen(true);
+        }
+      };
+      checkHash();
+      window.addEventListener("hashchange", checkHash);
+      return () => window.removeEventListener("hashchange", checkHash);
+    }
+  }, []);
+
   // Handle direct file selection & upload (Local Preview + ImgBB Cloud Sync)
   const handleCopyMeal = (meal: any, index: number) => {
     const textToCopy = `FITORA NUTRITION SUGGESTION (${meal.type})\nMeal: ${meal.name}\nMacros: ${meal.calories} kcal | ${meal.protein} Protein | ${meal.carbs} Carbs | ${meal.fats} Fats\nIngredients: ${meal.ingredients.join(", ")}\nPrep note: ${meal.description}`;
@@ -715,7 +731,7 @@ export default function ProfilePage() {
         </div>
 
         {/* ── 3. Gym & Workout History Section ── */}
-        <div className="space-y-4">
+        <div id="workout-history" className="space-y-4 scroll-mt-24">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
               <History className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
