@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { WorkoutLog, IWorkoutLog } from "../models/WorkoutLog.model.js";
-import { LOCAL_WORKOUTS_DATABASE, WorkoutExercise } from "../data/workout.data.js";
+import {
+  LOCAL_WORKOUTS_DATABASE,
+  WorkoutExercise,
+} from "../data/workout.data.js";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
 // In-memory fallback storage for offline development
@@ -56,7 +59,10 @@ const inMemoryWorkoutLogs: LocalLogItem[] = [
  * GET /api/workouts
  * Retrieve list of workout exercises from local catalog database
  */
-export const getWorkouts = async (req: Request, res: Response): Promise<Response> => {
+export const getWorkouts = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const { category, difficulty, equipment, search, limit, page } = req.query;
 
@@ -66,7 +72,9 @@ export const getWorkouts = async (req: Request, res: Response): Promise<Response
     if (category && typeof category === "string") {
       const catLower = category.toLowerCase();
       results = results.filter(
-        (w) => w.category.toLowerCase() === catLower || w.muscleGroup.toLowerCase().includes(catLower)
+        (w) =>
+          w.category.toLowerCase() === catLower ||
+          w.muscleGroup.toLowerCase().includes(catLower),
       );
     }
 
@@ -89,7 +97,7 @@ export const getWorkouts = async (req: Request, res: Response): Promise<Response
         (w) =>
           w.name.toLowerCase().includes(query) ||
           w.muscleGroup.toLowerCase().includes(query) ||
-          w.targetMuscles.some((m) => m.toLowerCase().includes(query))
+          w.targetMuscles.some((m) => m.toLowerCase().includes(query)),
       );
     }
 
@@ -106,17 +114,19 @@ export const getWorkouts = async (req: Request, res: Response): Promise<Response
         total,
         page: pageNum,
         totalPages: Math.ceil(total / limitNum) || 1,
-      })
+      }),
     );
   } catch (error) {
     console.error("[Workout Controller] getWorkouts Error:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to fetch workouts",
-        error instanceof Error ? error.message : "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to fetch workouts",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -124,29 +134,40 @@ export const getWorkouts = async (req: Request, res: Response): Promise<Response
  * GET /api/workouts/:id
  * Retrieve a specific workout by ID
  */
-export const getWorkoutById = async (req: Request, res: Response): Promise<Response> => {
+export const getWorkoutById = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const { id } = req.params;
     const workout = LOCAL_WORKOUTS_DATABASE.find((w) => w.id === id);
 
     if (!workout) {
-      return res.status(404).json(
-        errorResponse(`Workout with ID '${id}' not found`, "WORKOUT_NOT_FOUND", 404)
-      );
+      return res
+        .status(404)
+        .json(
+          errorResponse(
+            `Workout with ID '${id}' not found`,
+            "WORKOUT_NOT_FOUND",
+            404,
+          ),
+        );
     }
 
-    return res.status(200).json(
-      successResponse("Workout retrieved successfully", workout)
-    );
+    return res
+      .status(200)
+      .json(successResponse("Workout retrieved successfully", workout));
   } catch (error) {
     console.error("[Workout Controller] getWorkoutById Error:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to fetch workout details",
-        error instanceof Error ? error.message : "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to fetch workout details",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -154,11 +175,15 @@ export const getWorkoutById = async (req: Request, res: Response): Promise<Respo
  * GET /api/workouts/log
  * Retrieve workout logs and summary metrics
  */
-export const getWorkoutLogs = async (req: Request, res: Response): Promise<Response> => {
+export const getWorkoutLogs = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const { userId, limit } = req.query;
     const authUser = (req as any).user;
-    const targetUserId = (userId as string) || authUser?.userId || "guest_user";
+    const targetUserId =
+      (userId as string) || authUser?.userId || authUser?.id || "guest_user";
 
     let logs: any[] = [];
     const isDbConnected = mongoose.connection.readyState === 1;
@@ -167,11 +192,25 @@ export const getWorkoutLogs = async (req: Request, res: Response): Promise<Respo
       try {
         const query: any = {};
         if (targetUserId && targetUserId !== "all") {
-          query.$or = [{ userId: targetUserId }, { userId: "guest_user" }];
+          const conditions: any[] = [
+            { userId: targetUserId },
+            { userId: "guest_user" },
+          ];
+          if (mongoose.Types.ObjectId.isValid(targetUserId)) {
+            conditions.push({
+              userId: new mongoose.Types.ObjectId(targetUserId),
+            });
+          }
+          query.$or = conditions;
         }
-        logs = await WorkoutLog.find(query).sort({ createdAt: -1 }).limit(parseInt(limit as string, 10) || 100);
+        logs = await WorkoutLog.find(query)
+          .sort({ createdAt: -1 })
+          .limit(parseInt(limit as string, 10) || 100);
       } catch (dbErr) {
-        console.warn("[Workout Controller] MongoDB query failed, using in-memory store:", dbErr);
+        console.warn(
+          "[Workout Controller] MongoDB query failed, using in-memory store:",
+          dbErr,
+        );
         logs = inMemoryWorkoutLogs;
       }
     }
@@ -179,8 +218,14 @@ export const getWorkoutLogs = async (req: Request, res: Response): Promise<Respo
     // If no DB logs found or DB is offline, fall back to in-memory logs
     if (!logs || logs.length === 0) {
       logs = inMemoryWorkoutLogs;
-      if (targetUserId && targetUserId !== "all" && targetUserId !== "guest_user") {
-        logs = logs.filter((l) => l.userId === targetUserId || l.userId === "guest_user");
+      if (
+        targetUserId &&
+        targetUserId !== "all" &&
+        targetUserId !== "guest_user"
+      ) {
+        logs = logs.filter(
+          (l) => l.userId === targetUserId || l.userId === "guest_user",
+        );
       }
     }
 
@@ -200,7 +245,7 @@ export const getWorkoutLogs = async (req: Request, res: Response): Promise<Respo
         totalReps: 0,
         totalCaloriesBurned: 0,
         totalDurationMinutes: 0,
-      }
+      },
     );
 
     return res.status(200).json(
@@ -208,17 +253,19 @@ export const getWorkoutLogs = async (req: Request, res: Response): Promise<Respo
         logs,
         count: logs.length,
         summary,
-      })
+      }),
     );
   } catch (error) {
     console.error("[Workout Controller] getWorkoutLogs Error:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to retrieve workout logs",
-        error instanceof Error ? error.message : "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve workout logs",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -226,7 +273,10 @@ export const getWorkoutLogs = async (req: Request, res: Response): Promise<Respo
  * POST /api/workouts/log
  * Log a new workout entry
  */
-export const createWorkoutLog = async (req: Request, res: Response): Promise<Response> => {
+export const createWorkoutLog = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const {
       exerciseName,
@@ -241,42 +291,65 @@ export const createWorkoutLog = async (req: Request, res: Response): Promise<Res
     } = req.body;
 
     // Validation
-    if (!exerciseName || typeof exerciseName !== "string" || exerciseName.trim() === "") {
-      return res.status(400).json(
-        errorResponse(
-          "exerciseName is required and must be a non-empty string",
-          "VALIDATION_ERROR",
-          400
-        )
-      );
+    if (
+      !exerciseName ||
+      typeof exerciseName !== "string" ||
+      exerciseName.trim() === ""
+    ) {
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "exerciseName is required and must be a non-empty string",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
     const sets = Number(setsCount);
     if (isNaN(sets) || sets <= 0) {
-      return res.status(400).json(
-        errorResponse("setsCount must be a positive number", "VALIDATION_ERROR", 400)
-      );
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "setsCount must be a positive number",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
     const reps = Number(repsCount);
     if (isNaN(reps) || reps <= 0) {
-      return res.status(400).json(
-        errorResponse("repsCount must be a positive number", "VALIDATION_ERROR", 400)
-      );
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "repsCount must be a positive number",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
     const authUser = (req as any).user;
-    const finalUserId = userId || authUser?.userId || "guest_user";
+    const finalUserId =
+      userId || authUser?.userId || authUser?.id || "guest_user";
     const logDate = date ? new Date(date) : new Date();
 
     // Auto-calculate estimated calories if not provided
     let finalCalories = Number(caloriesBurned) || 0;
     if (!finalCalories) {
       const matchedCatalog = LOCAL_WORKOUTS_DATABASE.find(
-        (w) => w.name.toLowerCase() === exerciseName.trim().toLowerCase()
+        (w) => w.name.toLowerCase() === exerciseName.trim().toLowerCase(),
       );
       if (matchedCatalog) {
-        finalCalories = Math.round((matchedCatalog.estimatedCaloriesBurn / (matchedCatalog.targetSets || 3)) * sets);
+        finalCalories = Math.round(
+          (matchedCatalog.estimatedCaloriesBurn /
+            (matchedCatalog.targetSets || 3)) *
+            sets,
+        );
       } else {
         finalCalories = Math.round(sets * reps * 2.5);
       }
@@ -301,7 +374,10 @@ export const createWorkoutLog = async (req: Request, res: Response): Promise<Res
       try {
         createdLog = await WorkoutLog.create(logPayload);
       } catch (dbErr) {
-        console.warn("[Workout Controller] DB save failed, saving to local in-memory store:", dbErr);
+        console.warn(
+          "[Workout Controller] DB save failed, saving to local in-memory store:",
+          dbErr,
+        );
       }
     }
 
@@ -323,18 +399,22 @@ export const createWorkoutLog = async (req: Request, res: Response): Promise<Res
 
     inMemoryWorkoutLogs.unshift(localItem);
 
-    return res.status(201).json(
-      successResponse("Workout logged successfully", createdLog || localItem)
-    );
+    return res
+      .status(201)
+      .json(
+        successResponse("Workout logged successfully", createdLog || localItem),
+      );
   } catch (error) {
     console.error("[Workout Controller] createWorkoutLog Error:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to create workout log",
-        error instanceof Error ? error.message : "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to create workout log",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -342,7 +422,10 @@ export const createWorkoutLog = async (req: Request, res: Response): Promise<Res
  * DELETE /api/workouts/log/:id
  * Delete a specific workout log entry
  */
-export const deleteWorkoutLog = async (req: Request, res: Response): Promise<Response> => {
+export const deleteWorkoutLog = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
   try {
     const { id } = req.params;
     const isDbConnected = mongoose.connection.readyState === 1;
@@ -363,17 +446,19 @@ export const deleteWorkoutLog = async (req: Request, res: Response): Promise<Res
       inMemoryWorkoutLogs.splice(index, 1);
     }
 
-    return res.status(200).json(
-      successResponse("Workout log deleted successfully", {})
-    );
+    return res
+      .status(200)
+      .json(successResponse("Workout log deleted successfully", {}));
   } catch (error) {
     console.error("[Workout Controller] deleteWorkoutLog Error:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to delete workout log",
-        error instanceof Error ? error.message : "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to delete workout log",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
