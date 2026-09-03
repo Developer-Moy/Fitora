@@ -32,6 +32,8 @@ import {
   History,
   TrendingUp,
   Sparkles,
+  Search,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
@@ -413,6 +415,28 @@ export default function ProfilePage() {
 
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [isFullHistoryOpen, setIsFullHistoryOpen] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyFilter, setHistoryFilter] = useState<"all" | "stopwatch" | "weighted">("all");
+
+  const filteredWorkoutLogs = workoutLogs.filter((log) => {
+    if (historySearch.trim()) {
+      const q = historySearch.toLowerCase();
+      const matchName = log.exerciseName?.toLowerCase().includes(q);
+      const matchNotes = log.notes?.toLowerCase().includes(q);
+      if (!matchName && !matchNotes) return false;
+    }
+    if (historyFilter === "stopwatch") {
+      const isStopwatch =
+        log.notes?.toLowerCase().includes("stopwatch") ||
+        log.notes?.toLowerCase().includes("hud") ||
+        log.notes?.toLowerCase().includes("timed");
+      if (!isStopwatch) return false;
+    } else if (historyFilter === "weighted") {
+      if (!log.weight || log.weight <= 0) return false;
+    }
+    return true;
+  });
 
   const [mealChart, setMealChart] = useState<MealChart | null>(null);
 
@@ -450,7 +474,7 @@ export default function ProfilePage() {
           resolvedUserId
             ? getDailyMealPlan(resolvedUserId).catch(() => ({ success: false, data: null }))
             : Promise.resolve({ success: false, data: null }),
-          getWorkoutLogs(resolvedUserId, 50, userEmail).catch(() => ({ logs: [] })),
+          getWorkoutLogs(resolvedUserId, 200, userEmail).catch(() => ({ logs: [] })),
           resolvedUserId
             ? fetchMealCharts(resolvedUserId).catch(() => [])
             : Promise.resolve([]),
@@ -699,10 +723,18 @@ export default function ProfilePage() {
                 Gym & Workout History
               </h2>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <span className="text-xs text-white/60 font-medium hidden sm:inline">
                 {workoutLogs.length} Logged Sessions
               </span>
+              <button
+                type="button"
+                onClick={() => setIsFullHistoryOpen(true)}
+                className="inline-flex items-center gap-1.5 bg-neutral-900 border border-white/20 hover:border-white/40 text-white font-bold text-xs px-4 py-2 rounded-full hover:bg-neutral-800 transition-all cursor-pointer shadow-md"
+              >
+                <History className="w-3.5 h-3.5 text-white" />
+                <span>Full History</span>
+              </button>
               <Link
                 href="/stopwatch"
                 className="inline-flex items-center gap-1.5 bg-white text-black font-bold text-xs px-4 py-2 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
@@ -768,88 +800,104 @@ export default function ProfilePage() {
                 workouts...
               </div>
             ) : workoutLogs && workoutLogs.length > 0 ? (
-              workoutLogs.map((log) => {
-                const isStopwatchSession =
-                  log.notes?.toLowerCase().includes("stopwatch") ||
-                  log.notes?.toLowerCase().includes("hud") ||
-                  log.notes?.toLowerCase().includes("timed");
+              <>
+                {workoutLogs.slice(0, 4).map((log) => {
+                  const isStopwatchSession =
+                    log.notes?.toLowerCase().includes("stopwatch") ||
+                    log.notes?.toLowerCase().includes("hud") ||
+                    log.notes?.toLowerCase().includes("timed");
 
-                return (
-                  <div
-                    key={log._id || Math.random().toString()}
-                    className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-5 sm:p-6 transition-all space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)] group"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/15 pb-3">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-base font-extrabold uppercase text-white">
-                            {log.exerciseName || "Workout"}
-                          </h3>
-                          {isStopwatchSession && (
-                            <span className="inline-flex items-center gap-1 bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
-                              <Clock className="w-3 h-3 text-white" />
-                              Stopwatch
+                  return (
+                    <div
+                      key={log._id || Math.random().toString()}
+                      className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-5 sm:p-6 transition-all space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)] group"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/15 pb-3">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-base font-extrabold uppercase text-white">
+                              {log.exerciseName || "Workout"}
+                            </h3>
+                            {isStopwatchSession && (
+                              <span className="inline-flex items-center gap-1 bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
+                                <Clock className="w-3 h-3 text-white" />
+                                Stopwatch
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-white/60 mt-0.5">
+                            {log.date
+                              ? `${new Date(log.date).toLocaleDateString("en-US", {
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })} • ${new Date(log.date).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}`
+                              : "Recently"}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 text-xs font-bold text-white/80 flex-wrap">
+                          <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/20 px-3 py-1.5 rounded-full">
+                            <Clock className="w-3.5 h-3.5 text-white/60" />
+                            {log.durationMinutes || 1} min
+                          </span>
+                          {log.weight && log.weight > 0 ? (
+                            <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/20 px-3 py-1.5 rounded-full text-white">
+                              <Dumbbell className="w-3.5 h-3.5 text-white" />
+                              {log.weight} kg
                             </span>
+                          ) : null}
+                          {log.caloriesBurned && log.caloriesBurned > 0 ? (
+                            <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/20 px-3 py-1.5 rounded-full text-orange-400">
+                              <Flame className="w-3.5 h-3.5 text-orange-400" />
+                              {log.caloriesBurned} kcal
+                            </span>
+                          ) : null}
+                          {log._id && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteWorkout(log._id)}
+                              title="Delete session"
+                              className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer ml-1"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           )}
                         </div>
-                        <p className="text-xs text-white/60 mt-0.5">
-                          {log.date
-                            ? `${new Date(log.date).toLocaleDateString("en-US", {
-                                weekday: "short",
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })} • ${new Date(log.date).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}`
-                            : "Recently"}
-                        </p>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0 text-xs font-bold text-white/80 flex-wrap">
-                        <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/20 px-3 py-1.5 rounded-full">
-                          <Clock className="w-3.5 h-3.5 text-white/60" />
-                          {log.durationMinutes || 1} min
-                        </span>
-                        {log.weight && log.weight > 0 ? (
-                          <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/20 px-3 py-1.5 rounded-full text-white">
-                            <Dumbbell className="w-3.5 h-3.5 text-white" />
-                            {log.weight} kg
-                          </span>
-                        ) : null}
-                        {log.caloriesBurned && log.caloriesBurned > 0 ? (
-                          <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/20 px-3 py-1.5 rounded-full text-orange-400">
-                            <Flame className="w-3.5 h-3.5 text-orange-400" />
-                            {log.caloriesBurned} kcal
-                          </span>
-                        ) : null}
-                        {log._id && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteWorkout(log._id)}
-                            title="Delete session"
-                            className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer ml-1"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                      <div className="space-y-2">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">
+                          Stats ({log.setsCount} Sets, {log.repsCount} Reps)
+                        </p>
+                        {log.notes && (
+                          <div className="flex items-center gap-2 text-xs text-white/80 bg-neutral-950 px-3 py-2 rounded-xl border border-white/10">
+                            <span className="truncate">{log.notes}</span>
+                          </div>
                         )}
                       </div>
                     </div>
+                  );
+                })}
 
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">
-                        Stats ({log.setsCount} Sets, {log.repsCount} Reps)
-                      </p>
-                      {log.notes && (
-                        <div className="flex items-center gap-2 text-xs text-white/80 bg-neutral-950 px-3 py-2 rounded-xl border border-white/10">
-                          <span className="truncate">{log.notes}</span>
-                        </div>
-                      )}
-                    </div>
+                {workoutLogs.length > 4 && (
+                  <div className="text-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsFullHistoryOpen(true)}
+                      className="inline-flex items-center gap-2 text-xs font-bold px-6 py-2.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/15 text-white transition-all cursor-pointer shadow-md group"
+                    >
+                      <History className="w-3.5 h-3.5 text-white" />
+                      <span>View All {workoutLogs.length} Sessions in Full History</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-white/50 group-hover:translate-x-0.5 transition-transform" />
+                    </button>
                   </div>
-                );
-              })
+                )}
+              </>
             ) : (
               /* Empty State for Workouts */
               <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
@@ -874,6 +922,250 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        {/* ── Full Gym & Workout History Modal ── */}
+        <AnimatePresence>
+          {isFullHistoryOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                transition={{ duration: 0.2 }}
+                className="relative w-full max-w-4xl bg-neutral-950 border border-white/20 rounded-3xl p-5 sm:p-7 space-y-5 shadow-[0_0_50px_rgba(0,0,0,0.85)] max-h-[90vh] flex flex-col"
+              >
+                {/* Modal Header */}
+                <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4 shrink-0">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2.5">
+                      <History className="w-6 h-6 text-white" />
+                      <h2 className="text-xl sm:text-2xl font-black uppercase text-white tracking-tight">
+                        Full Gym & Workout History
+                      </h2>
+                    </div>
+                    <p className="text-xs text-white/60">
+                      Complete archive of all your timed stopwatch sets, weight sessions, and calorie burn records.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsFullHistoryOpen(false)}
+                    className="p-2 rounded-full text-white/50 hover:text-white bg-white/5 hover:bg-white/15 transition-all cursor-pointer shrink-0"
+                    aria-label="Close History Modal"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Aggregate Stats inside Modal */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
+                  <div className="bg-black border border-white/10 rounded-xl p-3 text-center">
+                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">
+                      Total Workouts
+                    </span>
+                    <strong className="text-lg font-black text-white">
+                      {workoutLogs.length}
+                    </strong>
+                  </div>
+                  <div className="bg-black border border-white/10 rounded-xl p-3 text-center">
+                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">
+                      Total Gym Time
+                    </span>
+                    <strong className="text-lg font-black text-white">
+                      {workoutLogs.reduce(
+                        (acc, curr) => acc + (Number(curr.durationMinutes) || 0),
+                        0
+                      )}{" "}
+                      min
+                    </strong>
+                  </div>
+                  <div className="bg-black border border-white/10 rounded-xl p-3 text-center">
+                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">
+                      Total Sets
+                    </span>
+                    <strong className="text-lg font-black text-white">
+                      {workoutLogs.reduce(
+                        (acc, curr) => acc + (Number(curr.setsCount) || 0),
+                        0
+                      )}
+                    </strong>
+                  </div>
+                  <div className="bg-black border border-white/10 rounded-xl p-3 text-center">
+                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">
+                      Total Burn
+                    </span>
+                    <strong className="text-lg font-black text-orange-400">
+                      {workoutLogs.reduce(
+                        (acc, curr) => acc + (Number(curr.caloriesBurned) || 0),
+                        0
+                      )}{" "}
+                      kcal
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Controls: Search & Filter Tabs */}
+                <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between shrink-0">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search exercise or notes (e.g. Bench Press, Squat, 60kg)..."
+                      value={historySearch}
+                      onChange={(e) => setHistorySearch(e.target.value)}
+                      className="w-full bg-black border border-white/15 rounded-full pl-9 pr-4 py-2 text-xs text-white placeholder-white/40 outline-none focus:border-white/50"
+                    />
+                    {historySearch && (
+                      <button
+                        type="button"
+                        onClick={() => setHistorySearch("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white text-xs"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                    {(["all", "stopwatch", "weighted"] as const).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setHistoryFilter(f)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap capitalize ${
+                          historyFilter === f
+                            ? "bg-white text-black shadow-md"
+                            : "bg-black text-white/60 border border-white/15 hover:border-white/30"
+                        }`}
+                      >
+                        {f === "all"
+                          ? "All"
+                          : f === "stopwatch"
+                          ? "Stopwatch Only"
+                          : "Weighted Sets"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Scrollable List of Workouts */}
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-white/20">
+                  {filteredWorkoutLogs.length === 0 ? (
+                    <div className="p-8 text-center bg-black border border-white/10 rounded-2xl space-y-2">
+                      <Dumbbell className="w-8 h-8 text-white/20 mx-auto" />
+                      <p className="text-sm font-bold text-white">
+                        No matching workout sessions found
+                      </p>
+                      <p className="text-xs text-white/50">
+                        {historySearch
+                          ? "Try a different search query."
+                          : "Log sessions using the stopwatch to build your history."}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredWorkoutLogs.map((log) => {
+                      const isStopwatchSession =
+                        log.notes?.toLowerCase().includes("stopwatch") ||
+                        log.notes?.toLowerCase().includes("hud") ||
+                        log.notes?.toLowerCase().includes("timed");
+
+                      return (
+                        <div
+                          key={log._id || Math.random().toString()}
+                          className="bg-black border border-white/15 hover:border-white/30 rounded-2xl p-4 sm:p-5 transition-all space-y-3"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="text-sm sm:text-base font-black uppercase text-white">
+                                  {log.exerciseName || "Workout"}
+                                </h4>
+                                {isStopwatchSession && (
+                                  <span className="inline-flex items-center gap-1 bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
+                                    <Clock className="w-3 h-3 text-white" />
+                                    Stopwatch
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-white/60 mt-0.5">
+                                {log.date
+                                  ? `${new Date(log.date).toLocaleDateString("en-US", {
+                                      weekday: "short",
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    })} at ${new Date(log.date).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}`
+                                  : "Recently logged"}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0 text-xs font-bold text-white/80 flex-wrap">
+                              <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/15 px-2.5 py-1 rounded-full">
+                                <Clock className="w-3 h-3 text-white/60" />
+                                {log.durationMinutes || 1} min
+                              </span>
+                              {log.weight && log.weight > 0 ? (
+                                <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/15 px-2.5 py-1 rounded-full text-white">
+                                  <Dumbbell className="w-3 h-3 text-white" />
+                                  {log.weight} kg
+                                </span>
+                              ) : null}
+                              {log.caloriesBurned && log.caloriesBurned > 0 ? (
+                                <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/15 px-2.5 py-1 rounded-full text-orange-400">
+                                  <Flame className="w-3 h-3 text-orange-400" />
+                                  {log.caloriesBurned} kcal
+                                </span>
+                              ) : null}
+                              {log._id && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteWorkout(log._id)}
+                                  title="Delete session"
+                                  className="p-1 rounded-lg text-white/30 hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer ml-1"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">
+                              Stats: {log.setsCount} Sets • {log.repsCount} Reps
+                            </p>
+                            {log.notes && (
+                              <div className="text-xs text-white/80 bg-neutral-900/60 px-3 py-2 rounded-xl border border-white/5">
+                                <span className="break-words">{log.notes}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-white/50 shrink-0">
+                  <span>
+                    Showing {filteredWorkoutLogs.length} of {workoutLogs.length}{" "}
+                    total sessions
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsFullHistoryOpen(false)}
+                    className="bg-white text-black font-bold px-5 py-2 rounded-full hover:bg-neutral-200 transition-all cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* ── 4. BMI, BMR & TDEE Calculation History ── */}
         <div className="space-y-4">
