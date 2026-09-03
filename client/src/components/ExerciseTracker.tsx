@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -18,6 +18,7 @@ import {
   Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { fetchExercises } from "@/services/exerciseService";
 
 type Exercise = {
   id: string;
@@ -32,8 +33,6 @@ type Exercise = {
   videoId: string;
   image: string;
 };
-
-
 
 const categories = [
   "ALL",
@@ -51,10 +50,9 @@ const categories = [
 ];
 
 export default function ExercisePage() {
-   const [exercises, setExercises] = useState<Exercise[]>([]);
-   const [loading, setLoading] = useState(true);
-   const [error, setError] = useState("");
-
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [activeCategory, setActiveCategory] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,7 +67,7 @@ export default function ExercisePage() {
       setIsLoading(true);
       const data = await fetchExercises();
       if (data) {
-        const mapped = data.map((d) => ({
+        const mapped = data.map((d: any) => ({
           id: d._id,
           name: d.name,
           category: (d.primaryMuscles[0] || "FUNCTIONAL").toUpperCase(),
@@ -79,8 +77,12 @@ export default function ExercisePage() {
           muscle: (d.primaryMuscles[0] || "").toUpperCase(),
           description: d.instructions[0] || "",
           tips: d.instructions,
-          videoId: d.videoUrl ? d.videoUrl.split("v=")[1] || d.videoUrl.split("/").pop() || "" : "",
-          image: d.gifUrl || "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=80",
+          videoId: d.videoUrl
+            ? d.videoUrl.split("v=")[1] || d.videoUrl.split("/").pop() || ""
+            : "",
+          image:
+            d.gifUrl ||
+            "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=80",
         }));
         setExercises(mapped);
       }
@@ -108,39 +110,6 @@ export default function ExercisePage() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredExercises.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredExercises, currentPage]);
-
-
-
-  useEffect(() => {
-  const fetchExercises = async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/exercises`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch exercises");
-      }
-
-      const result = await response.json();
-
-      console.log("Exercise API response:", result);
-
-      setExercises(result.data || []);
-      setCurrentPage(1)
-    } catch (error) {
-      console.error("Exercise fetch error:", error);
-      setError("Failed to load exercises");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchExercises();
-}, []);
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -220,7 +189,9 @@ export default function ExercisePage() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4 text-white/50">
               <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-xs font-bold uppercase tracking-widest">Loading exercise library...</p>
+              <p className="text-xs font-bold uppercase tracking-widest">
+                Loading exercise library...
+              </p>
             </div>
           ) : paginatedExercises.length > 0 ? (
             <>
@@ -565,8 +536,7 @@ function ExerciseModal({
         let message = `Request failed with status ${response.status}`;
         try {
           const data = await response.json();
-          message =
-            (data && (data.message || data.error)) || message;
+          message = (data && (data.message || data.error)) || message;
         } catch {
           // ignore non-JSON response
         }
@@ -715,7 +685,11 @@ function ExerciseModal({
                     </h3>
                   </div>
                   <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">
-                    {swRunning ? "RUNNING" : swElapsedMs > 0 ? "PAUSED" : "READY"}
+                    {swRunning
+                      ? "RUNNING"
+                      : swElapsedMs > 0
+                        ? "PAUSED"
+                        : "READY"}
                   </span>
                 </div>
 

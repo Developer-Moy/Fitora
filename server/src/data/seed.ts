@@ -27,11 +27,7 @@ if (!MONGODB_URI) {
 
 type Gender = "male" | "female";
 
-type GoalType =
-  | "Bulking"
-  | "Cutting"
-  | "Recomp"
-  | "Maintenance";
+type GoalType = "Bulking" | "Cutting" | "Recomp" | "Maintenance";
 
 interface Profile {
   age: number;
@@ -46,15 +42,10 @@ interface Profile {
 // BMI
 // --------------------------------------------------
 
-const calculateBMI = (
-  weight: number,
-  height: number
-): number => {
+const calculateBMI = (weight: number, height: number): number => {
   const heightInMeters = height / 100;
 
-  return Number(
-    (weight / (heightInMeters * heightInMeters)).toFixed(2)
-  );
+  return Number((weight / (heightInMeters * heightInMeters)).toFixed(2));
 };
 
 // --------------------------------------------------
@@ -65,33 +56,20 @@ const calculateBMR = (
   age: number,
   gender: Gender,
   height: number,
-  weight: number
+  weight: number,
 ): number => {
   if (gender === "male") {
-    return Math.round(
-      10 * weight +
-      6.25 * height -
-      5 * age +
-      5
-    );
+    return Math.round(10 * weight + 6.25 * height - 5 * age + 5);
   }
 
-  return Math.round(
-    10 * weight +
-    6.25 * height -
-    5 * age -
-    161
-  );
+  return Math.round(10 * weight + 6.25 * height - 5 * age - 161);
 };
 
 // --------------------------------------------------
 // TDEE
 // --------------------------------------------------
 
-const calculateTDEE = (
-  bmr: number,
-  activityLevel: number
-): number => {
+const calculateTDEE = (bmr: number, activityLevel: number): number => {
   return Math.round(bmr * activityLevel);
 };
 
@@ -99,9 +77,7 @@ const calculateTDEE = (
 // BMI Category
 // --------------------------------------------------
 
-const getBMICategory = (
-  bmi: number
-): string => {
+const getBMICategory = (bmi: number): string => {
   if (bmi < 18.5) {
     return "Underweight";
   }
@@ -121,9 +97,7 @@ const getBMICategory = (
 // Risk Level
 // --------------------------------------------------
 
-const getRiskLevel = (
-  bmi: number
-): string => {
+const getRiskLevel = (bmi: number): string => {
   if (bmi < 18.5) {
     return "Moderate";
   }
@@ -144,20 +118,12 @@ const getRiskLevel = (
 // BMI 18.5 - 24.9
 // --------------------------------------------------
 
-const getIdealWeightRange = (
-  height: number
-) => {
+const getIdealWeightRange = (height: number) => {
   const heightInMeters = height / 100;
 
-  const min =
-    18.5 *
-    heightInMeters *
-    heightInMeters;
+  const min = 18.5 * heightInMeters * heightInMeters;
 
-  const max =
-    24.9 *
-    heightInMeters *
-    heightInMeters;
+  const max = 24.9 * heightInMeters * heightInMeters;
 
   return {
     min: Number(min.toFixed(1)),
@@ -169,10 +135,7 @@ const getIdealWeightRange = (
 // Calories
 // --------------------------------------------------
 
-const calculateTargetCalories = (
-  tdee: number,
-  goalType: GoalType
-): number => {
+const calculateTargetCalories = (tdee: number, goalType: GoalType): number => {
   switch (goalType) {
     case "Bulking":
       return Math.round(tdee * 1.1);
@@ -195,7 +158,7 @@ const calculateTargetCalories = (
 const calculateMacros = (
   weight: number,
   calories: number,
-  goalType: GoalType
+  goalType: GoalType,
 ) => {
   let protein: number;
   let fat: number;
@@ -227,12 +190,7 @@ const calculateMacros = (
 
   const carbs = Math.max(
     0,
-    Math.round(
-      (calories -
-        proteinCalories -
-        fatCalories) /
-      4
-    )
+    Math.round((calories - proteinCalories - fatCalories) / 4),
   );
 
   return {
@@ -659,9 +617,7 @@ const seedDatabase = async (): Promise<void> => {
 
     await mongoose.connect(MONGODB_URI);
 
-    console.log(
-      `MongoDB connected: ${mongoose.connection.host}`
-    );
+    console.log(`MongoDB connected: ${mongoose.connection.host}`);
 
     // Get existing users
     const users = await mongoose.connection
@@ -672,41 +628,24 @@ const seedDatabase = async (): Promise<void> => {
       .toArray();
 
     if (users.length === 0) {
-      throw new Error(
-        "No users found in users collection."
-      );
+      throw new Error("No users found in users collection.");
     }
 
-    // =========================
-    // CONNECT TO MONGODB
-    // =========================
-
-    await mongoose.connect(process.env.MONGODB_URI);
-
-        const bmr = calculateBMR(
-          profile.age,
-          profile.gender,
-          profile.height,
-          profile.weight
-        );
-
-    // =========================
-    // CLEAR EXISTING DATA
-    // =========================
-
+    // -----------------------------
+    // Seed Branches, Users, Exercises & Workouts
+    // -----------------------------
+    await Branch.deleteMany({});
+    await User.deleteMany({});
     await Exercise.deleteMany({});
     await WorkoutLog.deleteMany({});
 
-        const targetCalories =
-          calculateTargetCalories(
-            tdee,
-            profile.goalType
-          );
+    const insertedBranches = await Branch.insertMany(branches);
+    console.log(`Inserted ${insertedBranches.length} branches.`);
 
-    // =========================
-    // SEED EXERCISES
-    // =========================
+    const insertedUsers = await User.insertMany(usersData);
+    console.log(`Inserted ${insertedUsers.length} users.`);
 
+    // Seed Exercises
     const exerciseSeedData = EXERCISE_DATABASE.map((exercise) => ({
       id: exercise.id,
       name: exercise.name,
@@ -720,143 +659,135 @@ const seedDatabase = async (): Promise<void> => {
       videoId: exercise.videoId,
       image: exercise.image,
     }));
-
     const exercises = await Exercise.insertMany(exerciseSeedData);
+    console.log(`Inserted ${exercises.length} exercises.`);
 
-          targetCalories,
-
-    // =========================
-    // SEED WORKOUT LOGS
-    // =========================
-
+    // Seed Workout Logs
     const workoutLogSeedData = LOCAL_WORKOUTS_DATABASE.map(
       (exercise, index) => ({
-        userId: "guest_user",
-
-          bmiCategory:
-            getBMICategory(bmi),
-
-          riskLevel:
-            getRiskLevel(bmi),
-
-          idealWeightRange,
-        };
-      }
+        userId: users[index % users.length]._id.toString(),
+        exerciseName: exercise.name,
+        setsCount: exercise.targetSets || 3,
+        repsCount: exercise.targetReps || 10,
+        durationMinutes: 30,
+        caloriesBurned: exercise.estimatedCaloriesBurn || 150,
+        date: new Date().toISOString(),
+      }),
     );
+    const workoutLogs = await WorkoutLog.insertMany(workoutLogSeedData);
+    console.log(`Inserted ${workoutLogs.length} workout logs.`);
+
+    // ------------------------------------------------
+    // Create BMI History records
+    // ------------------------------------------------
+    const bmiHistories = profiles.map((profile, index) => {
+      const bmi = calculateBMI(profile.weight, profile.height);
+      const bmr = calculateBMR(
+        profile.age,
+        profile.gender,
+        profile.height,
+        profile.weight,
+      );
+      const tdee = calculateTDEE(bmr, profile.activityLevel);
+      const targetCalories = calculateTargetCalories(tdee, profile.goalType);
+      const macros = calculateMacros(
+        profile.weight,
+        targetCalories,
+        profile.goalType,
+      );
+      const idealWeightRange = getIdealWeightRange(profile.height);
+
+      return {
+        userId: users[index % users.length]._id,
+        age: profile.age,
+        gender: profile.gender,
+        height: profile.height,
+        weight: profile.weight,
+        bmi,
+        bmr,
+        tdee,
+        targetCalories,
+        macros,
+        bmiCategory: getBMICategory(bmi),
+        riskLevel: getRiskLevel(bmi),
+        idealWeightRange,
+      };
+    });
 
     // ------------------------------------------------
     // Create Goal records
     // ------------------------------------------------
 
-    const goals = profiles.map(
-      (profile, index) => {
-        const bmr = calculateBMR(
-          profile.age,
-          profile.gender,
-          profile.height,
-          profile.weight
-        );
+    const goals = profiles.map((profile, index) => {
+      const bmr = calculateBMR(
+        profile.age,
+        profile.gender,
+        profile.height,
+        profile.weight,
+      );
 
-        const tdee = calculateTDEE(
-          bmr,
-          profile.activityLevel
-        );
+      const tdee = calculateTDEE(bmr, profile.activityLevel);
 
-        const targetCalories =
-          calculateTargetCalories(
-            tdee,
-            profile.goalType
-          );
+      const targetCalories = calculateTargetCalories(tdee, profile.goalType);
 
-        const macros = calculateMacros(
-          profile.weight,
-          targetCalories,
-          profile.goalType
-        );
+      const macros = calculateMacros(
+        profile.weight,
+        targetCalories,
+        profile.goalType,
+      );
 
-        let targetWeight =
-          profile.weight;
+      let targetWeight = profile.weight;
 
-        if (profile.goalType === "Bulking") {
-          targetWeight = Number(
-            (profile.weight * 1.05).toFixed(1)
-          );
-        }
-
-        if (profile.goalType === "Cutting") {
-          targetWeight = Number(
-            (profile.weight * 0.95).toFixed(1)
-          );
-        }
-
-        if (profile.goalType === "Recomp") {
-          targetWeight = Number(
-            profile.weight.toFixed(1)
-          );
-        }
-
-        if (
-          profile.goalType === "Maintenance"
-        ) {
-          targetWeight = Number(
-            profile.weight.toFixed(1)
-          );
-        }
-
-        return {
-          userId:
-            users[index % users.length]._id.toString(),
-
-          goalType:
-            profile.goalType,
-
-          targetWeight,
-
-          weeklyWorkoutFrequency:
-            3 + (index % 4),
-
-          bmr,
-
-          tdee,
-
-          targetCalories,
-
-          macros,
-        };
+      if (profile.goalType === "Bulking") {
+        targetWeight = Number((profile.weight * 1.05).toFixed(1));
       }
-    );
+
+      if (profile.goalType === "Cutting") {
+        targetWeight = Number((profile.weight * 0.95).toFixed(1));
+      }
+
+      if (profile.goalType === "Recomp") {
+        targetWeight = Number(profile.weight.toFixed(1));
+      }
+
+      if (profile.goalType === "Maintenance") {
+        targetWeight = Number(profile.weight.toFixed(1));
+      }
+
+      return {
+        userId: users[index % users.length]._id.toString(),
+
+        goalType: profile.goalType,
+
+        targetWeight,
+
+        weeklyWorkoutFrequency: 3 + (index % 4),
+
+        bmr,
+
+        tdee,
+
+        targetCalories,
+
+        macros,
+      };
+    });
 
     // ------------------------------------------------
     // Insert data
     // ------------------------------------------------
 
-    const insertedBMI =
-      await BMIHistory.insertMany(
-        bmiHistories
-      );
+    const insertedBMI = await BMIHistory.insertMany(bmiHistories);
 
-    console.log(
-      `Inserted ${insertedBMI.length} BMI history records.`
-    );
+    console.log(`Inserted ${insertedBMI.length} BMI history records.`);
 
-    const insertedGoals =
-      await Goal.insertMany(goals);
+    const insertedGoals = await Goal.insertMany(goals);
 
-    console.log(
-      `Inserted ${insertedGoals.length} goal records.`
-    );
+    console.log(`Inserted ${insertedGoals.length} goal records.`);
 
-    const workoutLogs = await WorkoutLog.insertMany(
-      workoutLogSeedData
-    );
+    console.log("SEED COMPLETED SUCCESSFULLY");
 
-    console.log(
-      "SEED COMPLETED SUCCESSFULLY"
-    );
-
-    console.log(
-      `BMI Histories: ${insertedBMI.length}`
-    );
+    console.log(`BMI Histories: ${insertedBMI.length}`);
 
     // =========================
     // SUCCESS
@@ -864,18 +795,13 @@ const seedDatabase = async (): Promise<void> => {
 
     console.log("Database seeding completed successfully");
   } catch (error) {
-    console.error(
-      "Seed failed:",
-      error
-    );
+    console.error("Seed failed:", error);
 
     process.exitCode = 1;
   } finally {
     await mongoose.connection.close();
 
-    console.log(
-      "MongoDB connection closed."
-    );
+    console.log("MongoDB connection closed.");
   }
 };
 
