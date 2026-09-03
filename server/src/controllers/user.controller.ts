@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import User, { IUser } from "../models/User.model";
-import WorkoutLog from "../models/WorkoutLog.model";
-import { AuthRequest } from "../middlewares/auth.middleware";
-import { successResponse, errorResponse } from "../utils/apiResponse";
 import mongoose from "mongoose";
+import { AuthRequest } from "../middlewares/auth.middleware";
+import User from "../models/User.model";
+import WorkoutLog from "../models/WorkoutLog.model";
+import { errorResponse, successResponse } from "../utils/apiResponse";
 
 /**
  * 1. GET /api/dashboard/stats — Personal member dashboard stats
@@ -31,7 +31,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
               0
             ) /
               60) *
-              10
+            10
           ) / 10,
       })
     );
@@ -102,9 +102,9 @@ export const getPlatformStats = async (req: AuthRequest, res: Response) => {
       branchName: u.assignedBranch || "Dhaka - Gulshan-2 Branch",
       time: u.updatedAt
         ? new Date(u.updatedAt).toLocaleTimeString("en-BD", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
+          hour: "2-digit",
+          minute: "2-digit",
+        })
         : "N/A",
       status: "Verified Entry",
       method: i % 3 === 0 ? "QR Scan" : i % 3 === 1 ? "Manual Entry" : "Biometric NFC",
@@ -205,22 +205,22 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
 
     const formatted = users.map((u: any) => ({
       id: u._id.toString(),
-      name: u.name,
-      email: u.email,
-      phone: u.phone,
+      name: u.name || "Unnamed User",
+      email: u.email || "",
+      phone: u.phone || "",
       role: u.role,
-      assignedBranch: u.assignedBranch,
-      plan: u.plan,
-      status: u.status,
+      assignedBranch: u.assignedBranch || "Unassigned",
+      plan: u.plan || "Free Pass",
+      status: u.status || "active",
       joinDate: u.createdAt
         ? new Date(u.createdAt).toISOString().split("T")[0]
         : "",
       expiryDate: u.updatedAt
         ? new Date(
-            new Date(u.updatedAt).getTime() + 30 * 24 * 60 * 60 * 1000
-          )
-            .toISOString()
-            .split("T")[0]
+          new Date(u.updatedAt).getTime() + 30 * 24 * 60 * 60 * 1000
+        )
+          .toISOString()
+          .split("T")[0]
         : "",
       totalPaidBDT: u.totalPaidBDT || 0,
       paymentMethod: u.paymentMethod || "None",
