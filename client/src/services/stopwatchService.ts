@@ -3,11 +3,16 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 function getAuthHeader(): Record<string, string> {
   if (typeof window === "undefined") return {};
   try {
+    const token =
+      localStorage.getItem("fitora_token") ||
+      localStorage.getItem("fitora_auth_token");
+    if (token) return { Authorization: `Bearer ${token}` };
+
     const session = localStorage.getItem("fitora_auth_session");
     if (!session) return {};
     const parsed = JSON.parse(session);
-    const token = parsed?.token || parsed?.access_token;
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const sessionToken = parsed?.token || parsed?.access_token;
+    return sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {};
   } catch {
     return {};
   }

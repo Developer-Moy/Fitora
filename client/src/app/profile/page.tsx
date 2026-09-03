@@ -45,7 +45,7 @@ import {
   uploadToImgBB,
   readFileAsDataURL,
 } from "@/services/imageUploadService";
-import { getWorkoutLogs } from "@/services/workoutService";
+import { getWorkoutLogs, deleteWorkoutLog } from "@/services/workoutService";
 import type { WorkoutLog } from "@/types/workout";
 import MealCard from "@/components/meals/MealCard";
 import {
@@ -426,21 +426,34 @@ export default function ProfilePage() {
     MEAL_SUGGESTIONS_BY_GOAL[currentGoalKey] ||
     MEAL_SUGGESTIONS_BY_GOAL["Bulking & Muscle Gain"];
 
-  useEffect(() => {
-    if (!resolvedUserId) {
-      setIsLoadingDailyPlan(false);
-      setIsLoadingWorkouts(false);
-      return;
+  const handleDeleteWorkout = async (id?: string) => {
+    if (!id) return;
+    try {
+      const ok = await deleteWorkoutLog(id);
+      if (ok) {
+        setWorkoutLogs((prev) => prev.filter((item) => item._id !== id));
+        toast.success("Workout session removed from history");
+      } else {
+        toast.error("Failed to remove session");
+      }
+    } catch {
+      toast.error("Failed to remove session");
     }
+  };
 
+  useEffect(() => {
     const fetchData = async () => {
       setIsLoadingDailyPlan(true);
       setIsLoadingWorkouts(true);
       try {
         const [dailyPlanRes, workoutsRes, mealChartsRes] = await Promise.all([
-          getDailyMealPlan(resolvedUserId),
-          getWorkoutLogs(resolvedUserId, 20).catch(() => ({ logs: [] })),
-          fetchMealCharts(resolvedUserId).catch(() => []),
+          resolvedUserId
+            ? getDailyMealPlan(resolvedUserId).catch(() => ({ success: false, data: null }))
+            : Promise.resolve({ success: false, data: null }),
+          getWorkoutLogs(resolvedUserId, 50, userEmail).catch(() => ({ logs: [] })),
+          resolvedUserId
+            ? fetchMealCharts(resolvedUserId).catch(() => [])
+            : Promise.resolve([]),
         ]);
 
         if (dailyPlanRes.success && dailyPlanRes.data) {
@@ -461,7 +474,7 @@ export default function ProfilePage() {
     };
 
     fetchData();
-  }, [resolvedUserId]);
+  }, [resolvedUserId, userEmail]);
 
   // Handle direct file selection & upload (Local Preview + ImgBB Cloud Sync)
   const handleCopyMeal = (meal: any, index: number) => {
@@ -695,10 +708,57 @@ export default function ProfilePage() {
                 className="inline-flex items-center gap-1.5 bg-white text-black font-bold text-xs px-4 py-2 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
               >
                 <Clock className="w-3.5 h-3.5" />
-                <span>Start New Session</span>
+                <span>Start Stopwatch Session</span>
               </Link>
             </div>
           </div>
+
+          {/* Quick Aggregate Stats Bar */}
+          {workoutLogs && workoutLogs.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="bg-neutral-950 border border-white/10 rounded-xl p-3 text-center">
+                <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">
+                  Total Sessions
+                </span>
+                <strong className="text-base sm:text-lg font-black text-white">
+                  {workoutLogs.length}
+                </strong>
+              </div>
+              <div className="bg-neutral-950 border border-white/10 rounded-xl p-3 text-center">
+                <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">
+                  Total Time
+                </span>
+                <strong className="text-base sm:text-lg font-black text-white">
+                  {workoutLogs.reduce(
+                    (acc, curr) => acc + (Number(curr.durationMinutes) || 0),
+                    0
+                  )}m
+                </strong>
+              </div>
+              <div className="bg-neutral-950 border border-white/10 rounded-xl p-3 text-center">
+                <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">
+                  Total Sets
+                </span>
+                <strong className="text-base sm:text-lg font-black text-white">
+                  {workoutLogs.reduce(
+                    (acc, curr) => acc + (Number(curr.setsCount) || 0),
+                    0
+                  )}
+                </strong>
+              </div>
+              <div className="bg-neutral-950 border border-white/10 rounded-xl p-3 text-center">
+                <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">
+                  Est. Calories
+                </span>
+                <strong className="text-base sm:text-lg font-black text-orange-400">
+                  {workoutLogs.reduce(
+                    (acc, curr) => acc + (Number(curr.caloriesBurned) || 0),
+                    0
+                  )} kcal
+                </strong>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             {/* Dynamic Rendering: Show workouts if they exist, otherwise show Empty State */}
@@ -708,56 +768,88 @@ export default function ProfilePage() {
                 workouts...
               </div>
             ) : workoutLogs && workoutLogs.length > 0 ? (
-              workoutLogs.map((log) => (
-                <div
-                  key={log._id || Math.random().toString()}
-                  className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-5 sm:p-6 transition-all space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/20 pb-3">
-                    <div>
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <h3 className="text-base font-extrabold uppercase text-white">
-                          {log.exerciseName || "Workout"}
-                        </h3>
-                      </div>
-                      <p className="text-xs text-white/60 mt-0.5">
-                        {log.date
-                          ? new Date(log.date).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
-                          : "Recently"}
-                      </p>
-                    </div>
+              workoutLogs.map((log) => {
+                const isStopwatchSession =
+                  log.notes?.toLowerCase().includes("stopwatch") ||
+                  log.notes?.toLowerCase().includes("hud") ||
+                  log.notes?.toLowerCase().includes("timed");
 
-                    <div className="flex items-center gap-3 shrink-0 text-xs font-bold text-white/80">
-                      <span className="inline-flex items-center gap-1 bg-black border border-white/20 px-3 py-1.5 rounded-full">
-                        <Clock className="w-3.5 h-3.5 text-white/60" />
-                        {log.durationMinutes} min
-                      </span>
-                      {log.weight && log.weight > 0 ? (
-                        <span className="inline-flex items-center gap-1 bg-black border border-white/20 px-3 py-1.5 rounded-full text-white">
-                          <Dumbbell className="w-3.5 h-3.5 text-white" />
-                          {log.weight} kg
+                return (
+                  <div
+                    key={log._id || Math.random().toString()}
+                    className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-5 sm:p-6 transition-all space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)] group"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/15 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-base font-extrabold uppercase text-white">
+                            {log.exerciseName || "Workout"}
+                          </h3>
+                          {isStopwatchSession && (
+                            <span className="inline-flex items-center gap-1 bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
+                              <Clock className="w-3 h-3 text-white" />
+                              Stopwatch
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-white/60 mt-0.5">
+                          {log.date
+                            ? `${new Date(log.date).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })} • ${new Date(log.date).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}`
+                            : "Recently"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 text-xs font-bold text-white/80 flex-wrap">
+                        <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/20 px-3 py-1.5 rounded-full">
+                          <Clock className="w-3.5 h-3.5 text-white/60" />
+                          {log.durationMinutes || 1} min
                         </span>
-                      ) : null}
+                        {log.weight && log.weight > 0 ? (
+                          <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/20 px-3 py-1.5 rounded-full text-white">
+                            <Dumbbell className="w-3.5 h-3.5 text-white" />
+                            {log.weight} kg
+                          </span>
+                        ) : null}
+                        {log.caloriesBurned && log.caloriesBurned > 0 ? (
+                          <span className="inline-flex items-center gap-1 bg-neutral-900 border border-white/20 px-3 py-1.5 rounded-full text-orange-400">
+                            <Flame className="w-3.5 h-3.5 text-orange-400" />
+                            {log.caloriesBurned} kcal
+                          </span>
+                        ) : null}
+                        {log._id && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteWorkout(log._id)}
+                            title="Delete session"
+                            className="p-1.5 rounded-lg text-white/30 hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer ml-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">
+                        Stats ({log.setsCount} Sets, {log.repsCount} Reps)
+                      </p>
+                      {log.notes && (
+                        <div className="flex items-center gap-2 text-xs text-white/80 bg-neutral-950 px-3 py-2 rounded-xl border border-white/10">
+                          <span className="truncate">{log.notes}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">
-                      Stats ({log.setsCount} Sets, {log.repsCount} Reps)
-                    </p>
-                    {log.notes && (
-                      <div className="flex items-center gap-2 text-xs text-white/80 bg-black px-3 py-2 rounded-xl border border-white/5">
-                        <span className="truncate">{log.notes}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               /* Empty State for Workouts */
               <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]">

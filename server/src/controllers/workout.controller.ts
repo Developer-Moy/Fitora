@@ -156,9 +156,10 @@ export const getWorkoutById = async (req: Request, res: Response): Promise<Respo
  */
 export const getWorkoutLogs = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { userId, limit } = req.query;
+    const { userId, email, limit } = req.query;
     const authUser = (req as any).user;
     const targetUserId = (userId as string) || authUser?.userId || "guest_user";
+    const userEmail = typeof email === "string" ? email.trim() : undefined;
 
     let logs: any[] = [];
     const isDbConnected = mongoose.connection.readyState === 1;
@@ -167,7 +168,11 @@ export const getWorkoutLogs = async (req: Request, res: Response): Promise<Respo
       try {
         const query: any = {};
         if (targetUserId && targetUserId !== "all") {
-          query.$or = [{ userId: targetUserId }, { userId: "guest_user" }];
+          const conditions: any[] = [{ userId: targetUserId }, { userId: "guest_user" }];
+          if (userEmail) {
+            conditions.push({ userId: userEmail });
+          }
+          query.$or = conditions;
         }
         logs = await WorkoutLog.find(query).sort({ createdAt: -1 }).limit(parseInt(limit as string, 10) || 100);
       } catch (dbErr) {
@@ -180,7 +185,12 @@ export const getWorkoutLogs = async (req: Request, res: Response): Promise<Respo
     if (!logs || logs.length === 0) {
       logs = inMemoryWorkoutLogs;
       if (targetUserId && targetUserId !== "all" && targetUserId !== "guest_user") {
-        logs = logs.filter((l) => l.userId === targetUserId || l.userId === "guest_user");
+        logs = logs.filter(
+          (l) =>
+            l.userId === targetUserId ||
+            l.userId === "guest_user" ||
+            (userEmail && l.userId === userEmail)
+        );
       }
     }
 

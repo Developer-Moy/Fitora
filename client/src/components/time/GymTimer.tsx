@@ -10,6 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
+import { getAuthSession } from "@/services/authService";
 import { createWorkoutLog } from "@/services/workoutService";
 import {
   completeStopwatchSession,
@@ -68,7 +69,22 @@ export default function GymTimer({
   } | null>(null);
 
   const { data: authSession } = useSession();
-  const authUserId = authSession?.user?.id;
+  const [localUserId, setLocalUserId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    try {
+      const session = getAuthSession();
+      const id =
+        session?.user?.id ||
+        session?.user?._id ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("fitora_user_email") || undefined
+          : undefined);
+      if (id) setLocalUserId(id);
+    } catch {}
+  }, []);
+
+  const effectiveUserId = authSession?.user?.id || localUserId;
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const voiceAnnouncedRef = useRef<number | null>(null);
@@ -368,15 +384,18 @@ export default function GymTimer({
         .map((s) => `${s.weight}kg×${s.reps}`)
         .join(", ");
 
+      const finalDuration = Math.max(1, Math.round(totalSessionSeconds / 60));
       const payload: CreateWorkoutLogPayload = {
         exerciseName,
         setsCount,
         repsCount: totalReps > 0 ? totalReps : 1,
         weight: maxWeight,
-        durationMinutes: Math.round(totalSessionSeconds / 60),
-        notes: loggedSetsNotes || "Timed session — weight/reps not tracked",
+        durationMinutes: finalDuration,
+        notes: loggedSetsNotes
+          ? `HUD Stopwatch — ${loggedSetsNotes}`
+          : `Timed stopwatch session (${Math.floor(totalSessionSeconds / 60)}m ${totalSessionSeconds % 60}s)`,
         date: new Date().toISOString(),
-        ...(authUserId ? { userId: authUserId } : {}),
+        ...(effectiveUserId ? { userId: effectiveUserId } : {}),
       };
 
       isSavingLogRef.current = true;
@@ -387,7 +406,7 @@ export default function GymTimer({
         // Also mark session complete in stopwatch API for calorie tracking
         completeStopwatchSession({
           workoutType: exerciseName,
-          durationMinutes: Math.round(totalSessionSeconds / 60),
+          durationMinutes: finalDuration,
           weightKg: maxWeight > 0 ? maxWeight : undefined,
         }).catch(() => {});
         toast.success("Workout saved to your history 💪", {
@@ -403,7 +422,7 @@ export default function GymTimer({
         isSavingLogRef.current = false;
       }
     },
-    [authUserId, exerciseName],
+    [effectiveUserId, exerciseName],
   );
 
   const handleStop = useCallback(() => {
