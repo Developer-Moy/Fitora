@@ -52,6 +52,7 @@ import {
   getDailyMealPlan,
   SavedMealPlanItem,
 } from "@/services/dailyMealPlanService";
+import { deleteBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
 
 interface BMIHistory {
@@ -374,7 +375,13 @@ export default function ProfilePage() {
 
         const data = await response.json();
 
-        setHistory(data?.data || data?.history || []);
+        console.log("BMI HISTORY API RESPONSE:", data);
+
+        const historyData = Array.isArray(data?.data?.history)
+          ? data.data.history
+          : [];
+
+        setHistory(historyData);
       } catch (error) {
         console.error("BMI history fetch error:", error);
         setHistoryError("Failed to load your calculation history.");
@@ -385,6 +392,24 @@ export default function ProfilePage() {
 
     fetchBMIHistory();
   }, []);
+
+  const handleDeleteHistory = async (id: string) => {
+    try {
+      const success = await deleteBmiHistory(id);
+
+      if (!success) {
+        toast.error("Failed to delete history.");
+        return;
+      }
+
+      setHistory((prev) => prev.filter((item) => item._id !== id));
+
+      toast.success("Calculation history deleted successfully.");
+    } catch (error) {
+      console.error("Delete BMI history error:", error);
+      toast.error("Failed to delete history.");
+    }
+  };
 
   const activeUser = { ...authSession?.user, ...localUser };
   const userName = activeUser?.name || "Athlete Member";
@@ -475,7 +500,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch {}
+    } catch { }
     toast.success("Logged out successfully. See you soon, Champion!");
     setTimeout(() => {
       window.location.href = "/";
@@ -723,11 +748,11 @@ export default function ProfilePage() {
                       <p className="text-xs text-white/60 mt-0.5">
                         {log.date
                           ? new Date(log.date).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
                           : "Recently"}
                       </p>
                     </div>
@@ -836,6 +861,8 @@ export default function ProfilePage() {
                       <th className="px-5 py-4 font-bold">BMR</th>
 
                       <th className="px-5 py-4 font-bold">TDEE</th>
+
+                      <th className="px-5 py-4 font-bold">Actions</th>
                     </tr>
                   </thead>
 
@@ -865,6 +892,17 @@ export default function ProfilePage() {
 
                         <td className="px-5 py-4 text-sm text-white/70">
                           {item.tdee} kcal
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteHistory(item._id)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-red-200/30 text-red-200 hover:bg-red-500/10 hover:border-red-500/50 transition-all text-xs font-bold"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            
+                          </button>
                         </td>
                       </tr>
                     ))}

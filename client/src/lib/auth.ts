@@ -16,6 +16,7 @@ const client: MongoClient =
   new MongoClient(uri, {
     serverSelectionTimeoutMS: 15000,
     maxPoolSize: 10,
+    family: 4,
   });
 
 if (process.env.NODE_ENV !== "production") {
