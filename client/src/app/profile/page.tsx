@@ -54,6 +54,7 @@ import {
 } from "@/services/dailyMealPlanService";
 import { deleteBmiHistory, fetchBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
+import BillingPaymentHistory from "@/components/BillingPaymentHistory";
 
 interface BMIHistory {
   _id: string;
@@ -1112,7 +1113,13 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* ── 5. Admin Management Access (If Admin) ── */}
+        {/* ── 6. Billing & Payment History ── */}
+        <BillingPaymentHistory
+          userPlan={localUser?.plan || "Free Pass"}
+          transactions={[]}
+        />
+
+        {/* ── 7. Admin Management Access (If Admin) ── */}
         {(isMasterAdmin || isBranchAdmin) && (
           <div className="bg-black border border-white/20 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
             <div className="space-y-1">
