@@ -78,7 +78,7 @@ export default function BillingPaymentHistory({
             )}
 
             <Link
-              href="/payment"
+              href="/dashboard?tab=upgrade"
               className="inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)] transition-all cursor-pointer shadow-xl"
             >
               <span>{userPlan === "Free Pass" ? "Upgrade Plan" : "Manage Plan"}</span>
