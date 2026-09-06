@@ -112,18 +112,17 @@ export default function PricingSection() {
     isAnnualPlan: boolean,
     paymentMethod: string,
   ) => {
-    await updateSessionAfterPayment(plan.planKey);
+    await updateSessionAfterPayment(plan.name || plan.planKey, {
+      role: "premium_user",
+    });
 
     setSelectedPlan(null);
     toast.success(
       `🎉 Payment Successful via ${paymentMethod}! Welcome to ${plan.name} (${
         isAnnualPlan ? "Annual" : "Monthly"
-      })!`,
+      }) — You are now a FITORA PRO Member!`,
+      { duration: 4000 }
     );
-
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1200);
   };
 
   return (
