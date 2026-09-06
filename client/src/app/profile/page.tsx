@@ -40,6 +40,7 @@ import {
   clearAuthSession,
   logoutUser,
   AuthUser,
+  AUTH_SESSION_UPDATED,
 } from "@/services/authService";
 import {
   uploadToImgBB,
@@ -347,10 +348,19 @@ export default function ProfilePage() {
 
   useEffect(() => {
     setIsMounted(true);
-    const session = getAuthSession();
-    if (session.user) {
-      setLocalUser(session.user);
-    }
+
+    const syncLocalUser = () => {
+      const session = getAuthSession();
+      if (session.user) {
+        setLocalUser(session.user);
+      }
+    };
+
+    syncLocalUser();
+    window.addEventListener(AUTH_SESSION_UPDATED, syncLocalUser);
+    return () => {
+      window.removeEventListener(AUTH_SESSION_UPDATED, syncLocalUser);
+    };
   }, []);
 
   useEffect(() => {
@@ -538,7 +548,7 @@ export default function ProfilePage() {
                       ? "MASTER ADMIN"
                       : isBranchAdmin
                         ? "BRANCH ADMIN"
-                        : "PRO ATHLETE"}
+                        : localUser?.plan || "FREE MEMBER"}
                   </span>
                 </div>
 

@@ -43,6 +43,8 @@ export default function MasterDashboardPage() {
     assignedBranch,
     userName,
     userEmail,
+    userPlan,
+    isPremium,
     isMasterAdmin,
   } = useDashboardRole();
 
@@ -172,9 +174,10 @@ export default function MasterDashboardPage() {
             <BranchManagementView />
           ) : (
             <MemberDashboardView userId={userEmail}
-              isPremium={role === "premium_user"}
+              isPremium={isPremium}
               userName={userName}
               userEmail={userEmail}
+              userPlan={userPlan}
               assignedBranch={assignedBranch}
               onUpgradeToPremium={() => setRole("premium_user")}
             />

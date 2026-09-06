@@ -6,8 +6,7 @@ import { Check, ArrowUpRight, ShieldCheck } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import {
   getAuthSession,
-  saveAuthSession,
-  AuthUser,
+  updateSessionAfterPayment,
 } from "@/services/authService";
 import SubscriptionModal from "@/components/home/SubscriptionModal";
 import toast from "react-hot-toast";
@@ -108,24 +107,12 @@ export default function PricingSection() {
     setSelectedPlan(plan);
   };
 
-  const handleSubscriptionSuccess = (
+  const handleSubscriptionSuccess = async (
     plan: PlanItem,
     isAnnualPlan: boolean,
     paymentMethod: string,
   ) => {
-    const sessionData = getAuthSession();
-    const currentUser = sessionData.user || (session?.user as any as AuthUser);
-
-    if (currentUser) {
-      const updatedUser: AuthUser = {
-        ...currentUser,
-        plan: plan.planKey,
-        role: "premium_user",
-      };
-      saveAuthSession(sessionData.token || "", updatedUser);
-      localStorage.setItem("fitora_active_role", "premium_user");
-      localStorage.setItem("fitora_user_plan", plan.planKey);
-    }
+    await updateSessionAfterPayment(plan.planKey);
 
     setSelectedPlan(null);
     toast.success(
