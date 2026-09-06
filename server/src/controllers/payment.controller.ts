@@ -900,11 +900,34 @@ export async function checkoutPayment(
     const authoritativeBDT = expectedUsd * 120;
     const amount = authoritativeBDT; // Strictly server authoritative
 
-    // 2. Cryptographic User Verification: prioritizes verified JWT token over client body
+    // 2. Cryptographic User Verification: strictly requires a verified JWT token
+    // Prevents attackers from using browser console/curl to upgrade unauthenticated accounts or spoof other users
     const verifiedJwtUser = extractUserFromHeader(req);
     const authUser = (req as AuthRequest).user || verifiedJwtUser;
-    const resolvedUserId = authUser?.userId || bodyUserId || "guest_user";
-    const resolvedEmail = authUser?.email || bodyUserEmail || "";
+
+    if (!authUser || !authUser.userId) {
+      return res.status(401).json(
+        errorResponse(
+          "Authentication required. You must be securely logged in with a valid session to purchase a membership plan.",
+          "UNAUTHORIZED",
+          401,
+        ),
+      );
+    }
+
+    // 3. Payment Account & Gateway Sanity Check
+    if (!accountNumber || String(accountNumber).trim().length < 4) {
+      return res.status(400).json(
+        errorResponse(
+          "A valid payment account number or reference is required.",
+          "INVALID_ACCOUNT_NUMBER",
+          400,
+        ),
+      );
+    }
+
+    const resolvedUserId = authUser.userId;
+    const resolvedEmail = authUser.email;
     const resolvedName = bodyUserName || "Valued Athlete";
 
     const startDate = new Date();
@@ -936,7 +959,7 @@ export async function checkoutPayment(
       billingCycle: cycle,
       amountBDT: amount,
       gateway: validGateway,
-      accountNumber: accountNumber ? String(accountNumber).trim() : "",
+      accountNumber: String(accountNumber).trim(),
       transactionId: finalTransactionId,
       status: "completed" as const,
       subscriptionStartDate: startDate,
@@ -952,52 +975,45 @@ export async function checkoutPayment(
       try {
         createdPayment = await Payment.create(paymentPayload);
 
-        // Auto-update User membership & revenue
-        const userQuery: any[] = [];
-        if (resolvedUserId && resolvedUserId !== "guest_user") {
-          if (mongoose.Types.ObjectId.isValid(resolvedUserId)) {
-            userQuery.push({
-              _id: new mongoose.Types.ObjectId(resolvedUserId),
-            });
-          }
-          userQuery.push({ _id: resolvedUserId });
-        }
-        if (resolvedEmail) {
-          userQuery.push({ email: resolvedEmail.toLowerCase().trim() });
+        // Strictly update the authenticated user only (ignoring any malicious payload IDs)
+        const targetUser = await User.findById(authUser.userId);
+        if (!targetUser) {
+          return res.status(404).json(
+            errorResponse(
+              "Authenticated user record not found in database.",
+              "USER_NOT_FOUND",
+              404,
+            ),
+          );
         }
 
-        if (userQuery.length > 0) {
-          const targetUser = await User.findOne({ $or: userQuery });
-          if (targetUser) {
-            targetUser.plan = (
-              planName === "VIP Ultimate"
-                ? "VIP Ultimate"
-                : planName === "Basic Pass"
-                  ? "Basic Pass"
-                  : "Pro Athlete"
-            ) as UserPlan;
-            targetUser.totalPaidBDT = (targetUser.totalPaidBDT || 0) + amount;
-            targetUser.paymentMethod = validGateway;
-            targetUser.subscriptionExpiryDate = expiryDate;
-            targetUser.status = "active";
+        targetUser.plan = (
+          planName === "VIP Ultimate"
+            ? "VIP Ultimate"
+            : planName === "Basic Pass"
+              ? "Basic Pass"
+              : "Pro Athlete"
+        ) as UserPlan;
+        targetUser.totalPaidBDT = (targetUser.totalPaidBDT || 0) + amount;
+        targetUser.paymentMethod = validGateway;
+        targetUser.subscriptionExpiryDate = expiryDate;
+        targetUser.status = "active";
 
-            if (targetUser.role === "free_user" || targetUser.role === "user") {
-              targetUser.role = "premium_user";
-            }
-
-            await targetUser.save();
-            updatedUser = {
-              id: targetUser._id,
-              name: targetUser.name,
-              email: targetUser.email,
-              role: targetUser.role,
-              plan: targetUser.plan,
-              status: targetUser.status,
-              subscriptionExpiryDate: targetUser.subscriptionExpiryDate,
-              totalPaidBDT: targetUser.totalPaidBDT,
-            };
-          }
+        if (targetUser.role === "free_user" || targetUser.role === "user") {
+          targetUser.role = "premium_user";
         }
+
+        await targetUser.save();
+        updatedUser = {
+          id: targetUser._id,
+          name: targetUser.name,
+          email: targetUser.email,
+          role: targetUser.role,
+          plan: targetUser.plan,
+          status: targetUser.status,
+          subscriptionExpiryDate: targetUser.subscriptionExpiryDate,
+          totalPaidBDT: targetUser.totalPaidBDT,
+        };
       } catch (dbErr) {
         console.warn(
           "[Payment Controller] DB operations failed, using fallback:",

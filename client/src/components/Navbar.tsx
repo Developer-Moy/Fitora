@@ -26,6 +26,7 @@ import {
   logoutUser,
   AuthUser,
   AUTH_SESSION_UPDATED,
+  getCurrentUserApi,
 } from "@/services/authService";
 
 /* ── Desktop Horizontal Navigation Links ── */
@@ -114,6 +115,46 @@ export default function Navbar() {
         );
 
       setIsPremium(Boolean(hasProStatus));
+
+      // Anti-tamper verification: Reconcile with authoritative server database claims
+      const token = session.token;
+      if (token) {
+        getCurrentUserApi()
+          .then((res) => {
+            if (res.success && res.user) {
+              const serverRole = res.user.role;
+              const serverPlan = res.user.plan;
+              const isServerPro =
+                serverRole === "premium_user" ||
+                serverRole === "master_admin" ||
+                Boolean(
+                  serverPlan &&
+                    serverPlan.toLowerCase() !== "free" &&
+                    serverPlan.toLowerCase() !== "free_user" &&
+                    serverPlan.trim() !== "",
+                );
+
+              setIsPremium(Boolean(isServerPro));
+
+              // If someone injected fake role/plan via browser console, wipe it immediately
+              if (
+                !isServerPro &&
+                typeof window !== "undefined" &&
+                (localStorage.getItem("fitora_user_role") === "premium_user" ||
+                  localStorage.getItem("fitora_active_role") === "premium_user")
+              ) {
+                localStorage.setItem("fitora_user_role", serverRole || "user");
+                localStorage.setItem("fitora_active_role", serverRole || "user");
+                localStorage.removeItem("fitora_user_plan");
+              }
+            } else {
+              setIsPremium(false);
+            }
+          })
+          .catch(() => {});
+      } else {
+        setIsPremium(false);
+      }
     };
 
     syncUser();
