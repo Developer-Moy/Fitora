@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, CheckCircle2, ShieldCheck, Loader2, Lock } from "lucide-react";
+import { X, CheckCircle2, ShieldCheck, Loader2, Lock, CreditCard } from "lucide-react";
 import { PlanItem } from "@/components/home/PricingSection";
 import toast from "react-hot-toast";
 import { getAuthSession } from "@/services/authService";
@@ -30,6 +30,10 @@ export default function SubscriptionModal({
   >("bkash");
   const [phone, setPhone] = useState("");
   const [trxId, setTrxId] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCardLoading, setIsCardLoading] = useState(false);
 
@@ -39,6 +43,20 @@ export default function SubscriptionModal({
   const savings = isAnnual ? (plan.monthlyPrice - plan.annualPrice) * 12 : 0;
   const priceBDT = totalPrice * 120;
 
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, "").slice(0, 16);
+    const formatted = raw.replace(/(\d{4})(?=\d)/g, "$1 ");
+    setCardNumber(formatted);
+  };
+
+  const handleCardExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, "").slice(0, 4);
+    if (raw.length >= 3) {
+      raw = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+    }
+    setCardExpiry(raw);
+  };
+
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -47,48 +65,77 @@ export default function SubscriptionModal({
         toast.error("Please enter a valid 11-digit mobile number.");
         return;
       }
-
-      setIsProcessing(true);
-
-      try {
-        const { token, user } = getAuthSession();
-        const currentUser = authSession?.user || user;
-        const gatewayFormatted = paymentMethod === "bkash" ? "bKash" : "Nagad";
-
-        const headers: Record<string, string> = {
-          "Content-Type": "application/json",
-        };
-        if (token) headers["Authorization"] = `Bearer ${token}`;
-
-        const res = await fetch(`${API_URL}/payments/checkout`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            planId: plan.id,
-            planName: plan.planKey || plan.name,
-            billingCycle: isAnnual ? "yearly" : "monthly",
-            amountBDT: priceBDT,
-            gateway: gatewayFormatted,
-            accountNumber: phone,
-            transactionId: trxId,
-            userId: currentUser?.id || (currentUser as any)?._id,
-            userEmail: currentUser?.email,
-            userName: currentUser?.name,
-          }),
-        });
-
-        const data = await res.json().catch(() => null);
-
-        if (!res.ok || !data?.success) {
-          throw new Error(data?.message || "Payment verification failed.");
-        }
-
-        setIsProcessing(false);
-        onSuccess(plan, isAnnual, gatewayFormatted);
-      } catch (err: any) {
-        setIsProcessing(false);
-        onSuccess(plan, isAnnual, paymentMethod.toUpperCase());
+    } else if (paymentMethod === "card") {
+      const cleanCard = cardNumber.replace(/\s+/g, "");
+      if (cleanCard.length < 15) {
+        toast.error("Please enter a valid 16-digit card number.");
+        return;
       }
+      if (!cardExpiry || cardExpiry.length < 5) {
+        toast.error("Please enter card expiry date (MM/YY).");
+        return;
+      }
+      if (!cardCvc || cardCvc.length < 3) {
+        toast.error("Please enter a valid CVC / CVV.");
+        return;
+      }
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const { token, user } = getAuthSession();
+      const currentUser = authSession?.user || user;
+      const gatewayFormatted =
+        paymentMethod === "bkash"
+          ? "bKash"
+          : paymentMethod === "nagad"
+            ? "Nagad"
+            : "Card";
+
+      const accountNumber =
+        paymentMethod === "card"
+          ? `Card **** ${cardNumber.replace(/\s+/g, "").slice(-4) || "4242"}`
+          : phone;
+
+      const transactionId =
+        paymentMethod === "card"
+          ? (trxId || `CARD-${Date.now().toString().slice(-6)}`)
+          : trxId;
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}/payments/checkout`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          planId: plan.id,
+          planName: plan.planKey || plan.name,
+          billingCycle: isAnnual ? "yearly" : "monthly",
+          amountBDT: priceBDT,
+          gateway: gatewayFormatted,
+          accountNumber,
+          transactionId,
+          userId: currentUser?.id || (currentUser as any)?._id,
+          userEmail: currentUser?.email,
+          userName: (paymentMethod === "card" && cardName) ? cardName : currentUser?.name,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || "Payment verification failed.");
+      }
+
+      setIsProcessing(false);
+      onSuccess(plan, isAnnual, gatewayFormatted);
+    } catch (err: any) {
+      setIsProcessing(false);
+      onSuccess(plan, isAnnual, paymentMethod.toUpperCase());
     }
   };
 
@@ -361,28 +408,72 @@ export default function SubscriptionModal({
                   </div>
                 </>
               ) : (
-                /* Card Payment Confirmation UI */
-                <div className="space-y-3">
-                  <div className="space-y-3 p-3.5 sm:p-4 bg-neutral-900/70 border border-white/10 rounded-xl">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-white" />
-                        <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
-                          Secure Card Payment
-                        </h4>
-                      </div>
-                      <span className="text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white/10 text-white border border-white/20">
-                        Stripe
-                      </span>
+                /* Pure Black & White Luxury Card Payment UI */
+                <>
+                  <div className="space-y-2 p-2.5 sm:p-3 bg-neutral-900/70 border border-white/10 rounded-xl">
+                    <div>
+                      <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                        Cardholder Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. John Doe"
+                        value={cardName}
+                        onChange={(e) => setCardName(e.target.value)}
+                        className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
+                      />
                     </div>
 
-                    {/* Trust / Security Message */}
-                    <div className="flex items-start gap-2.5 p-2.5 bg-white/5 border border-white/10 rounded-xl">
-                      <ShieldCheck className="w-4 h-4 text-white shrink-0 mt-0.5" />
-                      <p className="text-[10px] sm:text-[11px] text-white/70 leading-relaxed">
-                        Your card payment will be completed securely through
-                        Stripe. FITORA does not store your card details.
-                      </p>
+                    <div>
+                      <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                        Card Number *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          maxLength={19}
+                          placeholder="4242 4242 4242 4242"
+                          value={cardNumber}
+                          onChange={handleCardNumberChange}
+                          className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white font-mono tracking-wider"
+                        />
+                        <CreditCard className="w-4 h-4 text-white/40 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                          Expiry (MM/YY) *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={5}
+                          placeholder="12/28"
+                          value={cardExpiry}
+                          onChange={handleCardExpiryChange}
+                          className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white font-mono text-center tracking-wider"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                          CVC / CVV *
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          maxLength={4}
+                          placeholder="•••"
+                          value={cardCvc}
+                          onChange={(e) =>
+                            setCardCvc(e.target.value.replace(/\D/g, ""))
+                          }
+                          className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white font-mono text-center tracking-widest"
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -391,28 +482,43 @@ export default function SubscriptionModal({
                     <button
                       type="button"
                       onClick={onClose}
-                      disabled={isCardLoading}
-                      className="w-1/3 py-2 sm:py-2.5 rounded-full bg-neutral-900 border border-white/15 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer disabled:opacity-50"
+                      className="w-1/3 py-2 sm:py-2.5 rounded-full bg-neutral-900 border border-white/15 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
-                      type="button"
-                      onClick={handleCardContinue}
-                      disabled={isCardLoading}
+                      type="submit"
+                      disabled={isProcessing}
                       className="w-2/3 py-2 sm:py-2.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xl disabled:opacity-50"
                     >
-                      {isCardLoading ? (
+                      {isProcessing ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Redirecting to Stripe...</span>
+                          <span>Processing...</span>
                         </>
                       ) : (
-                        <span>Continue to Secure Payment →</span>
+                        <>
+                          <Lock className="w-3 h-3 stroke-[2.5]" />
+                          <span>Pay & Activate ${totalPrice}</span>
+                        </>
                       )}
                     </button>
                   </div>
-                </div>
+
+                  {/* Optional Stripe Hosted Link */}
+                  <div className="text-center pt-0.5">
+                    <button
+                      type="button"
+                      onClick={handleCardContinue}
+                      disabled={isCardLoading}
+                      className="text-[9px] sm:text-[10px] text-white/40 hover:text-white/80 transition-colors underline cursor-pointer"
+                    >
+                      {isCardLoading
+                        ? "Redirecting to Stripe..."
+                        : "Prefer Stripe hosted checkout page? Click here"}
+                    </button>
+                  </div>
+                </>
               )}
 
               {/* Mobile Security Footer */}
