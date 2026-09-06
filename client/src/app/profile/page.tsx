@@ -429,6 +429,7 @@ export default function ProfilePage() {
 
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [transactions, setTransactions] = useState<any[]>([]);
 
   const [mealChart, setMealChart] = useState<MealChart | null>(null);
 
@@ -449,11 +450,28 @@ export default function ProfilePage() {
       setIsLoadingDailyPlan(true);
       setIsLoadingWorkouts(true);
       try {
-        const [dailyPlanRes, workoutsRes, mealChartsRes] = await Promise.all([
-          getDailyMealPlan(targetId),
-          getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
-          fetchMealCharts(targetId).catch(() => []),
-        ]);
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("fitora_token") ||
+              localStorage.getItem("fitora_auth_token")
+            : null;
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const headers: Record<string, string> = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const [dailyPlanRes, workoutsRes, mealChartsRes, paymentsRes] =
+          await Promise.all([
+            getDailyMealPlan(targetId),
+            getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
+            fetchMealCharts(targetId).catch(() => []),
+            fetch(
+              `${apiUrl}/payments/me?userId=${encodeURIComponent(targetId)}&email=${encodeURIComponent(userEmail)}`,
+              { headers },
+            )
+              .then((r) => (r.ok ? r.json() : { data: { payments: [] } }))
+              .catch(() => ({ data: { payments: [] } })),
+          ]);
 
         if (dailyPlanRes.success && dailyPlanRes.data) {
           setDailyPlanMeals(dailyPlanRes.data);
@@ -464,6 +482,9 @@ export default function ProfilePage() {
         if (mealChartsRes && mealChartsRes.length > 0) {
           setMealChart(mealChartsRes[0]);
         }
+        if (paymentsRes?.data?.payments) {
+          setTransactions(paymentsRes.data.payments);
+        }
       } catch (err) {
         console.error("Failed to fetch profile data:", err);
       } finally {
@@ -473,7 +494,7 @@ export default function ProfilePage() {
     };
 
     fetchData();
-  }, [resolvedUserId]);
+  }, [resolvedUserId, userEmail]);
 
   // Handle direct file selection & upload (Local Preview + ImgBB Cloud Sync)
   const handleCopyMeal = (meal: any, index: number) => {
@@ -1126,7 +1147,7 @@ export default function ProfilePage() {
         {/* ── 6. Billing & Payment History ── */}
         <BillingPaymentHistory
           userPlan={localUser?.plan || "Free Pass"}
-          transactions={[]}
+          transactions={transactions}
         />
 
         {/* ── 7. Admin Management Access (If Admin) ── */}

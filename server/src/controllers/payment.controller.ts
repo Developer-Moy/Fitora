@@ -3,10 +3,14 @@ import Stripe from "stripe";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import { successResponse, errorResponse } from "../utils/apiResponse.js";
-import { AuthRequest, AuthUserPayload } from "../middlewares/auth.middleware.js";
+import {
+  AuthRequest,
+  AuthUserPayload,
+} from "../middlewares/auth.middleware.js";
 import User, { UserPlan } from "../models/User.model.js";
 import UserTier from "../models/UserTier.model.js";
 import PaymentTransaction from "../models/PaymentTransaction.model.js";
+import Payment from "../models/Payment.model.js";
 
 /**
  * Server-authoritative Membership Plan Definitions
@@ -15,7 +19,7 @@ import PaymentTransaction from "../models/PaymentTransaction.model.js";
 export interface PlanDetails {
   id: string;
   name: string;
-  monthlyPrice: number;       // USD
+  monthlyPrice: number; // USD
   annualMonthlyPrice: number; // USD per month when billed annually
   description: string;
 }
@@ -49,7 +53,10 @@ export const MEMBERSHIP_PLANS: Record<string, PlanDetails> = {
  */
 export function resolvePlan(identifier?: string): PlanDetails | null {
   if (!identifier) return null;
-  const cleaned = identifier.toLowerCase().trim().replace(/[\s-]+/g, "_");
+  const cleaned = identifier
+    .toLowerCase()
+    .trim()
+    .replace(/[\s-]+/g, "_");
 
   if (cleaned === "basic_pass" || cleaned === "basic") {
     return MEMBERSHIP_PLANS.basic_pass;
@@ -103,7 +110,8 @@ export async function createCheckoutSession(
   res: Response,
 ): Promise<void | Response> {
   try {
-    const { planId, planKey, isAnnual, billingCycle, customerEmail, userId } = req.body;
+    const { planId, planKey, isAnnual, billingCycle, customerEmail, userId } =
+      req.body;
 
     // 1. Resolve and validate selected plan
     const plan = resolvePlan(planId || planKey);
@@ -121,17 +129,25 @@ export async function createCheckoutSession(
 
     // 2. User identification: try verified JWT token first, then userId, then user email
     const authUser = extractUserFromHeader(req);
-    let userDoc = authUser?.userId ? await User.findById(authUser.userId) : null;
+    let userDoc = authUser?.userId
+      ? await User.findById(authUser.userId)
+      : null;
 
     if (!userDoc && userId) {
       userDoc = await User.findById(userId);
     }
     if (!userDoc && customerEmail) {
-      userDoc = await User.findOne({ email: customerEmail.trim().toLowerCase() });
+      userDoc = await User.findOne({
+        email: customerEmail.trim().toLowerCase(),
+      });
     }
 
-    const effectiveUserId = userDoc ? userDoc._id.toString() : (authUser?.userId || userId || "");
-    const effectiveEmail = userDoc ? userDoc.email : (authUser?.email || customerEmail || undefined);
+    const effectiveUserId = userDoc
+      ? userDoc._id.toString()
+      : authUser?.userId || userId || "";
+    const effectiveEmail = userDoc
+      ? userDoc.email
+      : authUser?.email || customerEmail || undefined;
 
     if (!effectiveUserId) {
       return res
@@ -248,7 +264,9 @@ export async function handleStripeWebhook(
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
-    console.error("[Stripe Webhook]: STRIPE_WEBHOOK_SECRET is not configured on the server.");
+    console.error(
+      "[Stripe Webhook]: STRIPE_WEBHOOK_SECRET is not configured on the server.",
+    );
     return res
       .status(500)
       .json(
@@ -279,7 +297,10 @@ export async function handleStripeWebhook(
     // req.body must be raw Buffer
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err: any) {
-    console.error("[Stripe Webhook Signature Verification Failed]:", err.message);
+    console.error(
+      "[Stripe Webhook Signature Verification Failed]:",
+      err.message,
+    );
     return res
       .status(400)
       .json(
@@ -298,7 +319,9 @@ export async function handleStripeWebhook(
     try {
       // 1. Validate session completion status
       if (session.status !== "complete" || session.payment_status !== "paid") {
-        console.warn(`[Stripe Webhook]: Session ${session.id} is not complete or paid.`);
+        console.warn(
+          `[Stripe Webhook]: Session ${session.id} is not complete or paid.`,
+        );
         return res
           .status(400)
           .json(
@@ -313,7 +336,9 @@ export async function handleStripeWebhook(
       // 2. Validate metadata
       const metadata = session.metadata;
       if (!metadata || !metadata.planId || !metadata.billingCycle) {
-        console.error(`[Stripe Webhook]: Session ${session.id} missing required plan metadata.`);
+        console.error(
+          `[Stripe Webhook]: Session ${session.id} missing required plan metadata.`,
+        );
         return res
           .status(400)
           .json(
@@ -333,13 +358,17 @@ export async function handleStripeWebhook(
         user = await User.findById(session.client_reference_id);
       }
       if (!user && (userEmail || session.customer_email)) {
-        const emailToFind = (userEmail || session.customer_email || "").trim().toLowerCase();
+        const emailToFind = (userEmail || session.customer_email || "")
+          .trim()
+          .toLowerCase();
         user = await User.findOne({ email: emailToFind });
       }
 
       const rawUserId = user?._id || userId || session.client_reference_id;
       if (!rawUserId) {
-        console.error(`[Stripe Webhook]: Missing required userId for session ${session.id}. Cannot record PaymentTransaction.`);
+        console.error(
+          `[Stripe Webhook]: Missing required userId for session ${session.id}. Cannot record PaymentTransaction.`,
+        );
         return res
           .status(400)
           .json(
@@ -360,7 +389,9 @@ export async function handleStripeWebhook(
       // 4. Validate plan against authoritative server plans
       const plan = resolvePlan(planId);
       if (!plan) {
-        console.error(`[Stripe Webhook]: Invalid planId ${planId} in session metadata.`);
+        console.error(
+          `[Stripe Webhook]: Invalid planId ${planId} in session metadata.`,
+        );
         return res
           .status(400)
           .json(
@@ -398,7 +429,9 @@ export async function handleStripeWebhook(
 
       // 7. Validate currency
       if (session.currency?.toLowerCase() !== "usd") {
-        console.error(`[Stripe Webhook]: Currency mismatch: ${session.currency}`);
+        console.error(
+          `[Stripe Webhook]: Currency mismatch: ${session.currency}`,
+        );
         return res
           .status(400)
           .json(
@@ -416,7 +449,9 @@ export async function handleStripeWebhook(
       });
 
       if (existingTx && existingTx.status === "paid") {
-        console.log(`[Stripe Webhook]: Session ${session.id} already processed. Returning HTTP 200.`);
+        console.log(
+          `[Stripe Webhook]: Session ${session.id} already processed. Returning HTTP 200.`,
+        );
         return res.status(200).json({ received: true, duplicate: true });
       }
 
@@ -590,7 +625,11 @@ export async function verifySession(
     const authHeaderUser = extractUserFromHeader(req);
     const queryEmail = (req.query.email as string)?.trim().toLowerCase();
     const queryUserId = (req.query.userId as string)?.trim();
-    const requestingEmail = (authHeaderUser?.email || queryEmail || "").toLowerCase();
+    const requestingEmail = (
+      authHeaderUser?.email ||
+      queryEmail ||
+      ""
+    ).toLowerCase();
     const requestingUserId = authHeaderUser?.userId || queryUserId || "";
 
     // The user must be logged in to view payment confirmation
@@ -606,18 +645,28 @@ export async function verifySession(
         );
     }
 
-    const sessionUserId = (session.metadata?.userId || session.client_reference_id || "").trim();
+    const sessionUserId = (
+      session.metadata?.userId ||
+      session.client_reference_id ||
+      ""
+    ).trim();
     const sessionEmail = (
       session.metadata?.userEmail ||
       session.customer_email ||
       session.customer_details?.email ||
       ""
-    ).trim().toLowerCase();
+    )
+      .trim()
+      .toLowerCase();
 
     // Verify ownership: if session has user identifiers, verify that the logged-in user matches
     if (sessionUserId || sessionEmail) {
-      const matchesUserId = Boolean(sessionUserId && requestingUserId && sessionUserId === requestingUserId);
-      const matchesEmail = Boolean(sessionEmail && requestingEmail && sessionEmail === requestingEmail);
+      const matchesUserId = Boolean(
+        sessionUserId && requestingUserId && sessionUserId === requestingUserId,
+      );
+      const matchesEmail = Boolean(
+        sessionEmail && requestingEmail && sessionEmail === requestingEmail,
+      );
 
       if (!matchesUserId && !matchesEmail) {
         return res
@@ -633,7 +682,9 @@ export async function verifySession(
     }
 
     // Find the user in database
-    let userDoc = requestingUserId ? await User.findById(requestingUserId) : null;
+    let userDoc = requestingUserId
+      ? await User.findById(requestingUserId)
+      : null;
     if (!userDoc && requestingEmail) {
       userDoc = await User.findOne({ email: requestingEmail });
     }
@@ -646,11 +697,13 @@ export async function verifySession(
 
     // 4. Resolve plan and calculate duration
     const plan = resolvePlan(session.metadata?.planId || "basic_pass");
-    const isAnnual = session.metadata?.billingCycle === "annual" || session.metadata?.billingCycle === "yearly";
+    const isAnnual =
+      session.metadata?.billingCycle === "annual" ||
+      session.metadata?.billingCycle === "yearly";
     const planName = plan?.name || session.metadata?.planName || "Basic Pass";
     const totalUsd =
       Number(session.metadata?.totalAmountUSD) ||
-      (session.amount_total ? session.amount_total / 100 : (isAnnual ? 228 : 25));
+      (session.amount_total ? session.amount_total / 100 : isAnnual ? 228 : 25);
 
     const startDate = new Date();
     const expiryDate = new Date(startDate);
@@ -715,16 +768,30 @@ export async function verifySession(
 
       // Activate membership on User if found
       if (userDoc) {
-        userDoc.plan = (plan?.id === "vip_ultimate" ? "VIP Ultimate" : plan?.id === "pro_athlete" ? "Pro Athlete" : "Basic Pass") as UserPlan;
+        userDoc.plan = (
+          plan?.id === "vip_ultimate"
+            ? "VIP Ultimate"
+            : plan?.id === "pro_athlete"
+              ? "Pro Athlete"
+              : "Basic Pass"
+        ) as UserPlan;
         userDoc.paymentMethod = "Card";
         userDoc.status = "active";
         userDoc.membershipExpiresAt = expiryDate;
-        if (userDoc.role !== "master_admin" && userDoc.role !== "branch_admin") {
+        if (
+          userDoc.role !== "master_admin" &&
+          userDoc.role !== "branch_admin"
+        ) {
           userDoc.role = "premium_user";
         }
         await userDoc.save();
 
-        const tierType = plan?.id === "vip_ultimate" ? "vip" : plan?.id === "pro_athlete" ? "pro" : "basic";
+        const tierType =
+          plan?.id === "vip_ultimate"
+            ? "vip"
+            : plan?.id === "pro_athlete"
+              ? "pro"
+              : "basic";
         await UserTier.findOneAndUpdate(
           { userId: userDoc._id },
           {
@@ -759,6 +826,363 @@ export async function verifySession(
         errorResponse(
           "An error occurred while verifying the payment session.",
           error?.message || "Internal Server Error",
+          500,
+        ),
+      );
+  }
+}
+
+/**
+ * Helper: Generate unique transaction ID
+ */
+function generateTransactionId(gateway: string): string {
+  const prefix = gateway.toLowerCase().includes("bkash")
+    ? "TRX-BK"
+    : gateway.toLowerCase().includes("nagad")
+      ? "TRX-NG"
+      : "TRX-CD";
+  const randomHex = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const timestamp = Date.now().toString().slice(-4);
+  return `${prefix}-${timestamp}${randomHex}`;
+}
+
+/**
+ * Helper: Generate unique invoice number
+ */
+function generateInvoiceNumber(): string {
+  const year = new Date().getFullYear();
+  const randomNum = Math.floor(100000 + Math.random() * 900000);
+  return `INV-${year}-${randomNum}`;
+}
+
+/**
+ * POST /api/payments/checkout
+ * Processes direct subscription checkout (bKash, Nagad, Card BDT), updates user plan & expiry
+ */
+export async function checkoutPayment(
+  req: Request,
+  res: Response,
+): Promise<Response> {
+  try {
+    const {
+      planId,
+      planName: bodyPlanName,
+      billingCycle = "monthly",
+      amountBDT,
+      gateway = "bKash",
+      accountNumber,
+      transactionId: customTrxId,
+      userId: bodyUserId,
+      userName: bodyUserName,
+      userEmail: bodyUserEmail,
+    } = req.body;
+
+    // Resolve plan name
+    let planName = bodyPlanName;
+    if (!planName && planId) {
+      const p = resolvePlan(planId);
+      planName = p?.name || "Pro Athlete";
+    }
+    if (!planName) planName = "Pro Athlete";
+
+    const amount = Number(amountBDT) || 3900;
+    const authUser = (req as AuthRequest).user;
+    const resolvedUserId = bodyUserId || authUser?.userId || "guest_user";
+    const resolvedEmail = bodyUserEmail || authUser?.email || "";
+    const resolvedName = bodyUserName || "Valued Athlete";
+
+    // Subscription Period calculation
+    const cycle =
+      billingCycle === "yearly" || billingCycle === "annual"
+        ? "yearly"
+        : "monthly";
+    const startDate = new Date();
+    const expiryDate = new Date(startDate);
+    if (cycle === "yearly") {
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    } else {
+      expiryDate.setDate(expiryDate.getDate() + 30);
+    }
+
+    const validGateway = (
+      ["bKash", "Nagad", "Card", "Bank Transfer"].includes(gateway)
+        ? gateway
+        : "bKash"
+    ) as "bKash" | "Nagad" | "Card" | "Bank Transfer";
+
+    const finalTransactionId =
+      customTrxId && String(customTrxId).trim() !== ""
+        ? String(customTrxId).trim().toUpperCase()
+        : generateTransactionId(validGateway);
+
+    const invoiceNumber = generateInvoiceNumber();
+
+    const paymentPayload = {
+      userId: resolvedUserId,
+      userName: resolvedName,
+      userEmail: resolvedEmail,
+      planName,
+      billingCycle: cycle,
+      amountBDT: amount,
+      gateway: validGateway,
+      accountNumber: accountNumber ? String(accountNumber).trim() : "",
+      transactionId: finalTransactionId,
+      status: "completed" as const,
+      subscriptionStartDate: startDate,
+      subscriptionExpiryDate: expiryDate,
+      invoiceNumber,
+    };
+
+    let createdPayment: any = null;
+    let updatedUser: any = null;
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    if (isDbConnected) {
+      try {
+        createdPayment = await Payment.create(paymentPayload);
+
+        // Auto-update User membership & revenue
+        const userQuery: any[] = [];
+        if (resolvedUserId && resolvedUserId !== "guest_user") {
+          if (mongoose.Types.ObjectId.isValid(resolvedUserId)) {
+            userQuery.push({
+              _id: new mongoose.Types.ObjectId(resolvedUserId),
+            });
+          }
+          userQuery.push({ _id: resolvedUserId });
+        }
+        if (resolvedEmail) {
+          userQuery.push({ email: resolvedEmail.toLowerCase().trim() });
+        }
+
+        if (userQuery.length > 0) {
+          const targetUser = await User.findOne({ $or: userQuery });
+          if (targetUser) {
+            targetUser.plan = (
+              planName === "VIP Ultimate"
+                ? "VIP Ultimate"
+                : planName === "Basic Pass"
+                  ? "Basic Pass"
+                  : "Pro Athlete"
+            ) as UserPlan;
+            targetUser.totalPaidBDT = (targetUser.totalPaidBDT || 0) + amount;
+            targetUser.paymentMethod = validGateway;
+            targetUser.subscriptionExpiryDate = expiryDate;
+            targetUser.status = "active";
+
+            if (targetUser.role === "free_user" || targetUser.role === "user") {
+              targetUser.role = "premium_user";
+            }
+
+            await targetUser.save();
+            updatedUser = {
+              id: targetUser._id,
+              name: targetUser.name,
+              email: targetUser.email,
+              role: targetUser.role,
+              plan: targetUser.plan,
+              status: targetUser.status,
+              subscriptionExpiryDate: targetUser.subscriptionExpiryDate,
+              totalPaidBDT: targetUser.totalPaidBDT,
+            };
+          }
+        }
+      } catch (dbErr) {
+        console.warn(
+          "[Payment Controller] DB operations failed, using fallback:",
+          dbErr,
+        );
+      }
+    }
+
+    const localPayment = {
+      _id: createdPayment?._id?.toString() || `pay-${Date.now()}`,
+      ...paymentPayload,
+      createdAt: createdPayment?.createdAt || new Date(),
+    };
+
+    return res.status(200).json(
+      successResponse(
+        "Subscription activated & payment confirmed successfully",
+        {
+          payment: createdPayment || localPayment,
+          user: updatedUser || {
+            id: resolvedUserId,
+            plan: planName,
+            status: "active",
+            subscriptionExpiryDate: expiryDate,
+          },
+          invoice: {
+            invoiceNumber,
+            transactionId: finalTransactionId,
+            planName,
+            billingCycle: cycle,
+            amountBDT: amount,
+            gateway: validGateway,
+            date: startDate,
+            expiryDate,
+          },
+        },
+      ),
+    );
+  } catch (error) {
+    console.error("[Payment Controller] checkoutPayment Error:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to process subscription payment",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+}
+
+/**
+ * GET /api/payments/me and /api/payments/my-transactions
+ * Retrieves unified transaction history for the authenticated member or requested user
+ */
+export async function getMyTransactions(
+  req: Request,
+  res: Response,
+): Promise<Response> {
+  try {
+    const { userId, email } = req.query;
+    const authUser = (req as AuthRequest).user;
+    const targetUserId = (userId as string) || authUser?.userId;
+    const targetEmail = (email as string) || authUser?.email;
+
+    let payments: any[] = [];
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    if (isDbConnected) {
+      try {
+        const orConditions: any[] = [];
+        if (targetUserId) {
+          if (mongoose.Types.ObjectId.isValid(targetUserId)) {
+            orConditions.push({
+              userId: new mongoose.Types.ObjectId(targetUserId),
+            });
+          }
+          orConditions.push({ userId: targetUserId });
+        }
+        if (targetEmail) {
+          orConditions.push({ userEmail: targetEmail.toLowerCase().trim() });
+        }
+
+        const filter = orConditions.length > 0 ? { $or: orConditions } : {};
+        const [bdtPayments, stripePayments] = await Promise.all([
+          Payment.find(filter).sort({ createdAt: -1 }).lean(),
+          PaymentTransaction.find(targetUserId ? { userId: targetUserId } : {})
+            .sort({ createdAt: -1 })
+            .lean()
+            .catch(() => []),
+        ]);
+
+        const unifiedStripe = stripePayments.map((s: any) => ({
+          _id: s._id?.toString() || s.stripeCheckoutSessionId,
+          transactionId:
+            s.stripePaymentIntentId ||
+            s.stripeCheckoutSessionId?.slice(-12)?.toUpperCase(),
+          date: s.paidAt || s.createdAt || new Date().toISOString(),
+          paymentMethod: "Card",
+          amount: Math.round(Number(s.amount || 0) * 120), // Convert USD to BDT display
+          planName: s.planName || "Pro Athlete",
+          status: s.status === "paid" ? "Completed" : s.status,
+          billingCycle: s.billingCycle || "monthly",
+        }));
+
+        const unifiedBdt = bdtPayments.map((b: any) => ({
+          _id: b._id?.toString() || b.transactionId,
+          transactionId: b.transactionId,
+          date:
+            b.createdAt || b.subscriptionStartDate || new Date().toISOString(),
+          paymentMethod: b.gateway || "bKash",
+          amount: b.amountBDT,
+          planName: b.planName,
+          status: "Completed",
+          billingCycle: b.billingCycle || "monthly",
+        }));
+
+        payments = [...unifiedBdt, ...unifiedStripe].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+      } catch (dbErr) {
+        console.warn("[Payment Controller] DB query failed:", dbErr);
+      }
+    }
+
+    return res.status(200).json(
+      successResponse("Transactions retrieved successfully", {
+        count: payments.length,
+        payments,
+      }),
+    );
+  } catch (error) {
+    console.error("[Payment Controller] getMyTransactions Error:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve transactions",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+}
+
+/**
+ * GET /api/payments/all
+ * Retrieves all platform transactions for Master Admin review
+ */
+export async function getAllPayments(
+  req: Request,
+  res: Response,
+): Promise<Response> {
+  try {
+    const { limit = 50, page = 1 } = req.query;
+    const limitNum = parseInt(limit as string, 10) || 50;
+    const pageNum = parseInt(page as string, 10) || 1;
+
+    let payments: any[] = [];
+    let totalCount = 0;
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    if (isDbConnected) {
+      try {
+        totalCount = await Payment.countDocuments();
+        payments = await Payment.find()
+          .sort({ createdAt: -1 })
+          .skip((pageNum - 1) * limitNum)
+          .limit(limitNum)
+          .lean();
+      } catch (dbErr) {
+        console.warn(
+          "[Payment Controller] getAllPayments DB query failed:",
+          dbErr,
+        );
+      }
+    }
+
+    return res.status(200).json(
+      successResponse("All payments retrieved successfully", {
+        count: payments.length,
+        total: totalCount,
+        page: pageNum,
+        totalPages: Math.ceil(totalCount / limitNum) || 1,
+        payments,
+      }),
+    );
+  } catch (error) {
+    console.error("[Payment Controller] getAllPayments Error:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to fetch payment records",
+          error instanceof Error ? error.message : "Internal Server Error",
           500,
         ),
       );

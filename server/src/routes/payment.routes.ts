@@ -2,15 +2,23 @@ import { Router } from "express";
 import {
   createCheckoutSession,
   verifySession,
+  checkoutPayment,
+  getMyTransactions,
+  getAllPayments,
 } from "../controllers/payment.controller.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// POST /api/payments/create-checkout-session
+// Stripe Checkout & Verification
 router.post("/create-checkout-session", createCheckoutSession);
-
-// GET /api/payments/verify-session?session_id=...
 router.get("/verify-session", verifySession);
+
+// Direct bKash / Nagad / Card Checkout
+router.post("/checkout", checkoutPayment);
+
+// Transaction History
+router.get("/me", getMyTransactions);
+router.get("/my-transactions", getMyTransactions);
+router.get("/all", getAllPayments);
 
 export default router;
