@@ -70,18 +70,25 @@ export const registerUser = async (req: Request, res: Response) => {
         ? role
         : "athlete";
 
+    const branch = assignedBranch || "Dhanmondi, Dhaka";
+    const branchSlug = branch.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const qrCode = `FIT-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
     const user = await User.create({
       name: name.trim(),
       email: cleanEmail,
       passwordHash,
-      phone: phone?.trim() || "",
+      phone: phone?.trim() || "+8801000000000",
       role: validRole,
-      assignedBranch: assignedBranch || "Dhanmondi, Dhaka",
+      assignedBranch: branch,
+      assignedBranchSlug: branchSlug,
       plan: "Free Pass",
       status: "active",
       attendanceStreakDays: 0,
       hydrationTargetLiters: 3.5,
       totalPaidBDT: 0,
+      paymentMethod: "None",
+      qrCodeId: qrCode,
       isMasterProtected: cleanEmail === "master@fitora.com",
     });
 

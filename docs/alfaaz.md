@@ -250,6 +250,38 @@ Performed targeted debugging and issue resolution across the newly integrated ad
 
 ---
 
+## 12. Today's Task: Payment API Service & Live Dashboard/Profile Plan Sync
+
+Implemented the client-side payment service layer and live subscription synchronization so membership upgrades are reflected across the application without refreshing the page.
+
+### What Was Implemented:
+
+* Created `client/src/services/paymentService.ts`.
+* Added `checkoutPaymentApi()` for initiating membership checkout requests.
+* Added `fetchMyPaymentsApi()` for fetching the authenticated user's payment history.
+* Connected the payment success flow to the application's existing authentication/session state.
+* Refetched the authenticated user's latest profile after a successful payment.
+* Updated the user subscription plan in shared client state without using `window.location.reload()`.
+* Synced the updated plan across the Dashboard, Profile, and other user-dependent UI instantly.
+
+### Implementation Flow:
+
+1. User completes membership checkout.
+2. `checkoutPaymentApi()` sends the checkout request to the backend.
+3. After a successful payment response, the client refreshes the authenticated user's latest data.
+4. The shared user/session state is updated with the new membership plan.
+5. Dashboard, Profile, and pricing-related UI automatically re-render with the updated plan.
+
+### Relevant Frontend Areas:
+
+* `client/src/services/paymentService.ts` — payment checkout and payment history service functions.
+* Authentication/session management — refresh authenticated user after payment success.
+* Pricing/Checkout page — trigger live user refresh after successful payment.
+* Dashboard/Profile — consume the updated user plan from shared state.
+
+---
+
+
 ## Overview
 
 These contributions cover both the **frontend UI** and **backend API** development for **Fitora**, including homepage improvements, authentication UI, membership plans, dashboard statistics, UI polish, seed dataset creation, RBAC user management, branch portal workflows, live check-in operations, and stabilization work for production-ready admin features.
@@ -369,6 +401,17 @@ These contributions cover both the **frontend UI** and **backend API** developme
 
 ---
 
+## 06-Sep-26
+
+* Created the client-side **Payment Service** for membership checkout and payment history.
+* Added `checkoutPaymentApi()` and `fetchMyPaymentsApi()` service functions.
+* Implemented live user subscription synchronization after successful payment.
+* Refreshed authenticated user/session data immediately after checkout completion.
+* Updated Dashboard and Profile membership status without requiring a page reload.
+* Kept the implementation consistent with the existing project authentication/session flow.
+
+---
+
 ## Summary of My Contributions
 
 ### Frontend
@@ -378,6 +421,10 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Membership Plans page.
 - Reusable PlanCard component.
 - UI polish and responsive design improvements.
+- Payment API service (`paymentService.ts`).
+- Membership checkout client integration.
+- Live dashboard/profile subscription synchronization after payment.
+- Payment history service integration.
 
 ### Backend
 - Dashboard Statistics Controller.

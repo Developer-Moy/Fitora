@@ -234,3 +234,14 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Added graceful public branch fallbacks in `client/src/services/branchService.ts` so non-admin users or initial dashboard loads never encounter unhandled exceptions.
   - Resolved gym history persistence and profile display bug: fixed response parsing in `client/src/services/workoutService.ts` to properly unpack `data.logs` object, resolved `authUserId` in `GymTimer.tsx` from both Better Auth and JWT local session, ensured `profile/page.tsx` gracefully queries workout history using fallback `guest_user`, and enhanced MongoDB query in `workout.controller.ts` to handle both string and ObjectId user references.
 - Successfully validated 100% clean typechecks and production builds across both client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.
+
+### 06-Sep-26
+
+- Designed and implemented the complete dynamic **Payment & Membership Lifecycle Architecture**:
+  - Created `server/src/models/Payment.model.ts` supporting bKash, Nagad, Card, and Bank Transfer with transaction IDs, billing cycles, invoice numbers, and subscription expiry tracking.
+  - Added `subscriptionExpiryDate` to `server/src/models/User.model.ts` for automated membership lifecycle management.
+  - Built `server/src/controllers/payment.controller.ts` with `checkoutPayment` (`POST /api/payment/checkout`), `getMyTransactions` (`GET /api/payment/my-transactions`), and `getAllPayments` (`GET /api/payment/all`).
+  - Implemented automatic user tier promotion (upgrading `free_user` to `premium_user`), cumulative `totalPaidBDT` increment, active status enforcement, and automated expiry date calculations (30 days for monthly, 365 days for yearly).
+  - Mounted central payment routers in `server/src/routes/payment.routes.ts` and `server/src/routes/index.ts` under `/payment` and `/payments`.
+  - Built resilient fallback handling for in-memory persistence during offline testing.
+- Verified 100% clean TypeScript production builds on both server (`npm run build`) and client (`npx tsc --noEmit`) with zero errors.

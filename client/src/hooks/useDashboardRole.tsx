@@ -1,7 +1,15 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { AUTH_SESSION_UPDATED } from "@/services/authService";
 
 export type DashboardRole =
   | "master_admin"
@@ -30,6 +38,13 @@ const STORAGE_KEY_ROLE = "fitora_active_role";
 const STORAGE_KEY_BRANCH = "fitora_active_branch";
 const STORAGE_KEY_AUTH = "fitora_auth_session";
 
+const VALID_DASHBOARD_ROLES: DashboardRole[] = [
+  "master_admin",
+  "branch_admin",
+  "premium_user",
+  "free_user",
+];
+
 const DashboardRoleContext = createContext<
   DashboardUserContextType | undefined
 >(undefined);
@@ -47,6 +62,25 @@ export function DashboardRoleProvider({
   );
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [sessionVersion, setSessionVersion] = useState(0);
+
+  const syncSessionFromStorage = useCallback(() => {
+    const savedRole = (localStorage.getItem(STORAGE_KEY_ROLE) ||
+      localStorage.getItem("fitora_user_role")) as DashboardRole;
+
+    if (savedRole && VALID_DASHBOARD_ROLES.includes(savedRole)) {
+      setRoleState(savedRole);
+    }
+
+    const savedBranch =
+      localStorage.getItem(STORAGE_KEY_BRANCH) ||
+      localStorage.getItem("fitora_active_branch");
+    if (savedBranch) {
+      setAssignedBranchState(savedBranch);
+    }
+
+    setSessionVersion((version) => version + 1);
+  }, []);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("fitora_token");
@@ -101,6 +135,17 @@ export function DashboardRoleProvider({
     setIsLoading(false);
   }, [router, pathname]);
 
+  useEffect(() => {
+    const handleSessionUpdate = () => {
+      syncSessionFromStorage();
+    };
+
+    window.addEventListener(AUTH_SESSION_UPDATED, handleSessionUpdate);
+    return () => {
+      window.removeEventListener(AUTH_SESSION_UPDATED, handleSessionUpdate);
+    };
+  }, [syncSessionFromStorage]);
+
   const setRole = (newRole: DashboardRole) => {
     setRoleState(newRole);
     if (typeof window !== "undefined") {
@@ -125,7 +170,7 @@ export function DashboardRoleProvider({
     router.replace("/dashboard/login");
   };
 
-  const getUserDetails = () => {
+  const getUserDetails = useCallback(() => {
     let localUser = null;
     let userPlan = "";
     if (typeof window !== "undefined") {
@@ -174,9 +219,12 @@ export function DashboardRoleProvider({
           plan: userPlan || "Free Pass",
         };
     }
-  };
+  }, [role]);
 
-  const user = getUserDetails();
+  const user = useMemo(
+    () => getUserDetails(),
+    [getUserDetails, sessionVersion],
+  );
 
   const value: DashboardUserContextType = {
     role,

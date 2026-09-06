@@ -221,3 +221,8 @@ Monthly / Yearly billing toggle switch.
 
 ### 03-Sep-26
 * Check BackEnd and Fix exercise fetch issues.
+
+### 06-Sep-26
+* `server/src/models/payment.model.ts`
+* `server/src/utils/transactionId.ts`
+* Create database model and transactionId generator helper.
