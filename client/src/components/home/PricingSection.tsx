@@ -1,16 +1,49 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { Check, ArrowRight, ArrowUpRight, ShieldCheck } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Check, ArrowUpRight, ShieldCheck } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
+import {
+  getAuthSession,
+  updateSessionAfterPayment,
+} from "@/services/authService";
+import SubscriptionModal from "@/components/home/SubscriptionModal";
+import toast from "react-hot-toast";
+
+export interface PlanItem {
+  id: string;
+  name: string;
+  planKey: "Basic Pass" | "Pro Athlete" | "VIP Ultimate";
+  monthlyPrice: number;
+  annualPrice: number;
+  period: string;
+  description: string;
+  features: string[];
+  isPopular: boolean;
+  buttonText: string;
+  badge?: string;
+}
 
 export default function PricingSection() {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAnnual, setIsAnnual] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanItem | null>(null);
 
-  const plans = [
+  useEffect(() => {
+    const localSession = getAuthSession();
+    setIsLoggedIn(!!(session?.user || localSession?.user));
+  }, [session]);
+
+  const plans: PlanItem[] = [
     {
+      id: "basic_pass",
       name: "BASIC PASS",
-      price: isAnnual ? "19" : "25",
+      planKey: "Basic Pass",
+      monthlyPrice: 25,
+      annualPrice: 19,
       period: "/month",
       description:
         "Essential gym access for fitness starters & casual trainers.",
@@ -18,14 +51,17 @@ export default function PricingSection() {
         "Access to Gym Floor & Cardio Zone",
         "Free Locker & Shower Access",
         "Basic Workout Routine Guide",
-        "Standard Support",
+        "Standard Support across branches",
       ],
       isPopular: false,
       buttonText: "CHOOSE PLAN",
     },
     {
+      id: "pro_athlete",
       name: "PRO ATHLETE",
-      price: isAnnual ? "39" : "49",
+      planKey: "Pro Athlete",
+      monthlyPrice: 49,
+      annualPrice: 39,
       period: "/month",
       description:
         "Complete fitness package with AI coach studio & full access.",
@@ -38,23 +74,56 @@ export default function PricingSection() {
       ],
       isPopular: true,
       buttonText: "JOIN PRO TODAY",
+      badge: "MOST POPULAR",
     },
     {
+      id: "vip_ultimate",
       name: "VIP ULTIMATE",
-      price: isAnnual ? "79" : "99",
+      planKey: "VIP Ultimate",
+      monthlyPrice: 99,
+      annualPrice: 79,
       period: "/month",
       description: "Dedicated 1-on-1 coaching, custom nutrition & VIP perks.",
       features: [
         "Dedicated 1-on-1 Personal Trainer",
         "Custom Weekly Nutrition & Meal Plan",
-        "Priority VIP Lounge & Spa",
+        "Priority VIP Lounge & Spa Access",
         "Biometric Health & Recovery Tracking",
         "24/7 Unlimited AI & Expert Support",
       ],
       isPopular: false,
       buttonText: "GET VIP ACCESS",
+      badge: "ULTIMATE",
     },
   ];
+
+  const handlePlanSelect = (plan: PlanItem) => {
+    if (!isLoggedIn) {
+      router.push(
+        `/register?plan=${plan.id}&billing=${isAnnual ? "annual" : "monthly"}`,
+      );
+      return;
+    }
+    setSelectedPlan(plan);
+  };
+
+  const handleSubscriptionSuccess = async (
+    plan: PlanItem,
+    isAnnualPlan: boolean,
+    paymentMethod: string,
+  ) => {
+    await updateSessionAfterPayment(plan.name || plan.planKey, {
+      role: "premium_user",
+    });
+
+    setSelectedPlan(null);
+    toast.success(
+      `🎉 Payment Successful via ${paymentMethod}! Welcome to ${plan.name} (${
+        isAnnualPlan ? "Annual" : "Monthly"
+      }) — You are now a FITORA PRO Member!`,
+      { duration: 4000 }
+    );
+  };
 
   return (
     <section
@@ -107,7 +176,9 @@ export default function PricingSection() {
               onClick={() => setIsAnnual(true)}
             >
               Annual{" "}
-              <span className="text-gray-500 font-normal">(Save 20%)</span>
+              <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-400 uppercase tracking-wider border border-emerald-500/20">
+                Save 20%
+              </span>
             </span>
           </div>
         </div>
@@ -140,24 +211,36 @@ export default function PricingSection() {
                   </h3>
                   <p
                     className={`text-xs mt-1 leading-relaxed ${
-                      plan.isPopular ? "text-gray-300" : "text-gray-600"
+                      plan.isPopular ? "text-white/80" : "text-gray-600"
                     }`}
                   >
                     {plan.description}
                   </p>
                 </div>
 
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl sm:text-5xl font-black tracking-tight">
-                    ${plan.price}
-                  </span>
-                  <span
-                    className={`text-xs font-semibold ${
-                      plan.isPopular ? "text-gray-300" : "text-gray-500"
-                    }`}
-                  >
-                    {plan.period}
-                  </span>
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl sm:text-5xl font-black tracking-tight">
+                      ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                    </span>
+                    <span
+                      className={`text-xs font-semibold ${
+                        plan.isPopular ? "text-white/80" : "text-gray-500"
+                      }`}
+                    >
+                      {plan.period}
+                    </span>
+                  </div>
+                  {isAnnual && (
+                    <p
+                      className={`text-[11px] font-semibold ${
+                        plan.isPopular ? "text-emerald-400" : "text-emerald-600"
+                      }`}
+                    >
+                      ${plan.annualPrice * 12}/year (Save $
+                      {(plan.monthlyPrice - plan.annualPrice) * 12})
+                    </p>
+                  )}
                 </div>
 
                 <div
@@ -191,25 +274,26 @@ export default function PricingSection() {
               </div>
 
               <div className="pt-8">
-                <Link
-                  href="/plans"
-                  className={`group inline-flex items-center justify-between w-full gap-2 font-bold text-xs sm:text-sm px-6 py-3.5 rounded-full transition-all duration-300 shadow-xl ${
+                <button
+                  type="button"
+                  onClick={() => handlePlanSelect(plan)}
+                  className={`group inline-flex items-center justify-between w-full gap-2 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-300 shadow-xl cursor-pointer ${
                     plan.isPopular
-                      ? "bg-white text-black hover:bg-gray-100"
-                      : "bg-black text-white hover:bg-gray-800"
+                      ? "bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98]"
+                      : "bg-black text-white border border-white/25 hover:bg-black hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98]"
                   }`}
                 >
                   <span>{plan.buttonText}</span>
                   <span
-                    className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300 ${
+                    className={`w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md ${
                       plan.isPopular
                         ? "bg-black text-white"
                         : "bg-white text-black"
                     }`}
                   >
-                    <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                    <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
                   </span>
-                </Link>
+                </button>
               </div>
             </div>
           ))}
@@ -221,6 +305,15 @@ export default function PricingSection() {
           <span>Flexible Cancel Anytime &mdash; All 64 Branches Included</span>
         </div>
       </div>
+
+      {/* ── Membership Subscription Checkout Modal ── */}
+      <SubscriptionModal
+        isOpen={!!selectedPlan}
+        onClose={() => setSelectedPlan(null)}
+        plan={selectedPlan}
+        isAnnual={isAnnual}
+        onSuccess={handleSubscriptionSuccess}
+      />
     </section>
   );
 }

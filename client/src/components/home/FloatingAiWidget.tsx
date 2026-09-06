@@ -18,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { sendAiChatApi } from "@/services/aiService";
+import toast from "react-hot-toast";
 
 interface Message {
   id: string;
@@ -118,6 +119,7 @@ export default function FloatingAiWidget() {
         },
       ]);
     }
+    toast.success("Conversation history cleared!");
   };
 
   const handleSendMessage = async (customText?: string) => {
@@ -228,14 +230,14 @@ export default function FloatingAiWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed bottom-18 sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[640px] md:w-[720px] lg:w-[760px] max-w-[760px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[80] pointer-events-auto"
+            className="fixed bottom-[72px] sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[640px] md:w-[720px] lg:w-[760px] max-w-[760px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[40] pointer-events-auto"
           >
             {!selectedMode ? (
               <div className="p-3 sm:p-5 space-y-3 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black overflow-y-auto max-h-[380px] sm:max-h-[420px]">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-2 border-b border-white/15">
                   <div className="flex items-center gap-2">
-                    <span className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-full bg-white text-black flex items-center justify-center shadow-lg shrink-0">
+                    <span className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center shadow-lg shrink-0">
                       <Sparkles className="w-3.5 h-3.5 fill-black stroke-none" />
                     </span>
                     <div>
@@ -252,7 +254,7 @@ export default function FloatingAiWidget() {
                   </div>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-full bg-neutral-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                    className="w-7 h-7 rounded-full bg-neutral-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
                     aria-label="Close AI Widget"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -287,7 +289,7 @@ export default function FloatingAiWidget() {
                         </p>
                       </div>
                     </div>
-                    <span className="bg-black text-white w-6 h-6 sm:w-6.5 sm:h-6.5 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300 shrink-0">
+                    <span className="bg-black text-white w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300 shrink-0">
                       <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
                     </span>
                   </button>
@@ -298,7 +300,7 @@ export default function FloatingAiWidget() {
                       e.stopPropagation();
                       setSelectedMode("coach");
                     }}
-                    className="group flex items-center justify-between p-3 sm:p-3.5 bg-neutral-900 text-white rounded-xl sm:rounded-2xl hover:bg-neutral-850 transition-all duration-300 shadow-xl border border-white/20 cursor-pointer text-left hover:scale-[1.02]"
+                    className="group flex items-center justify-between p-3 sm:p-3.5 bg-neutral-900 text-white rounded-xl sm:rounded-2xl hover:bg-neutral-800 transition-all duration-300 shadow-xl border border-white/20 cursor-pointer text-left hover:scale-[1.02]"
                   >
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
@@ -313,7 +315,7 @@ export default function FloatingAiWidget() {
                         </p>
                       </div>
                     </div>
-                    <span className="bg-white text-black w-6 h-6 sm:w-6.5 sm:h-6.5 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300 shrink-0">
+                    <span className="bg-white text-black w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300 shrink-0">
                       <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
                     </span>
                   </button>
@@ -334,14 +336,14 @@ export default function FloatingAiWidget() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSelectedMode(null)}
-                      className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-full bg-neutral-800 text-gray-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                      className="w-7 h-7 rounded-full bg-neutral-800 text-gray-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
                       aria-label="Back to Mode Selection"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
                     </button>
 
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
                         {selectedMode === "chat" ? (
                           <MessageSquare className="w-3.5 h-3.5 stroke-[2.5]" />
                         ) : (
@@ -364,7 +366,7 @@ export default function FloatingAiWidget() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={handleClearHistory}
-                      className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-full bg-neutral-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                      className="w-7 h-7 rounded-full bg-neutral-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
                       title="Clear History"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -372,14 +374,14 @@ export default function FloatingAiWidget() {
                     <Link
                       href="/dashboard"
                       onClick={() => setIsOpen(false)}
-                      className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-full bg-neutral-800 text-gray-300 hover:text-white flex items-center justify-center transition-colors shrink-0"
+                      className="w-7 h-7 rounded-full bg-neutral-800 text-gray-300 hover:text-white flex items-center justify-center transition-colors shrink-0"
                       title="Open Full Studio"
                     >
                       <Maximize2 className="w-3.5 h-3.5" />
                     </Link>
                     <button
                       onClick={() => setIsOpen(false)}
-                      className="w-6.5 h-6.5 sm:w-7 sm:h-7 rounded-full bg-neutral-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                      className="w-7 h-7 rounded-full bg-neutral-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
                       aria-label="Close Chat"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -528,7 +530,7 @@ export default function FloatingAiWidget() {
                   <button
                     type="submit"
                     disabled={!inputText.trim()}
-                    className="w-7.5 h-7.5 sm:w-8.5 sm:h-8.5 rounded-full bg-white text-black disabled:bg-neutral-800 disabled:text-gray-600 flex items-center justify-center shrink-0 transition-all shadow-xl cursor-pointer hover:scale-105 active:scale-95"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white text-black disabled:bg-neutral-800 disabled:text-gray-600 flex items-center justify-center shrink-0 transition-all shadow-xl cursor-pointer hover:scale-105 active:scale-95"
                   >
                     <SendHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
                   </button>
@@ -540,39 +542,39 @@ export default function FloatingAiWidget() {
       </AnimatePresence>
 
       {/* ─── 2. Morphing AI Trigger Button (Pure CSS Transitions, 320px Minimum Mobile Responsive) ─── */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (isOpen) {
-            setIsOpen(false);
-          } else {
-            setSelectedMode(null); // ALWAYS start at AI Chat vs AI Coach selection menu first!
-            setIsOpen(true);
-          }
-        }}
-        className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 z-[90] pointer-events-auto select-none ${
-          isScrolled
-            ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 sm:px-6 sm:py-3 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
-            : "absolute bottom-1 sm:bottom-1.5 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"
-        }`}
-        aria-label="Open FITORA AI"
-      >
-        {isScrolled ? (
-          <div className="flex items-center gap-2">
-            <span className="font-extrabold uppercase tracking-wider text-[11px] sm:text-sm">
-              Fitora AI
-            </span>
-            <span className="bg-white text-black w-5.5 h-5.5 sm:w-6.5 sm:h-6.5 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-md">
-              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-black stroke-none" />
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center">
-            <Sparkles className="w-4.5 h-4.5 sm:w-6 sm:h-6 fill-white stroke-none drop-shadow-[0_0_10px_rgba(255,255,255,0.9)] group-hover:rotate-12 transition-transform duration-300" />
-          </div>
-        )}
-      </button>
+      {!isOpen && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isOpen) {
+              setIsOpen(false);
+            } else {
+              setSelectedMode(null); // ALWAYS start at AI Chat vs AI Coach selection menu first!
+              setIsOpen(true);
+            }
+          }}
+          className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 z-[45] pointer-events-auto select-none ${
+            isScrolled
+              ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
+              : "absolute bottom-[-2px] sm:bottom-[-2px] left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"
+          }`}
+          aria-label="Open FITORA AI"
+        >
+          {isScrolled ? (
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white stroke-none group-hover:rotate-12 transition-transform duration-300 drop-shadow-md" />
+              <span className="text-[11px] sm:text-xs tracking-wide">
+                Ask AI
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center">
+              <Sparkles className="w-4.5 h-4.5 sm:w-6 sm:h-6 fill-white stroke-none drop-shadow-[0_0_10px_rgba(255,255,255,0.9)] group-hover:rotate-12 transition-transform duration-300" />
+            </div>
+          )}
+        </button>
+      )}
     </div>
   );
 }

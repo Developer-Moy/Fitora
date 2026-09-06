@@ -1,20 +1,22 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IExercise extends Document {
+  id: number;
+
   name: string;
+  category: string;
+  difficulty: string;
+
+  duration: string;
+  equipment: string;
+  muscle: string;
+
   description: string;
 
-  primaryMuscles: string[];
-  secondaryMuscles: string[];
+  tips: string[];
 
-  equipment: string;
-  difficulty: "Beginner" | "Intermediate" | "Advanced";
-
-  instructions: string[];
-  commonMistakes: string[];
-
-  videoUrl?: string;
-  gifUrl?: string;
+  videoId: string;
+  image: string;
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -22,7 +24,43 @@ export interface IExercise extends Document {
 
 const ExerciseSchema = new Schema<IExercise>(
   {
+    id: {
+      type: Number,
+      required: true,
+      unique: true,
+    },
+
     name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    category: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    difficulty: {
+      type: String,
+      enum: ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+      required: true,
+    },
+
+    duration: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    equipment: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    muscle: {
       type: String,
       required: true,
       trim: true,
@@ -34,45 +72,21 @@ const ExerciseSchema = new Schema<IExercise>(
       trim: true,
     },
 
-    primaryMuscles: {
+    tips: {
       type: [String],
       required: true,
-    },
-
-    secondaryMuscles: {
-      type: [String],
       default: [],
     },
 
-    equipment: {
+    videoId: {
       type: String,
       required: true,
       trim: true,
     },
 
-    difficulty: {
+    image: {
       type: String,
-      enum: ["Beginner", "Intermediate", "Advanced"],
       required: true,
-    },
-
-    instructions: {
-      type: [String],
-      required: true,
-    },
-
-    commonMistakes: {
-      type: [String],
-      default: [],
-    },
-
-    videoUrl: {
-      type: String,
-      trim: true,
-    },
-
-    gifUrl: {
-      type: String,
       trim: true,
     },
   },

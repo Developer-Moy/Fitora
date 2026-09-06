@@ -1,0 +1,945 @@
+[
+    {
+        "foodId": 1,
+        "name": "Grilled Lemon Chicken with Brown Rice",
+        "ingredients": [
+            "Chicken breast",
+            "Brown rice",
+            "Lemon",
+            "Garlic",
+            "Black pepper",
+            "Olive oil",
+            "Salt"
+        ],
+        "calories": 480,
+        "protein": 45,
+        "carbs": 48,
+        "fat": 10,
+        "recipe": "Marinate the chicken breast with lemon juice, garlic, black pepper, salt, and a small amount of olive oil. Grill the chicken until fully cooked and lightly charred. Cook the brown rice separately and serve with the grilled chicken.",
+        "img": "https://media.istockphoto.com/id/1151071585/photo/lemon-garlic-chicken.webp?a=1&b=1&s=612x612&w=0&k=20&c=QHYSD5Nx1KHXe9nWAgA1cWTvPmSIZ906HKeABNRSyOI="
+    },
+    {
+        "foodId": 2,
+        "name": "Rui Fish with Steamed Vegetables",
+        "ingredients": [
+            "Rui fish",
+            "Broccoli",
+            "Carrot",
+            "Cauliflower",
+            "Garlic",
+            "Turmeric",
+            "Black pepper",
+            "Olive oil",
+            "Salt"
+        ],
+        "calories": 360,
+        "protein": 35,
+        "carbs": 18,
+        "fat": 15,
+        "recipe": "Season the Rui fish with turmeric, black pepper, garlic, and salt. Lightly grill or pan-sear the fish using a small amount of olive oil. Steam the broccoli, carrot, and cauliflower until tender and serve alongside the fish.",
+        "img": "https://media.istockphoto.com/id/1160984031/photo/whole-fish-steamed-and-served-with-sauce.webp?a=1&b=1&s=612x612&w=0&k=20&c=PzHPVTPSU4hXzXO8mTm37kDFfk-4rtI4PJFMvJcXdDY="
+    },
+    {
+        "foodId": 3,
+        "name": "Healthy Chicken Bhuna with Brown Rice",
+        "ingredients": [
+            "Chicken breast",
+            "Brown rice",
+            "Onion",
+            "Tomato",
+            "Garlic",
+            "Ginger",
+            "Green chili",
+            "Turmeric",
+            "Cumin",
+            "Olive oil",
+            "Salt"
+        ],
+        "calories": 510,
+        "protein": 46,
+        "carbs": 52,
+        "fat": 12,
+        "recipe": "Cook onion, garlic, ginger, and green chili with a small amount of olive oil. Add tomatoes and spices, then add the chicken breast and cook until tender. Serve with a moderate portion of cooked brown rice.",
+        "img": "https://media.istockphoto.com/id/465992719/photo/spanish-chicken.webp?a=1&b=1&s=612x612&w=0&k=20&c=GrrYzy9Ouh5om7rLppXDKUAVZos589oTEyG270KGkGw="
+    },
+    {
+        "foodId": 4,
+        "name": "Zucchini Noodles with Chicken Marinara",
+        "ingredients": [
+            "Chicken breast",
+            "Zucchini",
+            "Tomato sauce",
+            "Fresh basil",
+            "Garlic powder"
+        ],
+        "calories": 390,
+        "protein": 45,
+        "carbs": 15,
+        "fat": 16,
+        "recipe": "Freshly spiralized zucchini noodles are topped with sliced grilled chicken and a rich, homemade tomato basil sauce. This innovative swap drastically reduces the carbohydrate load while mimicking the comforting feel of traditional pasta. The dish is incredibly rich in antioxidants from the tomatoes and offers plenty of lean poultry protein. It provides a satisfying Italian-style dinner that perfectly aligns with a weight-loss goal.",
+        "img": "https://i.ibb.co.com/v6NB2pbn/Screenshot-2026-08-25-142746.png"
+    },
+    {
+        "foodId": 5,
+        "name": "Chicken Shashlik with Vegetables",
+        "ingredients": [
+            "Chicken breast",
+            "Bell pepper",
+            "Onion",
+            "Tomato",
+            "Lemon juice",
+            "Garlic",
+            "Black pepper",
+            "Paprika",
+            "Olive oil",
+            "Salt"
+        ],
+        "calories": 390,
+        "protein": 42,
+        "carbs": 20,
+        "fat": 14,
+        "recipe": "Cut the chicken and vegetables into bite-sized pieces. Marinate the chicken with lemon juice, garlic, paprika, black pepper, and salt. Place chicken and vegetables on skewers and grill until the chicken is completely cooked.",
+        "img": "https://media.istockphoto.com/id/912629972/photo/chicken-kebab-with-bell-pepper.webp?a=1&b=1&s=612x612&w=0&k=20&c=pkGNPcGNXi_CVB0LDwr6F3IIJtI60mOZpnLsMoIvyCw="
+    },
+    {
+        "foodId": 6,
+        "name": "Light Chicken Khichuri",
+        "ingredients": [
+            "Chicken breast",
+            "Brown rice",
+            "Moong dal",
+            "Carrot",
+            "Green beans",
+            "Onion",
+            "Ginger",
+            "Garlic",
+            "Turmeric",
+            "Cumin",
+            "Salt"
+        ],
+        "calories": 460,
+        "protein": 38,
+        "carbs": 55,
+        "fat": 9,
+        "recipe": "Wash the brown rice and moong dal. Cook them together with diced carrot and green beans. Add cooked chicken breast, ginger, garlic, turmeric, cumin, and salt. Simmer until everything becomes soft and well combined.",
+        "img": "https://media.istockphoto.com/id/955612400/photo/traditional-spicy-rice-with-chicken.webp?a=1&b=1&s=612x612&w=0&k=20&c=caU9pHbkI4nDNJOw3__3EOrP2julx0IXUg5rs61fk5E="
+    },
+    {
+        "foodId": 7,
+        "name": "Cauliflower Rice Chicken Biryani",
+        "ingredients": [
+            "Chicken breast",
+            "Cauliflower rice",
+            "Turmeric",
+            "Cumin",
+            "Peas"
+        ],
+        "calories": 420,
+        "protein": 45,
+        "carbs": 20,
+        "fat": 17,
+        "recipe": "This modernized, low-carb take on a classic Indian favorite uses riced cauliflower instead of heavy basmati grains. Spiced beautifully with turmeric, cumin, and coriander, it features marinated chicken pieces roasted to tender perfection. The aromatic spices not only provide incredible depth of flavor but also offer potent anti-inflammatory benefits. It is a guilt-free way to enjoy traditional comfort food while adhering strictly to a fitness regimen.",
+        "img": "https://i.ibb.co.com/4nJ3JGHn/Screenshot-2026-08-25-195217.png"
+    },
+    {
+        "foodId": 8,
+        "name": "Spicy Grilled Chicken with Cucumber Salad",
+        "ingredients": [
+            "Chicken breast",
+            "Cucumber",
+            "Tomato",
+            "Lemon",
+            "Garlic",
+            "Paprika",
+            "Black pepper",
+            "Olive oil",
+            "Salt"
+        ],
+        "calories": 320,
+        "protein": 44,
+        "carbs": 12,
+        "fat": 10,
+        "recipe": "Season the chicken breast with garlic, paprika, black pepper, lemon juice, and salt. Grill until golden and fully cooked. Slice cucumber and tomato, mix with lemon juice, and serve as a fresh salad with the chicken.",
+        "img": "https://media.istockphoto.com/id/2272943541/photo/ayam-panggang-or-buttermilk-roast-chicken-with-mashed-potato-salad-and-mayonnaise-food-menu.webp?a=1&b=1&s=612x612&w=0&k=20&c=BG5fiO-hBah1QB5tfDJ9MN0lAgTQLQxApEPGD0ib7Ok="
+    },
+    {
+        "foodId": 9,
+        "name": "Masoor Dal with Mixed Vegetables",
+        "ingredients": [
+            "Masoor dal",
+            "Carrot",
+            "Spinach",
+            "Green beans",
+            "Tomato",
+            "Garlic",
+            "Onion",
+            "Turmeric",
+            "Cumin",
+            "Salt"
+        ],
+        "calories": 300,
+        "protein": 17,
+        "carbs": 45,
+        "fat": 6,
+        "recipe": "Wash and boil the masoor dal until soft. Add carrot, spinach, green beans, tomato, turmeric, and cumin. Cook until the vegetables become tender. Finish with lightly sautéed garlic and onion.",
+        "img": "https://media.istockphoto.com/id/619271114/photo/vegan-and-vegetarian-indian-cuisine-dish-spicy-lentil-dahl-soup.webp?a=1&b=1&s=612x612&w=0&k=20&c=qqkJjziBW-prreiUcN_wXjBxc4CzFgRL68oEI4bbvYI="
+    },
+    {
+        "foodId": 10,
+        "name": "Moong Dal Vegetable Bowl",
+        "ingredients": [
+            "Moong dal",
+            "Brown rice",
+            "Broccoli",
+            "Carrot",
+            "Spinach",
+            "Cucumber",
+            "Tomato",
+            "Lemon",
+            "Black pepper",
+            "Salt"
+        ],
+        "calories": 390,
+        "protein": 19,
+        "carbs": 62,
+        "fat": 7,
+        "recipe": "Cook the moong dal and brown rice separately. Steam the broccoli and carrot until tender. Place rice, dal, spinach, cucumber, tomato, and steamed vegetables in a bowl. Finish with fresh lemon juice and black pepper.",
+        "img": "https://media.istockphoto.com/id/1220968865/photo/the-green-whole-lentil-also-known-as-moong-dal-recepie-in-a-bowl.webp?a=1&b=1&s=612x612&w=0&k=20&c=T770hGLQyRYJQtWmpZWwtKLJMsZXCr7qKkD1A9Hhu5U="
+    },
+    {
+        "foodId": 11,
+        "name": "Grilled Chicken & Vegetable Bowl",
+        "ingredients": [
+            "Chicken breast",
+            "Brown rice",
+            "Broccoli",
+            "Bell pepper",
+            "Carrot",
+            "Cucumber",
+            "Lemon",
+            "Garlic",
+            "Olive oil",
+            "Black pepper"
+        ],
+        "calories": 440,
+        "protein": 45,
+        "carbs": 42,
+        "fat": 11,
+        "recipe": "Season the chicken with garlic, lemon juice, black pepper, and olive oil. Grill until fully cooked and slice into pieces. Prepare brown rice and steam the vegetables. Combine everything in a bowl and serve fresh.",
+        "img": "https://media.istockphoto.com/id/505850962/photo/grilled-chicken-with-quinoa-and-brown-rice-salad.webp?a=1&b=1&s=612x612&w=0&k=20&c=-89r5nYIQWGal13xVVFUzwo62YkXiGNe3CK0x6jOD1k="
+    },
+    {
+        "foodId": 12,
+        "name": "Mustard Fish with Steamed Spinach",
+        "ingredients": [
+            "White fish fillet",
+            "Mustard paste",
+            "Spinach",
+            "Green chili",
+            "Garlic",
+            "Turmeric",
+            "Lemon",
+            "Mustard oil",
+            "Salt"
+        ],
+        "calories": 350,
+        "protein": 34,
+        "carbs": 8,
+        "fat": 20,
+        "recipe": "Mix mustard paste with lemon juice, turmeric, garlic, green chili, and salt. Coat the fish and steam or bake until fully cooked. Steam fresh spinach separately and serve with the mustard fish.",
+        "img": "https://media.istockphoto.com/id/1265713132/photo/cod-fish-on-a-plate.webp?a=1&b=1&s=612x612&w=0&k=20&c=-l_H1ES_cbT7p5mZb-HOfa_6Vua1WzdKwIOw4wQW1m4="
+    },
+    {
+        "foodId": 13,
+        "name": "Chicken & Vegetable Soup",
+        "ingredients": [
+            "Chicken breast",
+            "Carrot",
+            "Broccoli",
+            "Cabbage",
+            "Spinach",
+            "Garlic",
+            "Ginger",
+            "Black pepper",
+            "Salt",
+            "Water"
+        ],
+        "calories": 280,
+        "protein": 38,
+        "carbs": 18,
+        "fat": 6,
+        "recipe": "Boil chicken breast with ginger and garlic. Remove the chicken, shred it, and return it to the broth. Add carrot, broccoli, cabbage, and spinach. Simmer until the vegetables are tender and season with black pepper and salt.",
+        "img": "https://media.istockphoto.com/id/166594325/photo/vegetable-soup.webp?a=1&b=1&s=612x612&w=0&k=20&c=Ls718O5DSDW9lh5JgD31OGF7qfOFGYOWXj6mOZUxY7o="
+    },
+    {
+        "foodId": 14,
+        "name": "Mixed Vegetable Bhaji with Masoor Dal",
+        "ingredients": [
+            "Masoor dal",
+            "Spinach",
+            "Cauliflower",
+            "Carrot",
+            "Green beans",
+            "Tomato",
+            "Garlic",
+            "Turmeric",
+            "Cumin",
+            "Olive oil",
+            "Salt"
+        ],
+        "calories": 310,
+        "protein": 18,
+        "carbs": 43,
+        "fat": 8,
+        "recipe": "Boil the masoor dal until soft. Lightly sauté garlic, tomato, turmeric, and cumin with olive oil. Add the mixed vegetables and cook until tender. Combine with the dal and simmer for a few minutes before serving.",
+        "img": "https://media.istockphoto.com/id/474818493/photo/one-dish-dal-is-a-combination-of-wheat-lentils-spices.webp?a=1&b=1&s=612x612&w=0&k=20&c=FvdLRkIebSdMb5aj9o0B_T1BNh_xmTq2T9UliaIrw1E="
+    },
+    {
+        "foodId": 15,
+        "name": "Grilled Prawn with Garlic Vegetables",
+        "ingredients": [
+            "Prawns",
+            "Broccoli",
+            "Bell pepper",
+            "Zucchini",
+            "Garlic",
+            "Lemon",
+            "Black pepper",
+            "Olive oil",
+            "Salt"
+        ],
+        "calories": 300,
+        "protein": 35,
+        "carbs": 14,
+        "fat": 12,
+        "recipe": "Marinate the prawns with lemon juice, garlic, black pepper, and salt. Grill the prawns until pink and fully cooked. Stir-fry or steam the vegetables with a small amount of olive oil and serve together.",
+        "img": "https://media.istockphoto.com/id/1912727355/photo/grilled-prawns-with-lemon-garlic-butter-sauce-served-in-bbq-seafood-restaurant.webp?a=1&b=1&s=612x612&w=0&k=20&c=FOUd1mKvWQ7_vzCeexT1AoRLYrujv8JLij8zRPbrr5I="
+    },
+    {
+        "foodId": 16,
+        "name": "Greek Chicken Salad Bowl",
+        "ingredients": [
+            "Chicken breast",
+            "Cucumber",
+            "Tomato",
+            "Lettuce",
+            "Red onion",
+            "Olives",
+            "Lemon",
+            "Olive oil",
+            "Oregano",
+            "Black pepper"
+        ],
+        "calories": 370,
+        "protein": 42,
+        "carbs": 14,
+        "fat": 17,
+        "recipe": "Season the chicken with oregano, lemon juice, black pepper, and olive oil. Grill until completely cooked and slice into strips. Combine lettuce, cucumber, tomato, red onion, and olives in a bowl. Add the grilled chicken and fresh lemon dressing.",
+        "img": "https://media.istockphoto.com/id/2269056621/photo/salad-leaves-succulent-breaded-chicken-and-refreshing-orange-slices.webp?a=1&b=1&s=612x612&w=0&k=20&c=Er2uhbWmJ1oySm8fEgJ2bDLjm1fK6g_WlMHyhQirkzM="
+    },
+    {
+        "foodId": 17,
+        "name": "Japanese Teriyaki Salmon Bowl",
+        "ingredients": [
+            "Salmon fillet",
+            "Brown rice",
+            "Broccoli",
+            "Carrot",
+            "Low-sodium soy sauce",
+            "Ginger",
+            "Garlic",
+            "Sesame seeds"
+        ],
+        "calories": 520,
+        "protein": 38,
+        "carbs": 48,
+        "fat": 20,
+        "recipe": "Prepare a light teriyaki sauce using low-sodium soy sauce, ginger, and garlic. Pan-sear or bake the salmon and brush it with the sauce. Serve over brown rice with steamed broccoli and carrot, then sprinkle with sesame seeds.",
+        "img": "https://media.istockphoto.com/id/2208382048/photo/homemade-japanese-teriyaki-salmon-bowl.webp?a=1&b=1&s=612x612&w=0&k=20&c=XhaGuhn_9hNVZkP_f8qdgc6Si0QArRErDXC11pHtOW0="
+    },
+    {
+        "foodId": 18,
+        "name": "Mexican Black Bean & Quinoa Bowl",
+        "ingredients": [
+            "Black beans",
+            "Quinoa",
+            "Corn",
+            "Tomato",
+            "Bell pepper",
+            "Avocado",
+            "Lime",
+            "Cilantro",
+            "Cumin",
+            "Black pepper",
+            "Salt"
+        ],
+        "calories": 430,
+        "protein": 18,
+        "carbs": 67,
+        "fat": 12,
+        "recipe": "Cook the quinoa until fluffy and prepare the black beans. Mix quinoa with black beans, corn, tomato, and bell pepper. Add diced avocado, lime juice, cilantro, cumin, and black pepper. Mix well and serve fresh.",
+        "img": "https://media.istockphoto.com/id/1296352732/photo/mexican-salad-with-quinoa-in-bowl.webp?a=1&b=1&s=612x612&w=0&k=20&c=IbE-hFDeVsKbB-zXUqWhvdQk-bver-b-Fc6N_UwPrLA="
+    },
+    {
+        "foodId": 19,
+        "name": "Mediterranean Grilled Chicken Bowl",
+        "ingredients": [
+            "Chicken breast",
+            "Quinoa",
+            "Cucumber",
+            "Tomato",
+            "Spinach",
+            "Red onion",
+            "Lemon",
+            "Olive oil",
+            "Oregano",
+            "Garlic"
+        ],
+        "calories": 450,
+        "protein": 44,
+        "carbs": 38,
+        "fat": 14,
+        "recipe": "Marinate the chicken with lemon, garlic, oregano, and olive oil. Grill until fully cooked and slice. Prepare quinoa and combine it with cucumber, tomato, spinach, and red onion. Top with the grilled chicken and lemon dressing.",
+        "img": "https://media.istockphoto.com/id/2271745940/photo/balanced-lunch-salad-with-chicken-eggs-vegetables-and-cheese-offering-a-nutritious-and.webp?a=1&b=1&s=612x612&w=0&k=20&c=zkl9DRCmmC7BwO7JtowFL14-Ou6hszKf0jGBKg7IfsI="
+    },
+    {
+        "foodId": 20,
+        "name": "Thai Tofu & Vegetable Stir-Fry",
+        "ingredients": [
+            "Firm tofu",
+            "Broccoli",
+            "Bell pepper",
+            "Zucchini",
+            "Carrot",
+            "Garlic",
+            "Ginger",
+            "Low-sodium soy sauce",
+            "Lime",
+            "Sesame oil"
+        ],
+        "calories": 330,
+        "protein": 20,
+        "carbs": 24,
+        "fat": 17,
+        "recipe": "Cut the tofu into cubes and lightly pan-sear until golden. Stir-fry garlic, ginger, broccoli, bell pepper, zucchini, and carrot. Add the tofu and low-sodium soy sauce. Finish with lime juice and a small amount of sesame oil.",
+        "img": "https://media.istockphoto.com/id/1085994072/photo/sweet-and-sour-tofu.webp?a=1&b=1&s=612x612&w=0&k=20&c=W19gFlv4M4pKUrTIBWfOUekZOoci1RImLX7jPZUE2HM="
+    },
+    {
+        "foodId": 21,
+        "name": "Grilled Lemon Herb Chicken",
+        "ingredients": [
+            "Chicken breast",
+            "Asparagus",
+            "Lemon",
+            "Rosemary",
+            "Olive oil"
+        ],
+        "calories": 350,
+        "protein": 45,
+        "carbs": 5,
+        "fat": 16,
+        "recipe": "Enjoy a classic, protein-packed meal centered around perfectly grilled chicken breast infused with fresh lemon and rosemary. The accompanying roasted asparagus adds a satisfying crunch and essential vitamins to your plate. Cooked lightly in olive oil, it maintains a low-fat profile while delivering exceptional flavor. This dish is perfect for supporting lean muscle growth without unnecessary calories.",
+        "img": "https://i.ibb.co.com/MDq2gjtN/Grilled-Chicken-Breast-1.jpg"
+    },
+    {
+        "foodId": 22,
+        "name": "Baked Salmon with Quinoa",
+        "ingredients": [
+            "Salmon fillet",
+            "Quinoa",
+            "Spinach",
+            "Lemon juice",
+            "Black pepper"
+        ],
+        "calories": 450,
+        "protein": 35,
+        "carbs": 35,
+        "fat": 18,
+        "recipe": "This nutrient-dense meal features wild-caught salmon baked to perfection with a light lemon drizzle. Served over fluffy quinoa and fresh spinach, it offers a complete amino acid profile for fitness enthusiasts. The rich omega-3 fatty acids in the fish promote joint health and reduce exercise-induced inflammation. It is a hearty, flavorful option that fuels endurance and recovery.",
+        "img": "https://i.ibb.co.com/ymXH1WtX/Lemon-Herb-Salmon-2.jpg"
+    },
+    {
+        "foodId": 23,
+        "name": "Vegetable and Chickpea Buddha Bowl",
+        "ingredients": [
+            "Chickpeas",
+            "Sweet potatoes",
+            "Kale",
+            "Tahini",
+            "Olive oil"
+        ],
+        "calories": 380,
+        "protein": 15,
+        "carbs": 50,
+        "fat": 13,
+        "recipe": "A colorful and entirely plant-based bowl loaded with roasted sweet potatoes, kale, and protein-rich chickpeas. A light tahini dressing binds the fresh ingredients together for a creamy and savory flavor profile. This vegan-friendly meal is packed with dietary fiber, keeping you full and energized throughout your day. It serves as an excellent lunch option for those focused on clean, plant-based eating.",
+        "img": "https://i.ibb.co.com/gLRTkgWz/Screenshot-2026-08-25-141112.png"
+    },
+    {
+        "foodId": 24,
+        "name": "Garlic Butter Cod with Green Beans",
+        "ingredients": [
+            "Cod fillet",
+            "Green beans",
+            "Garlic",
+            "Light butter",
+            "Black pepper"
+        ],
+        "calories": 320,
+        "protein": 40,
+        "carbs": 8,
+        "fat": 14,
+        "recipe": "Tender cod fillets are lightly pan-seared with a touch of garlic and healthy fats for a melt-in-your-mouth texture. Paired with crisp, steamed green beans, this dish is incredibly low in carbohydrates but high in satiating protein. The mild flavor of the white fish beautifully absorbs the savory garlic notes. It is a fantastic dinner choice for individuals strictly managing their daily caloric intake.",
+        "img": "https://i.ibb.co.com/KzNycW13/Screenshot-2026-08-25-141328.png"
+    },
+    {
+        "foodId": 25,
+        "name": "Chicken and Broccoli Stir-Fry",
+        "ingredients": [
+            "Chicken breast",
+            "Broccoli",
+            "Brown rice",
+            "Low-sodium soy sauce",
+            "Ginger"
+        ],
+        "calories": 410,
+        "protein": 45,
+        "carbs": 40,
+        "fat": 7,
+        "recipe": "This Asian-inspired dish combines juicy chicken breast chunks with vibrant, crunchy broccoli florets. Tossed in a low-sodium soy and ginger sauce, it delivers a savory and slightly sweet taste without excessive sugar. Served alongside a modest portion of brown rice, it efficiently replenishes glycogen stores post-workout. It is a classic fitness staple that never compromises on taste or nutritional value.",
+        "img": "https://i.ibb.co.com/FvCK3wf/Screenshot-2026-08-25-142549.png"
+    },
+    {
+        "foodId": 26,
+        "name": "Mediterranean Tuna Salad",
+        "ingredients": [
+            "Chunk light tuna",
+            "Cucumbers",
+            "Cherry tomatoes",
+            "Kalamata olives",
+            "Lemon juice"
+        ],
+        "calories": 340,
+        "protein": 35,
+        "carbs": 10,
+        "fat": 17,
+        "recipe": "A refreshing and crisp salad featuring chunk light tuna, cucumbers, cherry tomatoes, and Kalamata olives. Dressed lightly with lemon juice and extra virgin olive oil, it provides a burst of tangy Mediterranean flavors. This low-carb meal requires no heating, making it a perfect grab-and-go option for busy athletes. It supplies ample lean protein and healthy fats to keep your metabolism firing.",
+        "img": "https://i.ibb.co.com/Z69Fs08J/Screenshot-2026-08-25-142635.png"
+    },
+    {
+        "foodId": 27,
+        "name": "Grilled Hilsa with Mixed Vegetables",
+        "ingredients": [
+            "Hilsa fish",
+            "Spinach",
+            "Broccoli",
+            "Bell pepper",
+            "Lemon",
+            "Garlic",
+            "Black pepper",
+            "Salt"
+        ],
+        "calories": 420,
+        "protein": 32,
+        "carbs": 12,
+        "fat": 27,
+        "recipe": "Season the Hilsa with lemon juice, garlic, black pepper, and salt. Grill the fish until cooked through. Lightly steam the spinach, broccoli, and bell pepper and serve with the grilled Hilsa.",
+        "img": "https://images.unsplash.com/photo-1598515213345-d710d121c709?w=700&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fEdyaWxsZWQlMjBIaWxzYSUyMHdpdGglMjBNaXhlZCUyMFZlZ2V0YWJsZXN8ZW58MHx8MHx8fDA%3D"
+    },
+    {
+        "foodId": 28,
+        "name": "Roasted Brussels Sprouts and Baked Tilapia",
+        "ingredients": [
+            "Tilapia fillet",
+            "Brussels sprouts",
+            "Olive oil",
+            "Paprika",
+            "Sea salt"
+        ],
+        "calories": 310,
+        "protein": 40,
+        "carbs": 15,
+        "fat": 10,
+        "recipe": "Flaky and mild baked tilapia serves as the protein foundation for this wonderfully balanced evening meal. It is paired with oven-roasted Brussels sprouts that are caramelized to perfection for a nutty, savory bite. With minimal ingredients and clean cooking methods, it offers an incredibly low-calorie yet filling dining experience. This combination is highly favored for its simplicity and potent micronutrient profile.",
+        "img": "https://i.ibb.co.com/Lzkg4mrS/Screenshot-2026-08-25-142034.png"
+    },
+    {
+        "foodId": 29,
+        "name": "Spinach and Mushroom Stuffed Chicken",
+        "ingredients": [
+            "Chicken breast",
+            "Spinach",
+            "Mushrooms",
+            "Garlic",
+            "Olive oil"
+        ],
+        "calories": 430,
+        "protein": 50,
+        "carbs": 10,
+        "fat": 21,
+        "recipe": "A premium chicken breast is carefully butterfly-cut and stuffed with a savory mixture of sautéed spinach and earthy mushrooms. Baked until golden brown, it retains its juices and provides a luxurious texture with every bite. This elegant dish elevates standard meal prep while remaining strictly within healthy macronutrient boundaries. It is a flavorful powerhouse that keeps protein intake high and carbohydrates exceptionally low.",
+        "img": "https://i.ibb.co.com/jvtrvck5/Screenshot-2026-08-25-142918.png"
+    },
+    {
+        "foodId": 30,
+        "name": "Vegan Lentil and Vegetable Stew",
+        "ingredients": [
+            "Green lentils",
+            "Carrots",
+            "Celery",
+            "Diced tomatoes",
+            "Vegetable broth"
+        ],
+        "calories": 360,
+        "protein": 18,
+        "carbs": 55,
+        "fat": 7,
+        "recipe": "This robust and hearty stew brims with green lentils, carrots, celery, and diced tomatoes simmered in a savory broth. The slow-cooking process allows the earthy spices and vegetable flavors to meld beautifully over time. Packed with plant-based protein and soluble fiber, it promotes exceptional digestive health and steady energy. It is the ultimate comfort food for a fitness-oriented lifestyle on a chilly day.",
+        "img": "https://i.ibb.co.com/Gv3H5kPz/Screenshot-2026-08-25-143019.png"
+    },
+    {
+        "foodId": 31,
+        "name": "Grilled Mahi-Mahi with Mango Salsa",
+        "ingredients": [
+            "Mahi-Mahi fillet",
+            "Mango",
+            "Cilantro",
+            "Red onion",
+            "Jasmine rice"
+        ],
+        "calories": 400,
+        "protein": 40,
+        "carbs": 40,
+        "fat": 8,
+        "recipe": "Experience a taste of the tropics with a perfectly grilled Mahi-Mahi fillet topped with a vibrant, fresh mango and cilantro salsa. The sweet and tangy salsa beautifully complements the firm, mild texture of this popular fish. Served alongside a small portion of jasmine rice, it creates a well-rounded meal ideal for active individuals. It offers a refreshing departure from standard fitness foods while remaining strictly healthy.",
+        "img": "https://i.ibb.co.com/qFRbVXbF/Screenshot-2026-08-25-194746.png"
+    },
+    {
+        "foodId": 32,
+        "name": "Chicken Cabbage Stir Fry",
+        "ingredients": [
+            "Chicken breast",
+            "Green cabbage",
+            "Ginger",
+            "Garlic",
+            "Sesame oil"
+        ],
+        "calories": 330,
+        "protein": 40,
+        "carbs": 15,
+        "fat": 12,
+        "recipe": "Shredded green cabbage and tender chicken strips are quickly wok-tossed with ginger and garlic for a fast, flavorful meal. The cabbage acts as a high-volume, low-calorie base that easily absorbs the savory Asian-inspired seasonings. This dish provides an impressive amount of food volume to maximize satiety without breaking the calorie bank. It is an excellent choice for a quick, vegetable-forward dinner on a strict cutting phase.",
+        "img": "https://i.ibb.co.com/KcrTCDtW/Screenshot-2026-08-25-194908.png"
+    },
+    {
+        "foodId": 33,
+        "name": "Poached Salmon with Asparagus",
+        "ingredients": [
+            "Salmon fillet",
+            "Asparagus",
+            "Vegetable broth",
+            "Dill",
+            "Lemon"
+        ],
+        "calories": 390,
+        "protein": 38,
+        "carbs": 10,
+        "fat": 22,
+        "recipe": "Gently poached in a delicate broth, this salmon remains incredibly moist, tender, and uniquely easy to digest. It is accompanied by lightly steamed asparagus spears that add a vibrant green color and a satisfying snap. This preparation method utilizes zero added oils, focusing entirely on the natural healthy fats found within the fish. It is an ultra-clean, elegant meal that supports cardiovascular health and athletic recovery.",
+        "img": "https://i.ibb.co.com/MknzGgs2/Screenshot-2026-08-25-195050.png"
+    },
+    {
+        "foodId": 34,
+        "name": "Rui Fish Curry with Lau",
+        "ingredients": [
+            "Rui fish",
+            "Bottle gourd",
+            "Tomato",
+            "Onion",
+            "Garlic",
+            "Ginger",
+            "Turmeric",
+            "Green chili",
+            "Mustard oil",
+            "Salt"
+        ],
+        "calories": 330,
+        "protein": 30,
+        "carbs": 16,
+        "fat": 16,
+        "recipe": "Season the Rui fish with turmeric and salt and lightly pan-sear it. Prepare a light curry using onion, tomato, ginger, garlic, and green chili. Add sliced bottle gourd and cook until tender, then add the fish and simmer until fully cooked.",
+        "img": "https://images.unsplash.com/photo-1620894580123-466ad3a0ca06?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    {
+        "foodId": 35,
+        "name": "Mediterranean Baked White Fish",
+        "ingredients": [
+            "White fish fillet",
+            "Tomatoes",
+            "Red onions",
+            "Mixed greens",
+            "Balsamic vinegar"
+        ],
+        "calories": 350,
+        "protein": 42,
+        "carbs": 15,
+        "fat": 13,
+        "recipe": "A flaky white fish fillet is baked under a vibrant crust of diced tomatoes, red onions, and a sprinkle of Mediterranean herbs. The rustic flavor profile brings bright, tangy, and savory notes that truly elevate the simple seafood base. Paired with a side of mixed greens, this dish is exceptionally light and easily digestible after an evening workout. It is the perfect dinner for supporting muscle maintenance while prioritizing clean ingredients.",
+        "img": "https://i.ibb.co.com/kV7TjTrh/Screenshot-2026-08-25-195357.png"
+    },
+    {
+        "foodId": 36,
+        "name": "Sweet Potato and Chicken Hash",
+        "ingredients": [
+            "Chicken breast",
+            "Sweet potatoes",
+            "Bell peppers",
+            "Onions",
+            "Olive oil"
+        ],
+        "calories": 440,
+        "protein": 40,
+        "carbs": 45,
+        "fat": 11,
+        "recipe": "Diced chicken breast and cubed sweet potatoes are roasted together with onions and bell peppers for a hearty, rustic hash. The natural sweetness of the potatoes pairs flawlessly with the savory poultry and caramelized vegetables. This meal provides an excellent source of complex carbohydrates, making it highly recommended for a pre-workout energy boost. It is a comforting, filling dish that fuels rigorous training sessions efficiently.",
+        "img": "https://i.ibb.co.com/8gNp5KY8/Screenshot-2026-08-25-195604.png"
+    },
+    {
+        "foodId": 37,
+        "name": "Steamed Sea Bass with Ginger",
+        "ingredients": [
+            "Sea bass fillet",
+            "Ginger",
+            "Scallions",
+            "Low-sodium soy sauce",
+            "Bok choy"
+        ],
+        "calories": 310,
+        "protein": 38,
+        "carbs": 10,
+        "fat": 13,
+        "recipe": "A staple of clean Asian cuisine, this premium sea bass is gently steamed with fresh ginger strips and scallions. A light splash of low-sodium soy sauce enhances the delicate, buttery texture of the fish without adding excessive sodium. This cooking method preserves the nutritional integrity of the seafood while keeping total calories remarkably low. It is a sophisticated, protein-dense dish that aligns perfectly with a lean aesthetic goal.",
+        "img": "https://i.ibb.co.com/v6ZcRqLR/Screenshot-2026-08-25-195725.png"
+    },
+    {
+        "foodId": 38,
+        "name": "Quinoa and Black Bean Salad",
+        "ingredients": [
+            "Quinoa",
+            "Black beans",
+            "Corn",
+            "Bell peppers",
+            "Lime juice"
+        ],
+        "calories": 370,
+        "protein": 15,
+        "carbs": 60,
+        "fat": 7,
+        "recipe": "This chilled, plant-powered salad mixes protein-rich quinoa with black beans, corn, and fresh crunchy bell peppers. Tossed in a zesty lime and cilantro vinaigrette, it offers a refreshing and crisp texture with southwestern flair. The combination of beans and grains forms a complete protein, making it highly effective for active vegetarian athletes. It is a vibrant, prep-friendly meal that delivers sustained energy throughout an active afternoon.",
+        "img": "https://i.ibb.co.com/MyN0LzsH/Screenshot-2026-08-25-195840.png"
+    },
+    {
+        "foodId": 39,
+        "name": "Chicken and Zucchini Skewers",
+        "ingredients": [
+            "Chicken breast",
+            "Zucchini",
+            "Olive oil",
+            "Lemon juice",
+            "Oregano"
+        ],
+        "calories": 340,
+        "protein": 42,
+        "carbs": 10,
+        "fat": 14,
+        "recipe": "Marinated chunks of chicken breast and fresh zucchini rounds are threaded onto skewers and grilled over an open flame. The smoky char from the grill adds immense flavor to the simple, exceptionally clean ingredients. Served alongside a crisp side salad, it provides a highly satisfying and protein-packed dining experience. This fun and interactive meal is ideal for summer barbecues while strictly adhering to a diet plan.",
+        "img": "https://i.ibb.co.com/3mCTvH6R/Screenshot-2026-08-25-195945.png"
+    },
+    {
+        "foodId": 40,
+        "name": "Tuna and White Bean Salad",
+        "ingredients": [
+            "Chunk light tuna",
+            "Cannellini beans",
+            "Red onions",
+            "Olive oil",
+            "Red wine vinegar"
+        ],
+        "calories": 350,
+        "protein": 35,
+        "carbs": 30,
+        "fat": 10,
+        "recipe": "A rustic and highly nutritious blend of chunk light tuna, creamy cannellini beans, and crisp red onions. Dressed with a touch of olive oil and red wine vinegar, it requires no cooking and is ready in minutes. The beans provide an excellent source of dietary fiber, while the tuna delivers high-quality, lean protein for muscle repair. This Italian-inspired dish is incredibly satiating and perfect for a quick, muscle-building lunch.",
+        "img": "https://i.ibb.co.com/nN1HB5n7/Screenshot-2026-08-25-200054.png"
+    },
+    {
+        "foodId": 41,
+        "name": "Baked Cod with Lemon and Capers",
+        "ingredients": [
+            "Cod fillet",
+            "Capers",
+            "Lemon",
+            "Cauliflower",
+            "Olive oil"
+        ],
+        "calories": 330,
+        "protein": 40,
+        "carbs": 15,
+        "fat": 12,
+        "recipe": "Fresh cod fillets are baked until perfectly flaky and topped with a bright, briny sauce made of lemon and capers. The acidic punch of the citrus cuts through the mild fish, creating a highly palatable and gourmet experience. Accompanied by a side of roasted cauliflower, this meal is exceptionally low in both calories and carbohydrates. It serves as an elegant, fast-digesting dinner that aligns beautifully with a weight management protocol.",
+        "img": "https://i.ibb.co.com/LXPWzQN7/Screenshot-2026-08-25-200248.png"
+    },
+    {
+        "foodId": 42,
+        "name": "Teriyaki Chicken and Snap Peas",
+        "ingredients": [
+            "Chicken breast",
+            "Sugar snap peas",
+            "Jasmine rice",
+            "Low-sugar teriyaki sauce",
+            "Sesame seeds"
+        ],
+        "calories": 410,
+        "protein": 40,
+        "carbs": 45,
+        "fat": 7,
+        "recipe": "Tender pieces of chicken breast are glazed in a light, naturally sweetened teriyaki sauce for a satisfyingly sticky finish. Paired with fresh sugar snap peas, the dish offers a delightful contrast between the savory meat and crunchy vegetables. A small serving of jasmine rice helps soak up the flavorful sauce and provides crucial post-workout carbohydrates. It is a delicious, macro-friendly alternative to heavy, calorie-dense restaurant takeout.",
+        "img": "https://i.ibb.co.com/zgSLtCm/Screenshot-2026-08-25-200431.png"
+    },
+    {
+        "foodId": 43,
+        "name": "Roasted Eggplant and Tomato Bake",
+        "ingredients": [
+            "Eggplant",
+            "Crushed tomatoes",
+            "Garlic",
+            "Fresh basil",
+            "Olive oil"
+        ],
+        "calories": 320,
+        "protein": 8,
+        "carbs": 35,
+        "fat": 16,
+        "recipe": "This vegetarian delight layers thick slices of roasted eggplant with a chunky, garlic-infused tomato sauce and fresh basil. Baked until bubbling and tender, it mimics the comforting qualities of traditional parmigiana without the heavy, greasy cheeses. The high fiber content of the eggplant ensures long-lasting fullness and excellent digestive support throughout the day. It is a fantastic, vegetable-forward dinner choice for those seeking lighter fare after training.",
+        "img": "https://i.ibb.co.com/1tNhtgCJ/Screenshot-2026-08-25-200604.png"
+    },
+    {
+        "foodId": 44,
+        "name": "Spicy Sriracha Salmon with Green Beans",
+        "ingredients": [
+            "Salmon fillet",
+            "Green beans",
+            "Sriracha sauce",
+            "Honey",
+            "Soy sauce"
+        ],
+        "calories": 460,
+        "protein": 38,
+        "carbs": 25,
+        "fat": 23,
+        "recipe": "A bold and flavorful meal featuring a rich salmon fillet glazed with a spicy and slightly sweet sriracha marinade. It is served alongside crisp, blistered green beans that naturally balance the intense heat of the fish. The high fat content from the salmon provides sustained energy and supports essential hormone function for active individuals. This fiery dish is a favorite for those who want their healthy food to pack a serious punch.",
+        "img": "https://i.ibb.co.com/Kj7gmtZt/Screenshot-2026-08-25-200735.png"
+    },
+    {
+        "foodId": 45,
+        "name": "Chicken and Mushroom Stir-Fry",
+        "ingredients": [
+            "Chicken breast",
+            "Mushrooms",
+            "Bok choy",
+            "Chicken broth",
+            "Garlic"
+        ],
+        "calories": 380,
+        "protein": 45,
+        "carbs": 20,
+        "fat": 13,
+        "recipe": "Thinly sliced chicken is swiftly stir-fried with an abundance of earthy mushrooms and crisp, fresh bok choy. The savory, umami-rich broth clings to the ingredients, creating a deeply satisfying and comforting flavor profile. Mushrooms offer unique antioxidants and immune-boosting properties, making this meal functionally beneficial beyond its basic macros. It is a low-calorie, high-volume dinner that keeps you feeling satisfied on a strict calorie deficit.",
+        "img": "https://i.ibb.co.com/TxPKZxpP/Screenshot-2026-08-25-200920.png"
+    },
+    {
+        "foodId": 46,
+        "name": "Cauliflower and Lentil Curry",
+        "ingredients": [
+            "Cauliflower",
+            "Red lentils",
+            "Tomato paste",
+            "Coconut milk",
+            "Curry powder"
+        ],
+        "calories": 370,
+        "protein": 18,
+        "carbs": 50,
+        "fat": 10,
+        "recipe": "A fragrant and warming plant-based curry that combines tender cauliflower florets with protein-packed red lentils. Simmered in a rich, light coconut milk-infused tomato broth, it boasts a complex blend of turmeric, cumin, and coriander. This dish is entirely vegan yet incredibly filling, providing a steady release of complex carbohydrates to power your day. It is an exceptional recovery meal that reduces cellular inflammation and warms the soul.",
+        "img": "https://i.ibb.co.com/zh5k4v38/Screenshot-2026-08-25-201101.png"
+    },
+    {
+        "foodId": 47,
+        "name": "Lemon Garlic Baked Chicken Breast",
+        "ingredients": [
+            "Chicken breast",
+            "Carrots",
+            "Parsnips",
+            "Garlic",
+            "Lemon zest"
+        ],
+        "calories": 350,
+        "protein": 42,
+        "carbs": 25,
+        "fat": 9,
+        "recipe": "This minimalist classic features a succulent baked chicken breast heavily seasoned with roasted garlic and fresh lemon zest. It is paired with simple roasted root vegetables, offering a clean, rustic, and highly nutritious plate. The lean poultry provides the vital building blocks for muscle repair, while the vegetables supply crucial vitamins and minerals. It is the epitome of reliable, fitness-focused meal prep that consistently delivers dietary results.",
+        "img": "https://i.ibb.co.com/jk5YLsB4/Screenshot-2026-08-25-201341.png"
+    },
+    {
+        "foodId": 48,
+        "name": "Grilled Halibut with Tomato Basil Salsa",
+        "ingredients": [
+            "Halibut steak",
+            "Cherry tomatoes",
+            "Fresh basil",
+            "Balsamic vinegar",
+            "Olive oil"
+        ],
+        "calories": 360,
+        "protein": 45,
+        "carbs": 15,
+        "fat": 13,
+        "recipe": "A premium, thick-cut halibut steak is lightly grilled to achieve a beautiful outer crust while remaining tender inside. It is generously topped with a raw salsa made from sweet cherry tomatoes, fresh basil, and balsamic vinegar. This incredibly light meal is packed with lean protein and boasts a very low overall fat content. It is a refreshing, elegant dish that easily fits into the strictest of athletic diet plans.",
+        "img": "https://i.ibb.co.com/gMNmSFJK/Screenshot-2026-08-25-201449.png"
+    },
+    {
+        "foodId": 49,
+        "name": "Spinach Stuffed Chicken Breast",
+        "ingredients": [
+            "Chicken breast",
+            "Spinach",
+            "Nutritional yeast",
+            "Broccoli",
+            "Garlic powder"
+        ],
+        "calories": 420,
+        "protein": 55,
+        "carbs": 15,
+        "fat": 15,
+        "recipe": "A thick, juicy chicken breast is carefully stuffed with wilted spinach and a sprinkle of savory nutritional yeast. This dairy-free alternative provides a rich, cheesy flavor that elevates the dish while keeping the calorie count exceptionally low. Served with a hearty side of steamed broccoli, this meal is an absolute powerhouse for protein and essential micronutrients. It is a highly satisfying, low-carbohydrate option that acts as perfect post-workout fuel.",
+        "img": "https://i.ibb.co.com/cch4C34z/Screenshot-2026-08-25-201610.png"
+    },
+    {
+        "foodId": 50,
+        "name": "Trout with Almond and Green Bean Salad",
+        "ingredients": [
+            "Trout fillet",
+            "Sliced almonds",
+            "Green beans",
+            "Lemon vinaigrette",
+            "Black pepper"
+        ],
+        "calories": 440,
+        "protein": 35,
+        "carbs": 15,
+        "fat": 26,
+        "recipe": "This sophisticated dish features a pan-seared trout fillet topped with a delicate, crunchy crust of toasted sliced almonds. It is served over a crisp, chilled green bean salad tossed gently in a light lemon vinaigrette. The combination of the fresh fish and nuts provides an outstanding profile of healthy fats and crucial micronutrients. It is a delightfully crunchy, flavorful meal that supports ultimate cardiovascular health and long-term athletic longevity.",
+        "img": "https://i.ibb.co.com/23LhCJpw/Screenshot-2026-08-25-201825.png"
+    }
+]

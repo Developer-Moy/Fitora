@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { Ad } from "../models/Ad.model";
 import { Newsletter } from "../models/Newsletter.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 // Default Promotional Campaigns Fallback
 const DEFAULT_FITORA_CAMPAIGNS = [
@@ -52,18 +53,21 @@ export const getPublicAds = async (req: Request, res: Response) => {
       ads = DEFAULT_FITORA_CAMPAIGNS as any;
     }
 
-    return res.status(200).json({
-      success: true,
-      count: ads.length,
-      data: ads,
-    });
+    return res.status(200).json(
+      successResponse("Public ads retrieved successfully", {
+        count: ads.length,
+        ads,
+      })
+    );
   } catch (error: any) {
     console.error("Error fetching public ads:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching advertisements.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching advertisements.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -86,10 +90,9 @@ export const createAd = async (req: AuthRequest, res: Response) => {
     } = req.body;
 
     if (!title || !imageUrl) {
-      return res.status(400).json({
-        success: false,
-        message: "Title and Image URL are required fields.",
-      });
+      return res.status(400).json(
+        errorResponse("Title and Image URL are required fields.", "VALIDATION_ERROR", 400)
+      );
     }
 
     const newAd = await Ad.create({
@@ -107,18 +110,18 @@ export const createAd = async (req: AuthRequest, res: Response) => {
       impressions: 0,
     });
 
-    return res.status(201).json({
-      success: true,
-      message: "Promotional banner created successfully.",
-      data: newAd,
-    });
+    return res.status(201).json(
+      successResponse("Promotional banner created successfully.", newAd)
+    );
   } catch (error: any) {
     console.error("Error creating ad campaign:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while creating advertisement.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while creating advertisement.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -131,24 +134,23 @@ export const updateAd = async (req: AuthRequest, res: Response) => {
     const updated = await Ad.findByIdAndUpdate(id, req.body, { new: true });
 
     if (!updated) {
-      return res.status(404).json({
-        success: false,
-        message: "Advertisement campaign not found.",
-      });
+      return res.status(404).json(
+        errorResponse("Advertisement campaign not found.", "ADVERTISEMENT_NOT_FOUND", 404)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Advertisement updated successfully.",
-      data: updated,
-    });
+    return res.status(200).json(
+      successResponse("Advertisement updated successfully.", updated)
+    );
   } catch (error: any) {
     console.error("Error updating ad campaign:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while updating advertisement.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while updating advertisement.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -161,23 +163,23 @@ export const deleteAd = async (req: AuthRequest, res: Response) => {
     const deleted = await Ad.findByIdAndDelete(id);
 
     if (!deleted) {
-      return res.status(404).json({
-        success: false,
-        message: "Advertisement campaign not found.",
-      });
+      return res.status(404).json(
+        errorResponse("Advertisement campaign not found.", "ADVERTISEMENT_NOT_FOUND", 404)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Advertisement campaign deleted successfully.",
-    });
+    return res.status(200).json(
+      successResponse("Advertisement campaign deleted successfully.", {})
+    );
   } catch (error: any) {
     console.error("Error deleting ad campaign:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while deleting advertisement.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while deleting advertisement.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -189,25 +191,22 @@ export const trackAdClick = async (req: Request, res: Response) => {
     const adId = req.body?.id || req.body?.adId || req.body?._id;
 
     if (!adId) {
-      return res.status(400).json({
-        success: false,
-        message: "Ad ID is required",
-      });
+      return res.status(400).json(
+        errorResponse("Ad ID is required", "VALIDATION_ERROR", 400)
+      );
     }
 
     if (mongoose.Types.ObjectId.isValid(adId)) {
       await Ad.findByIdAndUpdate(adId, { $inc: { clicks: 1 } });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Ad click recorded successfully.",
-    });
+    return res.status(200).json(
+      successResponse("Ad click recorded successfully.", {})
+    );
   } catch (error: any) {
-    return res.status(200).json({
-      success: true, // Do not break client navigation if analytics fails
-      message: "Ad click registered.",
-    });
+    return res.status(200).json(
+      successResponse("Ad click registered.", {})
+    );
   }
 };
 
@@ -219,10 +218,9 @@ export const subscribeNewsletter = async (req: Request, res: Response) => {
     const { email, source } = req.body;
 
     if (!email || !email.includes("@")) {
-      return res.status(400).json({
-        success: false,
-        message: "Please enter a valid email address.",
-      });
+      return res.status(400).json(
+        errorResponse("Please enter a valid email address.", "VALIDATION_ERROR", 400)
+      );
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -235,10 +233,9 @@ export const subscribeNewsletter = async (req: Request, res: Response) => {
         subscriber.status = "subscribed";
         await subscriber.save();
       }
-      return res.status(200).json({
-        success: true,
-        message: "You are already subscribed to the Fitora fitness newsletter!",
-      });
+      return res.status(200).json(
+        successResponse("You are already subscribed to the Fitora fitness newsletter!", {})
+      );
     }
 
     subscriber = await Newsletter.create({
@@ -247,18 +244,18 @@ export const subscribeNewsletter = async (req: Request, res: Response) => {
       source: source || "footer",
     });
 
-    return res.status(201).json({
-      success: true,
-      message: "Welcome to Fitora! You have successfully subscribed to our newsletter.",
-      data: subscriber,
-    });
+    return res.status(201).json(
+      successResponse("Welcome to Fitora! You have successfully subscribed to our newsletter.", subscriber)
+    );
   } catch (error: any) {
     console.error("Error subscribing to newsletter:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while subscribing to newsletter.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while subscribing to newsletter.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -271,17 +268,20 @@ export const getNewsletterSubscribers = async (req: AuthRequest, res: Response) 
       createdAt: -1,
     });
 
-    return res.status(200).json({
-      success: true,
-      count: subscribers.length,
-      data: subscribers,
-    });
+    return res.status(200).json(
+      successResponse("Newsletter subscribers retrieved successfully", {
+        count: subscribers.length,
+        subscribers,
+      })
+    );
   } catch (error: any) {
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching newsletter subscribers.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching newsletter subscribers.",
+        error.message,
+        500
+      )
+    );
   }
 };
 

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Goal from "../models/Goal.model";
 import WorkoutLog from "../models/WorkoutLog.model";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 export const createOrUpdateGoal = async (req: Request, res: Response) => {
   try {
@@ -20,15 +21,17 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
       },
     );
 
-    return res.status(200).json({
-      success: true,
-      data: goal,
-    });
+    return res.status(200).json(
+      successResponse("Goal created or updated successfully", goal)
+    );
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to create/update goal",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to create/update goal",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -39,10 +42,9 @@ export const getGoal = async (req: Request, res: Response) => {
     const goal = await Goal.findOne({ userId });
 
     if (!goal) {
-      return res.status(404).json({
-        success: false,
-        message: "Goal not found",
-      });
+      return res.status(404).json(
+        errorResponse("Goal not found", "GOAL_NOT_FOUND", 404)
+      );
     }
 
     const workouts = await WorkoutLog.find({ userId })
@@ -97,9 +99,8 @@ export const getGoal = async (req: Request, res: Response) => {
     const achievedMilestone =
       milestones.filter((milestone) => activeStreak >= milestone).pop() || null;
 
-    return res.status(200).json({
-      success: true,
-      data: {
+    return res.status(200).json(
+      successResponse("Goal retrieved successfully", {
         goal,
         activeStreak,
         totalVolumeLifted,
@@ -107,13 +108,16 @@ export const getGoal = async (req: Request, res: Response) => {
           achieved: achievedMilestone !== null,
           current: achievedMilestone,
         },
-      },
-    });
+      })
+    );
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to get goal",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to get goal",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -127,21 +131,22 @@ export const updateGoal = async (req: Request, res: Response) => {
     });
 
     if (!goal) {
-      return res.status(404).json({
-        success: false,
-        message: "Goal not found",
-      });
+      return res.status(404).json(
+        errorResponse("Goal not found", "GOAL_NOT_FOUND", 404)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      data: goal,
-    });
+    return res.status(200).json(
+      successResponse("Goal updated successfully", goal)
+    );
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to update goal",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to update goal",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };
 
@@ -152,20 +157,21 @@ export const deleteGoal = async (req: Request, res: Response) => {
     const goal = await Goal.findByIdAndDelete(id);
 
     if (!goal) {
-      return res.status(404).json({
-        success: false,
-        message: "Goal not found",
-      });
+      return res.status(404).json(
+        errorResponse("Goal not found", "GOAL_NOT_FOUND", 404)
+      );
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Goal deleted successfully",
-    });
+    return res.status(200).json(
+      successResponse("Goal deleted successfully", goal)
+    );
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to delete goal",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to delete goal",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };

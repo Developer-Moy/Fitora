@@ -3,7 +3,7 @@ import { createMealChart, getMealCharts } from "../controllers/mealChart.control
 
 const router = Router();
 
-router.post("/meal-charts", createMealChart);
-router.get("/meal-charts", getMealCharts);
+router.post("/", createMealChart);
+router.get("/", getMealCharts);
 
 export default router;

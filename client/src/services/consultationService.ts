@@ -31,7 +31,7 @@ export interface BranchData {
 
 export async function submitConsultationApi(
   payload: ConsultationPayload,
-): Promise<{ success: boolean; message: string; data?: any }> {
+): Promise<{ success: boolean; message: string; data?: unknown }> {
   try {
     const res = await fetch(`${API_URL}/consultations`, {
       method: "POST",
@@ -55,7 +55,7 @@ export async function submitConsultationApi(
         "Inquiry received! A Fitora branch coordinator will contact you shortly.",
       data: data?.data,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: true, // Graceful UX fallback
       message:

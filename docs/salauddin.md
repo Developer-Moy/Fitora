@@ -202,3 +202,27 @@ Monthly / Yearly billing toggle switch.
 
 ### 27-Aug-26
 * Progressive Workout Program, Set/Rep & 1RM PR Engine (Brzycki Formula) and Exercise Encyclopedia & Multi-Muscle Group Filter (/exercises)
+
+
+### 30-Aug-26
+* Seed 50+ Exercise Encyclopedia & Video Guides
+* Curate 50+ gym exercises across all muscle groups with equipment tags, difficulty, execution tips, photo URLs, and valid YouTube demo video IDs in exercises collection. Submit as exercises.json.
+
+### 31-Aug-26
+* Bug Hunting
+* finding the bug in UI.
+
+### 01-Sep-26
+* Finding bug, Make proper document and fix the bug.
+
+### 02-Sep-26
+* Goals Frontend UI & Dashboard Sync
+* Creates my fitness goals visual widgets.
+
+### 03-Sep-26
+* Check BackEnd and Fix exercise fetch issues.
+
+### 06-Sep-26
+* `server/src/models/payment.model.ts`
+* `server/src/utils/transactionId.ts`
+* Create database model and transactionId generator helper.

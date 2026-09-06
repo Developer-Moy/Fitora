@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 export const calculateNutrition = (
   req: Request,
@@ -20,10 +21,9 @@ export const calculateNutrition = (
       !weight ||
       !activityLevel
     ) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
+      return res.status(400).json(
+        errorResponse("All fields are required", "VALIDATION_ERROR", 400)
+      );
     }
 
     const bmr =
@@ -37,19 +37,21 @@ export const calculateNutrition = (
     const carbs = (tdee * 0.4) / 4;
     const fats = (tdee * 0.3) / 9;
 
-    return res.status(200).json({
-      success: true,
-      data: {
+    return res.status(200).json(
+      successResponse("Nutrition calculated successfully", {
         tdee: Math.round(tdee),
         protein: Math.round(protein),
         carbs: Math.round(carbs),
         fats: Math.round(fats),
-      },
-    });
+      })
+    );
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to calculate nutrition",
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Failed to calculate nutrition",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
   }
 };

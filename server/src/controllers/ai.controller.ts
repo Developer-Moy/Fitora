@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AiMessage } from "../models/AiMessage.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { successResponse, errorResponse } from "../utils/apiResponse";
 
 /**
  * High-performance Domain-Specific Fitness AI Reasoning Engine
@@ -113,10 +114,9 @@ export const handleAiChat = async (req: Request, res: Response) => {
       typeof promptText !== "string" ||
       promptText.trim().length === 0
     ) {
-      return res.status(400).json({
-        success: false,
-        message: "Prompt text is required.",
-      });
+      return res.status(400).json(
+        errorResponse("Prompt text is required.", "VALIDATION_ERROR", 400)
+      );
     }
 
     const cleanPrompt = promptText.trim();
@@ -176,25 +176,25 @@ export const handleAiChat = async (req: Request, res: Response) => {
       console.warn("AiMessage DB Save Notice:", dbErr);
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "AI response generated successfully.",
-      data: {
+    return res.status(200).json(
+      successResponse("AI response generated successfully.", {
         id: savedRecord?._id || Date.now().toString(),
         promptText: cleanPrompt,
         responseText,
         mode,
         sessionId,
         timestamp: new Date().toISOString(),
-      },
-    });
+      })
+    );
   } catch (error: any) {
     console.error("Error in handleAiChat:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while processing AI chat request.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while processing AI chat request.",
+        error.message,
+        500
+      )
+    );
   }
 };
 
@@ -219,18 +219,21 @@ export const getAiHistory = async (req: AuthRequest, res: Response) => {
       .sort({ createdAt: 1 })
       .limit(limitNum);
 
-    return res.status(200).json({
-      success: true,
-      count: history.length,
-      data: history,
-    });
+    return res.status(200).json(
+      successResponse("AI chat history retrieved successfully", {
+        count: history.length,
+        history,
+      })
+    );
   } catch (error: any) {
     console.error("Error fetching AI history:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error while fetching AI history.",
-      error: error.message,
-    });
+    return res.status(500).json(
+      errorResponse(
+        "Internal server error while fetching AI history.",
+        error.message,
+        500
+      )
+    );
   }
 };
 

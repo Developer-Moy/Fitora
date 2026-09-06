@@ -1,7 +1,11 @@
 import { Router } from "express";
 import {
-  getPublicBranches,
+  checkoutBranchCheckin,
+  createBranchCheckin,
   getAdminBranches,
+  getBranchCheckins,
+  getBranchOccupancy,
+  getPublicBranches,
 } from "../controllers/branch.controller";
 import {
   authMiddleware,
@@ -19,6 +23,35 @@ router.get(
   authMiddleware,
   requireAdminOrBranchAdmin,
   getAdminBranches,
+);
+
+// Protected: Branch attendance management for branch admins
+router.get(
+  "/:id/checkins",
+  authMiddleware,
+  requireAdminOrBranchAdmin,
+  getBranchCheckins,
+);
+
+router.post(
+  "/:id/checkins",
+  authMiddleware,
+  requireAdminOrBranchAdmin,
+  createBranchCheckin,
+);
+
+router.patch(
+  "/:id/checkins/:checkinId/checkout",
+  authMiddleware,
+  requireAdminOrBranchAdmin,
+  checkoutBranchCheckin,
+);
+
+router.get(
+  "/:id/occupancy",
+  authMiddleware,
+  requireAdminOrBranchAdmin,
+  getBranchOccupancy,
 );
 
 export default router;

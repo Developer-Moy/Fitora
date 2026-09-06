@@ -7,6 +7,18 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+function getAuthHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try {
+    const token =
+      localStorage.getItem("fitora_token") ||
+      localStorage.getItem("fitora_auth_token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
+
 interface ApiSuccessResponse<T> {
   success: true;
   data: T;
@@ -20,7 +32,9 @@ interface ApiErrorResponse {
   message?: string;
 }
 
-async function parseResponse<T>(response: Response): Promise<ApiSuccessResponse<T>> {
+async function parseResponse<T>(
+  response: Response,
+): Promise<ApiSuccessResponse<T>> {
   const result = (await response.json().catch(() => null)) as
     | ApiSuccessResponse<T>
     | ApiErrorResponse
@@ -32,13 +46,14 @@ async function parseResponse<T>(response: Response): Promise<ApiSuccessResponse<
     }
     throw new Error(
       (result && "message" in result && result.message) ||
-        `Request failed with status ${response.status}`
+        `Request failed with status ${response.status}`,
     );
   }
 
   if (!result || !("success" in result) || !result.success) {
     throw new Error(
-      (result && "message" in result && result.message) || "Unexpected server response"
+      (result && "message" in result && result.message) ||
+        "Unexpected server response",
     );
   }
 
@@ -46,13 +61,16 @@ async function parseResponse<T>(response: Response): Promise<ApiSuccessResponse<
 }
 
 export async function createWorkoutLog(
-  payload: CreateWorkoutLogPayload
+  payload: CreateWorkoutLogPayload,
 ): Promise<WorkoutLog> {
   let response: Response;
   try {
     response = await fetch(`${API_URL}/workouts/log`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
       body: JSON.stringify(payload),
     });
   } catch {
@@ -65,7 +83,7 @@ export async function createWorkoutLog(
 
 export async function getWorkoutLogs(
   userId?: string,
-  limit: number = 50
+  limit: number = 50,
 ): Promise<WorkoutLogsResult> {
   const params = new URLSearchParams({ limit: String(limit) });
   if (userId) params.set("userId", userId);
@@ -74,12 +92,22 @@ export async function getWorkoutLogs(
   try {
     response = await fetch(`${API_URL}/workouts/log?${params.toString()}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
     });
   } catch {
     throw new Error("Network error — could not reach the server");
   }
 
-  const result = await parseResponse<WorkoutLog[]>(response);
-  return { logs: Array.isArray(result.data) ? result.data : [], summary: result.summary };
+  const result = await parseResponse<any>(response);
+  const data = result.data;
+  const logs = Array.isArray(data?.logs)
+    ? data.logs
+    : Array.isArray(data)
+      ? data
+      : [];
+  const summary = data?.summary || result.summary;
+  return { logs, summary };
 }

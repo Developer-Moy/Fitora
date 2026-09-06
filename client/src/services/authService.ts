@@ -1,4 +1,15 @@
+import { authClient } from "@/lib/auth-client";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+export const AUTH_SESSION_UPDATED = "fitora-auth-session-updated";
+
+function dispatchAuthSessionUpdated(user?: AuthUser) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(AUTH_SESSION_UPDATED, { detail: { user } }),
+  );
+}
 
 export interface AuthUser {
   id?: string;
@@ -10,6 +21,15 @@ export interface AuthUser {
   assignedBranch?: string;
   status?: string;
   avatarUrl?: string;
+  image?: string;
+  phone?: string;
+  gender?: string;
+  weight?: string;
+  height?: string;
+  bio?: string;
+  fitnessGoal?: string;
+  activityLevel?: string;
+  joinedDate?: string;
   isMasterAdmin?: boolean;
   isBranchAdmin?: boolean;
 }
@@ -45,17 +65,18 @@ export async function dashboardLoginApi(
       };
     }
 
-    if (data.token) {
-      saveAuthSession(data.token, data.user);
+    const authData = data.data;
+    if (authData?.token) {
+      saveAuthSession(authData.token, authData.user);
     }
 
     return {
       success: true,
       message: data.message || "Dashboard authentication authorized",
-      token: data.token,
-      user: data.user,
+      token: authData?.token,
+      user: authData?.user,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       message: "Network error — Could not connect to authentication gateway",
@@ -86,17 +107,18 @@ export async function loginApi(
       };
     }
 
-    if (data.token) {
-      saveAuthSession(data.token, data.user);
+    const authData = data.data;
+    if (authData?.token) {
+      saveAuthSession(authData.token, authData.user);
     }
 
     return {
       success: true,
       message: data.message || "Login successful",
-      token: data.token,
-      user: data.user,
+      token: authData?.token,
+      user: authData?.user,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       message: "Network error — Could not reach login server",
@@ -130,17 +152,18 @@ export async function registerApi(payload: {
       };
     }
 
-    if (data.token) {
-      saveAuthSession(data.token, data.user);
+    const authData = data.data;
+    if (authData?.token) {
+      saveAuthSession(authData.token, authData.user);
     }
 
     return {
       success: true,
       message: data.message || "Registration successful",
-      token: data.token,
-      user: data.user,
+      token: authData?.token,
+      user: authData?.user,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return {
       success: false,
       message: "Network error — Could not complete registration",
@@ -178,10 +201,10 @@ export async function getCurrentUserApi(): Promise<AuthResponse> {
     return {
       success: true,
       message: "User verified",
-      user: data.user,
+      user: data.data?.user,
       token,
     };
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return { success: false, message: "Could not fetch user claims" };
   }
 }
@@ -198,7 +221,55 @@ export function saveAuthSession(token: string, user?: AuthUser) {
     if (user.role) localStorage.setItem("fitora_user_role", user.role);
     if (user.email) localStorage.setItem("fitora_user_email", user.email);
     if (user.name) localStorage.setItem("fitora_user_name", user.name);
+    if (user.plan) localStorage.setItem("fitora_user_plan", user.plan);
   }
+  dispatchAuthSessionUpdated(user);
+}
+
+/**
+ * Refetch the authenticated user from the backend and persist to localStorage.
+ */
+export async function refreshCurrentUser(): Promise<AuthResponse> {
+  const result = await getCurrentUserApi();
+  if (result.success && result.user) {
+    const token = result.token || getAuthSession().token || "";
+    saveAuthSession(token, result.user);
+    if (result.user.role) {
+      localStorage.setItem("fitora_active_role", result.user.role);
+    }
+  }
+  return result;
+}
+
+/**
+ * Apply a subscription/plan change locally and notify all listeners.
+ * Optionally refetches from the server when a token is present.
+ */
+export async function updateSessionAfterPayment(
+  planKey: string,
+  options?: { role?: string; refreshFromServer?: boolean },
+): Promise<AuthUser | null> {
+  const { token, user } = getAuthSession();
+  if (!user && !token) return null;
+
+  const updatedUser: AuthUser = {
+    ...(user || { name: "", email: "", role: "premium_user" }),
+    plan: planKey,
+    role: options?.role || "premium_user",
+  };
+
+  saveAuthSession(token || "", updatedUser);
+  localStorage.setItem("fitora_active_role", updatedUser.role);
+  localStorage.setItem("fitora_user_plan", planKey);
+
+  if (options?.refreshFromServer && token) {
+    const refreshed = await refreshCurrentUser();
+    if (refreshed.success && refreshed.user) {
+      return refreshed.user;
+    }
+  }
+
+  return updatedUser;
 }
 
 export function getAuthSession(): {
@@ -229,6 +300,25 @@ export function clearAuthSession() {
   localStorage.removeItem("fitora_user_role");
   localStorage.removeItem("fitora_user_email");
   localStorage.removeItem("fitora_user_name");
+  localStorage.removeItem("fitora_auth_session");
+  localStorage.removeItem("fitora_active_role");
+  localStorage.removeItem("fitora_google_auth_token");
+  sessionStorage.clear();
+
+  try {
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+  } catch { }
+}
+
+export async function logoutUser(): Promise<void> {
+  try {
+    await authClient.signOut().catch(() => null);
+  } catch { }
+  clearAuthSession();
 }
 
 export default {
@@ -236,7 +326,10 @@ export default {
   loginApi,
   registerApi,
   getCurrentUserApi,
+  refreshCurrentUser,
+  updateSessionAfterPayment,
   saveAuthSession,
   getAuthSession,
   clearAuthSession,
+  logoutUser,
 };

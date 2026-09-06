@@ -1,28 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { dashboardLoginApi } from "@/services/authService";
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowUpRight,
+  Building2,
+  CheckCircle2,
   Eye,
   EyeOff,
   Lock,
   Mail,
   Shield,
-  Building2,
-  AlertCircle,
-  CheckCircle2,
   UserCheck,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
-import { dashboardLoginApi, saveAuthSession } from "@/services/authService";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function DashboardLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState<string>("master@fitora.com");
-  const [password, setPassword] = useState<string>("P@SSW0RDF!T0R@");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -67,82 +67,12 @@ export default function DashboardLoginPage() {
         return;
       }
 
-      // 2. Resilient Offline/Master Bypass Fallback
-      if (
-        cleanEmail === "master@fitora.com" &&
-        (cleanPass === "P@SSW0RDF!T0R@" ||
-          cleanPass === "MasterPassword123!" ||
-          cleanPass === "MasterPass2026!" ||
-          cleanPass.length >= 6)
-      ) {
-        saveAuthSession("fitora_master_dev_token", {
-          id: "master_01",
-          name: "Moloy Paul",
-          email: "master@fitora.com",
-          role: "master_admin",
-          isMasterAdmin: true,
-          plan: "VIP Ultimate",
-          assignedBranch: "All 64 Branches (Headquarters)",
-        });
-        toast.success("Master Admin Authenticated! Entering Dashboard...");
-        setSuccessMessage("Signed in as Master Admin. Entering dashboard...");
-        setTimeout(() => {
-          router.replace("/dashboard");
-        }, 500);
-        return;
-      }
-
-      if (
-        (cleanEmail.endsWith("admin@fitora.com.bd") ||
-          cleanEmail.endsWith("admin@fitora.com") ||
-          cleanEmail.includes("admin")) &&
-        cleanPass.length >= 6
-      ) {
-        saveAuthSession("fitora_branch_dev_token", {
-          id: "branch_01",
-          name: "Branch Manager",
-          email: cleanEmail,
-          role: "branch_admin",
-          isBranchAdmin: true,
-          plan: "Pro Athlete",
-          assignedBranch: "Gulshan, Dhaka",
-        });
-        toast.success("Branch Admin Authenticated! Entering Dashboard...");
-        setSuccessMessage("Signed in as Branch Admin. Entering dashboard...");
-        setTimeout(() => {
-          router.replace("/dashboard");
-        }, 500);
-        return;
-      }
-
       setIsLoading(false);
       const invalidMsg =
         result.message || "Invalid administrator credentials. Access denied.";
       toast.error(invalidMsg);
       setErrorMessage(invalidMsg);
     } catch (err: any) {
-      // Direct Master Fallback on Network Error
-      if (cleanEmail === "master@fitora.com" || cleanEmail.includes("admin")) {
-        saveAuthSession("fitora_master_dev_token", {
-          id: "master_01",
-          name: "Moloy Paul",
-          email: cleanEmail,
-          role:
-            cleanEmail === "master@fitora.com"
-              ? "master_admin"
-              : "branch_admin",
-          isMasterAdmin: cleanEmail === "master@fitora.com",
-          isBranchAdmin: cleanEmail !== "master@fitora.com",
-          plan: "VIP Ultimate",
-          assignedBranch: "All 64 Branches (Headquarters)",
-        });
-        toast.success("Admin Authenticated! Entering Dashboard...");
-        setTimeout(() => {
-          router.replace("/dashboard");
-        }, 500);
-        return;
-      }
-
       setIsLoading(false);
       const errMsg = err?.message || "Authentication error occurred.";
       toast.error(errMsg);
@@ -168,20 +98,7 @@ export default function DashboardLoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-black text-white font-sans antialiased flex flex-col justify-between p-4 sm:p-6 select-none overflow-x-hidden">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          style: {
-            background: "#09090b",
-            color: "#ffffff",
-            border: "1px solid rgba(255,255,255,0.15)",
-            fontSize: "12px",
-            fontWeight: "bold",
-            borderRadius: "9999px",
-            padding: "10px 18px",
-          },
-        }}
-      />
+
 
       {/* Top Bar */}
       <header className="max-w-5xl mx-auto w-full flex items-center justify-between py-2 shrink-0">
