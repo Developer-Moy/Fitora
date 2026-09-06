@@ -162,4 +162,5 @@ We built a feature that lets users save their favorite food items to a custom "D
 
 ## 06-Sep-26
 
-Update Subscription Modal for Card Payment
+- Update Subscription Modal for Card Payment
+- Associate userId with PaymentTransaction and implement success verification

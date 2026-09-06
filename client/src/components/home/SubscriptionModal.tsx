@@ -11,6 +11,7 @@ import {
 import { PlanItem } from "@/components/home/PricingSection";
 import toast from "react-hot-toast";
 import { getAuthSession } from "@/services/authService";
+import { useSession } from "@/lib/auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -29,6 +30,7 @@ export default function SubscriptionModal({
   isAnnual,
   onSuccess,
 }: SubscriptionModalProps) {
+  const { data: authSession } = useSession();
   const [paymentMethod, setPaymentMethod] = useState<
     "bkash" | "nagad" | "card"
   >("bkash");
@@ -70,6 +72,7 @@ export default function SubscriptionModal({
       setIsCardLoading(true);
 
       const { token, user } = getAuthSession();
+      const currentUser = authSession?.user || user;
 
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
@@ -81,12 +84,14 @@ export default function SubscriptionModal({
       const res = await fetch(`${API_URL}/payments/create-checkout-session`, {
         method: "POST",
         headers,
+        credentials: "include",
         body: JSON.stringify({
           planId: plan.id,
           planKey: plan.planKey,
           planName: plan.name,
           isAnnual,
-          customerEmail: user?.email,
+          customerEmail: currentUser?.email,
+          userId: currentUser?.id || (currentUser as any)?._id,
         }),
       });
 

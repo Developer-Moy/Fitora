@@ -1,8 +1,12 @@
 import { Request, Response } from "express";
 import Stripe from "stripe";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import { successResponse, errorResponse } from "../utils/apiResponse.js";
-import { AuthUserPayload } from "../middlewares/auth.middleware.js";
+import { AuthRequest, AuthUserPayload } from "../middlewares/auth.middleware.js";
+import User, { UserPlan } from "../models/User.model.js";
+import UserTier from "../models/UserTier.model.js";
+import PaymentTransaction from "../models/PaymentTransaction.model.js";
 
 /**
  * Server-authoritative Membership Plan Definitions
@@ -19,21 +23,21 @@ export interface PlanDetails {
 export const MEMBERSHIP_PLANS: Record<string, PlanDetails> = {
   basic_pass: {
     id: "basic_pass",
-    name: "FITORA BASIC PASS",
+    name: "Basic Pass",
     monthlyPrice: 25,
     annualMonthlyPrice: 19,
     description: "Essential gym access for fitness starters & casual trainers.",
   },
   pro_athlete: {
     id: "pro_athlete",
-    name: "FITORA PRO ATHLETE",
+    name: "Pro Athlete",
     monthlyPrice: 49,
     annualMonthlyPrice: 39,
     description: "Complete fitness package with AI coach studio & full access.",
   },
   vip_ultimate: {
     id: "vip_ultimate",
-    name: "FITORA VIP ULTIMATE",
+    name: "VIP Ultimate",
     monthlyPrice: 99,
     annualMonthlyPrice: 79,
     description: "Dedicated 1-on-1 coaching, custom nutrition & VIP perks.",
@@ -43,7 +47,7 @@ export const MEMBERSHIP_PLANS: Record<string, PlanDetails> = {
 /**
  * Normalizes client plan identifier to internal server key
  */
-function resolvePlan(identifier?: string): PlanDetails | null {
+export function resolvePlan(identifier?: string): PlanDetails | null {
   if (!identifier) return null;
   const cleaned = identifier.toLowerCase().trim().replace(/[\s-]+/g, "_");
 
@@ -58,6 +62,17 @@ function resolvePlan(identifier?: string): PlanDetails | null {
   }
 
   return null;
+}
+
+/**
+ * Helper to initialize Stripe instance
+ */
+function getStripeClient(): Stripe {
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) {
+    throw new Error("STRIPE_SECRET_KEY is not configured on the server");
+  }
+  return new Stripe(stripeSecretKey);
 }
 
 /**
@@ -81,26 +96,14 @@ function extractUserFromHeader(req: Request): AuthUserPayload | null {
 /**
  * POST /api/payments/create-checkout-session
  * Creates a Stripe-hosted Checkout session in TEST mode.
+ * Identifies the user via verified JWT if present, or by customer email from session.
  */
 export async function createCheckoutSession(
   req: Request,
   res: Response,
 ): Promise<void | Response> {
   try {
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) {
-      return res
-        .status(500)
-        .json(
-          errorResponse(
-            "Stripe Secret Key is missing in server environment configuration.",
-            "STRIPE_CONFIG_ERROR",
-            500,
-          ),
-        );
-    }
-
-    const { planId, planKey, isAnnual, billingCycle, customerEmail } = req.body;
+    const { planId, planKey, isAnnual, billingCycle, customerEmail, userId } = req.body;
 
     // 1. Resolve and validate selected plan
     const plan = resolvePlan(planId || planKey);
@@ -116,7 +119,33 @@ export async function createCheckoutSession(
         );
     }
 
-    // 2. Determine billing cycle and calculate server-side amount (in USD cents)
+    // 2. User identification: try verified JWT token first, then userId, then user email
+    const authUser = extractUserFromHeader(req);
+    let userDoc = authUser?.userId ? await User.findById(authUser.userId) : null;
+
+    if (!userDoc && userId) {
+      userDoc = await User.findById(userId);
+    }
+    if (!userDoc && customerEmail) {
+      userDoc = await User.findOne({ email: customerEmail.trim().toLowerCase() });
+    }
+
+    const effectiveUserId = userDoc ? userDoc._id.toString() : (authUser?.userId || userId || "");
+    const effectiveEmail = userDoc ? userDoc.email : (authUser?.email || customerEmail || undefined);
+
+    if (!effectiveUserId) {
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Authentication required. Please log in before proceeding to payment.",
+            "UNAUTHORIZED",
+            401,
+          ),
+        );
+    }
+
+    // 3. Determine billing cycle and calculate server-side amount (in USD cents)
     const annualBilling = Boolean(
       isAnnual === true ||
       isAnnual === "true" ||
@@ -133,12 +162,8 @@ export async function createCheckoutSession(
       ? "Annual Plan (Billed Yearly - 20% OFF)"
       : "Monthly Plan (Billed Monthly)";
 
-    // 3. Optional user context from token or body
-    const user = extractUserFromHeader(req);
-    const emailForReceipt = user?.email || customerEmail || undefined;
-
     // 4. Initialize Stripe client
-    const stripe = new Stripe(stripeSecretKey);
+    const stripe = getStripeClient();
 
     const clientUrl =
       process.env.CLIENT_URL?.replace(/\/$/, "") || "http://localhost:3000";
@@ -151,7 +176,7 @@ export async function createCheckoutSession(
           price_data: {
             currency: "usd",
             product_data: {
-              name: plan.name,
+              name: `FITORA ${plan.name.toUpperCase()}`,
               description: `${plan.description} — ${intervalLabel}`,
             },
             unit_amount: amountInCents,
@@ -160,16 +185,17 @@ export async function createCheckoutSession(
         },
       ],
       mode: "payment",
-      success_url: `${clientUrl}/?session_id={CHECKOUT_SESSION_ID}&payment_status=success`,
+      success_url: `${clientUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${clientUrl}/?payment_status=cancelled`,
-      customer_email: emailForReceipt,
+      customer_email: effectiveEmail,
+      client_reference_id: effectiveUserId || undefined,
       metadata: {
+        userId: effectiveUserId,
+        userEmail: effectiveEmail || "",
         planId: plan.id,
         planName: plan.name,
         billingCycle: annualBilling ? "annual" : "monthly",
         totalAmountUSD: totalUsd.toString(),
-        userId: user?.userId || "",
-        userEmail: emailForReceipt || "",
       },
     });
 
@@ -196,12 +222,542 @@ export async function createCheckoutSession(
       }),
     );
   } catch (error: any) {
-    console.error("[Stripe Controller Error]:", error);
+    console.error("[Stripe Checkout Session Error]:", error);
     return res
       .status(500)
       .json(
         errorResponse(
           "Failed to create Stripe Checkout Session",
+          error?.message || "Internal Server Error",
+          500,
+        ),
+      );
+  }
+}
+
+/**
+ * POST /api/payments/webhook
+ * Receives raw body webhook events from Stripe.
+ * Cryptographically verifies stripe-signature before processing.
+ */
+export async function handleStripeWebhook(
+  req: Request,
+  res: Response,
+): Promise<void | Response> {
+  const sig = req.headers["stripe-signature"];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!webhookSecret) {
+    console.error("[Stripe Webhook]: STRIPE_WEBHOOK_SECRET is not configured on the server.");
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Stripe Webhook Secret is not configured on the server.",
+          "WEBHOOK_CONFIG_ERROR",
+          500,
+        ),
+      );
+  }
+
+  if (!sig) {
+    return res
+      .status(400)
+      .json(
+        errorResponse(
+          "Missing stripe-signature header in webhook request.",
+          "MISSING_SIGNATURE",
+          400,
+        ),
+      );
+  }
+
+  let event: Stripe.Event;
+  const stripe = getStripeClient();
+
+  try {
+    // req.body must be raw Buffer
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+  } catch (err: any) {
+    console.error("[Stripe Webhook Signature Verification Failed]:", err.message);
+    return res
+      .status(400)
+      .json(
+        errorResponse(
+          `Webhook signature verification failed: ${err.message}`,
+          "INVALID_SIGNATURE",
+          400,
+        ),
+      );
+  }
+
+  // Handle checkout.session.completed event
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+
+    try {
+      // 1. Validate session completion status
+      if (session.status !== "complete" || session.payment_status !== "paid") {
+        console.warn(`[Stripe Webhook]: Session ${session.id} is not complete or paid.`);
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Checkout session payment is not completed.",
+              "PAYMENT_NOT_PAID",
+              400,
+            ),
+          );
+      }
+
+      // 2. Validate metadata
+      const metadata = session.metadata;
+      if (!metadata || !metadata.planId || !metadata.billingCycle) {
+        console.error(`[Stripe Webhook]: Session ${session.id} missing required plan metadata.`);
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Missing required metadata in Checkout Session.",
+              "INVALID_METADATA",
+              400,
+            ),
+          );
+      }
+
+      const { userId, planId, billingCycle, userEmail } = metadata;
+
+      // 3. Find user in MongoDB (by userId or client_reference_id or userEmail or session.customer_email)
+      let user = userId ? await User.findById(userId) : null;
+      if (!user && session.client_reference_id) {
+        user = await User.findById(session.client_reference_id);
+      }
+      if (!user && (userEmail || session.customer_email)) {
+        const emailToFind = (userEmail || session.customer_email || "").trim().toLowerCase();
+        user = await User.findOne({ email: emailToFind });
+      }
+
+      const rawUserId = user?._id || userId || session.client_reference_id;
+      if (!rawUserId) {
+        console.error(`[Stripe Webhook]: Missing required userId for session ${session.id}. Cannot record PaymentTransaction.`);
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Missing required userId to record payment transaction.",
+              "MISSING_USER_ID",
+              400,
+            ),
+          );
+      }
+
+      const transactionUserId =
+        user?._id ||
+        (mongoose.Types.ObjectId.isValid(rawUserId)
+          ? new mongoose.Types.ObjectId(rawUserId)
+          : rawUserId);
+
+      // 4. Validate plan against authoritative server plans
+      const plan = resolvePlan(planId);
+      if (!plan) {
+        console.error(`[Stripe Webhook]: Invalid planId ${planId} in session metadata.`);
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Invalid membership plan specified in metadata.",
+              "INVALID_PLAN",
+              400,
+            ),
+          );
+      }
+
+      // 5. Validate billing cycle
+      const isAnnual = billingCycle === "annual" || billingCycle === "yearly";
+
+      // 6. Independently recalculate server-side expected amount
+      const expectedTotalUsd = isAnnual
+        ? plan.annualMonthlyPrice * 12
+        : plan.monthlyPrice;
+      const expectedAmountInCents = Math.round(expectedTotalUsd * 100);
+
+      if (session.amount_total !== expectedAmountInCents) {
+        console.error(
+          `[Stripe Webhook]: Authoritative amount mismatch! Received: ${session.amount_total}, Expected: ${expectedAmountInCents}`,
+        );
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Payment amount does not match authoritative plan pricing.",
+              "AMOUNT_MISMATCH",
+              400,
+            ),
+          );
+      }
+
+      // 7. Validate currency
+      if (session.currency?.toLowerCase() !== "usd") {
+        console.error(`[Stripe Webhook]: Currency mismatch: ${session.currency}`);
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Payment currency is not supported. Expected USD.",
+              "CURRENCY_MISMATCH",
+              400,
+            ),
+          );
+      }
+
+      // 8. Idempotency Check: prevent duplicate processing & double crediting
+      const existingTx = await PaymentTransaction.findOne({
+        stripeCheckoutSessionId: session.id,
+      });
+
+      if (existingTx && existingTx.status === "paid") {
+        console.log(`[Stripe Webhook]: Session ${session.id} already processed. Returning HTTP 200.`);
+        return res.status(200).json({ received: true, duplicate: true });
+      }
+
+      // 9. Persist verified PaymentTransaction
+      const paymentIntentId =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id;
+
+      const customerId =
+        typeof session.customer === "string"
+          ? session.customer
+          : session.customer?.id;
+
+      await PaymentTransaction.findOneAndUpdate(
+        { stripeCheckoutSessionId: session.id },
+        {
+          userId: transactionUserId,
+          stripeCheckoutSessionId: session.id,
+          stripePaymentIntentId: paymentIntentId,
+          stripeCustomerId: customerId,
+          stripeEventId: event.id,
+          planId: plan.id,
+          planName: plan.name,
+          billingCycle: isAnnual ? "annual" : "monthly",
+          amount: expectedTotalUsd,
+          currency: "usd",
+          paymentMethod: "Card",
+          status: "paid",
+          paidAt: new Date(),
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      );
+
+      // 10. If user exists, activate membership on User & UserTier models
+      if (user) {
+        const startDate = new Date();
+        const expiryDate = new Date(startDate);
+        if (isAnnual) {
+          expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+        } else {
+          expiryDate.setMonth(expiryDate.getMonth() + 1);
+        }
+
+        const userPlanName: UserPlan =
+          plan.id === "vip_ultimate"
+            ? "VIP Ultimate"
+            : plan.id === "pro_athlete"
+              ? "Pro Athlete"
+              : "Basic Pass";
+
+        user.plan = userPlanName;
+        user.paymentMethod = "Card";
+        user.status = "active";
+        user.membershipExpiresAt = expiryDate;
+
+        // Promote to premium_user if currently a basic athlete/user
+        if (user.role !== "master_admin" && user.role !== "branch_admin") {
+          user.role = "premium_user";
+        }
+
+        await user.save();
+
+        const tierType =
+          plan.id === "vip_ultimate"
+            ? "vip"
+            : plan.id === "pro_athlete"
+              ? "pro"
+              : "basic";
+
+        await UserTier.findOneAndUpdate(
+          { userId: user._id },
+          {
+            tier: tierType,
+            startDate,
+            expiryDate,
+            validUntil: expiryDate,
+            isActive: true,
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true },
+        );
+
+        console.log(
+          `[Stripe Webhook]: Membership successfully activated for user ${user._id} (${user.email}) -> Plan: ${userPlanName} (Tier: ${tierType}), Valid until: ${expiryDate.toISOString()}`,
+        );
+      } else {
+        console.warn(
+          `[Stripe Webhook]: Payment ${session.id} recorded successfully, but no matching User account was found to activate.`,
+        );
+      }
+
+      return res.status(200).json({ received: true });
+    } catch (err: any) {
+      console.error("[Stripe Webhook Processing Error]:", err);
+      return res
+        .status(500)
+        .json(
+          errorResponse(
+            "Internal server error during webhook processing",
+            err?.message || "Unknown error",
+            500,
+          ),
+        );
+    }
+  }
+
+  // Acknowledge other unhandled event types with HTTP 200
+  return res.status(200).json({ received: true });
+}
+
+/**
+ * GET /api/payments/verify-session?session_id=...&email=...
+ * Simple, secure session verification:
+ * 1. Checks that session_id is provided.
+ * 2. Retrieves the Stripe Checkout Session server-side via Stripe Secret Key.
+ * 3. Confirms that session.payment_status === "paid" and status === "complete".
+ * 4. Compares the Stripe session with the logged-in user.
+ * 5. Returns the verified plan and payment information for the frontend success UI.
+ * 6. Safely records PaymentTransaction and activates membership if local webhook hasn't run yet.
+ */
+export async function verifySession(
+  req: Request,
+  res: Response,
+): Promise<void | Response> {
+  try {
+    const sessionId = (req.query.session_id as string)?.trim();
+    if (!sessionId) {
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Missing or invalid session_id parameter.",
+            "INVALID_SESSION_ID",
+            400,
+          ),
+        );
+    }
+
+    // 1. Retrieve the Checkout Session directly from Stripe using secret key
+    const stripe = getStripeClient();
+    let session: Stripe.Checkout.Session;
+    try {
+      session = await stripe.checkout.sessions.retrieve(sessionId);
+    } catch (stripeErr: any) {
+      console.error("[Stripe Session Retrieval Error]:", stripeErr);
+      return res
+        .status(404)
+        .json(
+          errorResponse(
+            "Stripe Checkout Session not found.",
+            "SESSION_NOT_FOUND",
+            404,
+          ),
+        );
+    }
+
+    // 2. Verify Stripe confirms the payment is completed and paid
+    if (session.status !== "complete" || session.payment_status !== "paid") {
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Payment is not complete or has not been confirmed as paid by Stripe.",
+            "PAYMENT_NOT_PAID",
+            400,
+          ),
+        );
+    }
+
+    // 3. User identification & matching:
+    const authHeaderUser = extractUserFromHeader(req);
+    const queryEmail = (req.query.email as string)?.trim().toLowerCase();
+    const queryUserId = (req.query.userId as string)?.trim();
+    const requestingEmail = (authHeaderUser?.email || queryEmail || "").toLowerCase();
+    const requestingUserId = authHeaderUser?.userId || queryUserId || "";
+
+    // The user must be logged in to view payment confirmation
+    if (!requestingEmail && !requestingUserId) {
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Please log in to view your verified payment details.",
+            "UNAUTHORIZED",
+            401,
+          ),
+        );
+    }
+
+    const sessionUserId = (session.metadata?.userId || session.client_reference_id || "").trim();
+    const sessionEmail = (
+      session.metadata?.userEmail ||
+      session.customer_email ||
+      session.customer_details?.email ||
+      ""
+    ).trim().toLowerCase();
+
+    // Verify ownership: if session has user identifiers, verify that the logged-in user matches
+    if (sessionUserId || sessionEmail) {
+      const matchesUserId = Boolean(sessionUserId && requestingUserId && sessionUserId === requestingUserId);
+      const matchesEmail = Boolean(sessionEmail && requestingEmail && sessionEmail === requestingEmail);
+
+      if (!matchesUserId && !matchesEmail) {
+        return res
+          .status(403)
+          .json(
+            errorResponse(
+              "You do not have permission to view this payment session.",
+              "FORBIDDEN",
+              403,
+            ),
+          );
+      }
+    }
+
+    // Find the user in database
+    let userDoc = requestingUserId ? await User.findById(requestingUserId) : null;
+    if (!userDoc && requestingEmail) {
+      userDoc = await User.findOne({ email: requestingEmail });
+    }
+    if (!userDoc && sessionUserId) {
+      userDoc = await User.findById(sessionUserId);
+    }
+    if (!userDoc && sessionEmail) {
+      userDoc = await User.findOne({ email: sessionEmail });
+    }
+
+    // 4. Resolve plan and calculate duration
+    const plan = resolvePlan(session.metadata?.planId || "basic_pass");
+    const isAnnual = session.metadata?.billingCycle === "annual" || session.metadata?.billingCycle === "yearly";
+    const planName = plan?.name || session.metadata?.planName || "Basic Pass";
+    const totalUsd =
+      Number(session.metadata?.totalAmountUSD) ||
+      (session.amount_total ? session.amount_total / 100 : (isAnnual ? 228 : 25));
+
+    const startDate = new Date();
+    const expiryDate = new Date(startDate);
+    if (isAnnual) {
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    } else {
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
+    }
+
+    // 5. Ensure PaymentTransaction exists in MongoDB (Safe fallback if local webhook hasn't run)
+    let transaction = await PaymentTransaction.findOne({
+      stripeCheckoutSessionId: session.id,
+    });
+
+    if (!transaction) {
+      const rawUserId = userDoc?._id || requestingUserId || sessionUserId;
+      if (!rawUserId) {
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Authenticated user ID is required to record payment transaction.",
+              "MISSING_USER_ID",
+              400,
+            ),
+          );
+      }
+
+      const transactionUserId =
+        userDoc?._id ||
+        (mongoose.Types.ObjectId.isValid(rawUserId)
+          ? new mongoose.Types.ObjectId(rawUserId)
+          : rawUserId);
+
+      const paymentIntentId =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id;
+      const customerId =
+        typeof session.customer === "string"
+          ? session.customer
+          : session.customer?.id;
+
+      transaction = await PaymentTransaction.findOneAndUpdate(
+        { stripeCheckoutSessionId: session.id },
+        {
+          userId: transactionUserId,
+          stripeCheckoutSessionId: session.id,
+          stripePaymentIntentId: paymentIntentId,
+          stripeCustomerId: customerId,
+          planId: plan?.id || "basic_pass",
+          planName: planName,
+          billingCycle: isAnnual ? "annual" : "monthly",
+          amount: totalUsd,
+          currency: session.currency || "usd",
+          paymentMethod: "Card",
+          status: "paid",
+          paidAt: new Date(),
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      );
+
+      // Activate membership on User if found
+      if (userDoc) {
+        userDoc.plan = (plan?.id === "vip_ultimate" ? "VIP Ultimate" : plan?.id === "pro_athlete" ? "Pro Athlete" : "Basic Pass") as UserPlan;
+        userDoc.paymentMethod = "Card";
+        userDoc.status = "active";
+        userDoc.membershipExpiresAt = expiryDate;
+        if (userDoc.role !== "master_admin" && userDoc.role !== "branch_admin") {
+          userDoc.role = "premium_user";
+        }
+        await userDoc.save();
+
+        const tierType = plan?.id === "vip_ultimate" ? "vip" : plan?.id === "pro_athlete" ? "pro" : "basic";
+        await UserTier.findOneAndUpdate(
+          { userId: userDoc._id },
+          {
+            tier: tierType,
+            startDate,
+            expiryDate,
+            validUntil: expiryDate,
+            isActive: true,
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true },
+        );
+      }
+    }
+
+    // 6. Return safe, verified payment information
+    return res.status(200).json(
+      successResponse("Payment verified successfully", {
+        planName: planName,
+        billingCycle: isAnnual ? "annual" : "monthly",
+        amount: totalUsd,
+        currency: (session.currency || "usd").toUpperCase(),
+        paymentMethod: "Card",
+        paidAt: transaction?.paidAt || transaction?.createdAt || new Date(),
+        membershipExpiresAt: userDoc?.membershipExpiresAt || expiryDate,
+      }),
+    );
+  } catch (error: any) {
+    console.error("[Verify Session Error]:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "An error occurred while verifying the payment session.",
           error?.message || "Internal Server Error",
           500,
         ),
