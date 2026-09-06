@@ -877,25 +877,30 @@ export async function checkoutPayment(
       userEmail: bodyUserEmail,
     } = req.body;
 
-    // Resolve plan name
-    let planName = bodyPlanName;
-    if (!planName && planId) {
-      const p = resolvePlan(planId);
-      planName = p?.name || "Pro Athlete";
-    }
-    if (!planName) planName = "Pro Athlete";
+    // 1. Authoritative Plan & Server-Enforced Pricing
+    // Even if an attacker modifies the amount in browser console/network tab, server strictly enforces authoritative price
+    const resolvedPlan = resolvePlan(planId || bodyPlanName);
+    const planName = resolvedPlan ? resolvedPlan.name : (bodyPlanName || "Pro Athlete");
 
-    const amount = Number(amountBDT) || 3900;
-    const authUser = (req as AuthRequest).user;
-    const resolvedUserId = bodyUserId || authUser?.userId || "guest_user";
-    const resolvedEmail = bodyUserEmail || authUser?.email || "";
-    const resolvedName = bodyUserName || "Valued Athlete";
-
-    // Subscription Period calculation
+    // Subscription Period calculation (strictly calculated server-side)
     const cycle =
       billingCycle === "yearly" || billingCycle === "annual"
         ? "yearly"
         : "monthly";
+
+    const expectedUsd = resolvedPlan
+      ? (cycle === "yearly" ? resolvedPlan.annualMonthlyPrice * 12 : resolvedPlan.monthlyPrice)
+      : (cycle === "yearly" ? 39 * 12 : 49);
+    const authoritativeBDT = expectedUsd * 120;
+    const amount = authoritativeBDT; // Strictly server authoritative
+
+    // 2. Cryptographic User Verification: prioritizes verified JWT token over client body
+    const verifiedJwtUser = extractUserFromHeader(req);
+    const authUser = (req as AuthRequest).user || verifiedJwtUser;
+    const resolvedUserId = authUser?.userId || bodyUserId || "guest_user";
+    const resolvedEmail = authUser?.email || bodyUserEmail || "";
+    const resolvedName = bodyUserName || "Valued Athlete";
+
     const startDate = new Date();
     const expiryDate = new Date(startDate);
     if (cycle === "yearly") {
