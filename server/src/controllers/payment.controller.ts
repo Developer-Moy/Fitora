@@ -906,24 +906,28 @@ export async function checkoutPayment(
     const authUser = (req as AuthRequest).user || verifiedJwtUser;
 
     if (!authUser || !authUser.userId) {
-      return res.status(401).json(
-        errorResponse(
-          "Authentication required. You must be securely logged in with a valid session to purchase a membership plan.",
-          "UNAUTHORIZED",
-          401,
-        ),
-      );
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Authentication required. You must be securely logged in with a valid session to purchase a membership plan.",
+            "UNAUTHORIZED",
+            401,
+          ),
+        );
     }
 
     // 3. Payment Account & Gateway Sanity Check
     if (!accountNumber || String(accountNumber).trim().length < 4) {
-      return res.status(400).json(
-        errorResponse(
-          "A valid payment account number or reference is required.",
-          "INVALID_ACCOUNT_NUMBER",
-          400,
-        ),
-      );
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "A valid payment account number or reference is required.",
+            "INVALID_ACCOUNT_NUMBER",
+            400,
+          ),
+        );
     }
 
     const resolvedUserId = authUser.userId;
@@ -978,13 +982,15 @@ export async function checkoutPayment(
         // Strictly update the authenticated user only (ignoring any malicious payload IDs)
         const targetUser = await User.findById(authUser.userId);
         if (!targetUser) {
-          return res.status(404).json(
-            errorResponse(
-              "Authenticated user record not found in database.",
-              "USER_NOT_FOUND",
-              404,
-            ),
-          );
+          return res
+            .status(404)
+            .json(
+              errorResponse(
+                "Authenticated user record not found in database.",
+                "USER_NOT_FOUND",
+                404,
+              ),
+            );
         }
 
         targetUser.plan = (

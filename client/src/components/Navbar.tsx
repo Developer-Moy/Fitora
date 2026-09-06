@@ -109,9 +109,9 @@ export default function Navbar() {
         role === "master_admin" ||
         Boolean(
           plan &&
-            plan.toLowerCase() !== "free" &&
-            plan.toLowerCase() !== "free_user" &&
-            plan.trim() !== "",
+          plan.toLowerCase() !== "free" &&
+          plan.toLowerCase() !== "free_user" &&
+          plan.trim() !== "",
         );
 
       setIsPremium(Boolean(hasProStatus));
@@ -129,9 +129,9 @@ export default function Navbar() {
                 serverRole === "master_admin" ||
                 Boolean(
                   serverPlan &&
-                    serverPlan.toLowerCase() !== "free" &&
-                    serverPlan.toLowerCase() !== "free_user" &&
-                    serverPlan.trim() !== "",
+                  serverPlan.toLowerCase() !== "free" &&
+                  serverPlan.toLowerCase() !== "free_user" &&
+                  serverPlan.trim() !== "",
                 );
 
               setIsPremium(Boolean(isServerPro));
@@ -144,7 +144,10 @@ export default function Navbar() {
                   localStorage.getItem("fitora_active_role") === "premium_user")
               ) {
                 localStorage.setItem("fitora_user_role", serverRole || "user");
-                localStorage.setItem("fitora_active_role", serverRole || "user");
+                localStorage.setItem(
+                  "fitora_active_role",
+                  serverRole || "user",
+                );
                 localStorage.removeItem("fitora_user_plan");
               }
             } else {
@@ -224,7 +227,10 @@ export default function Navbar() {
         {/* Left: Brand Logo */}
         <Link
           href="/"
-          onClick={() => { if (pathname === "/") window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          onClick={() => {
+            if (pathname === "/")
+              window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
           className="flex items-center gap-3 group select-none shrink-0"
         >
           <img
@@ -352,13 +358,13 @@ export default function Navbar() {
                     </Link>
 
                     <Link
-                        href="/dashboard"
-                        onClick={() => setProfileDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
-                      >
-                        <FiSettings className="w-4 h-4 text-white/60" />
-                        <span>Dashboard</span>
-                      </Link>
+                      href="/dashboard"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <FiSettings className="w-4 h-4 text-white/60" />
+                      <span>Dashboard</span>
+                    </Link>
 
                     <button
                       type="button"
