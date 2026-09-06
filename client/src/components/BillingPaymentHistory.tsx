@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { CreditCard, Calendar, CheckCircle2, Receipt } from "lucide-react";
+import Link from "next/link";
+import { CreditCard, Calendar, CheckCircle2, Receipt, ArrowUpRight } from "lucide-react";
 
 interface Transaction {
   _id: string;
@@ -50,7 +51,7 @@ export default function BillingPaymentHistory({
           </span>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="space-y-2">
             <p className="text-xs text-white/60 uppercase tracking-wider font-bold">
               Current Plan
@@ -64,22 +65,26 @@ export default function BillingPaymentHistory({
             </div>
           </div>
 
-          {userPlan !== "Free Pass" && (
-            <div className="text-right">
-              <p className="text-xs text-white/60 uppercase tracking-wider font-bold">
-                Renews On
-              </p>
-              <p className="text-sm text-white font-semibold mt-1">
-                {new Date(
-                  Date.now() + 30 * 24 * 60 * 60 * 1000
-                ).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            {userPlan !== "Free Pass" && (
+              <div className="text-right">
+                <p className="text-xs text-white/60 uppercase tracking-wider font-bold">
+                  Renews On
+                </p>
+                <p className="text-sm text-white font-semibold mt-1">
+                  Oct 6, 2026
+                </p>
+              </div>
+            )}
+
+            <Link
+              href="/payment"
+              className="inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)] transition-all cursor-pointer shadow-xl"
+            >
+              <span>{userPlan === "Free Pass" ? "Upgrade Plan" : "Manage Plan"}</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </div>
 
