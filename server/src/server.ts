@@ -8,6 +8,8 @@ import { setupSocketHandlers } from "./sockets/index.js";
 import apiRouter from "./routes/index.js";
 import { seedStopwatchPresets } from "./data/stopwatch.seed.js";
 
+import { handleStripeWebhook } from "./controllers/payment.controller.js";
+
 dotenv.config();
 
 const app = express();
@@ -37,6 +39,15 @@ app.use(
     credentials: true,
   }),
 );
+
+// Stripe Webhook Endpoint: MUST receive unparsed raw body for cryptographic signature verification
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook,
+);
+
+// Standard JSON body parser for all subsequent API endpoints
 app.use(express.json());
 
 // Root Health Check Route

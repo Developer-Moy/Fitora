@@ -15,7 +15,8 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.5.1",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "stripe": "^22.6.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

@@ -1,19 +1,16 @@
 import { Router } from "express";
 import {
-  checkoutPayment,
-  getMyTransactions,
-  getAllPayments,
-} from "../controllers/payment.controller";
+  createCheckoutSession,
+  verifySession,
+} from "../controllers/payment.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// Process checkout and upgrade membership plan
-router.post("/checkout", checkoutPayment);
+// POST /api/payments/create-checkout-session
+router.post("/create-checkout-session", createCheckoutSession);
 
-// Retrieve transaction history for user/member
-router.get("/my-transactions", getMyTransactions);
-
-// Retrieve all platform transactions (Admin telemetry)
-router.get("/all", getAllPayments);
+// GET /api/payments/verify-session?session_id=...
+router.get("/verify-session", verifySession);
 
 export default router;

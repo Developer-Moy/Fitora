@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IUserTier extends Document {
   userId: mongoose.Types.ObjectId;
-  tier: "free" | "pro" | "vip";
+  tier: "free" | "basic" | "pro" | "vip";
   startDate: Date;
   expiryDate?: Date;
   validUntil?: Date; // Kept for backward compatibility
@@ -22,7 +22,7 @@ const UserTierSchema: Schema = new Schema(
     },
     tier: {
       type: String,
-      enum: ["free", "pro", "vip"],
+      enum: ["free", "basic", "pro", "vip"],
       default: "free",
       required: true,
     },

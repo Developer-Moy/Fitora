@@ -39,6 +39,7 @@ export interface IUser extends Document {
   assignedBranchSlug: string;
   plan: UserPlan;
   status: UserStatus;
+  membershipExpiresAt?: Date;
 
   // User Stats
   attendanceStreakDays: number;
@@ -149,6 +150,9 @@ const userSchema = new Schema<IUser>(
     isMasterProtected: {
       type: Boolean,
       default: false,
+    },
+    membershipExpiresAt: {
+      type: Date,
     },
   },
   {
