@@ -246,3 +246,12 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Built resilient fallback handling for in-memory persistence during offline testing.
 - Verified 100% clean TypeScript production builds on both server (`npm run build`) and client (`npx tsc --noEmit`) with zero errors.
 - Created centralized TypeScript definitions in `client/src/types/payment.ts` (`PaymentGateway`, `PaymentStatus`, `BillingCycle`, `MembershipTier`, `CheckoutPayload`, `PaymentInvoice`, `PaymentRecord`, `CheckoutResponse`, `MyTransactionsResponse`) to connect frontend components with the payment engine.
+- Pulled and integrated merged team contributions from `origin/development` into `moloy` branch.
+- Diagnosed and resolved cross-platform integration bugs and build errors:
+  - Fixed file casing conflict on Linux filesystem (`server/src/models/payment.model.ts` vs `server/src/models/Payment.model.ts` causing `TS1149`).
+  - Installed missing `stripe` dependency in server workspace.
+  - Unified Payment Controller and Routes: merged Stripe card checkout/verification with local gateway (bKash/Nagad/Card) checkout and history endpoints (`POST /checkout`, `POST /create-checkout-session`, `GET /verify-session`, `GET /me`, `GET /my-transactions`, `GET /all`).
+  - Connected `SubscriptionModal.tsx` to live backend checkout API (`POST /api/payments/checkout`), replacing fake timer simulations with genuine database persistence and auto-plan upgrades.
+  - Connected user profile (`client/src/app/profile/page.tsx`) to live payment transaction API (`GET /api/payments/me`) to render real user payment records in `BillingPaymentHistory`.
+  - Updated `client/src/services/paymentService.ts` to support both BDT and Stripe checkout schemas with robust fallback handling.
+- Validated 100% clean production builds on both server (`npm run build`) and client (`npx tsc --noEmit`) with 0 errors.

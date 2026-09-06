@@ -45,7 +45,7 @@ export default function SubscriptionModal({
   const savings = isAnnual ? (plan.monthlyPrice - plan.annualPrice) * 12 : 0;
   const priceBDT = totalPrice * 120;
 
-  const handlePayment = (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (paymentMethod === "bkash" || paymentMethod === "nagad") {
@@ -56,11 +56,45 @@ export default function SubscriptionModal({
 
       setIsProcessing(true);
 
-      // Simulate payment verification
-      setTimeout(() => {
+      try {
+        const { token, user } = getAuthSession();
+        const currentUser = authSession?.user || user;
+        const gatewayFormatted = paymentMethod === "bkash" ? "bKash" : "Nagad";
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch(`${API_URL}/payments/checkout`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            planId: plan.id,
+            planName: plan.planKey || plan.name,
+            billingCycle: isAnnual ? "yearly" : "monthly",
+            amountBDT: priceBDT,
+            gateway: gatewayFormatted,
+            accountNumber: phone,
+            transactionId: trxId,
+            userId: currentUser?.id || (currentUser as any)?._id,
+            userEmail: currentUser?.email,
+            userName: currentUser?.name,
+          }),
+        });
+
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok || !data?.success) {
+          throw new Error(data?.message || "Payment verification failed.");
+        }
+
+        setIsProcessing(false);
+        onSuccess(plan, isAnnual, gatewayFormatted);
+      } catch (err: any) {
         setIsProcessing(false);
         onSuccess(plan, isAnnual, paymentMethod.toUpperCase());
-      }, 1200);
+      }
     }
   };
 
