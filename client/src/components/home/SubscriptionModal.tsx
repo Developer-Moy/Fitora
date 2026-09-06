@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  X,
-  CheckCircle2,
-  ShieldCheck,
-  Loader2,
-  Lock,
-} from "lucide-react";
+import { X, CheckCircle2, ShieldCheck, Loader2, Lock } from "lucide-react";
 import { PlanItem } from "@/components/home/PricingSection";
 import toast from "react-hot-toast";
 import { getAuthSession } from "@/services/authService";
@@ -261,37 +255,46 @@ export default function SubscriptionModal({
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("bkash")}
-                    className={`py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${paymentMethod === "bkash"
+                    className={`py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                      paymentMethod === "bkash"
                         ? "bg-white text-black border-white shadow-lg font-black"
                         : "bg-neutral-900 text-white/70 border-white/10 hover:border-white/30 font-semibold"
-                      }`}
+                    }`}
                   >
                     <span className="text-xs font-bold">bKash</span>
-                    <span className="text-[8px] sm:text-[9px] opacity-70">Mobile Wallet</span>
+                    <span className="text-[8px] sm:text-[9px] opacity-70">
+                      Mobile Wallet
+                    </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("nagad")}
-                    className={`py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${paymentMethod === "nagad"
+                    className={`py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                      paymentMethod === "nagad"
                         ? "bg-white text-black border-white shadow-lg font-black"
                         : "bg-neutral-900 text-white/70 border-white/10 hover:border-white/30 font-semibold"
-                      }`}
+                    }`}
                   >
                     <span className="text-xs font-bold">Nagad</span>
-                    <span className="text-[8px] sm:text-[9px] opacity-70">Instant Pay</span>
+                    <span className="text-[8px] sm:text-[9px] opacity-70">
+                      Instant Pay
+                    </span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("card")}
-                    className={`py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${paymentMethod === "card"
+                    className={`py-2 px-1.5 sm:py-2.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                      paymentMethod === "card"
                         ? "bg-white text-black border-white shadow-lg font-black"
                         : "bg-neutral-900 text-white/70 border-white/10 hover:border-white/30 font-semibold"
-                      }`}
+                    }`}
                   >
                     <span className="text-xs font-bold">Card</span>
-                    <span className="text-[8px] sm:text-[9px] opacity-70">Visa / Master</span>
+                    <span className="text-[8px] sm:text-[9px] opacity-70">
+                      Visa / Master
+                    </span>
                   </button>
                 </div>
               </div>
@@ -302,7 +305,8 @@ export default function SubscriptionModal({
                   <div className="space-y-2 p-2.5 sm:p-3 bg-neutral-900/70 border border-white/10 rounded-xl">
                     <div>
                       <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
-                        {paymentMethod === "bkash" ? "bKash" : "Nagad"} Mobile Number *
+                        {paymentMethod === "bkash" ? "bKash" : "Nagad"} Mobile
+                        Number *
                       </label>
                       <input
                         type="tel"
@@ -376,7 +380,8 @@ export default function SubscriptionModal({
                     <div className="flex items-start gap-2.5 p-2.5 bg-white/5 border border-white/10 rounded-xl">
                       <ShieldCheck className="w-4 h-4 text-white shrink-0 mt-0.5" />
                       <p className="text-[10px] sm:text-[11px] text-white/70 leading-relaxed">
-                        Your card payment will be completed securely through Stripe. FITORA does not store your card details.
+                        Your card payment will be completed securely through
+                        Stripe. FITORA does not store your card details.
                       </p>
                     </div>
                   </div>
