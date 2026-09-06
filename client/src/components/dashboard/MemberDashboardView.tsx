@@ -33,11 +33,13 @@ import {
   Check,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { updateSessionAfterPayment } from "@/services/authService";
 
 interface MemberDashboardViewProps {
   isPremium: boolean;
   userName: string;
   userEmail: string;
+  userPlan: string;
   assignedBranch: string;
   userId: string;
   onUpgradeToPremium?: () => void;
@@ -47,6 +49,7 @@ export default function MemberDashboardView({
   isPremium,
   userName,
   userEmail,
+  userPlan,
   assignedBranch,
   userId,
   onUpgradeToPremium,
@@ -133,9 +136,10 @@ export default function MemberDashboardView({
     setTimeout(() => setProfileToast(null), 3500);
   };
 
-  const handlePayment = (e: React.FormEvent) => {
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setPaymentSuccess(true);
+    await updateSessionAfterPayment("VIP Ultimate");
     toast.success("VIP Ultimate membership activated successfully!");
     setTimeout(() => {
       setPaymentSuccess(false);
@@ -293,7 +297,7 @@ export default function MemberDashboardView({
               {isPremium ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-black font-black">
                   <Crown className="w-3.5 h-3.5 fill-black" />
-                  VIP Pro Athlete Pass Active
+                  {userPlan || "VIP Pro Athlete Pass Active"}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900 border border-white/20 text-white/70">
