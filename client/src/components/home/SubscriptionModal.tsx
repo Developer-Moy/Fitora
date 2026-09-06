@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, CheckCircle2, ShieldCheck, Loader2, Lock, CreditCard } from "lucide-react";
+import {
+  X,
+  CheckCircle2,
+  ShieldCheck,
+  Loader2,
+  Lock,
+  CreditCard,
+} from "lucide-react";
 import { PlanItem } from "@/components/home/PricingSection";
 import toast from "react-hot-toast";
 import { getAuthSession } from "@/services/authService";
@@ -100,7 +107,7 @@ export default function SubscriptionModal({
 
       const transactionId =
         paymentMethod === "card"
-          ? (trxId || `CARD-${Date.now().toString().slice(-6)}`)
+          ? trxId || `CARD-${Date.now().toString().slice(-6)}`
           : trxId;
 
       const headers: Record<string, string> = {
@@ -121,7 +128,8 @@ export default function SubscriptionModal({
           transactionId,
           userId: currentUser?.id || (currentUser as any)?._id,
           userEmail: currentUser?.email,
-          userName: (paymentMethod === "card" && cardName) ? cardName : currentUser?.name,
+          userName:
+            paymentMethod === "card" && cardName ? cardName : currentUser?.name,
         }),
       });
 
