@@ -25,6 +25,7 @@ import {
   clearAuthSession,
   logoutUser,
   AuthUser,
+  AUTH_SESSION_UPDATED,
 } from "@/services/authService";
 
 /* ── Desktop Horizontal Navigation Links ── */
@@ -64,6 +65,7 @@ export default function Navbar() {
   const { data: authSession } = useSession();
   const [localUser, setLocalUser] = useState<AuthUser | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -82,11 +84,48 @@ export default function Navbar() {
 
   useEffect(() => {
     setIsMounted(true);
-    const session = getAuthSession();
-    if (session.user) {
-      setLocalUser(session.user);
-    }
-  }, []);
+
+    const syncUser = () => {
+      const session = getAuthSession();
+      if (session.user) {
+        setLocalUser(session.user);
+      }
+      const currentUser = session.user || authSession?.user;
+      const role =
+        (currentUser as any)?.role ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("fitora_active_role") ||
+            localStorage.getItem("fitora_user_role")
+          : "");
+      const plan =
+        (currentUser as any)?.plan ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("fitora_user_plan")
+          : "");
+
+      const hasProStatus =
+        role === "premium_user" ||
+        role === "master_admin" ||
+        Boolean(
+          plan &&
+            plan.toLowerCase() !== "free" &&
+            plan.toLowerCase() !== "free_user" &&
+            plan.trim() !== "",
+        );
+
+      setIsPremium(Boolean(hasProStatus));
+    };
+
+    syncUser();
+
+    window.addEventListener(AUTH_SESSION_UPDATED, syncUser);
+    window.addEventListener("storage", syncUser);
+
+    return () => {
+      window.removeEventListener(AUTH_SESSION_UPDATED, syncUser);
+      window.removeEventListener("storage", syncUser);
+    };
+  }, [authSession]);
 
   const activeUser = authSession?.user || localUser;
   const isLoggedIn = isMounted && !!activeUser;
@@ -153,9 +192,17 @@ export default function Navbar() {
             className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
           />
           <div className="flex flex-col">
-            <span className="text-white font-black text-lg sm:text-xl tracking-wider uppercase leading-none font-sans">
-              FITORA
-            </span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-white font-black text-lg sm:text-xl tracking-wider uppercase leading-none font-sans">
+                FITORA
+              </span>
+              {isMounted && isPremium && (
+                <span className="px-1.5 py-0.5 rounded bg-white text-black text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(255,255,255,0.7)] flex items-center gap-1 leading-none border border-white">
+                  <Sparkles className="w-2.5 h-2.5 fill-black text-black" />
+                  PRO
+                </span>
+              )}
+            </div>
             <span className="text-[9px] text-white/60 font-bold tracking-[0.25em] uppercase">
               GYM & AI
             </span>

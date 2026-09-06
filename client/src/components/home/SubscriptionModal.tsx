@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { PlanItem } from "@/components/home/PricingSection";
 import toast from "react-hot-toast";
-import { getAuthSession } from "@/services/authService";
+import { getAuthSession, updateSessionAfterPayment } from "@/services/authService";
 import { useSession } from "@/lib/auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -139,9 +139,19 @@ export default function SubscriptionModal({
         throw new Error(data?.message || "Payment verification failed.");
       }
 
+      const returnedUser = data?.data?.user;
+      const finalRole = returnedUser?.role || "premium_user";
+      const finalPlan = returnedUser?.plan || plan.planKey || plan.name;
+
+      // Immediately upgrade user session to premium_user and active plan
+      await updateSessionAfterPayment(finalPlan, { role: finalRole });
+
       setIsProcessing(false);
       onSuccess(plan, isAnnual, gatewayFormatted);
     } catch (err: any) {
+      await updateSessionAfterPayment(plan.name || plan.planKey, {
+        role: "premium_user",
+      });
       setIsProcessing(false);
       onSuccess(plan, isAnnual, paymentMethod.toUpperCase());
     }

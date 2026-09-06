@@ -880,7 +880,9 @@ export async function checkoutPayment(
     // 1. Authoritative Plan & Server-Enforced Pricing
     // Even if an attacker modifies the amount in browser console/network tab, server strictly enforces authoritative price
     const resolvedPlan = resolvePlan(planId || bodyPlanName);
-    const planName = resolvedPlan ? resolvedPlan.name : (bodyPlanName || "Pro Athlete");
+    const planName = resolvedPlan
+      ? resolvedPlan.name
+      : bodyPlanName || "Pro Athlete";
 
     // Subscription Period calculation (strictly calculated server-side)
     const cycle =
@@ -889,8 +891,12 @@ export async function checkoutPayment(
         : "monthly";
 
     const expectedUsd = resolvedPlan
-      ? (cycle === "yearly" ? resolvedPlan.annualMonthlyPrice * 12 : resolvedPlan.monthlyPrice)
-      : (cycle === "yearly" ? 39 * 12 : 49);
+      ? cycle === "yearly"
+        ? resolvedPlan.annualMonthlyPrice * 12
+        : resolvedPlan.monthlyPrice
+      : cycle === "yearly"
+        ? 39 * 12
+        : 49;
     const authoritativeBDT = expectedUsd * 120;
     const amount = authoritativeBDT; // Strictly server authoritative
 

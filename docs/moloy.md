@@ -255,3 +255,13 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Connected user profile (`client/src/app/profile/page.tsx`) to live payment transaction API (`GET /api/payments/me`) to render real user payment records in `BillingPaymentHistory`.
   - Updated `client/src/services/paymentService.ts` to support both BDT and Stripe checkout schemas with robust fallback handling.
 - Validated 100% clean production builds on both server (`npm run build`) and client (`npx tsc --noEmit`) with 0 errors.
+- Hardened payment security against browser console manipulation:
+  - Enforced Server-Authoritative pricing on all checkout endpoints (rejecting/overriding any client-tampered prices).
+  - Prioritized verified cryptographic JWT token claims for user identification over raw request bodies to prevent account spoofing.
+- Implemented luxury in-modal Card checkout matching Fitora's Pure Black & White design system:
+  - Added real-time auto-formatted Card Number (`4242 •••• •••• ••••`), Expiry (`MM/YY`), CVC, and Cardholder Name inputs directly within `SubscriptionModal.tsx`.
+  - Added clear Cancel / Close navigation so users never leave the site unexpectedly.
+- Implemented real-time **PRO** badge on the Home Page Navbar brand logo:
+  - Connected `Navbar.tsx` to `AUTH_SESSION_UPDATED` and cross-tab storage events.
+  - Upon completing subscription payment, user is immediately promoted to `premium_user` in database and local session, and a glowing Pure B&W `PRO` badge (`Sparkles` + `PRO`) automatically appears beside the `FITORA` brand logo.
+
