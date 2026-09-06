@@ -45,6 +45,7 @@ export interface IUser extends Document {
   hydrationTargetLiters: number;
   totalPaidBDT: number;
   paymentMethod: PaymentMethod;
+  subscriptionExpiryDate?: Date;
 
   // QR & Security
   qrCodeId: string;
@@ -132,6 +133,10 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
       enum: ["bKash", "Nagad", "Card", "Bank Transfer", "None"],
+    },
+    subscriptionExpiryDate: {
+      type: Date,
+      required: false,
     },
 
     // QR & Security
