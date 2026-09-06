@@ -245,3 +245,4 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Mounted central payment routers in `server/src/routes/payment.routes.ts` and `server/src/routes/index.ts` under `/payment` and `/payments`.
   - Built resilient fallback handling for in-memory persistence during offline testing.
 - Verified 100% clean TypeScript production builds on both server (`npm run build`) and client (`npx tsc --noEmit`) with zero errors.
+- Created centralized TypeScript definitions in `client/src/types/payment.ts` (`PaymentGateway`, `PaymentStatus`, `BillingCycle`, `MembershipTier`, `CheckoutPayload`, `PaymentInvoice`, `PaymentRecord`, `CheckoutResponse`, `MyTransactionsResponse`) to connect frontend components with the payment engine.
