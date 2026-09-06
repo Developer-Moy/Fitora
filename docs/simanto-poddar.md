@@ -159,3 +159,7 @@ We built a feature that lets users save their favorite food items to a custom "D
 - Fixing the bugs i find during the review.
 
 - Protect dashboard route for unauthenticated users
+
+## 06-Sep-26
+
+Update Subscription Modal for Card Payment

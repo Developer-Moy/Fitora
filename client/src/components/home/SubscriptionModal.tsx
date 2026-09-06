@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { PlanItem } from "@/components/home/PricingSection";
 import toast from "react-hot-toast";
+import { getAuthSession } from "@/services/authService";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -32,6 +35,7 @@ export default function SubscriptionModal({
   const [phone, setPhone] = useState("");
   const [trxId, setTrxId] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCardLoading, setIsCardLoading] = useState(false);
 
   if (!isOpen || !plan) return null;
 
@@ -58,18 +62,53 @@ export default function SubscriptionModal({
     }
   };
 
-  const handleCardContinue = (e: React.MouseEvent) => {
+  const handleCardContinue = async (e: React.MouseEvent) => {
     e.preventDefault();
-    toast("Stripe card payment integration is coming soon in Phase 2.", {
-      icon: "🔒",
-      style: {
-        background: "#18181b",
-        color: "#ffffff",
-        border: "1px solid rgba(255, 255, 255, 0.15)",
-        borderRadius: "12px",
-        fontSize: "13px",
-      },
-    });
+    if (isCardLoading) return;
+
+    try {
+      setIsCardLoading(true);
+
+      const { token, user } = getAuthSession();
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`${API_URL}/payments/create-checkout-session`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          planId: plan.id,
+          planKey: plan.planKey,
+          planName: plan.name,
+          isAnnual,
+          customerEmail: user?.email,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.success || !data?.data?.url) {
+        const errorMsg =
+          data?.message ||
+          data?.error ||
+          "Failed to initialize Stripe checkout session. Please try again.";
+        toast.error(errorMsg);
+        setIsCardLoading(false);
+        return;
+      }
+
+      // Redirect directly to Stripe-hosted Checkout page
+      window.location.href = data.data.url;
+    } catch (err: any) {
+      console.error("[Stripe Checkout Redirect Error]:", err);
+      toast.error("Network error. Could not connect to payment gateway.");
+      setIsCardLoading(false);
+    }
   };
 
   return (
@@ -308,16 +347,25 @@ export default function SubscriptionModal({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="w-1/3 py-2 sm:py-2.5 rounded-full bg-neutral-900 border border-white/15 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer"
+                      disabled={isCardLoading}
+                      className="w-1/3 py-2 sm:py-2.5 rounded-full bg-neutral-900 border border-white/15 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer disabled:opacity-50"
                     >
                       Cancel
                     </button>
                     <button
                       type="button"
                       onClick={handleCardContinue}
-                      className="w-2/3 py-2 sm:py-2.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xl"
+                      disabled={isCardLoading}
+                      className="w-2/3 py-2 sm:py-2.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xl disabled:opacity-50"
                     >
-                      <span>Continue to Secure Payment →</span>
+                      {isCardLoading ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Redirecting to Stripe...</span>
+                        </>
+                      ) : (
+                        <span>Continue to Secure Payment →</span>
+                      )}
                     </button>
                   </div>
                 </div>
