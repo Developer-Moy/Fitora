@@ -141,20 +141,4 @@ Added a dedicated, premium **Membership Status Card** to the user profile page s
 * Progress bar represents **remaining** membership time, clamped 0–100.
 * Countdown updates every second; values are clamped to 0 when expired.
 
----
-
-## 8. Network / MongoDB Fixes (2026-09-07)
-
-Resolved `MongoTopologyClosedError` and profile API network errors.
-
-### Fixes
-* **Better Auth MongoDB**: added `MONGODB_URI` (Atlas) to `client/.env.local` so the client-side auth route handler reaches the same Atlas cluster as the backend. Restarted Next.js dev server to load it.
-* **Missing `stripe` package**: installed `stripe` in `server/node_modules` so the Express backend can start.
-* **Express backend**: started `tsx watch src/server.ts` on port 5001; confirmed MongoDB Atlas connected and `/api/health`, `/api/payments/me`, `/api/daily-plan` returning HTTP 200.
-* **CORS**: verified preflight + actual requests from `localhost:3000` succeed against `localhost:5001`.
-
-### Result
-* `MongoTopologyClosedError` gone.
-* Profile page API calls no longer fail with `TypeError: Failed to fetch`.
-
 
