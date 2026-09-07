@@ -39,6 +39,9 @@
 - 🥗 **Nutrition & Diet Tracker (`/dashboard/user/nutrition`)**: Dynamic 2,400 kcal progress bar, category filterable meal cards (Breakfast, Lunch, Dinner, Snacks).
 - 🏆 **User Profile & Milestones (`/profile`)**: Fitness streak counter (🔥 12-day streak), earned achievement badges ("100k KG Lifted", "Streak Champion"), and completed goal history.
 - 💎 **Membership & Pricing Tiers Page (`/plans`)**: Expanded membership tiers, feature comparison matrix, interactive FAQ accordion, and Stripe mock checkout modal.
+- 👑 **Membership Expiry & Live Countdown (`/profile` & `/dashboard`)**: Real-time ticker counting down remaining membership duration (`29 Days, 18 Hours Left`), visual status indicators (`Active`, `Expiring Soon`, `Expired`), and global sticky renewal alerts.
+- 🧾 **Digital Printable / PDF Invoice Engine**: Luxury Pure B&W downloadable invoice modal generating dynamic serials (`INV-YYYY-XXXXXX`), customer information, payment gateway details, and native print / PDF export support.
+- 💳 **Multi-Gateway Payment & Anti-Tamper Engine**: Server-authoritative checkout supporting bKash, Nagad, Card, and Stripe with instant `FITORA PRO` badge synchronization on the global navigation brand logo.
 - 🔐 **Authentication Flow (`/login` & `/register`)**: Glassmorphism UI with form validation, toast feedback, and Better Auth integration.
 
 ---

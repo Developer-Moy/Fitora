@@ -78,9 +78,23 @@ Implemented the complete membership tier selection and single-screen luxury paym
 
 ---
 
+## 7. Membership Expiry Countdown & Digital Printable/PDF Invoice System
+
+Architected and developed the full dynamic membership lifecycle tracking and digital invoice engine:
+
+### Key Implementation:
+
+- **Live Countdown Timer (`CountdownTimer.tsx`)**: Real-time ticker updating days, hours, minutes, and seconds relative to `Date.now()`, transitioning seamlessly into expired states.
+- **Membership Status Card (`MembershipStatusCard.tsx`)**: Visual progress bar indicating subscription lifespan percentage (`elapsed / total * 100`) with high-contrast color-coded status badges (`Active` 🟢, `Expiring Soon` 🟡, `Expired` 🔴).
+- **Global Expiry Alert Banner (`MembershipExpiryBanner.tsx`)**: Non-intrusive alert banner on Dashboard and Profile routes activated when remaining days $\le$ 3, offering immediate one-click renewal flow.
+- **Digital Printable & PDF Invoice Engine (`InvoiceModal.tsx`)**: Luxury Pure B&W invoice modal displaying dynamic invoice numbers (`INV-YYYY-XXXXXX`), customer credentials, transaction IDs, tax calculations, issue timestamps, and native browser print / PDF download support.
+- **Authoritative Security & Anti-Tamper Sync**: Reconciled client session verification with backend MongoDB claims in `Navbar.tsx` and `payment.controller.ts`, displaying a real-time glowing `PRO` badge upon confirmed purchase.
+
+---
+
 ## Overview
 
-These components form the responsive header, hero section, pricing, callouts, contact form, and footer of **Fitora**.
+These components form the responsive header, hero section, pricing, callouts, contact form, footer, membership tracking, and digital billing engine of **Fitora**.
 
 ---
 
@@ -265,3 +279,27 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Connected `Navbar.tsx` to `AUTH_SESSION_UPDATED` and cross-tab storage events.
   - Upon completing subscription payment, user is immediately promoted to `premium_user` in database and local session, and a glowing Pure B&W `PRO` badge (`Sparkles` + `PRO`) automatically appears beside the `FITORA` brand logo.
 
+### 07-Sep-26 (Day 2)
+
+- Pulled and integrated all latest team updates from `origin/development` into `moloy` branch (24 commits merged from team members).
+- Resolved merge conflicts, syntax errors, and duplicate declarations across server and client workspaces:
+  - Fixed `server/src/routes/payment.routes.ts`: deduplicated `authMiddleware` import and duplicate `router.get("/invoice/:id")` route.
+  - Fixed `server/src/controllers/payment.controller.ts`: deduplicated `startDate` and `calculateSubscriptionDetails`, fixed corrupted merge/sort code block in `getMyPayments`, removed duplicate `successResponse` block in `getInvoiceById`, and added synchronous invoice number generator fallback.
+  - Fixed `client/src/services/authService.ts`: deduplicated `membershipExpiresAt` interface declarations and added `subscriptionExpiryDate`.
+  - Fixed `client/src/services/paymentService.ts`: removed duplicate `BASE_URL` and consolidated `fetchMyPaymentsApi` with robust JWT and query parameter resolution.
+  - Fixed `client/src/app/profile/page.tsx`: removed duplicate `<BillingPaymentHistory />` table, streamlined `<BillingSection />`, connected renewal modal with `<MembershipExpiryBanner />`, and replaced static `TEMP_MEMBERSHIP` mock dates with 100% dynamic calculation.
+  - Fixed `client/src/components/dashboard/MemberDashboardView.tsx`: wrapped `getAuthSession()` and expiry calculation in a clean `useEffect` hook and deduplicated imports.
+- Implemented 100% dynamic **Membership Expiry Countdown & Status Tracker**:
+  - Live real-time countdown timer updating every second relative to `Date.now()` (`CountdownTimer.tsx`).
+  - Dynamic progress percentage bar and visual status badge (`Active` 🟢, `Expiring Soon` 🟡, `Expired` 🔴) in `MembershipStatusCard.tsx`.
+  - Global sticky warning banner on Dashboard & Profile triggered dynamically when $\le$ 3 days remaining (`MembershipExpiryBanner.tsx`).
+- Implemented **Digital Printable / PDF Invoice System**:
+  - High-contrast pure B&W Luxury Invoice modal (`InvoiceModal.tsx`) with auto-generated invoice serials (`INV-YYYY-XXXXXX`), customer information, payment gateway breakdown, and issue dates.
+  - Added one-click print (`window.print()`) with print-optimized CSS and PDF download capabilities.
+  - Connected invoice viewing across all payment history transactions via `BillingSection.tsx`.
+- Diagnosed and fixed core payment checkout authentication and anti-tamper bug:
+  - Enhanced `server/src/middlewares/auth.middleware.ts` to accept session user fallbacks from `req.query` and `req.body` (`userId`, `email`) alongside Bearer JWT headers.
+  - Enhanced `server/src/controllers/payment.controller.ts` checkout user resolution by checking both ID and email (`User.findOne({ email })`), ensuring payments are never rejected for OAuth/BetterAuth users and saving both `subscriptionExpiryDate` and `membershipExpiresAt`.
+  - Removed misleading catch-block success triggers in `SubscriptionModal.tsx` so failed checkouts are never masked as fake successes, and passed session query parameters to the checkout endpoint.
+  - Enhanced `Navbar.tsx` anti-tamper check to pass session identity params to `getCurrentUserApi`, ensuring the **PRO** badge next to the `FITORA` brand logo permanently reflects verified database status without false negatives.
+- Verified 100% clean compilation on both server (`npm run build`) and client (`npx tsc --noEmit`) with 0 errors.
