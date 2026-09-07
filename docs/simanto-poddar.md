@@ -164,3 +164,8 @@ We built a feature that lets users save their favorite food items to a custom "D
 
 - Update Subscription Modal for Card Payment
 - Associate userId with PaymentTransaction and implement success verification
+<https://drive.google.com/file/d/1SMZ4llPlW4lxYa1Yf_RBTCv7rQoEvmhL/view?pli=1>
+
+## 07-Sep-26
+
+- Membership expiry warning system

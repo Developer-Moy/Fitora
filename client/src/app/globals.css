@@ -50,3 +50,43 @@ body {
 .drawer-overlay-fade {
   animation: fadeInOverlay 0.25s ease-out forwards;
 }
+
+/* ── Print Styles: print only the open InvoiceModal document ── */
+@media print {
+  /* Hide everything that is not the invoice or one of its ancestors.
+     Ancestors are kept in the layout (so the invoice stays reachable)
+     but are visually reset below. */
+  body *:not(.print-area):not(:has(.print-area)) {
+    display: none !important;
+  }
+
+  /* Neutralise the fixed overlay + scrollable card so the invoice
+     flows naturally from the top of the printed page. */
+  .print-modal-backdrop,
+  .print-modal-card {
+    position: static !important;
+    max-height: none !important;
+    max-width: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Force a clean, printer-friendly black-on-white document. */
+  .print-area,
+  .print-area * {
+    visibility: visible;
+    color: #111111 !important;
+    background: transparent !important;
+    border-color: #dddddd !important;
+    box-shadow: none !important;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+}

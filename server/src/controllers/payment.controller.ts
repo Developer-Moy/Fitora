@@ -1248,17 +1248,53 @@ function generateTransactionId(
 /**
  * Helper: Generate unique invoice number
  */
-function generateInvoiceNumber(): string {
-  const year =
-    new Date().getFullYear();
+async function generateUniqueInvoiceNumber(): Promise<string> {
+  const year = new Date().getFullYear();
+  for (let attempt = 0; attempt  < 10; attempt++) {
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    const invoiceNumber = `INV-${year}-${randomNum}`;
 
-  const randomNum =
-    Math.floor(
-      100000 +
-        Math.random() * 900000,
-    );
+    const existingInvoice = await Payment.exists({ invoiceNumber });
 
-  return `INV-${year}-${randomNum}`;
+    if (!existingInvoice) {
+      return invoiceNumber;
+    }
+  }
+
+  throw new Error("Failed to generate unique invoice number");
+}
+
+
+// Helper: Calculate subscription expiry and remaining days
+function calculateSubscriptionDetails(
+  startDate: Date,
+  billingCycle: string
+) {
+  const expiryDate = new Date(startDate);
+
+  if (billingCycle === "yearly" || billingCycle === "annual") {
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+  } else {
+    expiryDate.setMonth(expiryDate.getMonth() + 1);
+  }
+
+  const now = new Date();
+
+  const remainingMs = expiryDate.getTime() - now.getTime();
+
+  const remainingDays = Math.max(
+    0,
+    Math.ceil(
+      remainingMs / (1000 * 60 * 60 * 24)
+    )
+  );
+
+  return {
+    startDate,
+    expiryDate,
+    remainingDays,
+    isExpired: remainingMs <= 0,
+  };
 }
 
 /**
@@ -1380,15 +1416,14 @@ export async function checkoutPayment(
     const expiryDate =
       new Date(startDate);
 
-    if (cycle === "yearly") {
-      expiryDate.setFullYear(
-        expiryDate.getFullYear() + 1,
-      );
-    } else {
-      expiryDate.setDate(
-        expiryDate.getDate() + 30,
-      );
-    }
+    const startDate = new Date();
+
+    const {
+  expiryDate
+} = calculateSubscriptionDetails(
+  startDate,
+  cycle
+);
 
     const validGateway = (
       [
@@ -1417,8 +1452,7 @@ export async function checkoutPayment(
             validGateway,
           );
 
-    const invoiceNumber =
-      generateInvoiceNumber();
+    const invoiceNumber = await generateUniqueInvoiceNumber();
 
     const paymentPayload = {
       userId:
@@ -1889,6 +1923,49 @@ export async function getMyTransactions(
             new Date(
               a.date,
             ).getTime(),
+        const unifiedStripe = stripePayments.map((s: any) => ({
+          _id: s._id?.toString() || s.stripeCheckoutSessionId,
+          transactionId:
+            s.stripePaymentIntentId ||
+            s.stripeCheckoutSessionId?.slice(-12)?.toUpperCase(),
+          date: s.paidAt || s.createdAt || new Date().toISOString(),
+          paymentMethod: "Card",
+          amount: Math.round(Number(s.amount || 0) * 120), // Convert USD to BDT display
+          planName: s.planName || "Pro Athlete",
+          status: s.status === "paid" ? "Completed" : s.status,
+          billingCycle: s.billingCycle || "monthly",
+          invoiceNumber:
+            s.invoiceNumber ||
+            `INV-${new Date(s.paidAt || s.createdAt || Date.now()).getFullYear()}-${(s._id?.toString() || "STRP").slice(-6).toUpperCase()}`,
+          subscriptionStartDate: s.paidAt || s.createdAt || new Date().toISOString(),
+          subscriptionExpiryDate: s.expiryDate || s.membershipExpiresAt || null,
+          userName: s.userName || "Valued Athlete",
+          userEmail: s.userEmail || targetEmail || "",
+        }));
+
+        const unifiedBdt = bdtPayments.map((b: any) => ({
+          _id: b._id?.toString() || b.transactionId,
+          transactionId: b.transactionId,
+          date:
+            b.createdAt || b.subscriptionStartDate || new Date().toISOString(),
+          paymentMethod: b.gateway || "bKash",
+          amount: b.amountBDT,
+          planName: b.planName,
+          status: "Completed",
+          billingCycle: b.billingCycle || "monthly",
+          invoiceNumber: b.invoiceNumber || `INV-${new Date(b.createdAt || Date.now()).getFullYear()}-${b._id
+    .toString()
+    .slice(-6)
+    .toUpperCase()}`,
+          subscriptionStartDate: b.subscriptionStartDate || b.createdAt,
+          subscriptionExpiryDate: b.subscriptionExpiryDate || null,
+          accountNumber: b.accountNumber,
+          userName: b.userName || "Valued Athlete",
+          userEmail: b.userEmail || targetEmail || "",
+        }));
+
+        payments = [...unifiedBdt, ...unifiedStripe].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         );
 
         // ==================================================
@@ -2473,6 +2550,26 @@ export async function getInvoiceById(
               paymentDoc.userEmail ||
               "",
           },
+      successResponse("Digital invoice fetched successfully", {
+        invoice: {
+          _id: paymentDoc._id,
+          invoiceNumber: paymentDoc.invoiceNumber || `INV-${new Date(
+    paymentDoc.createdAt || paymentDoc.date || Date.now()
+  ).getFullYear()}-${paymentDoc._id
+    .toString()
+    .slice(-6)
+    .toUpperCase()}`,
+          transactionId: paymentDoc.transactionId,
+          date: paymentDoc.createdAt || paymentDoc.date,
+          planName: paymentDoc.planName,
+          billingCycle: paymentDoc.billingCycle || "monthly",
+          amount: paymentDoc.amountBDT,
+          paymentMethod: paymentDoc.gateway || paymentDoc.paymentMethod,
+          status: "Completed",
+          subscriptionStartDate: paymentDoc.subscriptionStartDate,
+          subscriptionExpiryDate: paymentDoc.subscriptionExpiryDate,
+          userName: paymentDoc.userName || "Valued Athlete",
+          userEmail: paymentDoc.userEmail || "",
         },
       ),
     );

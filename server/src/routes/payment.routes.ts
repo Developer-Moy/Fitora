@@ -8,6 +8,7 @@ import {
   getAllPayments,
   getInvoiceById,
 } from "../controllers/payment.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
@@ -49,10 +50,7 @@ router.get(
   getInvoiceById,
 );
 
-router.get(
-  "/all",
-  authMiddleware,
-  getAllPayments,
-);
+// Digital Invoice by ID or Transaction ID
+router.get("/invoice/:id", authMiddleware, getInvoiceById);
 
 export default router;
