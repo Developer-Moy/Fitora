@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -57,7 +57,13 @@ import { deleteBmiHistory, fetchBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
 import BillingPaymentHistory from "@/components/BillingPaymentHistory";
 import SubscriptionModal from "@/components/home/SubscriptionModal";
+import MembershipStatusCard from "@/components/subscription/MembershipStatusCard";
 import { FITORA_PLANS, PlanItem } from "@/components/home/PricingSection";
+import {
+  type MembershipData,
+  TEMP_MEMBERSHIP,
+  isFreePlan,
+} from "@/lib/membershipUtils";
 
 interface BMIHistory {
   _id: string;
@@ -439,6 +445,41 @@ export default function ProfilePage() {
 
   const [mealChart, setMealChart] = useState<MealChart | null>(null);
 
+  // Resolve the user's membership record for the dedicated status card.
+  // Real data is preferred (from /payments/me + local auth session); the
+  // isolated TEMP_MEMBERSHIP mock is only used as a last-resort fallback when
+  // no live membership data is available (e.g. backend not connected / demo).
+  const resolvedMembership = useMemo<MembershipData>(() => {
+    const planName =
+      activeSubscriptionData?.planName || localUser?.plan || "";
+    const startDate = activeSubscriptionData?.startDate || null;
+    const expiryDate =
+      activeSubscriptionData?.expiryDate ||
+      localUser?.subscriptionExpiryDate ||
+      localUser?.membershipExpiresAt ||
+      null;
+
+    const hasExpiry = !!expiryDate;
+    const isExplicitFree = isFreePlan(planName) && planName !== "";
+
+    // Real paid membership with a known expiry -> use it directly.
+    if (hasExpiry && planName && !isFreePlan(planName)) {
+      return { planName, startDate, expiryDate };
+    }
+
+    // Explicit free user -> keep the free state (no mock dates).
+    if (isExplicitFree) {
+      return { planName, startDate: null, expiryDate: null };
+    }
+
+    // No usable membership data (offline / demo / unknown plan) -> fall back to
+    // the isolated temporary mock record.
+    return {
+      ...TEMP_MEMBERSHIP,
+      planName: planName || TEMP_MEMBERSHIP.planName,
+    };
+  }, [activeSubscriptionData, localUser]);
+
   const currentGoalKey =
     mealChart?.goals?.fitnessGoal ||
     localUser?.fitnessGoal ||
@@ -649,6 +690,21 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* ── 1.5. Dedicated Membership Status Card ── */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
+              Your Membership Plan
+            </h2>
+          </div>
+
+          <MembershipStatusCard
+            membership={resolvedMembership}
+            onRenew={handleOpenRenewModal}
+          />
         </div>
 
         {/* ── 2. Information Sections (Personal & Physical Profile Grid) ── */}
