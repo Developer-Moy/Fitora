@@ -1282,3 +1282,101 @@ export async function getAllPayments(
       );
   }
 }
+
+/**
+ * GET /api/payments/invoice/:id
+ * Retrieves formatted digital invoice by transaction ID, MongoDB ID, or invoice number
+ */
+export async function getInvoiceById(
+  req: Request,
+  res: Response,
+): Promise<Response> {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json(
+          errorResponse("Invoice ID or Transaction ID is required", "MISSING_ID", 400),
+        );
+    }
+
+    const query = id.trim();
+    let paymentDoc: any = null;
+
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      paymentDoc = await Payment.findById(query).lean();
+    }
+    if (!paymentDoc) {
+      paymentDoc = await Payment.findOne({
+        $or: [{ transactionId: query }, { invoiceNumber: query }],
+      }).lean();
+    }
+
+    if (!paymentDoc) {
+      // Check Stripe transactions
+      const stripeTx: any = await PaymentTransaction.findOne({
+        $or: [
+          ...(mongoose.Types.ObjectId.isValid(query) ? [{ _id: query }] : []),
+          { stripeCheckoutSessionId: query },
+          { stripePaymentIntentId: query },
+        ],
+      }).lean();
+
+      if (stripeTx) {
+        paymentDoc = {
+          _id: stripeTx._id,
+          invoiceNumber: `INV-${new Date(stripeTx.createdAt || Date.now()).getFullYear()}-${stripeTx._id.toString().slice(-6).toUpperCase()}`,
+          transactionId:
+            stripeTx.stripePaymentIntentId || stripeTx.stripeCheckoutSessionId,
+          date: stripeTx.paidAt || stripeTx.createdAt,
+          paymentMethod: "Card",
+          amountBDT: Math.round(Number(stripeTx.amount || 0) * 120),
+          planName: stripeTx.planName || "Pro Athlete",
+          status: "Completed",
+          billingCycle: stripeTx.billingCycle || "monthly",
+          subscriptionStartDate: stripeTx.paidAt || stripeTx.createdAt,
+          subscriptionExpiryDate: stripeTx.expiryDate || null,
+        };
+      }
+    }
+
+    if (!paymentDoc) {
+      return res
+        .status(404)
+        .json(errorResponse("Invoice record not found", "NOT_FOUND", 404));
+    }
+
+    return res.status(200).json(
+      successResponse("Digital invoice fetched successfully", {
+        invoice: {
+          _id: paymentDoc._id,
+          invoiceNumber: paymentDoc.invoiceNumber || generateInvoiceNumber(),
+          transactionId: paymentDoc.transactionId,
+          date: paymentDoc.createdAt || paymentDoc.date,
+          planName: paymentDoc.planName,
+          billingCycle: paymentDoc.billingCycle || "monthly",
+          amount: paymentDoc.amountBDT,
+          paymentMethod: paymentDoc.gateway || paymentDoc.paymentMethod,
+          status: "Completed",
+          subscriptionStartDate: paymentDoc.subscriptionStartDate,
+          subscriptionExpiryDate: paymentDoc.subscriptionExpiryDate,
+          userName: paymentDoc.userName || "Valued Athlete",
+          userEmail: paymentDoc.userEmail || "",
+        },
+      }),
+    );
+  } catch (error) {
+    console.error("[Payment Controller] getInvoiceById Error:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve invoice",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+}
+

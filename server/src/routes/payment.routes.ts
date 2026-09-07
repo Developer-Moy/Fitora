@@ -5,6 +5,7 @@ import {
   checkoutPayment,
   getMyTransactions,
   getAllPayments,
+  getInvoiceById,
 } from "../controllers/payment.controller.js";
 
 const router = Router();
@@ -20,5 +21,8 @@ router.post("/checkout", checkoutPayment);
 router.get("/me", getMyTransactions);
 router.get("/my-transactions", getMyTransactions);
 router.get("/all", getAllPayments);
+
+// Digital Invoice by ID or Transaction ID
+router.get("/invoice/:id", getInvoiceById);
 
 export default router;

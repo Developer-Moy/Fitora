@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Clock, ShieldAlert, ShieldCheck, Sparkles, AlertTriangle, RefreshCw, Zap } from "lucide-react";
+import {
+  Clock,
+  ShieldAlert,
+  ShieldCheck,
+  Sparkles,
+  AlertTriangle,
+  RefreshCw,
+  Zap,
+} from "lucide-react";
 
 interface MembershipCountdownProps {
   planName: string;
@@ -81,7 +89,9 @@ export default function MembershipCountdown({
     }
 
     const expiryTime = resolvedExpiry.getTime();
-    const startTime = resolvedStart ? resolvedStart.getTime() : expiryTime - 30 * 86400000;
+    const startTime = resolvedStart
+      ? resolvedStart.getTime()
+      : expiryTime - 30 * 86400000;
     const diff = expiryTime - now;
 
     if (diff <= 0) {
@@ -142,7 +152,8 @@ export default function MembershipCountdown({
               </span>
             </h3>
             <p className="text-xs text-white/60 max-w-md">
-              Unlock unlimited AI gym routines, all-branch turnstile access, and automated nutrition macro tracking by upgrading to Pro.
+              Unlock unlimited AI gym routines, all-branch turnstile access, and
+              automated nutrition macro tracking by upgrading to Pro.
             </p>
           </div>
 
@@ -309,7 +320,9 @@ export default function MembershipCountdown({
               </span>
             )}
 
-            {(timeRemaining.isExpiringSoon || timeRemaining.isExpired || onRenewClick) && (
+            {(timeRemaining.isExpiringSoon ||
+              timeRemaining.isExpired ||
+              onRenewClick) && (
               <button
                 onClick={onRenewClick}
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider cursor-pointer transition-all ${
@@ -319,7 +332,9 @@ export default function MembershipCountdown({
                 }`}
               >
                 <RefreshCw className="w-3 h-3" />
-                <span>{timeRemaining.isExpired ? "Renew Now" : "Extend Pass"}</span>
+                <span>
+                  {timeRemaining.isExpired ? "Renew Now" : "Extend Pass"}
+                </span>
               </button>
             )}
           </div>
@@ -328,4 +343,3 @@ export default function MembershipCountdown({
     </div>
   );
 }
-

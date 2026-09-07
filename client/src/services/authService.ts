@@ -313,13 +313,13 @@ export function clearAuthSession() {
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-  } catch { }
+  } catch {}
 }
 
 export async function logoutUser(): Promise<void> {
   try {
     await authClient.signOut().catch(() => null);
-  } catch { }
+  } catch {}
   clearAuthSession();
 }
 

@@ -432,7 +432,8 @@ export default function ProfilePage() {
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [activeSubscriptionData, setActiveSubscriptionData] = useState<any>(null);
+  const [activeSubscriptionData, setActiveSubscriptionData] =
+    useState<any>(null);
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [renewPlan, setRenewPlan] = useState<PlanItem | null>(null);
 
@@ -1183,8 +1184,9 @@ export default function ProfilePage() {
 
         {/* ── 6. Billing & Payment History ── */}
         <BillingPaymentHistory
-          userPlan={localUser?.plan || "Free Pass"}
-          userPlan={activeSubscriptionData?.planName || localUser?.plan || "Free Pass"}
+          userPlan={
+            activeSubscriptionData?.planName || localUser?.plan || "Free Pass"
+          }
           transactions={transactions}
           expiryDate={
             activeSubscriptionData?.expiryDate ||
@@ -1192,6 +1194,10 @@ export default function ProfilePage() {
             localUser?.membershipExpiresAt
           }
           startDate={activeSubscriptionData?.startDate}
+          athleteName={localUser?.name || authSession?.user?.name}
+          athleteEmail={localUser?.email || authSession?.user?.email || userEmail}
+          athletePhone={localUser?.phone}
+          assignedBranch={localUser?.assignedBranch}
           onRenewPlan={handleOpenRenewModal}
         />
 
