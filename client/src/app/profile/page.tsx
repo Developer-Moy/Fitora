@@ -578,6 +578,11 @@ export default function ProfilePage() {
 
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [activeSubscriptionData, setActiveSubscriptionData] =
+    useState<any>(null);
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
+  const [renewPlan, setRenewPlan] = useState<PlanItem | null>(null);
 
   const [mealChart, setMealChart] = useState<MealChart | null>(null);
 
@@ -598,11 +603,28 @@ export default function ProfilePage() {
       setIsLoadingDailyPlan(true);
       setIsLoadingWorkouts(true);
       try {
-        const [dailyPlanRes, workoutsRes, mealChartsRes] = await Promise.all([
-          getDailyMealPlan(targetId),
-          getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
-          fetchMealCharts(targetId).catch(() => []),
-        ]);
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("fitora_token") ||
+              localStorage.getItem("fitora_auth_token")
+            : null;
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const headers: Record<string, string> = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const [dailyPlanRes, workoutsRes, mealChartsRes, paymentsRes] =
+          await Promise.all([
+            getDailyMealPlan(targetId),
+            getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
+            fetchMealCharts(targetId).catch(() => []),
+            fetch(
+              `${apiUrl}/payments/me?userId=${encodeURIComponent(targetId)}&email=${encodeURIComponent(userEmail)}`,
+              { headers },
+            )
+              .then((r) => (r.ok ? r.json() : { data: { payments: [] } }))
+              .catch(() => ({ data: { payments: [] } })),
+          ]);
 
         if (dailyPlanRes.success && dailyPlanRes.data) {
           setDailyPlanMeals(dailyPlanRes.data);
@@ -613,6 +635,12 @@ export default function ProfilePage() {
         if (mealChartsRes && mealChartsRes.length > 0) {
           setMealChart(mealChartsRes[0]);
         }
+        if (paymentsRes?.data?.payments) {
+          setTransactions(paymentsRes.data.payments);
+        }
+        if (paymentsRes?.data?.activeSubscription) {
+          setActiveSubscriptionData(paymentsRes.data.activeSubscription);
+        }
       } catch (err) {
         console.error("Failed to fetch profile data:", err);
       } finally {
@@ -622,7 +650,7 @@ export default function ProfilePage() {
     };
 
     fetchData();
-  }, [resolvedUserId]);
+  }, [resolvedUserId, userEmail]);
 
   // Handle direct file selection & upload (Local Preview + ImgBB Cloud Sync)
   const handleCopyMeal = (meal: any, index: number) => {
@@ -641,6 +669,35 @@ export default function ProfilePage() {
     setTimeout(() => {
       window.location.href = "/";
     }, 400);
+  };
+
+  const handleOpenRenewModal = () => {
+    const currentPlanKey =
+      activeSubscriptionData?.planName || localUser?.plan || "Pro Athlete";
+    const foundPlan =
+      FITORA_PLANS.find(
+        (p) =>
+          p.name.toLowerCase() === currentPlanKey.toLowerCase() ||
+          p.planKey.toLowerCase() === currentPlanKey.toLowerCase() ||
+          p.id.toLowerCase() === currentPlanKey.toLowerCase(),
+      ) || FITORA_PLANS[1];
+    setRenewPlan(foundPlan);
+    setIsRenewModalOpen(true);
+  };
+
+  const handleSubscriptionSuccess = (
+    plan: PlanItem,
+    isAnnual: boolean,
+    paymentMethod: string,
+  ) => {
+    setIsRenewModalOpen(false);
+    toast.success(`🎉 Membership plan ${plan.name} updated successfully!`);
+    // Refetch or reload to update local auth & subscriptions
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    }
   };
 
   if (!isMounted) return null;
@@ -1285,9 +1342,33 @@ export default function ProfilePage() {
 
         {/* ── 6. Billing & Payment History ── */}
         <BillingPaymentHistory
-          userPlan={localUser?.plan || "Free Pass"}
-          transactions={[]}
+          userPlan={
+            activeSubscriptionData?.planName || localUser?.plan || "Free Pass"
+          }
+          transactions={transactions}
+          expiryDate={
+            activeSubscriptionData?.expiryDate ||
+            localUser?.subscriptionExpiryDate ||
+            localUser?.membershipExpiresAt
+          }
+          startDate={activeSubscriptionData?.startDate}
+          athleteName={localUser?.name || authSession?.user?.name}
+          athleteEmail={localUser?.email || authSession?.user?.email || userEmail}
+          athletePhone={localUser?.phone}
+          assignedBranch={localUser?.assignedBranch}
+          onRenewPlan={handleOpenRenewModal}
         />
+
+        {/* ── Membership Renewal / Upgrade Modal ── */}
+        {renewPlan && (
+          <SubscriptionModal
+            isOpen={isRenewModalOpen}
+            onClose={() => setIsRenewModalOpen(false)}
+            plan={renewPlan}
+            isAnnual={false}
+            onSuccess={handleSubscriptionSuccess}
+          />
+        )}
 
         {/* ── 7. Admin Management Access (If Admin) ── */}
         {(isMasterAdmin || isBranchAdmin) && (
