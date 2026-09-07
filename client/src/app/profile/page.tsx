@@ -56,6 +56,7 @@ import {
 import { deleteBmiHistory, fetchBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
 import BillingPaymentHistory from "@/components/BillingPaymentHistory";
+import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
 
 interface BMIHistory {
   _id: string;
@@ -512,6 +513,19 @@ export default function ProfilePage() {
             athletic potential.
           </p>
         </div>
+
+        {/* ── Membership Status Banner ── */}
+        <MembershipExpiryBanner
+          status="expiring_soon"
+          planName={
+            localUser?.plan && localUser?.plan !== "Free Pass"
+              ? localUser.plan
+              : "VIP Ultimate"
+          }
+          daysRemaining={3}
+          expiryDate="Oct 12, 2026"
+          actionHref="/dashboard?tab=upgrade"
+        />
 
         {/* ── 1. Athlete Header Card ── */}
         <div className="bg-black border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
