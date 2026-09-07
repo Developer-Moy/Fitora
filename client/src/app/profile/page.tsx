@@ -55,6 +55,7 @@ import {
 } from "@/services/dailyMealPlanService";
 import { deleteBmiHistory, fetchBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
+import BillingSection from "@/components/profile/BillingSection";
 
 interface BMIHistory {
   _id: string;
@@ -898,7 +899,10 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* ── 5. Meal Suggestion According to Profile ── */}
+        {/* ── 5. Billing & Transactions ── */}
+        <BillingSection />
+
+        {/* ── 6. Meal Suggestion According to Profile ── */}
         <div className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
