@@ -9,11 +9,7 @@ import {
   Download,
   ShieldCheck,
   Receipt,
-  CreditCard,
-  Building2,
-  Calendar,
   CheckCircle2,
-  ExternalLink,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -22,8 +18,11 @@ export interface InvoiceData {
   invoiceNumber?: string;
   transactionId?: string;
   date?: string;
+  createdAt?: string;
   amount?: number;
+  amountBDT?: number;
   paymentMethod?: string;
+  gateway?: string;
   status?: string;
   planName?: string;
   billingCycle?: string;
@@ -60,14 +59,18 @@ export default function InvoiceModal({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+      }
     };
+
     if (isOpen) {
       document.body.style.overflow = "hidden";
       window.addEventListener("keydown", handleKeyDown);
     } else {
       document.body.style.overflow = "";
     }
+
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
@@ -105,25 +108,58 @@ export default function InvoiceModal({
       })
     : "30 Days from Issue";
 
+  const isExpired = transaction.subscriptionExpiryDate
+    ? new Date(transaction.subscriptionExpiryDate).getTime() < Date.now()
+    : false;
+
   const clientName =
     transaction.userName || athleteName || "Valued Athlete Member";
-  const clientEmail = transaction.userEmail || athleteEmail || "athlete@fitora.club";
-  const clientPhone = transaction.userPhone || athletePhone || "+880 1700-000000";
+
+  const clientEmail =
+    transaction.userEmail ||
+    athleteEmail ||
+    "athlete@fitora.club";
+
+  const clientPhone =
+    transaction.userPhone || athletePhone || "+880 1700-000000";
+
   const planTitle = transaction.planName || "Pro Athlete Pass";
+
   const cycle =
-    transaction.billingCycle === "yearly" || transaction.billingCycle === "annual"
+    transaction.billingCycle === "yearly" ||
+    transaction.billingCycle === "annual"
       ? "Annual Membership (12 Months)"
       : "Monthly Membership (30 Days)";
-  const amountBDT = transaction.amount || 5880;
+
+  /**
+   * Backend already returns Stripe amount converted to BDT.
+   * Therefore, DO NOT convert the amount again on the client.
+   */
+  const amountBDT = transaction.amountBDT ?? transaction.amount ?? 0;
+
   const subtotal = amountBDT;
-  const vatAmount = 0; // Tax exempted athletic wellness pass
+  const vatAmount = 0;
   const totalAmount = subtotal + vatAmount;
+
+  // Normalize payment status
+  const normalizedStatus = transaction.status?.toLowerCase();
+
+  const isPaid =
+    normalizedStatus === "paid" ||
+    normalizedStatus === "completed";
+
+  const isPending = normalizedStatus === "pending";
+
+  const isFailed = normalizedStatus === "failed";
 
   const handleCopyInvoiceNumber = () => {
     navigator.clipboard.writeText(invoiceNum);
     setCopied(true);
     toast.success("Invoice number copied to clipboard!");
-    setTimeout(() => setCopied(false), 2000);
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
   };
 
   const handlePrint = () => {
@@ -131,39 +167,45 @@ export default function InvoiceModal({
   };
 
   const handleDownloadJSON = () => {
+    const invoiceData = {
+      invoiceNumber: invoiceNum,
+      issueDate,
+      validUntil: formattedExpiry,
+      athlete: {
+        name: clientName,
+        email: clientEmail,
+        phone: clientPhone,
+        branch: assignedBranch,
+      },
+      membership: {
+        plan: planTitle,
+        billingCycle: cycle,
+        amountBDT: totalAmount,
+        paymentMethod:
+          transaction.paymentMethod ||
+          transaction.gateway ||
+          "Not specified",
+        transactionId: transaction.transactionId,
+        status: transaction.status || "unknown",
+      },
+    };
+
     const dataStr =
       "data:text/json;charset=utf-8," +
-      encodeURIComponent(
-        JSON.stringify(
-          {
-            invoiceNumber: invoiceNum,
-            issueDate,
-            validUntil: formattedExpiry,
-            athlete: {
-              name: clientName,
-              email: clientEmail,
-              phone: clientPhone,
-              branch: assignedBranch,
-            },
-            membership: {
-              plan: planTitle,
-              billingCycle: cycle,
-              amountBDT: totalAmount,
-              paymentMethod: transaction.paymentMethod,
-              transactionId: transaction.transactionId,
-              status: "PAID",
-            },
-          },
-          null,
-          2,
-        ),
-      );
+      encodeURIComponent(JSON.stringify(invoiceData, null, 2));
+
     const downloadAnchor = document.createElement("a");
+
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `${invoiceNum}.json`);
+    downloadAnchor.setAttribute(
+      "download",
+      `${invoiceNum}.json`
+    );
+
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
+
     toast.success("Invoice receipt downloaded!");
   };
 
@@ -173,54 +215,71 @@ export default function InvoiceModal({
       <style jsx global>{`
         @media print {
           body * {
-            visibility: hidden;
+            visibility: hidden !important;
           }
+
           #printable-invoice-container,
           #printable-invoice-container * {
-            visibility: visible;
+            visibility: visible !important;
           }
+
           #printable-invoice-container {
-            position: absolute;
-            left: 0;
-            top: 0;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
-            padding: 0 !important;
             margin: 0 !important;
-            background: white !important;
-            color: black !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: none !important;
+            box-shadow: none !important;
           }
+
           .no-print {
             display: none !important;
           }
-          .print-light {
-            background: white !important;
+
+          .print-light,
+          .print-light * {
             color: #000000 !important;
-            border-color: #e5e7eb !important;
+          }
+
+          .print-light {
+            background: #ffffff !important;
+          }
+
+          .print-light-card {
+            background: #ffffff !important;
+            border: 1px solid #d1d5db !important;
             box-shadow: none !important;
           }
-          .print-light text,
-          .print-light p,
-          .print-light span,
-          .print-light h1,
-          .print-light h2,
-          .print-light h3,
-          .print-light h4,
-          .print-light td,
-          .print-light th {
-            color: #000000 !important;
-          }
+
           .print-light-table-header {
-            background-color: #f3f4f6 !important;
+            background: #f3f4f6 !important;
             color: #000000 !important;
           }
-          .print-light-card {
-            border: 1px solid #d1d5db !important;
-            background: #fafafa !important;
+
+          th,
+          td {
+            color: #000000 !important;
+            border-color: #d1d5db !important;
           }
+
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+          }
+
+          .print-no-break {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+
           @page {
             size: A4 portrait;
-            margin: 15mm;
+            margin: 12mm;
           }
         }
       `}</style>
@@ -228,10 +287,11 @@ export default function InvoiceModal({
       {/* ── Modal Backdrop ── */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
         <div className="relative w-full max-w-3xl my-8 bg-neutral-950 border border-white/20 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden">
-          {/* Action Toolbar (Hidden during physical print) */}
+          {/* Action Toolbar */}
           <div className="no-print flex items-center justify-between px-6 py-4 border-b border-white/10 bg-neutral-900/80 backdrop-blur-md">
             <div className="flex items-center gap-2">
               <Receipt className="w-4 h-4 text-white/70" />
+
               <span className="text-xs font-black uppercase tracking-widest text-white/90">
                 Official Digital Receipt
               </span>
@@ -250,6 +310,7 @@ export default function InvoiceModal({
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}
+
                 <span>{copied ? "Copied" : "Copy No."}</span>
               </button>
 
@@ -299,16 +360,20 @@ export default function InvoiceModal({
                   <div className="w-7 h-7 rounded-lg bg-white text-black font-black flex items-center justify-center text-base tracking-tighter shadow-sm">
                     F
                   </div>
+
                   <h1 className="text-xl sm:text-2xl font-black uppercase tracking-wider">
                     FITORA CLUB
                   </h1>
                 </div>
+
                 <p className="text-xs text-white/60 font-medium">
                   Elite Health, Athletics & Physical Longevity
                 </p>
+
                 <p className="text-[11px] text-white/40">
                   Level 7, Fitora Athletic Tower, Gulshan-2, Dhaka-1212
                 </p>
+
                 <p className="text-[11px] text-white/40">
                   BIN: 004928192-0101 | support@fitora.club
                 </p>
@@ -316,17 +381,40 @@ export default function InvoiceModal({
 
               {/* Invoice Number & Stamp */}
               <div className="sm:text-right space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  <CheckCircle2 className="w-3 h-3" />
-                  Payment Confirmed
-                </div>
+                {/* Conditional Payment Status */}
+                {isPaid && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Payment Confirmed
+                  </div>
+                )}
+
+                {isPending && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-yellow-500/15 text-yellow-400 border border-yellow-500/30">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Payment Pending
+                  </div>
+                )}
+
+                {isFailed && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/15 text-red-400 border border-red-500/30">
+                    <X className="w-3 h-3" />
+                    Payment Failed
+                  </div>
+                )}
+
                 <h2 className="text-xl sm:text-2xl font-mono font-bold tracking-tight">
                   {invoiceNum}
                 </h2>
+
                 <div className="text-xs text-white/60 space-y-0.5">
                   <p>
-                    Date: <span className="font-semibold text-white">{issueDate}</span>
+                    Date:{" "}
+                    <span className="font-semibold text-white">
+                      {issueDate}
+                    </span>
                   </p>
+
                   <p>
                     Valid Until:{" "}
                     <span className="font-semibold text-white">
@@ -337,18 +425,47 @@ export default function InvoiceModal({
               </div>
             </div>
 
+            {/* Expired Membership Notice */}
+            {isExpired && (
+              <div className="no-print flex items-center justify-between gap-4 p-4 rounded-xl border border-red-500/30 bg-red-500/10">
+                <div>
+                  <p className="text-sm font-bold text-red-400">
+                    Membership Expired
+                  </p>
+
+                  <p className="text-xs text-white/60 mt-1">
+                    Your membership has expired. Please renew your membership
+                    to restore access.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast("Please renew your membership");
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-black text-xs font-bold hover:bg-neutral-200"
+                >
+                  Renew
+                </button>
+              </div>
+            )}
+
             {/* Bill To & Facility Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
               <div className="p-4 rounded-xl border border-white/10 bg-neutral-900/40 print-light-card space-y-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">
                   Billed Athlete
                 </p>
+
                 <h3 className="text-sm font-black text-white uppercase tracking-tight">
                   {clientName}
                 </h3>
+
                 <div className="text-white/70 space-y-0.5 text-[11px]">
                   <p>{clientEmail}</p>
                   <p>{clientPhone}</p>
+
                   <p className="font-mono text-white/50">
                     ID: {transaction._id?.slice(-8) || "ATH-83921"}
                   </p>
@@ -359,20 +476,28 @@ export default function InvoiceModal({
                 <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">
                   Assigned Facility & Method
                 </p>
+
                 <h3 className="text-sm font-black text-white uppercase tracking-tight">
                   {assignedBranch}
                 </h3>
+
                 <div className="text-white/70 space-y-0.5 text-[11px]">
                   <p>
                     Payment Method:{" "}
                     <strong className="text-white font-semibold">
-                      {transaction.paymentMethod || "bKash"}
+                      {transaction.paymentMethod ||
+                        transaction.gateway ||
+                        "Not specified"}
                     </strong>
                   </p>
+
                   <p className="font-mono text-white/70">
-                    Trx ID: {transaction.transactionId || "TRX-VERIFIED-AUTO"}
+                    Trx ID: {transaction.transactionId || "Not available"}
                   </p>
-                  <p className="text-white/50">All-Branch Turnstile Access: Active</p>
+
+                  <p className="text-white/50">
+                    All-Branch Turnstile Access: Active
+                  </p>
                 </div>
               </div>
             </div>
@@ -382,26 +507,45 @@ export default function InvoiceModal({
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-white/10 bg-neutral-900/80 print-light-table-header text-[10px] uppercase tracking-wider text-white/60">
-                    <th className="px-4 sm:px-6 py-3 font-bold">Item & Description</th>
-                    <th className="px-4 sm:px-6 py-3 font-bold">Billing Cycle</th>
-                    <th className="px-4 sm:px-6 py-3 font-bold text-right">Price</th>
-                    <th className="px-4 sm:px-6 py-3 font-bold text-right">Total</th>
+                    <th className="px-4 sm:px-6 py-3 font-bold">
+                      Item & Description
+                    </th>
+
+                    <th className="px-4 sm:px-6 py-3 font-bold">
+                      Billing Cycle
+                    </th>
+
+                    <th className="px-4 sm:px-6 py-3 font-bold text-right">
+                      Price
+                    </th>
+
+                    <th className="px-4 sm:px-6 py-3 font-bold text-right">
+                      Total
+                    </th>
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-white/5">
                   <tr>
                     <td className="px-4 sm:px-6 py-4">
                       <div className="font-bold text-white uppercase tracking-tight text-sm">
                         {planTitle} Membership Pass
                       </div>
+
                       <p className="text-[11px] text-white/60 mt-0.5">
-                        24/7 all-branch access, AI workout routine generator & nutrition tracking.
+                        24/7 all-branch access, AI workout routine generator &
+                        nutrition tracking.
                       </p>
                     </td>
-                    <td className="px-4 sm:px-6 py-4 text-white/70">{cycle}</td>
+
+                    <td className="px-4 sm:px-6 py-4 text-white/70">
+                      {cycle}
+                    </td>
+
                     <td className="px-4 sm:px-6 py-4 text-right font-mono text-white">
                       ৳{subtotal.toLocaleString()}
                     </td>
+
                     <td className="px-4 sm:px-6 py-4 text-right font-bold font-mono text-white">
                       ৳{subtotal.toLocaleString()}
                     </td>
@@ -415,11 +559,14 @@ export default function InvoiceModal({
               {/* Payment Verification Stamp */}
               <div className="flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-neutral-900/30 print-light-card max-w-sm">
                 <ShieldCheck className="w-8 h-8 text-emerald-400 shrink-0" />
+
                 <div className="text-[11px] leading-relaxed text-white/70">
                   <span className="font-bold text-white block uppercase">
                     Authorized Electronic Stamp
                   </span>
-                  Cryptographically settled and verified on Fitora membership registry.
+
+                  Cryptographically settled and verified on Fitora membership
+                  registry.
                 </div>
               </div>
 
@@ -427,16 +574,21 @@ export default function InvoiceModal({
               <div className="w-full sm:w-64 space-y-2 text-xs">
                 <div className="flex items-center justify-between text-white/60">
                   <span>Subtotal:</span>
+
                   <span className="font-mono text-white">
                     ৳{subtotal.toLocaleString()}
                   </span>
                 </div>
+
                 <div className="flex items-center justify-between text-white/60">
                   <span>VAT / Gym Tax (Exempt):</span>
+
                   <span className="font-mono text-white">৳0</span>
                 </div>
+
                 <div className="border-t border-white/15 pt-2 flex items-center justify-between text-sm font-black text-white uppercase">
                   <span>Total Paid:</span>
+
                   <span className="font-mono text-base text-white">
                     ৳{totalAmount.toLocaleString()} BDT
                   </span>
@@ -447,10 +599,13 @@ export default function InvoiceModal({
             {/* Footer Notes */}
             <div className="border-t border-white/10 pt-6 text-[10px] text-white/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
               <p>
-                This is a computer-generated tax invoice and requires no physical signature.
+                This is a computer-generated tax invoice and requires no
+                physical signature.
               </p>
+
               <p className="font-mono uppercase">
-                FITORA SECURE TRANSACTION ID: {transaction.transactionId || "TRX-OK"}
+                FITORA SECURE TRANSACTION ID:{" "}
+                {transaction.transactionId || "N/A"}
               </p>
             </div>
           </div>

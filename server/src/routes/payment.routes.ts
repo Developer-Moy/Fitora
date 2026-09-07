@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import {
   createCheckoutSession,
   verifySession,
@@ -8,21 +9,50 @@ import {
   getInvoiceById,
 } from "../controllers/payment.controller.js";
 
+import { authMiddleware } from "../middlewares/auth.middleware.js";
+
 const router = Router();
 
-// Stripe Checkout & Verification
-router.post("/create-checkout-session", createCheckoutSession);
-router.get("/verify-session", verifySession);
+router.post(
+  "/create-checkout-session",
+  authMiddleware,
+  createCheckoutSession,
+);
 
-// Direct bKash / Nagad / Card Checkout
-router.post("/checkout", checkoutPayment);
+router.get(
+  "/verify-session",
+  authMiddleware,
+  verifySession,
+);
 
-// Transaction History
-router.get("/me", getMyTransactions);
-router.get("/my-transactions", getMyTransactions);
-router.get("/all", getAllPayments);
+router.post(
+  "/checkout",
+  authMiddleware,
+  checkoutPayment,
+);
 
-// Digital Invoice by ID or Transaction ID
-router.get("/invoice/:id", getInvoiceById);
+router.get(
+  "/me",
+  authMiddleware,
+  getMyTransactions,
+);
+
+router.get(
+  "/my-transactions",
+  authMiddleware,
+  getMyTransactions,
+);
+
+router.get(
+  "/invoice/:id",
+  authMiddleware,
+  getInvoiceById,
+);
+
+router.get(
+  "/all",
+  authMiddleware,
+  getAllPayments,
+);
 
 export default router;
