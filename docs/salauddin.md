@@ -226,3 +226,8 @@ Monthly / Yearly billing toggle switch.
 * `server/src/models/payment.model.ts`
 * `server/src/utils/transactionId.ts`
 * Create database model and transactionId generator helper.
+
+### 07-Sep-26
+* `server/src/controllers/payment.controller.ts`
+* `server/src/routes/payment.routes.ts`
+* Created invoice generation and expiry server endpoint.
