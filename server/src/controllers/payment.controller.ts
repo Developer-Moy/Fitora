@@ -30,8 +30,7 @@ export const MEMBERSHIP_PLANS: Record<string, PlanDetails> = {
     name: "Basic Pass",
     monthlyPrice: 25,
     annualMonthlyPrice: 19,
-    description:
-      "Essential gym access for fitness starters & casual trainers.",
+    description: "Essential gym access for fitness starters & casual trainers.",
   },
 
   pro_athlete: {
@@ -39,8 +38,7 @@ export const MEMBERSHIP_PLANS: Record<string, PlanDetails> = {
     name: "Pro Athlete",
     monthlyPrice: 49,
     annualMonthlyPrice: 39,
-    description:
-      "Complete fitness package with AI coach studio & full access.",
+    description: "Complete fitness package with AI coach studio & full access.",
   },
 
   vip_ultimate: {
@@ -48,8 +46,7 @@ export const MEMBERSHIP_PLANS: Record<string, PlanDetails> = {
     name: "VIP Ultimate",
     monthlyPrice: 99,
     annualMonthlyPrice: 79,
-    description:
-      "Dedicated 1-on-1 coaching, custom nutrition & VIP perks.",
+    description: "Dedicated 1-on-1 coaching, custom nutrition & VIP perks.",
   },
 };
 
@@ -86,9 +83,7 @@ function getStripeClient(): Stripe {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
   if (!stripeSecretKey) {
-    throw new Error(
-      "STRIPE_SECRET_KEY is not configured on the server",
-    );
+    throw new Error("STRIPE_SECRET_KEY is not configured on the server");
   }
 
   return new Stripe(stripeSecretKey);
@@ -97,16 +92,11 @@ function getStripeClient(): Stripe {
 /**
  * Helper to optionally extract user payload from Bearer token
  */
-function extractUserFromHeader(
-  req: Request,
-): AuthUserPayload | null {
+function extractUserFromHeader(req: Request): AuthUserPayload | null {
   try {
     const authHeader = req.headers.authorization;
 
-    if (
-      !authHeader ||
-      !authHeader.startsWith("Bearer ")
-    ) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return null;
     }
 
@@ -115,13 +105,9 @@ function extractUserFromHeader(
     if (!token) return null;
 
     const jwtSecret =
-      process.env.JWT_SECRET ||
-      "FITORA_SUPER_SECRET_JWT_KEY_2026_PRODUCTION";
+      process.env.JWT_SECRET || "FITORA_SUPER_SECRET_JWT_KEY_2026_PRODUCTION";
 
-    return jwt.verify(
-      token,
-      jwtSecret,
-    ) as AuthUserPayload;
+    return jwt.verify(token, jwtSecret) as AuthUserPayload;
   } catch {
     return null;
   }
@@ -135,14 +121,8 @@ export async function createCheckoutSession(
   res: Response,
 ): Promise<void | Response> {
   try {
-    const {
-      planId,
-      planKey,
-      isAnnual,
-      billingCycle,
-      customerEmail,
-      userId,
-    } = req.body;
+    const { planId, planKey, isAnnual, billingCycle, customerEmail, userId } =
+      req.body;
 
     // 1. Resolve and validate selected plan
     const plan = resolvePlan(planId || planKey);
@@ -172,9 +152,7 @@ export async function createCheckoutSession(
 
     if (!userDoc && customerEmail) {
       userDoc = await User.findOne({
-        email: customerEmail
-          .trim()
-          .toLowerCase(),
+        email: customerEmail.trim().toLowerCase(),
       });
     }
 
@@ -184,9 +162,7 @@ export async function createCheckoutSession(
 
     const effectiveEmail = userDoc
       ? userDoc.email
-      : authUser?.email ||
-        customerEmail ||
-        undefined;
+      : authUser?.email || customerEmail || undefined;
 
     if (!effectiveUserId) {
       return res
@@ -203,18 +179,16 @@ export async function createCheckoutSession(
     // 3. Determine billing cycle
     const annualBilling = Boolean(
       isAnnual === true ||
-        isAnnual === "true" ||
-        billingCycle === "annual" ||
-        billingCycle === "yearly",
+      isAnnual === "true" ||
+      billingCycle === "annual" ||
+      billingCycle === "yearly",
     );
 
     const totalUsd = annualBilling
       ? plan.annualMonthlyPrice * 12
       : plan.monthlyPrice;
 
-    const amountInCents = Math.round(
-      totalUsd * 100,
-    );
+    const amountInCents = Math.round(totalUsd * 100);
 
     const intervalLabel = annualBilling
       ? "Annual Plan (Billed Yearly - 20% OFF)"
@@ -224,58 +198,50 @@ export async function createCheckoutSession(
     const stripe = getStripeClient();
 
     const clientUrl =
-      process.env.CLIENT_URL?.replace(/\/$/, "") ||
-      "http://localhost:3000";
+      process.env.CLIENT_URL?.replace(/\/$/, "") || "http://localhost:3000";
 
     // 5. Create Checkout Session
-    const session =
-      await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
 
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
 
-              product_data: {
-                name: `FITORA ${plan.name.toUpperCase()}`,
-                description: `${plan.description} — ${intervalLabel}`,
-              },
-
-              unit_amount: amountInCents,
+            product_data: {
+              name: `FITORA ${plan.name.toUpperCase()}`,
+              description: `${plan.description} — ${intervalLabel}`,
             },
 
-            quantity: 1,
+            unit_amount: amountInCents,
           },
-        ],
 
-        mode: "payment",
-
-        success_url:
-          `${clientUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-
-        cancel_url:
-          `${clientUrl}/?payment_status=cancelled`,
-
-        customer_email: effectiveEmail,
-
-        client_reference_id:
-          effectiveUserId || undefined,
-
-        metadata: {
-          userId: effectiveUserId,
-          userEmail: effectiveEmail || "",
-          planId: plan.id,
-          planName: plan.name,
-
-          billingCycle: annualBilling
-            ? "annual"
-            : "monthly",
-
-          totalAmountUSD:
-            totalUsd.toString(),
+          quantity: 1,
         },
-      });
+      ],
+
+      mode: "payment",
+
+      success_url: `${clientUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+
+      cancel_url: `${clientUrl}/?payment_status=cancelled`,
+
+      customer_email: effectiveEmail,
+
+      client_reference_id: effectiveUserId || undefined,
+
+      metadata: {
+        userId: effectiveUserId,
+        userEmail: effectiveEmail || "",
+        planId: plan.id,
+        planName: plan.name,
+
+        billingCycle: annualBilling ? "annual" : "monthly",
+
+        totalAmountUSD: totalUsd.toString(),
+      },
+    });
 
     if (!session.url) {
       return res
@@ -290,35 +256,26 @@ export async function createCheckoutSession(
     }
 
     return res.status(200).json(
-      successResponse(
-        "Stripe Checkout Session initialized successfully",
-        {
-          url: session.url,
-          sessionId: session.id,
-          amount: totalUsd,
-          currency: "usd",
+      successResponse("Stripe Checkout Session initialized successfully", {
+        url: session.url,
+        sessionId: session.id,
+        amount: totalUsd,
+        currency: "usd",
 
-          plan: plan.name,
+        plan: plan.name,
 
-          billingCycle: annualBilling
-            ? "annual"
-            : "monthly",
-        },
-      ),
+        billingCycle: annualBilling ? "annual" : "monthly",
+      }),
     );
   } catch (error: any) {
-    console.error(
-      "[Stripe Checkout Session Error]:",
-      error,
-    );
+    console.error("[Stripe Checkout Session Error]:", error);
 
     return res
       .status(500)
       .json(
         errorResponse(
           "Failed to create Stripe Checkout Session",
-          error?.message ||
-            "Internal Server Error",
+          error?.message || "Internal Server Error",
           500,
         ),
       );
@@ -332,11 +289,9 @@ export async function handleStripeWebhook(
   req: Request,
   res: Response,
 ): Promise<void | Response> {
-  const sig =
-    req.headers["stripe-signature"];
+  const sig = req.headers["stripe-signature"];
 
-  const webhookSecret =
-    process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!webhookSecret) {
     console.error(
@@ -371,12 +326,7 @@ export async function handleStripeWebhook(
   const stripe = getStripeClient();
 
   try {
-    event =
-      stripe.webhooks.constructEvent(
-        req.body,
-        sig,
-        webhookSecret,
-      );
+    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err: any) {
     console.error(
       "[Stripe Webhook Signature Verification Failed]:",
@@ -394,19 +344,12 @@ export async function handleStripeWebhook(
       );
   }
 
-  if (
-    event.type ===
-    "checkout.session.completed"
-  ) {
-    const session =
-      event.data.object as Stripe.Checkout.Session;
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
 
     try {
       // 1. Validate payment
-      if (
-        session.status !== "complete" ||
-        session.payment_status !== "paid"
-      ) {
+      if (session.status !== "complete" || session.payment_status !== "paid") {
         return res
           .status(400)
           .json(
@@ -421,11 +364,7 @@ export async function handleStripeWebhook(
       // 2. Validate metadata
       const metadata = session.metadata;
 
-      if (
-        !metadata ||
-        !metadata.planId ||
-        !metadata.billingCycle
-      ) {
+      if (!metadata || !metadata.planId || !metadata.billingCycle) {
         return res
           .status(400)
           .json(
@@ -437,37 +376,17 @@ export async function handleStripeWebhook(
           );
       }
 
-      const {
-        userId,
-        planId,
-        billingCycle,
-        userEmail,
-      } = metadata;
+      const { userId, planId, billingCycle, userEmail } = metadata;
 
       // 3. Find user
-      let user = userId
-        ? await User.findById(userId)
-        : null;
+      let user = userId ? await User.findById(userId) : null;
 
-      if (
-        !user &&
-        session.client_reference_id
-      ) {
-        user = await User.findById(
-          session.client_reference_id,
-        );
+      if (!user && session.client_reference_id) {
+        user = await User.findById(session.client_reference_id);
       }
 
-      if (
-        !user &&
-        (userEmail ||
-          session.customer_email)
-      ) {
-        const emailToFind = (
-          userEmail ||
-          session.customer_email ||
-          ""
-        )
+      if (!user && (userEmail || session.customer_email)) {
+        const emailToFind = (userEmail || session.customer_email || "")
           .trim()
           .toLowerCase();
 
@@ -476,10 +395,7 @@ export async function handleStripeWebhook(
         });
       }
 
-      const rawUserId =
-        user?._id ||
-        userId ||
-        session.client_reference_id;
+      const rawUserId = user?._id || userId || session.client_reference_id;
 
       if (!rawUserId) {
         return res
@@ -495,12 +411,8 @@ export async function handleStripeWebhook(
 
       const transactionUserId =
         user?._id ||
-        (mongoose.Types.ObjectId.isValid(
-          rawUserId,
-        )
-          ? new mongoose.Types.ObjectId(
-              rawUserId,
-            )
+        (mongoose.Types.ObjectId.isValid(rawUserId)
+          ? new mongoose.Types.ObjectId(rawUserId)
           : rawUserId);
 
       // 4. Validate plan
@@ -519,25 +431,16 @@ export async function handleStripeWebhook(
       }
 
       // 5. Validate billing cycle
-      const isAnnual =
-        billingCycle === "annual" ||
-        billingCycle === "yearly";
+      const isAnnual = billingCycle === "annual" || billingCycle === "yearly";
 
       // 6. Validate amount
-      const expectedTotalUsd =
-        isAnnual
-          ? plan.annualMonthlyPrice * 12
-          : plan.monthlyPrice;
+      const expectedTotalUsd = isAnnual
+        ? plan.annualMonthlyPrice * 12
+        : plan.monthlyPrice;
 
-      const expectedAmountInCents =
-        Math.round(
-          expectedTotalUsd * 100,
-        );
+      const expectedAmountInCents = Math.round(expectedTotalUsd * 100);
 
-      if (
-        session.amount_total !==
-        expectedAmountInCents
-      ) {
+      if (session.amount_total !== expectedAmountInCents) {
         return res
           .status(400)
           .json(
@@ -550,10 +453,7 @@ export async function handleStripeWebhook(
       }
 
       // 7. Validate currency
-      if (
-        session.currency?.toLowerCase() !==
-        "usd"
-      ) {
+      if (session.currency?.toLowerCase() !== "usd") {
         return res
           .status(400)
           .json(
@@ -566,16 +466,11 @@ export async function handleStripeWebhook(
       }
 
       // 8. Idempotency
-      const existingTx =
-        await PaymentTransaction.findOne({
-          stripeCheckoutSessionId:
-            session.id,
-        });
+      const existingTx = await PaymentTransaction.findOne({
+        stripeCheckoutSessionId: session.id,
+      });
 
-      if (
-        existingTx &&
-        existingTx.status === "paid"
-      ) {
+      if (existingTx && existingTx.status === "paid") {
         return res.status(200).json({
           received: true,
           duplicate: true,
@@ -585,62 +480,47 @@ export async function handleStripeWebhook(
       // 9. Calculate subscription period
       const startDate = new Date();
 
-      const expiryDate =
-        new Date(startDate);
+      const expiryDate = new Date(startDate);
 
       if (isAnnual) {
-        expiryDate.setFullYear(
-          expiryDate.getFullYear() + 1,
-        );
+        expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       } else {
-        expiryDate.setMonth(
-          expiryDate.getMonth() + 1,
-        );
+        expiryDate.setMonth(expiryDate.getMonth() + 1);
       }
 
       // 10. Stripe IDs
       const paymentIntentId =
-        typeof session.payment_intent ===
-        "string"
+        typeof session.payment_intent === "string"
           ? session.payment_intent
           : session.payment_intent?.id;
 
       const customerId =
-        typeof session.customer ===
-        "string"
+        typeof session.customer === "string"
           ? session.customer
           : session.customer?.id;
 
       // 11. Save PaymentTransaction
       await PaymentTransaction.findOneAndUpdate(
         {
-          stripeCheckoutSessionId:
-            session.id,
+          stripeCheckoutSessionId: session.id,
         },
 
         {
           userId: transactionUserId,
 
-          stripeCheckoutSessionId:
-            session.id,
+          stripeCheckoutSessionId: session.id,
 
-          stripePaymentIntentId:
-            paymentIntentId,
+          stripePaymentIntentId: paymentIntentId,
 
-          stripeCustomerId:
-            customerId,
+          stripeCustomerId: customerId,
 
-          stripeEventId:
-            event.id,
+          stripeEventId: event.id,
 
           planId: plan.id,
 
           planName: plan.name,
 
-          billingCycle:
-            isAnnual
-              ? "annual"
-              : "monthly",
+          billingCycle: isAnnual ? "annual" : "monthly",
 
           amount: expectedTotalUsd,
 
@@ -652,11 +532,9 @@ export async function handleStripeWebhook(
 
           paidAt: new Date(),
 
-          subscriptionStartDate:
-            startDate,
+          subscriptionStartDate: startDate,
 
-          subscriptionExpiryDate:
-            expiryDate,
+          subscriptionExpiryDate: expiryDate,
         },
 
         {
@@ -677,20 +555,14 @@ export async function handleStripeWebhook(
 
         user.plan = userPlanName;
 
-        user.paymentMethod =
-          "Card";
+        user.paymentMethod = "Card";
 
         user.status = "active";
 
-        user.membershipExpiresAt =
-          expiryDate;
+        user.membershipExpiresAt = expiryDate;
 
-        if (
-          user.role !== "master_admin" &&
-          user.role !== "branch_admin"
-        ) {
-          user.role =
-            "premium_user";
+        if (user.role !== "master_admin" && user.role !== "branch_admin") {
+          user.role = "premium_user";
         }
 
         await user.save();
@@ -725,18 +597,14 @@ export async function handleStripeWebhook(
         received: true,
       });
     } catch (err: any) {
-      console.error(
-        "[Stripe Webhook Processing Error]:",
-        err,
-      );
+      console.error("[Stripe Webhook Processing Error]:", err);
 
       return res
         .status(500)
         .json(
           errorResponse(
             "Internal server error during webhook processing",
-            err?.message ||
-              "Unknown error",
+            err?.message || "Unknown error",
             500,
           ),
         );
@@ -756,11 +624,7 @@ export async function verifySession(
   res: Response,
 ): Promise<void | Response> {
   try {
-    const sessionId =
-      (
-        req.query
-          .session_id as string
-      )?.trim();
+    const sessionId = (req.query.session_id as string)?.trim();
 
     if (!sessionId) {
       return res
@@ -774,22 +638,14 @@ export async function verifySession(
         );
     }
 
-    const stripe =
-      getStripeClient();
+    const stripe = getStripeClient();
 
-    let session:
-      Stripe.Checkout.Session;
+    let session: Stripe.Checkout.Session;
 
     try {
-      session =
-        await stripe.checkout.sessions.retrieve(
-          sessionId,
-        );
+      session = await stripe.checkout.sessions.retrieve(sessionId);
     } catch (stripeErr: any) {
-      console.error(
-        "[Stripe Session Retrieval Error]:",
-        stripeErr,
-      );
+      console.error("[Stripe Session Retrieval Error]:", stripeErr);
 
       return res
         .status(404)
@@ -803,10 +659,7 @@ export async function verifySession(
     }
 
     // Verify payment
-    if (
-      session.status !== "complete" ||
-      session.payment_status !== "paid"
-    ) {
+    if (session.status !== "complete" || session.payment_status !== "paid") {
       return res
         .status(400)
         .json(
@@ -819,16 +672,11 @@ export async function verifySession(
     }
 
     // Authenticated user
-    const authHeaderUser =
-      extractUserFromHeader(req);
+    const authHeaderUser = extractUserFromHeader(req);
 
-    const queryEmail = (
-      req.query.email as string
-    )?.trim().toLowerCase();
+    const queryEmail = (req.query.email as string)?.trim().toLowerCase();
 
-    const queryUserId = (
-      req.query.userId as string
-    )?.trim();
+    const queryUserId = (req.query.userId as string)?.trim();
 
     const requestingEmail = (
       authHeaderUser?.email ||
@@ -836,15 +684,9 @@ export async function verifySession(
       ""
     ).toLowerCase();
 
-    const requestingUserId =
-      authHeaderUser?.userId ||
-      queryUserId ||
-      "";
+    const requestingUserId = authHeaderUser?.userId || queryUserId || "";
 
-    if (
-      !requestingEmail &&
-      !requestingUserId
-    ) {
+    if (!requestingEmail && !requestingUserId) {
       return res
         .status(401)
         .json(
@@ -872,30 +714,16 @@ export async function verifySession(
       .trim()
       .toLowerCase();
 
-    if (
-      sessionUserId ||
-      sessionEmail
-    ) {
-      const matchesUserId =
-        Boolean(
-          sessionUserId &&
-            requestingUserId &&
-            sessionUserId ===
-              requestingUserId,
-        );
+    if (sessionUserId || sessionEmail) {
+      const matchesUserId = Boolean(
+        sessionUserId && requestingUserId && sessionUserId === requestingUserId,
+      );
 
-      const matchesEmail =
-        Boolean(
-          sessionEmail &&
-            requestingEmail &&
-            sessionEmail ===
-              requestingEmail,
-        );
+      const matchesEmail = Boolean(
+        sessionEmail && requestingEmail && sessionEmail === requestingEmail,
+      );
 
-      if (
-        !matchesUserId &&
-        !matchesEmail
-      ) {
+      if (!matchesUserId && !matchesEmail) {
         return res
           .status(403)
           .json(
@@ -909,102 +737,57 @@ export async function verifySession(
     }
 
     // Find user
-    let userDoc =
-      requestingUserId
-        ? await User.findById(
-            requestingUserId,
-          )
-        : null;
+    let userDoc = requestingUserId
+      ? await User.findById(requestingUserId)
+      : null;
 
-    if (
-      !userDoc &&
-      requestingEmail
-    ) {
-      userDoc =
-        await User.findOne({
-          email: requestingEmail,
-        });
+    if (!userDoc && requestingEmail) {
+      userDoc = await User.findOne({
+        email: requestingEmail,
+      });
     }
 
-    if (
-      !userDoc &&
-      sessionUserId
-    ) {
-      userDoc =
-        await User.findById(
-          sessionUserId,
-        );
+    if (!userDoc && sessionUserId) {
+      userDoc = await User.findById(sessionUserId);
     }
 
-    if (
-      !userDoc &&
-      sessionEmail
-    ) {
-      userDoc =
-        await User.findOne({
-          email: sessionEmail,
-        });
+    if (!userDoc && sessionEmail) {
+      userDoc = await User.findOne({
+        email: sessionEmail,
+      });
     }
 
     // Resolve plan
-    const plan = resolvePlan(
-      session.metadata?.planId ||
-        "basic_pass",
-    );
+    const plan = resolvePlan(session.metadata?.planId || "basic_pass");
 
     const isAnnual =
-      session.metadata?.billingCycle ===
-        "annual" ||
-      session.metadata?.billingCycle ===
-        "yearly";
+      session.metadata?.billingCycle === "annual" ||
+      session.metadata?.billingCycle === "yearly";
 
-    const planName =
-      plan?.name ||
-      session.metadata?.planName ||
-      "Basic Pass";
+    const planName = plan?.name || session.metadata?.planName || "Basic Pass";
 
     const totalUsd =
-      Number(
-        session.metadata
-          ?.totalAmountUSD,
-      ) ||
-      (session.amount_total
-        ? session.amount_total / 100
-        : isAnnual
-          ? 228
-          : 25);
+      Number(session.metadata?.totalAmountUSD) ||
+      (session.amount_total ? session.amount_total / 100 : isAnnual ? 228 : 25);
 
-    const startDate =
-      new Date();
+    const startDate = new Date();
 
-    const expiryDate =
-      new Date(startDate);
+    const expiryDate = new Date(startDate);
 
     if (isAnnual) {
-      expiryDate.setFullYear(
-        expiryDate.getFullYear() + 1,
-      );
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
     } else {
-      expiryDate.setMonth(
-        expiryDate.getMonth() + 1,
-      );
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
     }
 
     // Find existing transaction
-    let transaction =
-      await PaymentTransaction.findOne(
-        {
-          stripeCheckoutSessionId:
-            session.id,
-        },
-      );
+    let transaction = await PaymentTransaction.findOne({
+      stripeCheckoutSessionId: session.id,
+    });
 
     // Create fallback transaction
     if (!transaction) {
-      const rawUserId =
-        userDoc?._id ||
-        requestingUserId ||
-        sessionUserId;
+      const rawUserId = userDoc?._id || requestingUserId || sessionUserId;
 
       if (!rawUserId) {
         return res
@@ -1020,137 +803,104 @@ export async function verifySession(
 
       const transactionUserId =
         userDoc?._id ||
-        (mongoose.Types.ObjectId.isValid(
-          rawUserId,
-        )
-          ? new mongoose.Types.ObjectId(
-              rawUserId,
-            )
+        (mongoose.Types.ObjectId.isValid(rawUserId)
+          ? new mongoose.Types.ObjectId(rawUserId)
           : rawUserId);
 
       const paymentIntentId =
-        typeof session.payment_intent ===
-        "string"
+        typeof session.payment_intent === "string"
           ? session.payment_intent
           : session.payment_intent?.id;
 
       const customerId =
-        typeof session.customer ===
-        "string"
+        typeof session.customer === "string"
           ? session.customer
           : session.customer?.id;
 
-      transaction =
-        await PaymentTransaction.findOneAndUpdate(
-          {
-            stripeCheckoutSessionId:
-              session.id,
-          },
+      transaction = await PaymentTransaction.findOneAndUpdate(
+        {
+          stripeCheckoutSessionId: session.id,
+        },
 
-          {
-            userId:
-              transactionUserId,
+        {
+          userId: transactionUserId,
 
-            stripeCheckoutSessionId:
-              session.id,
+          stripeCheckoutSessionId: session.id,
 
-            stripePaymentIntentId:
-              paymentIntentId,
+          stripePaymentIntentId: paymentIntentId,
 
-            stripeCustomerId:
-              customerId,
+          stripeCustomerId: customerId,
 
-            planId:
-              plan?.id ||
-              "basic_pass",
+          planId: plan?.id || "basic_pass",
 
-            planName,
+          planName,
 
-            billingCycle:
-              isAnnual
-                ? "annual"
-                : "monthly",
+          billingCycle: isAnnual ? "annual" : "monthly",
 
-            amount: totalUsd,
+          amount: totalUsd,
 
-            currency:
-              session.currency ||
-              "usd",
+          currency: session.currency || "usd",
 
-            paymentMethod: "Card",
+          paymentMethod: "Card",
 
-            status: "paid",
+          status: "paid",
 
-            paidAt: new Date(),
+          paidAt: new Date(),
 
-            subscriptionStartDate:
-              startDate,
+          subscriptionStartDate: startDate,
 
-            subscriptionExpiryDate:
-              expiryDate,
-          },
+          subscriptionExpiryDate: expiryDate,
+        },
 
-          {
-            upsert: true,
-            new: true,
-            setDefaultsOnInsert: true,
-          },
-        );
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true,
+        },
+      );
 
       // Activate user
       if (userDoc) {
         userDoc.plan = (
-          plan?.id ===
-          "vip_ultimate"
+          plan?.id === "vip_ultimate"
             ? "VIP Ultimate"
-            : plan?.id ===
-                "pro_athlete"
+            : plan?.id === "pro_athlete"
               ? "Pro Athlete"
               : "Basic Pass"
         ) as UserPlan;
 
-        userDoc.paymentMethod =
-          "Card";
+        userDoc.paymentMethod = "Card";
 
-        userDoc.status =
-          "active";
+        userDoc.status = "active";
 
-        userDoc.membershipExpiresAt =
-          expiryDate;
+        userDoc.membershipExpiresAt = expiryDate;
 
         if (
-          userDoc.role !==
-            "master_admin" &&
-          userDoc.role !==
-            "branch_admin"
+          userDoc.role !== "master_admin" &&
+          userDoc.role !== "branch_admin"
         ) {
-          userDoc.role =
-            "premium_user";
+          userDoc.role = "premium_user";
         }
 
         await userDoc.save();
 
         const tierType =
-          plan?.id ===
-          "vip_ultimate"
+          plan?.id === "vip_ultimate"
             ? "vip"
-            : plan?.id ===
-                "pro_athlete"
+            : plan?.id === "pro_athlete"
               ? "pro"
               : "basic";
 
         await UserTier.findOneAndUpdate(
           {
-            userId:
-              userDoc._id,
+            userId: userDoc._id,
           },
 
           {
             tier: tierType,
             startDate,
             expiryDate,
-            validUntil:
-              expiryDate,
+            validUntil: expiryDate,
             isActive: true,
           },
 
@@ -1164,50 +914,31 @@ export async function verifySession(
     }
 
     return res.status(200).json(
-      successResponse(
-        "Payment verified successfully",
-        {
-          planName,
+      successResponse("Payment verified successfully", {
+        planName,
 
-          billingCycle:
-            isAnnual
-              ? "yearly"
-              : "monthly",
+        billingCycle: isAnnual ? "yearly" : "monthly",
 
-          amount: totalUsd,
+        amount: totalUsd,
 
-          currency: (
-            session.currency ||
-            "usd"
-          ).toUpperCase(),
+        currency: (session.currency || "usd").toUpperCase(),
 
-          paymentMethod:
-            "Card",
+        paymentMethod: "Card",
 
-          paidAt:
-            transaction?.paidAt ||
-            transaction?.createdAt ||
-            new Date(),
+        paidAt: transaction?.paidAt || transaction?.createdAt || new Date(),
 
-          membershipExpiresAt:
-            userDoc?.membershipExpiresAt ||
-            expiryDate,
-        },
-      ),
+        membershipExpiresAt: userDoc?.membershipExpiresAt || expiryDate,
+      }),
     );
   } catch (error: any) {
-    console.error(
-      "[Verify Session Error]:",
-      error,
-    );
+    console.error("[Verify Session Error]:", error);
 
     return res
       .status(500)
       .json(
         errorResponse(
           "An error occurred while verifying the payment session.",
-          error?.message ||
-            "Internal Server Error",
+          error?.message || "Internal Server Error",
           500,
         ),
       );
@@ -1217,30 +948,16 @@ export async function verifySession(
 /**
  * Helper: Generate unique transaction ID
  */
-function generateTransactionId(
-  gateway: string,
-): string {
-  const prefix =
-    gateway
-      .toLowerCase()
-      .includes("bkash")
-      ? "TRX-BK"
-      : gateway
-            .toLowerCase()
-            .includes("nagad")
-        ? "TRX-NG"
-        : "TRX-CD";
+function generateTransactionId(gateway: string): string {
+  const prefix = gateway.toLowerCase().includes("bkash")
+    ? "TRX-BK"
+    : gateway.toLowerCase().includes("nagad")
+      ? "TRX-NG"
+      : "TRX-CD";
 
-  const randomHex =
-    Math.random()
-      .toString(36)
-      .substring(2, 8)
-      .toUpperCase();
+  const randomHex = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-  const timestamp =
-    Date.now()
-      .toString()
-      .slice(-4);
+  const timestamp = Date.now().toString().slice(-4);
 
   return `${prefix}-${timestamp}${randomHex}`;
 }
@@ -1250,7 +967,7 @@ function generateTransactionId(
  */
 async function generateUniqueInvoiceNumber(): Promise<string> {
   const year = new Date().getFullYear();
-  for (let attempt = 0; attempt  < 10; attempt++) {
+  for (let attempt = 0; attempt < 10; attempt++) {
     const randomNum = Math.floor(100000 + Math.random() * 900000);
     const invoiceNumber = `INV-${year}-${randomNum}`;
 
@@ -1264,12 +981,14 @@ async function generateUniqueInvoiceNumber(): Promise<string> {
   throw new Error("Failed to generate unique invoice number");
 }
 
+function generateInvoiceNumber(): string {
+  const year = new Date().getFullYear();
+  const randomNum = Math.floor(100000 + Math.random() * 900000);
+  return `INV-${year}-${randomNum}`;
+}
 
 // Helper: Calculate subscription expiry and remaining days
-function calculateSubscriptionDetails(
-  startDate: Date,
-  billingCycle: string
-) {
+function calculateSubscriptionDetails(startDate: Date, billingCycle: string) {
   const expiryDate = new Date(startDate);
 
   if (billingCycle === "yearly" || billingCycle === "annual") {
@@ -1284,9 +1003,7 @@ function calculateSubscriptionDetails(
 
   const remainingDays = Math.max(
     0,
-    Math.ceil(
-      remainingMs / (1000 * 60 * 60 * 24)
-    )
+    Math.ceil(remainingMs / (1000 * 60 * 60 * 24)),
   );
 
   return {
@@ -1319,10 +1036,7 @@ export async function checkoutPayment(
     } = req.body;
 
     // Authoritative plan
-    const resolvedPlan =
-      resolvePlan(
-        planId || bodyPlanName,
-      );
+    const resolvedPlan = resolvePlan(planId || bodyPlanName);
 
     if (!resolvedPlan) {
       return res
@@ -1336,41 +1050,32 @@ export async function checkoutPayment(
         );
     }
 
-    const planName =
-      resolvedPlan.name;
+    const planName = resolvedPlan.name;
 
     // Normalize billing cycle
     const cycle =
-      billingCycle === "yearly" ||
-      billingCycle === "annual"
+      billingCycle === "yearly" || billingCycle === "annual"
         ? "yearly"
         : "monthly";
 
     // Server-side pricing
     const expectedUsd =
       cycle === "yearly"
-        ? resolvedPlan.annualMonthlyPrice *
-          12
+        ? resolvedPlan.annualMonthlyPrice * 12
         : resolvedPlan.monthlyPrice;
 
-    const authoritativeBDT =
-      expectedUsd * 120;
+    const authoritativeBDT = expectedUsd * 120;
 
-    const amount =
-      authoritativeBDT;
+    const amount = authoritativeBDT;
 
     // Verify JWT
-    const verifiedJwtUser =
-      extractUserFromHeader(req);
+    const verifiedJwtUser = extractUserFromHeader(req);
+    const authUser = (req as AuthRequest).user || verifiedJwtUser;
 
-    const authUser =
-      (req as AuthRequest).user ||
-      verifiedJwtUser;
+    const resolvedUserId = authUser?.userId || bodyUserId;
+    const resolvedEmail = authUser?.email || bodyUserEmail;
 
-    if (
-      !authUser ||
-      !authUser.userId
-    ) {
+    if (!resolvedUserId && !resolvedEmail) {
       return res
         .status(401)
         .json(
@@ -1383,12 +1088,7 @@ export async function checkoutPayment(
     }
 
     // Payment account validation
-    if (
-      !accountNumber ||
-      String(accountNumber)
-        .trim()
-        .length < 4
-    ) {
+    if (!accountNumber || String(accountNumber).trim().length < 4) {
       return res
         .status(400)
         .json(
@@ -1400,119 +1100,70 @@ export async function checkoutPayment(
         );
     }
 
-    const resolvedUserId =
-      authUser.userId;
-
-    const resolvedEmail =
-      authUser.email;
-
     const resolvedName =
-      bodyUserName ||
-      "Valued Athlete";
-
-    const startDate =
-      new Date();
-
-    const expiryDate =
-      new Date(startDate);
-
+      bodyUserName || (authUser as any)?.name || "Valued Athlete";
     const startDate = new Date();
-
-    const {
-  expiryDate
-} = calculateSubscriptionDetails(
-  startDate,
-  cycle
-);
+    const { expiryDate } = calculateSubscriptionDetails(startDate, cycle);
 
     const validGateway = (
-      [
-        "bKash",
-        "Nagad",
-        "Card",
-        "Bank Transfer",
-      ].includes(gateway)
+      ["bKash", "Nagad", "Card", "Bank Transfer"].includes(gateway)
         ? gateway
         : "bKash"
-    ) as
-      | "bKash"
-      | "Nagad"
-      | "Card"
-      | "Bank Transfer";
+    ) as "bKash" | "Nagad" | "Card" | "Bank Transfer";
 
     const finalTransactionId =
-      customTrxId &&
-      String(customTrxId).trim() !== ""
-        ? String(
-            customTrxId,
-          )
-            .trim()
-            .toUpperCase()
-        : generateTransactionId(
-            validGateway,
-          );
+      customTrxId && String(customTrxId).trim() !== ""
+        ? String(customTrxId).trim().toUpperCase()
+        : generateTransactionId(validGateway);
 
     const invoiceNumber = await generateUniqueInvoiceNumber();
 
     const paymentPayload = {
-      userId:
-        resolvedUserId,
+      userId: resolvedUserId,
 
-      userName:
-        resolvedName,
+      userName: resolvedName,
 
-      userEmail:
-        resolvedEmail,
+      userEmail: resolvedEmail,
 
       planName,
 
-      billingCycle:
-        cycle,
+      billingCycle: cycle,
 
-      amountBDT:
-        amount,
+      amountBDT: amount,
 
-      gateway:
-        validGateway,
+      gateway: validGateway,
 
-      accountNumber:
-        String(accountNumber)
-          .trim(),
+      accountNumber: String(accountNumber).trim(),
 
-      transactionId:
-        finalTransactionId,
+      transactionId: finalTransactionId,
 
-      status:
-        "completed" as const,
+      status: "completed" as const,
 
-      subscriptionStartDate:
-        startDate,
+      subscriptionStartDate: startDate,
 
-      subscriptionExpiryDate:
-        expiryDate,
+      subscriptionExpiryDate: expiryDate,
 
       invoiceNumber,
     };
 
-    let createdPayment:
-      | any
-      | null = null;
+    let createdPayment: any | null = null;
 
-    let updatedUser:
-      | any
-      | null = null;
+    let updatedUser: any | null = null;
 
-    const isDbConnected =
-      mongoose.connection.readyState ===
-      1;
+    const isDbConnected = mongoose.connection.readyState === 1;
 
     if (isDbConnected) {
       try {
-        // Check user first
-        const targetUser =
-          await User.findById(
-            authUser.userId,
-          );
+        // Check user first by ID or Email
+        let targetUser = null;
+        if (resolvedUserId && mongoose.Types.ObjectId.isValid(resolvedUserId)) {
+          targetUser = await User.findById(resolvedUserId);
+        }
+        if (!targetUser && resolvedEmail) {
+          targetUser = await User.findOne({
+            email: resolvedEmail.trim().toLowerCase(),
+          });
+        }
 
         if (!targetUser) {
           return res
@@ -1527,76 +1178,53 @@ export async function checkoutPayment(
         }
 
         // Create payment
-        createdPayment =
-          await Payment.create(
-            paymentPayload,
-          );
+        createdPayment = await Payment.create(paymentPayload);
 
         targetUser.plan = (
-          planName ===
-          "VIP Ultimate"
+          planName === "VIP Ultimate"
             ? "VIP Ultimate"
-            : planName ===
-                "Basic Pass"
+            : planName === "Basic Pass"
               ? "Basic Pass"
               : "Pro Athlete"
         ) as UserPlan;
 
-        targetUser.totalPaidBDT =
-          (targetUser.totalPaidBDT ||
-            0) + amount;
+        targetUser.totalPaidBDT = (targetUser.totalPaidBDT || 0) + amount;
 
-        targetUser.paymentMethod =
-          validGateway;
+        targetUser.paymentMethod = validGateway;
 
-        targetUser.subscriptionExpiryDate =
-          expiryDate;
+        targetUser.subscriptionExpiryDate = expiryDate;
+        targetUser.membershipExpiresAt = expiryDate;
 
-        targetUser.status =
-          "active";
+        targetUser.status = "active";
 
-        if (
-          targetUser.role ===
-            "free_user" ||
-          targetUser.role ===
-            "user"
-        ) {
-          targetUser.role =
-            "premium_user";
+        if (targetUser.role === "free_user" || targetUser.role === "user") {
+          targetUser.role = "premium_user";
         }
 
         await targetUser.save();
 
         updatedUser = {
           id: targetUser._id,
-          name:
-            targetUser.name,
-          email:
-            targetUser.email,
-          role:
-            targetUser.role,
-          plan:
-            targetUser.plan,
-          status:
-            targetUser.status,
-          subscriptionExpiryDate:
-            targetUser.subscriptionExpiryDate,
-          totalPaidBDT:
-            targetUser.totalPaidBDT,
+          name: targetUser.name,
+          email: targetUser.email,
+          role: targetUser.role,
+          plan: targetUser.plan,
+          status: targetUser.status,
+          subscriptionExpiryDate: targetUser.subscriptionExpiryDate,
+          totalPaidBDT: targetUser.totalPaidBDT,
         };
       } catch (dbErr) {
-        console.error(
-          "[Payment Controller] DB operations failed:",
-          dbErr,
-        );
+        console.error("[Payment Controller] DB operations failed:", dbErr);
 
-        return res.status(500).json(
-          errorResponse(
-            "Payment could not be completed because the payment record could not be saved.",
-            "PAYMENT_DATABASE_ERROR",
-            500,
-          ),
-        );
+        return res
+          .status(500)
+          .json(
+            errorResponse(
+              "Payment could not be completed because the payment record could not be saved.",
+              "PAYMENT_DATABASE_ERROR",
+              500,
+            ),
+          );
       }
     }
 
@@ -1604,31 +1232,24 @@ export async function checkoutPayment(
       successResponse(
         "Subscription activated & payment confirmed successfully",
         {
-          payment:
-            createdPayment,
+          payment: createdPayment,
 
-          user:
-            updatedUser,
+          user: updatedUser,
 
           invoice: {
             invoiceNumber,
 
-            transactionId:
-              finalTransactionId,
+            transactionId: finalTransactionId,
 
             planName,
 
-            billingCycle:
-              cycle,
+            billingCycle: cycle,
 
-            amountBDT:
-              amount,
+            amountBDT: amount,
 
-            gateway:
-              validGateway,
+            gateway: validGateway,
 
-            date:
-              startDate,
+            date: startDate,
 
             expiryDate,
           },
@@ -1636,19 +1257,14 @@ export async function checkoutPayment(
       ),
     );
   } catch (error) {
-    console.error(
-      "[Payment Controller] checkoutPayment Error:",
-      error,
-    );
+    console.error("[Payment Controller] checkoutPayment Error:", error);
 
     return res
       .status(500)
       .json(
         errorResponse(
           "Failed to process subscription payment",
-          error instanceof Error
-            ? error.message
-            : "Internal Server Error",
+          error instanceof Error ? error.message : "Internal Server Error",
           500,
         ),
       );
@@ -1664,78 +1280,59 @@ export async function getMyTransactions(
   res: Response,
 ): Promise<Response> {
   try {
-    const authUser =
-      (req as AuthRequest).user;
+    const authUser = (req as AuthRequest).user;
 
     // Only authenticated user's payment history
     if (!authUser?.userId) {
-      return res.status(401).json(
-        errorResponse(
-          "Authentication required to view payment history.",
-          "UNAUTHORIZED",
-          401,
-        ),
-      );
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Authentication required to view payment history.",
+            "UNAUTHORIZED",
+            401,
+          ),
+        );
     }
 
-    const targetUserId =
-      authUser.userId;
+    const targetUserId = authUser.userId;
 
-    const targetEmail =
-      authUser.email;
+    const targetEmail = authUser.email;
 
     let payments: any[] = [];
 
-    const isDbConnected =
-      mongoose.connection.readyState ===
-      1;
+    const isDbConnected = mongoose.connection.readyState === 1;
 
     if (isDbConnected) {
       try {
-        const orConditions: any[] =
-          [];
+        const orConditions: any[] = [];
 
         if (targetUserId) {
-          if (
-            mongoose.Types.ObjectId.isValid(
-              targetUserId,
-            )
-          ) {
+          if (mongoose.Types.ObjectId.isValid(targetUserId)) {
             orConditions.push({
-              userId:
-                new mongoose.Types.ObjectId(
-                  targetUserId,
-                ),
+              userId: new mongoose.Types.ObjectId(targetUserId),
             });
           }
 
           orConditions.push({
-            userId:
-              targetUserId,
+            userId: targetUserId,
           });
         }
 
         if (targetEmail) {
           orConditions.push({
-            userEmail:
-              targetEmail
-                .toLowerCase()
-                .trim(),
+            userEmail: targetEmail.toLowerCase().trim(),
           });
         }
 
         const filter =
           orConditions.length > 0
             ? {
-                $or:
-                  orConditions,
+                $or: orConditions,
               }
             : {};
 
-        const [
-          bdtPayments,
-          stripePayments,
-        ] = await Promise.all([
+        const [bdtPayments, stripePayments] = await Promise.all([
           Payment.find(filter)
             .sort({
               createdAt: -1,
@@ -1745,8 +1342,7 @@ export async function getMyTransactions(
           PaymentTransaction.find(
             targetUserId
               ? {
-                  userId:
-                    targetUserId,
+                  userId: targetUserId,
                 }
               : {},
           )
@@ -1760,210 +1356,97 @@ export async function getMyTransactions(
         // ==================================================
         // Stripe Payments
         // ==================================================
-        const unifiedStripe =
-          stripePayments.map(
-            (s: any) => ({
-              _id:
-                s._id?.toString() ||
-                s.stripeCheckoutSessionId,
+        const unifiedStripe = stripePayments.map((s: any) => ({
+          _id: s._id?.toString() || s.stripeCheckoutSessionId,
 
-              transactionId:
-                s.stripePaymentIntentId ||
-                s.stripeCheckoutSessionId
-                  ?.slice(-12)
-                  ?.toUpperCase(),
+          transactionId:
+            s.stripePaymentIntentId ||
+            s.stripeCheckoutSessionId?.slice(-12)?.toUpperCase(),
 
-              date:
-                s.paidAt ||
-                s.createdAt ||
-                new Date().toISOString(),
+          date: s.paidAt || s.createdAt || new Date().toISOString(),
 
-              paymentMethod:
-                "Card",
+          paymentMethod: "Card",
 
-              amount:
-                Math.round(
-                  Number(
-                    s.amount || 0,
-                  ) * 120,
-                ),
+          amount: Math.round(Number(s.amount || 0) * 120),
 
-              planName:
-                s.planName ||
-                "Pro Athlete",
+          planName: s.planName || "Pro Athlete",
 
-              // Normalize Stripe status
-              status:
-                s.status === "paid"
-                  ? "completed"
-                  : s.status,
+          // Normalize Stripe status
+          status: s.status === "paid" ? "completed" : s.status,
 
-              // Normalize annual -> yearly
-              billingCycle:
-                s.billingCycle ===
-                "annual"
-                  ? "yearly"
-                  : s.billingCycle ||
-                    "monthly",
+          // Normalize annual -> yearly
+          billingCycle:
+            s.billingCycle === "annual"
+              ? "yearly"
+              : s.billingCycle || "monthly",
 
-              invoiceNumber:
-                s.invoiceNumber ||
-                `INV-${new Date(
-                  s.paidAt ||
-                    s.createdAt ||
-                    Date.now(),
-                ).getFullYear()}-${(
-                  s._id?.toString() ||
-                  "STRP"
-                )
-                  .slice(-6)
-                  .toUpperCase()}`,
+          invoiceNumber:
+            s.invoiceNumber ||
+            `INV-${new Date(
+              s.paidAt || s.createdAt || Date.now(),
+            ).getFullYear()}-${(s._id?.toString() || "STRP")
+              .slice(-6)
+              .toUpperCase()}`,
 
-              subscriptionStartDate:
-                s.subscriptionStartDate ||
-                s.paidAt ||
-                s.createdAt ||
-                new Date().toISOString(),
+          subscriptionStartDate:
+            s.subscriptionStartDate ||
+            s.paidAt ||
+            s.createdAt ||
+            new Date().toISOString(),
 
-              subscriptionExpiryDate:
-                s.subscriptionExpiryDate ||
-                s.expiryDate ||
-                s.membershipExpiresAt ||
-                null,
+          subscriptionExpiryDate:
+            s.subscriptionExpiryDate ||
+            s.expiryDate ||
+            s.membershipExpiresAt ||
+            null,
 
-              userName:
-                s.userName ||
-                "Valued Athlete",
+          userName: s.userName || "Valued Athlete",
 
-              userEmail:
-                s.userEmail ||
-                targetEmail ||
-                "",
-            }),
-          );
+          userEmail: s.userEmail || targetEmail || "",
+        }));
 
         // ==================================================
         // BDT Payments
         // ==================================================
-        const unifiedBdt =
-          bdtPayments.map(
-            (b: any) => ({
-              _id:
-                b._id?.toString() ||
-                b.transactionId,
+        const unifiedBdt = bdtPayments.map((b: any) => ({
+          _id: b._id?.toString() || b.transactionId,
 
-              transactionId:
-                b.transactionId,
+          transactionId: b.transactionId,
 
-              date:
-                b.createdAt ||
-                b.subscriptionStartDate ||
-                new Date().toISOString(),
+          date:
+            b.createdAt || b.subscriptionStartDate || new Date().toISOString(),
 
-              paymentMethod:
-                b.gateway ||
-                "bKash",
+          paymentMethod: b.gateway || "bKash",
 
-              amount:
-                b.amountBDT,
+          amount: b.amountBDT,
 
-              planName:
-                b.planName,
+          planName: b.planName,
 
-              // Normalize BDT status
-              status:
-                b.status ||
-                "completed",
+          // Normalize BDT status
+          status: b.status || "completed",
 
-              // Normalize annual -> yearly
-              billingCycle:
-                b.billingCycle ===
-                "annual"
-                  ? "yearly"
-                  : b.billingCycle ||
-                    "monthly",
+          // Normalize annual -> yearly
+          billingCycle:
+            b.billingCycle === "annual"
+              ? "yearly"
+              : b.billingCycle || "monthly",
 
-              invoiceNumber:
-                b.invoiceNumber ||
-                generateInvoiceNumber(),
+          invoiceNumber: b.invoiceNumber || generateInvoiceNumber(),
 
-              subscriptionStartDate:
-                b.subscriptionStartDate ||
-                b.createdAt,
+          subscriptionStartDate: b.subscriptionStartDate || b.createdAt,
 
-              subscriptionExpiryDate:
-                b.subscriptionExpiryDate ||
-                null,
+          subscriptionExpiryDate: b.subscriptionExpiryDate || null,
 
-              accountNumber:
-                b.accountNumber,
+          accountNumber: b.accountNumber,
 
-              userName:
-                b.userName ||
-                "Valued Athlete",
+          userName: b.userName || "Valued Athlete",
 
-              userEmail:
-                b.userEmail ||
-                targetEmail ||
-                "",
-            }),
-          );
+          userEmail: b.userEmail || targetEmail || "",
+        }));
 
         // ==================================================
         // Merge & Sort
         // ==================================================
-        payments = [
-          ...unifiedBdt,
-          ...unifiedStripe,
-        ].sort(
-          (a, b) =>
-            new Date(
-              b.date,
-            ).getTime() -
-            new Date(
-              a.date,
-            ).getTime(),
-        const unifiedStripe = stripePayments.map((s: any) => ({
-          _id: s._id?.toString() || s.stripeCheckoutSessionId,
-          transactionId:
-            s.stripePaymentIntentId ||
-            s.stripeCheckoutSessionId?.slice(-12)?.toUpperCase(),
-          date: s.paidAt || s.createdAt || new Date().toISOString(),
-          paymentMethod: "Card",
-          amount: Math.round(Number(s.amount || 0) * 120), // Convert USD to BDT display
-          planName: s.planName || "Pro Athlete",
-          status: s.status === "paid" ? "Completed" : s.status,
-          billingCycle: s.billingCycle || "monthly",
-          invoiceNumber:
-            s.invoiceNumber ||
-            `INV-${new Date(s.paidAt || s.createdAt || Date.now()).getFullYear()}-${(s._id?.toString() || "STRP").slice(-6).toUpperCase()}`,
-          subscriptionStartDate: s.paidAt || s.createdAt || new Date().toISOString(),
-          subscriptionExpiryDate: s.expiryDate || s.membershipExpiresAt || null,
-          userName: s.userName || "Valued Athlete",
-          userEmail: s.userEmail || targetEmail || "",
-        }));
-
-        const unifiedBdt = bdtPayments.map((b: any) => ({
-          _id: b._id?.toString() || b.transactionId,
-          transactionId: b.transactionId,
-          date:
-            b.createdAt || b.subscriptionStartDate || new Date().toISOString(),
-          paymentMethod: b.gateway || "bKash",
-          amount: b.amountBDT,
-          planName: b.planName,
-          status: "Completed",
-          billingCycle: b.billingCycle || "monthly",
-          invoiceNumber: b.invoiceNumber || `INV-${new Date(b.createdAt || Date.now()).getFullYear()}-${b._id
-    .toString()
-    .slice(-6)
-    .toUpperCase()}`,
-          subscriptionStartDate: b.subscriptionStartDate || b.createdAt,
-          subscriptionExpiryDate: b.subscriptionExpiryDate || null,
-          accountNumber: b.accountNumber,
-          userName: b.userName || "Valued Athlete",
-          userEmail: b.userEmail || targetEmail || "",
-        }));
-
         payments = [...unifiedBdt, ...unifiedStripe].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         );
@@ -1971,124 +1454,58 @@ export async function getMyTransactions(
         // ==================================================
         // Active Subscription
         // ==================================================
-        let activeSubscription:
-          | any
-          | null = null;
+        let activeSubscription: any | null = null;
 
-        let matchedUser:
-          | any
-          | null = null;
+        let matchedUser: any | null = null;
 
-        if (
-          targetUserId &&
-          mongoose.Types.ObjectId.isValid(
-            targetUserId,
-          )
-        ) {
-          matchedUser =
-            await User.findById(
-              targetUserId,
-            ).lean();
+        if (targetUserId && mongoose.Types.ObjectId.isValid(targetUserId)) {
+          matchedUser = await User.findById(targetUserId).lean();
         }
 
-        if (
-          !matchedUser &&
-          targetEmail
-        ) {
-          matchedUser =
-            await User.findOne({
-              email:
-                targetEmail
-                  .toLowerCase()
-                  .trim(),
-            }).lean();
+        if (!matchedUser && targetEmail) {
+          matchedUser = await User.findOne({
+            email: targetEmail.toLowerCase().trim(),
+          }).lean();
         }
 
-        const now =
-          new Date();
+        const now = new Date();
 
-        const latestTx =
-          payments[0];
+        const latestTx = payments[0];
 
         const effectivePlan =
-          matchedUser?.plan ||
-          latestTx?.planName ||
-          "Free Pass";
+          matchedUser?.plan || latestTx?.planName || "Free Pass";
 
         const effectiveExpiry =
           matchedUser?.subscriptionExpiryDate ||
           matchedUser?.membershipExpiresAt ||
           latestTx?.subscriptionExpiryDate;
 
-        if (
-          effectivePlan &&
-          effectivePlan !==
-            "Free Pass"
-        ) {
-          const expDate =
-            effectiveExpiry
-              ? new Date(
-                  effectiveExpiry,
-                )
-              : null;
+        if (effectivePlan && effectivePlan !== "Free Pass") {
+          const expDate = effectiveExpiry ? new Date(effectiveExpiry) : null;
 
-          const isExpired =
-            expDate
-              ? expDate.getTime() <
-                now.getTime()
-              : false;
+          const isExpired = expDate ? expDate.getTime() < now.getTime() : false;
 
-          const diffMs =
-            expDate
-              ? Math.max(
-                  0,
-                  expDate.getTime() -
-                    now.getTime(),
-                )
-              : 0;
+          const diffMs = expDate
+            ? Math.max(0, expDate.getTime() - now.getTime())
+            : 0;
 
-          const remainingDays =
-            Math.floor(
-              diffMs /
-                (1000 *
-                  60 *
-                  60 *
-                  24),
-            );
+          const remainingDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-          const remainingHours =
-            Math.floor(
-              (diffMs %
-                (1000 *
-                  60 *
-                  60 *
-                  24)) /
-                (1000 *
-                  60 *
-                  60),
-            );
+          const remainingHours = Math.floor(
+            (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+          );
 
           const subscriptionStart =
-            latestTx?.subscriptionStartDate ||
-            latestTx?.date ||
-            null;
+            latestTx?.subscriptionStartDate || latestTx?.date || null;
 
           activeSubscription = {
-            planName:
-              effectivePlan,
+            planName: effectivePlan,
 
-            status:
-              isExpired
-                ? "expired"
-                : "active",
+            status: isExpired ? "expired" : "active",
 
-            startDate:
-              subscriptionStart,
+            startDate: subscriptionStart,
 
-            expiryDate:
-              expDate
-                ? expDate.toISOString()
-                : null,
+            expiryDate: expDate ? expDate.toISOString() : null,
 
             remainingDays,
 
@@ -2096,67 +1513,48 @@ export async function getMyTransactions(
 
             isExpired,
 
-            isExpiringSoon:
-              !isExpired &&
-              remainingDays < 3,
+            isExpiringSoon: !isExpired && remainingDays < 3,
 
             paymentMethod:
-              matchedUser?.paymentMethod ||
-              latestTx?.paymentMethod ||
-              "Card",
+              matchedUser?.paymentMethod || latestTx?.paymentMethod || "Card",
           };
         }
 
         return res.status(200).json(
-          successResponse(
-            "Transactions retrieved successfully",
-            {
-              count:
-                payments.length,
+          successResponse("Transactions retrieved successfully", {
+            count: payments.length,
 
-              payments,
+            payments,
 
-              activeSubscription,
-            },
-          ),
+            activeSubscription,
+          }),
         );
       } catch (dbErr) {
-        console.warn(
-          "[Payment Controller] DB query failed:",
-          dbErr,
-        );
+        console.warn("[Payment Controller] DB query failed:", dbErr);
       }
     }
 
     return res.status(200).json(
-      successResponse(
-        "Transactions retrieved successfully",
-        {
-          count:
-            payments.length,
+      successResponse("Transactions retrieved successfully", {
+        count: payments.length,
 
-          payments,
+        payments,
 
-          activeSubscription:
-            null,
-        },
-      ),
+        activeSubscription: null,
+      }),
     );
   } catch (error) {
-    console.error(
-      "[Payment Controller] getMyTransactions Error:",
-      error,
-    );
+    console.error("[Payment Controller] getMyTransactions Error:", error);
 
-    return res.status(500).json(
-      errorResponse(
-        "Failed to retrieve transactions",
-        error instanceof Error
-          ? error.message
-          : "Internal Server Error",
-        500,
-      ),
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve transactions",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 }
 
@@ -2168,47 +1566,29 @@ export async function getAllPayments(
   res: Response,
 ): Promise<Response> {
   try {
-    const {
-      limit = 50,
-      page = 1,
-    } = req.query;
+    const { limit = 50, page = 1 } = req.query;
 
-    const limitNum =
-      parseInt(
-        limit as string,
-        10,
-      ) || 50;
+    const limitNum = parseInt(limit as string, 10) || 50;
 
-    const pageNum =
-      parseInt(
-        page as string,
-        10,
-      ) || 1;
+    const pageNum = parseInt(page as string, 10) || 1;
 
     let payments: any[] = [];
 
     let totalCount = 0;
 
-    const isDbConnected =
-      mongoose.connection.readyState ===
-      1;
+    const isDbConnected = mongoose.connection.readyState === 1;
 
     if (isDbConnected) {
       try {
-        totalCount =
-          await Payment.countDocuments();
+        totalCount = await Payment.countDocuments();
 
-        payments =
-          await Payment.find()
-            .sort({
-              createdAt: -1,
-            })
-            .skip(
-              (pageNum - 1) *
-                limitNum,
-            )
-            .limit(limitNum)
-            .lean();
+        payments = await Payment.find()
+          .sort({
+            createdAt: -1,
+          })
+          .skip((pageNum - 1) * limitNum)
+          .limit(limitNum)
+          .lean();
       } catch (dbErr) {
         console.warn(
           "[Payment Controller] getAllPayments DB query failed:",
@@ -2218,42 +1598,27 @@ export async function getAllPayments(
     }
 
     return res.status(200).json(
-      successResponse(
-        "All payments retrieved successfully",
-        {
-          count:
-            payments.length,
+      successResponse("All payments retrieved successfully", {
+        count: payments.length,
 
-          total:
-            totalCount,
+        total: totalCount,
 
-          page:
-            pageNum,
+        page: pageNum,
 
-          totalPages:
-            Math.ceil(
-              totalCount /
-                limitNum,
-            ) || 1,
+        totalPages: Math.ceil(totalCount / limitNum) || 1,
 
-          payments,
-        },
-      ),
+        payments,
+      }),
     );
   } catch (error) {
-    console.error(
-      "[Payment Controller] getAllPayments Error:",
-      error,
-    );
+    console.error("[Payment Controller] getAllPayments Error:", error);
 
     return res
       .status(500)
       .json(
         errorResponse(
           "Failed to fetch payment records",
-          error instanceof Error
-            ? error.message
-            : "Internal Server Error",
+          error instanceof Error ? error.message : "Internal Server Error",
           500,
         ),
       );
@@ -2269,90 +1634,74 @@ export async function getInvoiceById(
 ): Promise<Response> {
   try {
     // Authentication check
-    const authUser =
-      (req as AuthRequest).user;
+    const authUser = (req as AuthRequest).user;
 
     if (!authUser?.userId) {
-      return res.status(401).json(
-        errorResponse(
-          "Authentication required to view this invoice.",
-          "UNAUTHORIZED",
-          401,
-        ),
-      );
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Authentication required to view this invoice.",
+            "UNAUTHORIZED",
+            401,
+          ),
+        );
     }
 
-    const { id } =
-      req.params;
+    const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json(
-        errorResponse(
-          "Invoice ID or Transaction ID is required",
-          "MISSING_ID",
-          400,
-        ),
-      );
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Invoice ID or Transaction ID is required",
+            "MISSING_ID",
+            400,
+          ),
+        );
     }
 
-    const query =
-      id.trim();
+    const query = id.trim();
 
-    let paymentDoc:
-      | any
-      | null = null;
+    let paymentDoc: any | null = null;
 
     // --------------------------------------------------
     // 1. Check regular BDT Payment
     // --------------------------------------------------
-    if (
-      mongoose.Types.ObjectId.isValid(
-        query,
-      )
-    ) {
-      paymentDoc =
-        await Payment.findById(
-          query,
-        ).lean();
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      paymentDoc = await Payment.findById(query).lean();
     }
 
     if (!paymentDoc) {
-      paymentDoc =
-        await Payment.findOne({
-          $or: [
-            {
-              transactionId:
-                query,
-            },
-            {
-              invoiceNumber:
-                query,
-            },
-          ],
-        }).lean();
+      paymentDoc = await Payment.findOne({
+        $or: [
+          {
+            transactionId: query,
+          },
+          {
+            invoiceNumber: query,
+          },
+        ],
+      }).lean();
     }
 
     // --------------------------------------------------
     // 2. Ownership check
     // --------------------------------------------------
     if (paymentDoc) {
-      const paymentUserId =
-        paymentDoc.userId?.toString();
+      const paymentUserId = paymentDoc.userId?.toString();
 
-      if (
-        paymentUserId &&
-        paymentUserId !==
-          String(
-            authUser.userId,
-          )
-      ) {
-        return res.status(403).json(
-          errorResponse(
-            "You do not have permission to view this invoice.",
-            "FORBIDDEN",
-            403,
-          ),
-        );
+      if (paymentUserId && paymentUserId !== String(authUser.userId)) {
+        return res
+          .status(403)
+          .json(
+            errorResponse(
+              "You do not have permission to view this invoice.",
+              "FORBIDDEN",
+              403,
+            ),
+          );
       }
     }
 
@@ -2360,119 +1709,76 @@ export async function getInvoiceById(
     // 3. Check Stripe PaymentTransaction
     // --------------------------------------------------
     if (!paymentDoc) {
-      const stripeTx: any =
-        await PaymentTransaction.findOne(
+      const stripeTx: any = await PaymentTransaction.findOne({
+        $or: [
+          ...(mongoose.Types.ObjectId.isValid(query)
+            ? [
+                {
+                  _id: query,
+                },
+              ]
+            : []),
+
           {
-            $or: [
-              ...(mongoose.Types.ObjectId.isValid(
-                query,
-              )
-                ? [
-                    {
-                      _id:
-                        query,
-                    },
-                  ]
-                : []),
-
-              {
-                stripeCheckoutSessionId:
-                  query,
-              },
-
-              {
-                stripePaymentIntentId:
-                  query,
-              },
-            ],
+            stripeCheckoutSessionId: query,
           },
-        ).lean();
+
+          {
+            stripePaymentIntentId: query,
+          },
+        ],
+      }).lean();
 
       if (stripeTx) {
-        const stripeUserId =
-          stripeTx.userId?.toString();
+        const stripeUserId = stripeTx.userId?.toString();
 
-        if (
-          stripeUserId &&
-          stripeUserId !==
-            String(
-              authUser.userId,
-            )
-        ) {
-          return res.status(403).json(
-            errorResponse(
-              "You do not have permission to view this invoice.",
-              "FORBIDDEN",
-              403,
-            ),
-          );
+        if (stripeUserId && stripeUserId !== String(authUser.userId)) {
+          return res
+            .status(403)
+            .json(
+              errorResponse(
+                "You do not have permission to view this invoice.",
+                "FORBIDDEN",
+                403,
+              ),
+            );
         }
 
         paymentDoc = {
-          _id:
-            stripeTx._id,
+          _id: stripeTx._id,
 
-          invoiceNumber:
-            `INV-${new Date(
-              stripeTx.createdAt ||
-                Date.now(),
-            ).getFullYear()}-${stripeTx._id
-              .toString()
-              .slice(-6)
-              .toUpperCase()}`,
+          invoiceNumber: `INV-${new Date(
+            stripeTx.createdAt || Date.now(),
+          ).getFullYear()}-${stripeTx._id.toString().slice(-6).toUpperCase()}`,
 
           transactionId:
-            stripeTx.stripePaymentIntentId ||
-            stripeTx.stripeCheckoutSessionId,
+            stripeTx.stripePaymentIntentId || stripeTx.stripeCheckoutSessionId,
 
-          date:
-            stripeTx.paidAt ||
-            stripeTx.createdAt,
+          date: stripeTx.paidAt || stripeTx.createdAt,
 
-          paymentMethod:
-            "Card",
+          paymentMethod: "Card",
 
-          amountBDT:
-            Math.round(
-              Number(
-                stripeTx.amount ||
-                  0,
-              ) * 120,
-            ),
+          amountBDT: Math.round(Number(stripeTx.amount || 0) * 120),
 
-          planName:
-            stripeTx.planName ||
-            "Pro Athlete",
+          planName: stripeTx.planName || "Pro Athlete",
 
-          status:
-            stripeTx.status ===
-            "paid"
-              ? "Completed"
-              : stripeTx.status,
+          status: stripeTx.status === "paid" ? "Completed" : stripeTx.status,
 
           billingCycle:
-            stripeTx.billingCycle ===
-            "annual"
+            stripeTx.billingCycle === "annual"
               ? "yearly"
-              : stripeTx.billingCycle ||
-                "monthly",
+              : stripeTx.billingCycle || "monthly",
 
           subscriptionStartDate:
             stripeTx.subscriptionStartDate ||
             stripeTx.paidAt ||
             stripeTx.createdAt,
 
-          subscriptionExpiryDate:
-            stripeTx.subscriptionExpiryDate ||
-            null,
+          subscriptionExpiryDate: stripeTx.subscriptionExpiryDate || null,
 
-          userName:
-            stripeTx.userName ||
-            "Valued Athlete",
+          userName: stripeTx.userName || "Valued Athlete",
 
-          userEmail:
-            stripeTx.userEmail ||
-            "",
+          userEmail: stripeTx.userEmail || "",
         };
       }
     }
@@ -2481,112 +1787,62 @@ export async function getInvoiceById(
     // 4. Invoice not found
     // --------------------------------------------------
     if (!paymentDoc) {
-      return res.status(404).json(
-        errorResponse(
-          "Invoice record not found",
-          "NOT_FOUND",
-          404,
-        ),
-      );
+      return res
+        .status(404)
+        .json(errorResponse("Invoice record not found", "NOT_FOUND", 404));
     }
 
     // --------------------------------------------------
     // 5. Return invoice
     // --------------------------------------------------
     return res.status(200).json(
-      successResponse(
-        "Digital invoice fetched successfully",
-        {
-          invoice: {
-            _id:
-              paymentDoc._id,
-
-            invoiceNumber:
-              paymentDoc.invoiceNumber ||
-              generateInvoiceNumber(),
-
-            transactionId:
-              paymentDoc.transactionId,
-
-            date:
-              paymentDoc.createdAt ||
-              paymentDoc.date,
-
-            planName:
-              paymentDoc.planName,
-
-            billingCycle:
-              paymentDoc.billingCycle ===
-              "annual"
-                ? "yearly"
-                : paymentDoc.billingCycle ||
-                  "monthly",
-
-            amount:
-              paymentDoc.amountBDT,
-
-            paymentMethod:
-              paymentDoc.gateway ||
-              paymentDoc.paymentMethod,
-
-            status:
-              paymentDoc.status ===
-              "paid"
-                ? "Completed"
-                : paymentDoc.status ||
-                  "Completed",
-
-            subscriptionStartDate:
-              paymentDoc.subscriptionStartDate,
-
-            subscriptionExpiryDate:
-              paymentDoc.subscriptionExpiryDate,
-
-            userName:
-              paymentDoc.userName ||
-              "Valued Athlete",
-
-            userEmail:
-              paymentDoc.userEmail ||
-              "",
-          },
       successResponse("Digital invoice fetched successfully", {
         invoice: {
           _id: paymentDoc._id,
-          invoiceNumber: paymentDoc.invoiceNumber || `INV-${new Date(
-    paymentDoc.createdAt || paymentDoc.date || Date.now()
-  ).getFullYear()}-${paymentDoc._id
-    .toString()
-    .slice(-6)
-    .toUpperCase()}`,
+
+          invoiceNumber: paymentDoc.invoiceNumber || generateInvoiceNumber(),
+
           transactionId: paymentDoc.transactionId,
+
           date: paymentDoc.createdAt || paymentDoc.date,
+
           planName: paymentDoc.planName,
-          billingCycle: paymentDoc.billingCycle || "monthly",
+
+          billingCycle:
+            paymentDoc.billingCycle === "annual"
+              ? "yearly"
+              : paymentDoc.billingCycle || "monthly",
+
           amount: paymentDoc.amountBDT,
+
           paymentMethod: paymentDoc.gateway || paymentDoc.paymentMethod,
-          status: "Completed",
+
+          status:
+            paymentDoc.status === "paid"
+              ? "Completed"
+              : paymentDoc.status || "Completed",
+
           subscriptionStartDate: paymentDoc.subscriptionStartDate,
+
           subscriptionExpiryDate: paymentDoc.subscriptionExpiryDate,
+
           userName: paymentDoc.userName || "Valued Athlete",
+
           userEmail: paymentDoc.userEmail || "",
         },
-      ),
+      }),
     );
   } catch (error) {
-    console.error(
-      "[Payment Controller] getInvoiceById Error:",
-      error,
-    );
+    console.error("[Payment Controller] getInvoiceById Error:", error);
 
-    return res.status(500).json(
-      errorResponse(
-        "Failed to retrieve invoice",
-        error instanceof Error
-          ? error.message
-          : "Internal Server Error",
-        500,
-      ),
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve invoice",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 }
