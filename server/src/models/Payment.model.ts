@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-export type PaymentGatewayType = "bKash" | "Nagad" | "Card" | "Bank Transfer";
+export type PaymentGatewayType = "bKash" | "Nagad" | "Stripe" | "Card" | "Bank Transfer";
 export type PaymentStatusType = "completed" | "pending" | "failed";
 export type BillingCycleType = "monthly" | "yearly";
 
@@ -60,7 +60,7 @@ const paymentSchema = new Schema<IPayment>(
     gateway: {
       type: String,
       required: true,
-      enum: ["bKash", "Nagad", "Card", "Bank Transfer"],
+      enum: ["bKash", "Nagad", "Stripe", "Card", "Bank Transfer"],
     },
     accountNumber: {
       type: String,

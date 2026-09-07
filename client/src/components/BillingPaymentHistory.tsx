@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   CreditCard,
@@ -9,9 +10,7 @@ import {
   Receipt,
   ArrowUpRight,
   FileText,
-  Clock,
   Sparkles,
-  ShieldCheck,
 } from "lucide-react";
 import MembershipCountdown from "@/components/subscription/MembershipCountdown";
 import InvoiceModal from "@/components/invoice/InvoiceModal";
@@ -20,15 +19,33 @@ export interface Transaction {
   _id: string;
   date: string;
   transactionId: string;
-  paymentMethod: "bKash" | "Nagad" | "Card" | "Bank Transfer" | string;
+
+  paymentMethod:
+    | "bKash"
+    | "Nagad"
+    | "Card"
+    | "Bank Transfer"
+    | string;
+
   amount: number;
-  status: "Completed" | "paid" | string;
+
+  status:
+    | "Completed"
+    | "completed"
+    | "paid"
+    | "pending"
+    | "failed"
+    | string;
+
   planName?: string;
-  billingCycle?: string;
+
+  billingCycle?: "monthly" | "yearly" | "annual" | string;
+
   invoiceNumber?: string;
   subscriptionStartDate?: string;
   subscriptionExpiryDate?: string;
   accountNumber?: string;
+
   userName?: string;
   userEmail?: string;
   userPhone?: string;
@@ -61,25 +78,59 @@ export default function BillingPaymentHistory({
   onViewInvoice,
 }: BillingPaymentHistoryProps) {
   const [activeInvoice, setActiveInvoice] = useState<Transaction | null>(null);
+
   const getPlanBadgeColor = (plan: string) => {
     switch (plan) {
       case "VIP Ultimate":
         return "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]";
+
       case "Pro Athlete":
         return "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]";
+
       case "Basic Pass":
         return "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]";
+
       default:
         return "bg-white/10 text-white/80";
     }
   };
 
-  // Derive latest expiry date from transactions if not explicitly passed
+  // Payment status styles
+  const getStatusStyle = (status?: string) => {
+    const normalized = status?.toLowerCase();
+
+    if (normalized === "completed" || normalized === "paid") {
+      return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+    }
+
+    if (normalized === "pending") {
+      return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+    }
+
+    if (normalized === "failed") {
+      return "bg-red-500/10 text-red-400 border-red-500/20";
+    }
+
+    return "bg-gray-500/10 text-gray-400 border-gray-500/20";
+  };
+
+  // Latest transaction
   const latestTx = transactions[0];
+
+  // Support both "yearly" and "annual"
+  const isAnnual =
+    latestTx?.billingCycle === "yearly" ||
+    latestTx?.billingCycle === "annual";
+
+  // Derive latest expiry date from transactions if not explicitly passed
   const effectiveExpiry =
     expiryDate || latestTx?.subscriptionExpiryDate || null;
+
   const effectiveStart =
-    startDate || latestTx?.subscriptionStartDate || latestTx?.date || null;
+    startDate ||
+    latestTx?.subscriptionStartDate ||
+    latestTx?.date ||
+    null;
 
   return (
     <div className="space-y-6">
@@ -96,10 +147,12 @@ export default function BillingPaymentHistory({
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-2.5">
             <CreditCard className="w-5 h-5 text-white/70" />
+
             <h2 className="text-base sm:text-lg font-extrabold uppercase text-white tracking-wide">
               Active Subscription Details
             </h2>
           </div>
+
           <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
             {userPlan === "Free Pass" ? "Standard" : "Verified Pro"}
           </span>
@@ -110,6 +163,7 @@ export default function BillingPaymentHistory({
             <p className="text-xs text-white/50 uppercase tracking-wider font-bold">
               Current Tier
             </p>
+
             <div className="flex items-center gap-3">
               <span
                 className={`text-sm sm:text-base font-black uppercase tracking-tight px-4 py-1.5 rounded-full ${getPlanBadgeColor(
@@ -118,9 +172,10 @@ export default function BillingPaymentHistory({
               >
                 {userPlan}
               </span>
+
               {userPlan !== "Free Pass" && (
                 <span className="text-xs text-white/60 font-mono">
-                  {latestTx?.billingCycle === "yearly"
+                  {isAnnual
                     ? "Annual Membership (Billed Yearly)"
                     : "Monthly Membership"}
                 </span>
@@ -134,6 +189,7 @@ export default function BillingPaymentHistory({
                 <p className="text-xs text-white/50 uppercase tracking-wider font-bold">
                   Valid Through
                 </p>
+
                 <p className="text-sm text-white font-semibold mt-0.5">
                   {new Date(effectiveExpiry).toLocaleDateString("en-US", {
                     month: "short",
@@ -151,8 +207,11 @@ export default function BillingPaymentHistory({
                 className="inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all cursor-pointer shadow-lg"
               >
                 <span>
-                  {userPlan === "Free Pass" ? "Upgrade Plan" : "Renew / Change"}
+                  {userPlan === "Free Pass"
+                    ? "Upgrade Plan"
+                    : "Renew / Change"}
                 </span>
+
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </button>
             ) : (
@@ -161,8 +220,11 @@ export default function BillingPaymentHistory({
                 className="inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all cursor-pointer shadow-lg"
               >
                 <span>
-                  {userPlan === "Free Pass" ? "Upgrade Plan" : "Change Plan"}
+                  {userPlan === "Free Pass"
+                    ? "Upgrade Plan"
+                    : "Change Plan"}
                 </span>
+
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             )}
@@ -175,58 +237,80 @@ export default function BillingPaymentHistory({
         <div className="flex items-center justify-between border-b border-white/10 px-6 sm:px-7 py-5">
           <div className="flex items-center gap-2.5">
             <Receipt className="w-5 h-5 text-white/70" />
+
             <h2 className="text-base sm:text-lg font-extrabold uppercase text-white tracking-wide">
               Payment & Invoice History
             </h2>
           </div>
+
           <span className="text-xs text-white/50 font-medium">
-            {transactions.length} Record{transactions.length !== 1 ? "s" : ""}
+            {transactions.length} Record
+            {transactions.length !== 1 ? "s" : ""}
           </span>
         </div>
 
         {transactions.length === 0 ? (
-          /* Empty State */
           <div className="p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4">
             <Receipt className="w-12 h-12 text-white/20" />
+
             <div className="space-y-1.5">
               <h3 className="text-base sm:text-lg font-black uppercase text-white">
                 No Transaction History Found
               </h3>
+
               <p className="text-xs text-white/60 max-w-sm mx-auto">
                 Your payment history is currently empty. Transactions and
                 digital invoices will appear here once you upgrade your
                 membership plan.
               </p>
             </div>
+
             {onRenewPlan && (
               <button
                 onClick={onRenewPlan}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-all shadow-md cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5" />
+
                 <span>Choose Membership Plan</span>
               </button>
             )}
           </div>
         ) : (
-          /* Transaction Table */
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px] text-left">
               <thead>
                 <tr className="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/50 bg-white/[0.02]">
-                  <th className="px-5 sm:px-6 py-4 font-bold">Date</th>
-                  <th className="px-5 sm:px-6 py-4 font-bold">Plan</th>
+                  <th className="px-5 sm:px-6 py-4 font-bold">
+                    Date
+                  </th>
+
+                  <th className="px-5 sm:px-6 py-4 font-bold">
+                    Plan
+                  </th>
+
                   <th className="px-5 sm:px-6 py-4 font-bold">
                     Transaction ID
                   </th>
-                  <th className="px-5 sm:px-6 py-4 font-bold">Method</th>
-                  <th className="px-5 sm:px-6 py-4 font-bold">Amount</th>
-                  <th className="px-5 sm:px-6 py-4 font-bold">Status</th>
+
+                  <th className="px-5 sm:px-6 py-4 font-bold">
+                    Method
+                  </th>
+
+                  <th className="px-5 sm:px-6 py-4 font-bold">
+                    Amount
+                  </th>
+
+                  <th className="px-5 sm:px-6 py-4 font-bold">
+                    Status
+                  </th>
+
                   <th className="px-5 sm:px-6 py-4 font-bold text-right">
                     Invoice
                   </th>
                 </tr>
               </thead>
+
               <tbody>
                 {transactions.map((transaction) => (
                   <tr
@@ -236,48 +320,64 @@ export default function BillingPaymentHistory({
                     <td className="px-5 sm:px-6 py-4 text-sm text-white/70">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-3.5 h-3.5 text-white/40" />
-                        {new Date(transaction.date).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          },
-                        )}
+
+                        {new Date(
+                          transaction.date,
+                        ).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
                       </div>
                     </td>
+
                     <td className="px-5 sm:px-6 py-4 text-sm font-semibold text-white">
                       {transaction.planName || userPlan}
                     </td>
+
                     <td className="px-5 sm:px-6 py-4 text-xs font-mono text-white/80">
                       {transaction.transactionId}
                     </td>
+
                     <td className="px-5 sm:px-6 py-4">
                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/10 px-3 py-1.5 rounded-full">
                         <CreditCard className="w-3 h-3" />
+
                         {transaction.paymentMethod}
                       </span>
                     </td>
+
                     <td className="px-5 sm:px-6 py-4 text-sm font-bold text-white">
                       ৳{transaction.amount.toLocaleString()}
                     </td>
+
                     <td className="px-5 sm:px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold ${getStatusStyle(
+                          transaction.status,
+                        )}`}
+                      >
                         <CheckCircle2 className="w-3 h-3" />
+
                         {transaction.status}
                       </span>
                     </td>
+
                     <td className="px-5 sm:px-6 py-4 text-right">
                       <button
                         type="button"
                         onClick={() => {
-                          if (onViewInvoice) onViewInvoice(transaction);
+                          if (onViewInvoice) {
+                            onViewInvoice(transaction);
+                          }
+
                           setActiveInvoice(transaction);
                         }}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white text-white hover:text-black text-xs font-bold transition-all shadow-sm cursor-pointer"
                         title="View & Download Digital Invoice"
                       >
                         <FileText className="w-3.5 h-3.5" />
+
                         <span>Invoice</span>
                       </button>
                     </td>
