@@ -849,10 +849,53 @@ function generateTransactionId(gateway: string): string {
 /**
  * Helper: Generate unique invoice number
  */
-function generateInvoiceNumber(): string {
+async function generateUniqueInvoiceNumber(): Promise<string> {
   const year = new Date().getFullYear();
-  const randomNum = Math.floor(100000 + Math.random() * 900000);
-  return `INV-${year}-${randomNum}`;
+  for (let attempt = 0; attempt  < 10; attempt++) {
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    const invoiceNumber = `INV-${year}-${randomNum}`;
+
+    const existingInvoice = await Payment.exists({ invoiceNumber });
+
+    if (!existingInvoice) {
+      return invoiceNumber;
+    }
+  }
+
+  throw new Error("Failed to generate unique invoice number");
+}
+
+
+// Helper: Calculate subscription expiry and remaining days
+function calculateSubscriptionDetails(
+  startDate: Date,
+  billingCycle: string
+) {
+  const expiryDate = new Date(startDate);
+
+  if (billingCycle === "yearly" || billingCycle === "annual") {
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+  } else {
+    expiryDate.setMonth(expiryDate.getMonth() + 1);
+  }
+
+  const now = new Date();
+
+  const remainingMs = expiryDate.getTime() - now.getTime();
+
+  const remainingDays = Math.max(
+    0,
+    Math.ceil(
+      remainingMs / (1000 * 60 * 60 * 24)
+    )
+  );
+
+  return {
+    startDate,
+    expiryDate,
+    remainingDays,
+    isExpired: remainingMs <= 0,
+  };
 }
 
 /**
@@ -935,12 +978,13 @@ export async function checkoutPayment(
     const resolvedName = bodyUserName || "Valued Athlete";
 
     const startDate = new Date();
-    const expiryDate = new Date(startDate);
-    if (cycle === "yearly") {
-      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-    } else {
-      expiryDate.setDate(expiryDate.getDate() + 30);
-    }
+
+    const {
+  expiryDate
+} = calculateSubscriptionDetails(
+  startDate,
+  cycle
+);
 
     const validGateway = (
       ["bKash", "Nagad", "Card", "Bank Transfer"].includes(gateway)
@@ -953,7 +997,7 @@ export async function checkoutPayment(
         ? String(customTrxId).trim().toUpperCase()
         : generateTransactionId(validGateway);
 
-    const invoiceNumber = generateInvoiceNumber();
+    const invoiceNumber = await generateUniqueInvoiceNumber();
 
     const paymentPayload = {
       userId: resolvedUserId,
@@ -1143,7 +1187,10 @@ export async function getMyTransactions(
           planName: b.planName,
           status: "Completed",
           billingCycle: b.billingCycle || "monthly",
-          invoiceNumber: b.invoiceNumber || generateInvoiceNumber(),
+          invoiceNumber: b.invoiceNumber || `INV-${new Date(b.createdAt || Date.now()).getFullYear()}-${b._id
+    .toString()
+    .slice(-6)
+    .toUpperCase()}`,
           subscriptionStartDate: b.subscriptionStartDate || b.createdAt,
           subscriptionExpiryDate: b.subscriptionExpiryDate || null,
           accountNumber: b.accountNumber,
@@ -1351,7 +1398,12 @@ export async function getInvoiceById(
       successResponse("Digital invoice fetched successfully", {
         invoice: {
           _id: paymentDoc._id,
-          invoiceNumber: paymentDoc.invoiceNumber || generateInvoiceNumber(),
+          invoiceNumber: paymentDoc.invoiceNumber || `INV-${new Date(
+    paymentDoc.createdAt || paymentDoc.date || Date.now()
+  ).getFullYear()}-${paymentDoc._id
+    .toString()
+    .slice(-6)
+    .toUpperCase()}`,
           transactionId: paymentDoc.transactionId,
           date: paymentDoc.createdAt || paymentDoc.date,
           planName: paymentDoc.planName,
