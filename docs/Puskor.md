@@ -121,4 +121,24 @@ Fixed two issues on the `/exercises` route in `client/src/components/ExerciseTra
 " enhance Billing & Payment History with plan management link and layout adjustments"
 " enhance BillingPaymentHistory with modal for managing plans and improved layout"
 
+---
+
+## 7. Membership Status Card on `/profile` (2026-09-07)
+
+Added a dedicated, premium **Membership Status Card** to the user profile page showing plan name, dynamic status badge, real-time countdown, progress bar, expiry date, and renew CTA.
+
+### New Files
+* `client/src/lib/membershipUtils.ts` — framework-agnostic helpers: `getMembershipStatus`, `calculateRemainingTime`, `calculateProgressPercentage`, `formatRemainingTime`, plus `MembershipData`/`MembershipStatus` types and an isolated `TEMP_MEMBERSHIP` mock.
+* `client/src/components/subscription/MembershipStatusCard.tsx` — card component with real-time countdown (`useState` + `useEffect` + `setInterval` + cleanup), status badge, progress bar, expiry date, and renew button.
+
+### Modified Files
+* `client/src/app/profile/page.tsx` — imported card/helpers, added `resolvedMembership` memo (prefers live API data, falls back to mock), and rendered `<MembershipStatusCard>` as section 1.5.
+
+### Logic
+* **Active**: >3 days remaining (green).
+* **Expiring Soon**: <3 days and not expired (amber).
+* **Expired**: <=0 (red), shows prominent `Renew Now`.
+* Progress bar represents **remaining** membership time, clamped 0–100.
+* Countdown updates every second; values are clamped to 0 when expired.
+
 
