@@ -1124,6 +1124,13 @@ export async function getMyTransactions(
           planName: s.planName || "Pro Athlete",
           status: s.status === "paid" ? "Completed" : s.status,
           billingCycle: s.billingCycle || "monthly",
+          invoiceNumber:
+            s.invoiceNumber ||
+            `INV-${new Date(s.paidAt || s.createdAt || Date.now()).getFullYear()}-${(s._id?.toString() || "STRP").slice(-6).toUpperCase()}`,
+          subscriptionStartDate: s.paidAt || s.createdAt || new Date().toISOString(),
+          subscriptionExpiryDate: s.expiryDate || s.membershipExpiresAt || null,
+          userName: s.userName || "Valued Athlete",
+          userEmail: s.userEmail || targetEmail || "",
         }));
 
         const unifiedBdt = bdtPayments.map((b: any) => ({
@@ -1136,10 +1143,63 @@ export async function getMyTransactions(
           planName: b.planName,
           status: "Completed",
           billingCycle: b.billingCycle || "monthly",
+          invoiceNumber: b.invoiceNumber || generateInvoiceNumber(),
+          subscriptionStartDate: b.subscriptionStartDate || b.createdAt,
+          subscriptionExpiryDate: b.subscriptionExpiryDate || null,
+          accountNumber: b.accountNumber,
+          userName: b.userName || "Valued Athlete",
+          userEmail: b.userEmail || targetEmail || "",
         }));
 
         payments = [...unifiedBdt, ...unifiedStripe].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+
+        // Calculate verified active subscription and expiry countdown
+        let activeSubscription: any = null;
+        let matchedUser: any = null;
+
+        if (targetUserId && mongoose.Types.ObjectId.isValid(targetUserId)) {
+          matchedUser = await User.findById(targetUserId).lean();
+        }
+        if (!matchedUser && targetEmail) {
+          matchedUser = await User.findOne({ email: targetEmail.toLowerCase().trim() }).lean();
+        }
+
+        const now = new Date();
+        const latestTx = payments[0];
+        const effectivePlan = matchedUser?.plan || latestTx?.planName || "Free Pass";
+        const effectiveExpiry =
+          matchedUser?.subscriptionExpiryDate ||
+          matchedUser?.membershipExpiresAt ||
+          latestTx?.subscriptionExpiryDate;
+
+        if (effectivePlan && effectivePlan !== "Free Pass") {
+          const expDate = effectiveExpiry ? new Date(effectiveExpiry) : null;
+          const isExpired = expDate ? expDate.getTime() < now.getTime() : false;
+          const diffMs = expDate ? Math.max(0, expDate.getTime() - now.getTime()) : 0;
+          const remainingDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          const remainingHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+          activeSubscription = {
+            planName: effectivePlan,
+            status: isExpired ? "expired" : "active",
+            startDate: matchedUser?.createdAt || latestTx?.subscriptionStartDate || latestTx?.date,
+            expiryDate: expDate ? expDate.toISOString() : null,
+            remainingDays,
+            remainingHours,
+            isExpired,
+            isExpiringSoon: !isExpired && remainingDays < 3,
+            paymentMethod: matchedUser?.paymentMethod || latestTx?.paymentMethod || "Card",
+          };
+        }
+
+        return res.status(200).json(
+          successResponse("Transactions retrieved successfully", {
+            count: payments.length,
+            payments,
+            activeSubscription,
+          }),
         );
       } catch (dbErr) {
         console.warn("[Payment Controller] DB query failed:", dbErr);
@@ -1150,6 +1210,7 @@ export async function getMyTransactions(
       successResponse("Transactions retrieved successfully", {
         count: payments.length,
         payments,
+        activeSubscription: null,
       }),
     );
   } catch (error) {

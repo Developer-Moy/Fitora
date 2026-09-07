@@ -32,6 +32,8 @@ export interface AuthUser {
   joinedDate?: string;
   isMasterAdmin?: boolean;
   isBranchAdmin?: boolean;
+  subscriptionExpiryDate?: string | Date;
+  membershipExpiresAt?: string | Date;
 }
 
 export interface AuthResponse {

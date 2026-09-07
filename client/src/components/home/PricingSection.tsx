@@ -25,6 +25,66 @@ export interface PlanItem {
   badge?: string;
 }
 
+export const FITORA_PLANS: PlanItem[] = [
+  {
+    id: "basic_pass",
+    name: "BASIC PASS",
+    planKey: "Basic Pass",
+    monthlyPrice: 25,
+    annualPrice: 19,
+    period: "/month",
+    description:
+      "Essential gym access for fitness starters & casual trainers.",
+    features: [
+      "Access to Gym Floor & Cardio Zone",
+      "Free Locker & Shower Access",
+      "Basic Workout Routine Guide",
+      "Standard Support across branches",
+    ],
+    isPopular: false,
+    buttonText: "CHOOSE PLAN",
+  },
+  {
+    id: "pro_athlete",
+    name: "PRO ATHLETE",
+    planKey: "Pro Athlete",
+    monthlyPrice: 49,
+    annualPrice: 39,
+    period: "/month",
+    description:
+      "Complete fitness package with AI coach studio & full access.",
+    features: [
+      "Unlimited 24/7 All-Branch Access",
+      "AI Coach Studio & Meal Planner",
+      "Free Personal Trainer Consultation",
+      "Sauna & Recovery Zone Access",
+      "Group Fitness & Yoga Classes",
+    ],
+    isPopular: true,
+    buttonText: "JOIN PRO TODAY",
+    badge: "MOST POPULAR",
+  },
+  {
+    id: "vip_ultimate",
+    name: "VIP ULTIMATE",
+    planKey: "VIP Ultimate",
+    monthlyPrice: 99,
+    annualPrice: 79,
+    period: "/month",
+    description: "Dedicated 1-on-1 coaching, custom nutrition & VIP perks.",
+    features: [
+      "Dedicated 1-on-1 Personal Trainer",
+      "Custom Weekly Nutrition & Meal Plan",
+      "Priority VIP Lounge & Spa Access",
+      "Biometric Health & Recovery Tracking",
+      "24/7 Unlimited AI & Expert Support",
+    ],
+    isPopular: false,
+    buttonText: "GET VIP ACCESS",
+    badge: "ULTIMATE",
+  },
+];
+
 export default function PricingSection() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -96,6 +156,7 @@ export default function PricingSection() {
       badge: "ULTIMATE",
     },
   ];
+  const plans = FITORA_PLANS;
 
   const handlePlanSelect = (plan: PlanItem) => {
     if (!isLoggedIn) {
