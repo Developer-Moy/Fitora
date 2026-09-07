@@ -25,6 +25,8 @@ import {
   clearAuthSession,
   logoutUser,
   AuthUser,
+  AUTH_SESSION_UPDATED,
+  getCurrentUserApi,
 } from "@/services/authService";
 
 /* ── Desktop Horizontal Navigation Links ── */
@@ -64,6 +66,7 @@ export default function Navbar() {
   const { data: authSession } = useSession();
   const [localUser, setLocalUser] = useState<AuthUser | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -82,11 +85,91 @@ export default function Navbar() {
 
   useEffect(() => {
     setIsMounted(true);
-    const session = getAuthSession();
-    if (session.user) {
-      setLocalUser(session.user);
-    }
-  }, []);
+
+    const syncUser = () => {
+      const session = getAuthSession();
+      if (session.user) {
+        setLocalUser(session.user);
+      }
+      const currentUser = session.user || authSession?.user;
+      const role =
+        (currentUser as any)?.role ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("fitora_active_role") ||
+            localStorage.getItem("fitora_user_role")
+          : "");
+      const plan =
+        (currentUser as any)?.plan ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("fitora_user_plan")
+          : "");
+
+      const hasProStatus =
+        role === "premium_user" ||
+        role === "master_admin" ||
+        Boolean(
+          plan &&
+          plan.toLowerCase() !== "free" &&
+          plan.toLowerCase() !== "free_user" &&
+          plan.trim() !== "",
+        );
+
+      setIsPremium(Boolean(hasProStatus));
+
+      // Anti-tamper verification: Reconcile with authoritative server database claims
+      const token = session.token;
+      if (token) {
+        getCurrentUserApi()
+          .then((res) => {
+            if (res.success && res.user) {
+              const serverRole = res.user.role;
+              const serverPlan = res.user.plan;
+              const isServerPro =
+                serverRole === "premium_user" ||
+                serverRole === "master_admin" ||
+                Boolean(
+                  serverPlan &&
+                  serverPlan.toLowerCase() !== "free" &&
+                  serverPlan.toLowerCase() !== "free_user" &&
+                  serverPlan.trim() !== "",
+                );
+
+              setIsPremium(Boolean(isServerPro));
+
+              // If someone injected fake role/plan via browser console, wipe it immediately
+              if (
+                !isServerPro &&
+                typeof window !== "undefined" &&
+                (localStorage.getItem("fitora_user_role") === "premium_user" ||
+                  localStorage.getItem("fitora_active_role") === "premium_user")
+              ) {
+                localStorage.setItem("fitora_user_role", serverRole || "user");
+                localStorage.setItem(
+                  "fitora_active_role",
+                  serverRole || "user",
+                );
+                localStorage.removeItem("fitora_user_plan");
+              }
+            } else {
+              setIsPremium(false);
+            }
+          })
+          .catch(() => {});
+      } else {
+        setIsPremium(false);
+      }
+    };
+
+    syncUser();
+
+    window.addEventListener(AUTH_SESSION_UPDATED, syncUser);
+    window.addEventListener("storage", syncUser);
+
+    return () => {
+      window.removeEventListener(AUTH_SESSION_UPDATED, syncUser);
+      window.removeEventListener("storage", syncUser);
+    };
+  }, [authSession]);
 
   const activeUser = authSession?.user || localUser;
   const isLoggedIn = isMounted && !!activeUser;
@@ -144,7 +227,10 @@ export default function Navbar() {
         {/* Left: Brand Logo */}
         <Link
           href="/"
-          onClick={() => { if (pathname === "/") window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          onClick={() => {
+            if (pathname === "/")
+              window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
           className="flex items-center gap-3 group select-none shrink-0"
         >
           <img
@@ -153,9 +239,17 @@ export default function Navbar() {
             className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
           />
           <div className="flex flex-col">
-            <span className="text-white font-black text-lg sm:text-xl tracking-wider uppercase leading-none font-sans">
-              FITORA
-            </span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-white font-black text-lg sm:text-xl tracking-wider uppercase leading-none font-sans">
+                FITORA
+              </span>
+              {isMounted && isPremium && (
+                <span className="px-1.5 py-0.5 rounded bg-white text-black text-[9px] sm:text-[10px] font-black uppercase tracking-wider shadow-[0_0_15px_rgba(255,255,255,0.7)] flex items-center gap-1 leading-none border border-white">
+                  <Sparkles className="w-2.5 h-2.5 fill-black text-black" />
+                  PRO
+                </span>
+              )}
+            </div>
             <span className="text-[9px] text-white/60 font-bold tracking-[0.25em] uppercase">
               GYM & AI
             </span>
@@ -264,13 +358,13 @@ export default function Navbar() {
                     </Link>
 
                     <Link
-                        href="/dashboard"
-                        onClick={() => setProfileDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
-                      >
-                        <FiSettings className="w-4 h-4 text-white/60" />
-                        <span>Dashboard</span>
-                      </Link>
+                      href="/dashboard"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <FiSettings className="w-4 h-4 text-white/60" />
+                      <span>Dashboard</span>
+                    </Link>
 
                     <button
                       type="button"

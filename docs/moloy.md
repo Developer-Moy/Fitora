@@ -234,3 +234,34 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Added graceful public branch fallbacks in `client/src/services/branchService.ts` so non-admin users or initial dashboard loads never encounter unhandled exceptions.
   - Resolved gym history persistence and profile display bug: fixed response parsing in `client/src/services/workoutService.ts` to properly unpack `data.logs` object, resolved `authUserId` in `GymTimer.tsx` from both Better Auth and JWT local session, ensured `profile/page.tsx` gracefully queries workout history using fallback `guest_user`, and enhanced MongoDB query in `workout.controller.ts` to handle both string and ObjectId user references.
 - Successfully validated 100% clean typechecks and production builds across both client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.
+
+### 06-Sep-26
+
+- Designed and implemented the complete dynamic **Payment & Membership Lifecycle Architecture**:
+  - Created `server/src/models/Payment.model.ts` supporting bKash, Nagad, Card, and Bank Transfer with transaction IDs, billing cycles, invoice numbers, and subscription expiry tracking.
+  - Added `subscriptionExpiryDate` to `server/src/models/User.model.ts` for automated membership lifecycle management.
+  - Built `server/src/controllers/payment.controller.ts` with `checkoutPayment` (`POST /api/payment/checkout`), `getMyTransactions` (`GET /api/payment/my-transactions`), and `getAllPayments` (`GET /api/payment/all`).
+  - Implemented automatic user tier promotion (upgrading `free_user` to `premium_user`), cumulative `totalPaidBDT` increment, active status enforcement, and automated expiry date calculations (30 days for monthly, 365 days for yearly).
+  - Mounted central payment routers in `server/src/routes/payment.routes.ts` and `server/src/routes/index.ts` under `/payment` and `/payments`.
+  - Built resilient fallback handling for in-memory persistence during offline testing.
+- Verified 100% clean TypeScript production builds on both server (`npm run build`) and client (`npx tsc --noEmit`) with zero errors.
+- Created centralized TypeScript definitions in `client/src/types/payment.ts` (`PaymentGateway`, `PaymentStatus`, `BillingCycle`, `MembershipTier`, `CheckoutPayload`, `PaymentInvoice`, `PaymentRecord`, `CheckoutResponse`, `MyTransactionsResponse`) to connect frontend components with the payment engine.
+- Pulled and integrated merged team contributions from `origin/development` into `moloy` branch.
+- Diagnosed and resolved cross-platform integration bugs and build errors:
+  - Fixed file casing conflict on Linux filesystem (`server/src/models/payment.model.ts` vs `server/src/models/Payment.model.ts` causing `TS1149`).
+  - Installed missing `stripe` dependency in server workspace.
+  - Unified Payment Controller and Routes: merged Stripe card checkout/verification with local gateway (bKash/Nagad/Card) checkout and history endpoints (`POST /checkout`, `POST /create-checkout-session`, `GET /verify-session`, `GET /me`, `GET /my-transactions`, `GET /all`).
+  - Connected `SubscriptionModal.tsx` to live backend checkout API (`POST /api/payments/checkout`), replacing fake timer simulations with genuine database persistence and auto-plan upgrades.
+  - Connected user profile (`client/src/app/profile/page.tsx`) to live payment transaction API (`GET /api/payments/me`) to render real user payment records in `BillingPaymentHistory`.
+  - Updated `client/src/services/paymentService.ts` to support both BDT and Stripe checkout schemas with robust fallback handling.
+- Validated 100% clean production builds on both server (`npm run build`) and client (`npx tsc --noEmit`) with 0 errors.
+- Hardened payment security against browser console manipulation:
+  - Enforced Server-Authoritative pricing on all checkout endpoints (rejecting/overriding any client-tampered prices).
+  - Prioritized verified cryptographic JWT token claims for user identification over raw request bodies to prevent account spoofing.
+- Implemented luxury in-modal Card checkout matching Fitora's Pure Black & White design system:
+  - Added real-time auto-formatted Card Number (`4242 •••• •••• ••••`), Expiry (`MM/YY`), CVC, and Cardholder Name inputs directly within `SubscriptionModal.tsx`.
+  - Added clear Cancel / Close navigation so users never leave the site unexpectedly.
+- Implemented real-time **PRO** badge on the Home Page Navbar brand logo:
+  - Connected `Navbar.tsx` to `AUTH_SESSION_UPDATED` and cross-tab storage events.
+  - Upon completing subscription payment, user is immediately promoted to `premium_user` in database and local session, and a glowing Pure B&W `PRO` badge (`Sparkles` + `PRO`) automatically appears beside the `FITORA` brand logo.
+

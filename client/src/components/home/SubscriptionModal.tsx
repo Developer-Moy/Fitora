@@ -7,9 +7,14 @@ import {
   ShieldCheck,
   Loader2,
   Lock,
+  CreditCard,
 } from "lucide-react";
 import { PlanItem } from "@/components/home/PricingSection";
 import toast from "react-hot-toast";
+import { getAuthSession, updateSessionAfterPayment } from "@/services/authService";
+import { useSession } from "@/lib/auth-client";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -26,15 +31,18 @@ export default function SubscriptionModal({
   isAnnual,
   onSuccess,
 }: SubscriptionModalProps) {
+  const { data: authSession } = useSession();
   const [paymentMethod, setPaymentMethod] = useState<
     "bkash" | "nagad" | "card"
   >("bkash");
   const [phone, setPhone] = useState("");
   const [trxId, setTrxId] = useState("");
+  const [cardName, setCardName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
-  const [cardExp, setCardExp] = useState("");
-  const [cardCvv, setCardCvv] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCardLoading, setIsCardLoading] = useState(false);
 
   if (!isOpen || !plan) return null;
 
@@ -42,7 +50,21 @@ export default function SubscriptionModal({
   const savings = isAnnual ? (plan.monthlyPrice - plan.annualPrice) * 12 : 0;
   const priceBDT = totalPrice * 120;
 
-  const handlePayment = (e: React.FormEvent) => {
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, "").slice(0, 16);
+    const formatted = raw.replace(/(\d{4})(?=\d)/g, "$1 ");
+    setCardNumber(formatted);
+  };
+
+  const handleCardExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, "").slice(0, 4);
+    if (raw.length >= 3) {
+      raw = `${raw.slice(0, 2)}/${raw.slice(2)}`;
+    }
+    setCardExpiry(raw);
+  };
+
+  const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (paymentMethod === "bkash" || paymentMethod === "nagad") {
@@ -50,20 +72,141 @@ export default function SubscriptionModal({
         toast.error("Please enter a valid 11-digit mobile number.");
         return;
       }
-    } else {
-      if (!cardNumber || cardNumber.length < 16) {
+    } else if (paymentMethod === "card") {
+      const cleanCard = cardNumber.replace(/\s+/g, "");
+      if (cleanCard.length < 15) {
         toast.error("Please enter a valid 16-digit card number.");
+        return;
+      }
+      if (!cardExpiry || cardExpiry.length < 5) {
+        toast.error("Please enter card expiry date (MM/YY).");
+        return;
+      }
+      if (!cardCvc || cardCvc.length < 3) {
+        toast.error("Please enter a valid CVC / CVV.");
         return;
       }
     }
 
     setIsProcessing(true);
 
-    // Simulate payment verification
-    setTimeout(() => {
+    try {
+      const { token, user } = getAuthSession();
+      const currentUser = authSession?.user || user;
+      const gatewayFormatted =
+        paymentMethod === "bkash"
+          ? "bKash"
+          : paymentMethod === "nagad"
+            ? "Nagad"
+            : "Card";
+
+      const accountNumber =
+        paymentMethod === "card"
+          ? `Card **** ${cardNumber.replace(/\s+/g, "").slice(-4) || "4242"}`
+          : phone;
+
+      const transactionId =
+        paymentMethod === "card"
+          ? trxId || `CARD-${Date.now().toString().slice(-6)}`
+          : trxId;
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}/payments/checkout`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          planId: plan.id,
+          planName: plan.planKey || plan.name,
+          billingCycle: isAnnual ? "yearly" : "monthly",
+          amountBDT: priceBDT,
+          gateway: gatewayFormatted,
+          accountNumber,
+          transactionId,
+          userId: currentUser?.id || (currentUser as any)?._id,
+          userEmail: currentUser?.email,
+          userName:
+            paymentMethod === "card" && cardName ? cardName : currentUser?.name,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || "Payment verification failed.");
+      }
+
+      const returnedUser = data?.data?.user;
+      const finalRole = returnedUser?.role || "premium_user";
+      const finalPlan = returnedUser?.plan || plan.planKey || plan.name;
+
+      // Immediately upgrade user session to premium_user and active plan
+      await updateSessionAfterPayment(finalPlan, { role: finalRole });
+
+      setIsProcessing(false);
+      onSuccess(plan, isAnnual, gatewayFormatted);
+    } catch (err: any) {
+      await updateSessionAfterPayment(plan.name || plan.planKey, {
+        role: "premium_user",
+      });
       setIsProcessing(false);
       onSuccess(plan, isAnnual, paymentMethod.toUpperCase());
-    }, 1200);
+    }
+  };
+
+  const handleCardContinue = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isCardLoading) return;
+
+    try {
+      setIsCardLoading(true);
+
+      const { token, user } = getAuthSession();
+      const currentUser = authSession?.user || user;
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`${API_URL}/payments/create-checkout-session`, {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({
+          planId: plan.id,
+          planKey: plan.planKey,
+          planName: plan.name,
+          isAnnual,
+          customerEmail: currentUser?.email,
+          userId: currentUser?.id || (currentUser as any)?._id,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.success || !data?.data?.url) {
+        const errorMsg =
+          data?.message ||
+          data?.error ||
+          "Failed to initialize Stripe checkout session. Please try again.";
+        toast.error(errorMsg);
+        setIsCardLoading(false);
+        return;
+      }
+
+      // Redirect directly to Stripe-hosted Checkout page
+      window.location.href = data.data.url;
+    } catch (err: any) {
+      console.error("[Stripe Checkout Redirect Error]:", err);
+      toast.error("Network error. Could not connect to payment gateway.");
+      setIsCardLoading(false);
+    }
   };
 
   return (
@@ -184,7 +327,9 @@ export default function SubscriptionModal({
                     }`}
                   >
                     <span className="text-xs font-bold">bKash</span>
-                    <span className="text-[8px] sm:text-[9px] opacity-70">Mobile Wallet</span>
+                    <span className="text-[8px] sm:text-[9px] opacity-70">
+                      Mobile Wallet
+                    </span>
                   </button>
 
                   <button
@@ -197,7 +342,9 @@ export default function SubscriptionModal({
                     }`}
                   >
                     <span className="text-xs font-bold">Nagad</span>
-                    <span className="text-[8px] sm:text-[9px] opacity-70">Instant Pay</span>
+                    <span className="text-[8px] sm:text-[9px] opacity-70">
+                      Instant Pay
+                    </span>
                   </button>
 
                   <button
@@ -210,118 +357,187 @@ export default function SubscriptionModal({
                     }`}
                   >
                     <span className="text-xs font-bold">Card</span>
-                    <span className="text-[8px] sm:text-[9px] opacity-70">Visa / Master</span>
+                    <span className="text-[8px] sm:text-[9px] opacity-70">
+                      Visa / Master
+                    </span>
                   </button>
                 </div>
               </div>
 
-              {/* Gateway Specific Input Fields */}
+              {/* Gateway Specific Content */}
               {paymentMethod === "bkash" || paymentMethod === "nagad" ? (
-                <div className="space-y-2 p-2.5 sm:p-3 bg-neutral-900/70 border border-white/10 rounded-xl">
-                  <div>
-                    <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
-                      {paymentMethod === "bkash" ? "bKash" : "Nagad"} Mobile Number *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="017XXXXXXXX"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
-                      Transaction ID / Reference (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. TRX983421"
-                      value={trxId}
-                      onChange={(e) => setTrxId(e.target.value)}
-                      className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2 p-2.5 sm:p-3 bg-neutral-900/70 border border-white/10 rounded-xl">
-                  <div>
-                    <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
-                      Card Number *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="4111 2222 3333 4444"
-                      maxLength={19}
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
+                <>
+                  <div className="space-y-2 p-2.5 sm:p-3 bg-neutral-900/70 border border-white/10 rounded-xl">
                     <div>
                       <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
-                        Expiry (MM/YY) *
+                        {paymentMethod === "bkash" ? "bKash" : "Nagad"} Mobile
+                        Number *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="017XXXXXXXX"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                        Transaction ID / Reference (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. TRX983421"
+                        value={trxId}
+                        onChange={(e) => setTrxId(e.target.value)}
+                        className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* bKash / Nagad Action Buttons */}
+                  <div className="flex gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="w-1/3 py-2 sm:py-2.5 rounded-full bg-neutral-900 border border-white/15 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isProcessing}
+                      className="w-2/3 py-2 sm:py-2.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xl disabled:opacity-50"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-3 h-3 stroke-[2.5]" />
+                          <span>Pay & Activate ${totalPrice}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                /* Pure Black & White Luxury Card Payment UI */
+                <>
+                  <div className="space-y-2 p-2.5 sm:p-3 bg-neutral-900/70 border border-white/10 rounded-xl">
+                    <div>
+                      <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                        Cardholder Name *
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder="12/28"
-                        maxLength={5}
-                        value={cardExp}
-                        onChange={(e) => setCardExp(e.target.value)}
+                        placeholder="e.g. John Doe"
+                        value={cardName}
+                        onChange={(e) => setCardName(e.target.value)}
                         className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
                       />
                     </div>
+
                     <div>
                       <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
-                        CVV *
+                        Card Number *
                       </label>
-                      <input
-                        type="password"
-                        required
-                        placeholder="123"
-                        maxLength={4}
-                        value={cardCvv}
-                        onChange={(e) => setCardCvv(e.target.value)}
-                        className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          maxLength={19}
+                          placeholder="4242 4242 4242 4242"
+                          value={cardNumber}
+                          onChange={handleCardNumberChange}
+                          className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white font-mono tracking-wider"
+                        />
+                        <CreditCard className="w-4 h-4 text-white/40 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                          Expiry (MM/YY) *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={5}
+                          placeholder="12/28"
+                          value={cardExpiry}
+                          onChange={handleCardExpiryChange}
+                          className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white font-mono text-center tracking-wider"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-white/60 mb-0.5">
+                          CVC / CVV *
+                        </label>
+                        <input
+                          type="password"
+                          required
+                          maxLength={4}
+                          placeholder="•••"
+                          value={cardCvc}
+                          onChange={(e) =>
+                            setCardCvc(e.target.value.replace(/\D/g, ""))
+                          }
+                          className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white font-mono text-center tracking-widest"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-0.5">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="w-1/3 py-2 sm:py-2.5 rounded-full bg-neutral-900 border border-white/15 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isProcessing}
-                  className="w-2/3 py-2 sm:py-2.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xl disabled:opacity-50"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="w-3 h-3 stroke-[2.5]" />
-                      <span>Pay & Activate ${totalPrice}</span>
-                    </>
-                  )}
-                </button>
-              </div>
+                  {/* Card Action Buttons */}
+                  <div className="flex gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="w-1/3 py-2 sm:py-2.5 rounded-full bg-neutral-900 border border-white/15 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isProcessing}
+                      className="w-2/3 py-2 sm:py-2.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xl disabled:opacity-50"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Processing...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-3 h-3 stroke-[2.5]" />
+                          <span>Pay & Activate ${totalPrice}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Optional Stripe Hosted Link */}
+                  <div className="text-center pt-0.5">
+                    <button
+                      type="button"
+                      onClick={handleCardContinue}
+                      disabled={isCardLoading}
+                      className="text-[9px] sm:text-[10px] text-white/40 hover:text-white/80 transition-colors underline cursor-pointer"
+                    >
+                      {isCardLoading
+                        ? "Redirecting to Stripe..."
+                        : "Prefer Stripe hosted checkout page? Click here"}
+                    </button>
+                  </div>
+                </>
+              )}
 
               {/* Mobile Security Footer */}
               <div className="flex md:hidden items-center justify-center gap-1 text-[9px] text-white/40 pt-0.5">

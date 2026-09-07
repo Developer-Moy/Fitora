@@ -37,6 +37,7 @@ export interface AuthUser {
   qrCodeId?: string;
   createdAt?: string;
   updatedAt?: string;
+  membershipExpiresAt?: string | null;
 }
 
 export interface AuthResponse {
@@ -178,36 +179,55 @@ export async function registerApi(payload: {
 
 /**
  * 4. Get Current User Profile (/api/auth/me)
+ * Queries the authoritative backend database. Supports JWT Bearer authentication
+ * as well as userId/email query parameters for session-based profiles.
  */
-export async function getCurrentUserApi(): Promise<AuthResponse> {
+export async function getCurrentUserApi(params?: {
+  userId?: string;
+  email?: string;
+}): Promise<AuthResponse> {
   try {
     const token =
       typeof window !== "undefined"
-        ? localStorage.getItem("fitora_token")
+        ? localStorage.getItem("fitora_token") ||
+          localStorage.getItem("fitora_auth_token")
         : null;
-    if (!token) {
-      return { success: false, message: "No active token found" };
+
+    if (!token && !params?.userId && !params?.email) {
+      return { success: false, message: "No active token or credentials found" };
     }
 
-    const res = await fetch(`${API_URL}/auth/me`, {
+    const query = new URLSearchParams();
+    if (params?.userId) query.append("userId", params.userId);
+    if (params?.email) query.append("email", params.email);
+    const queryString = query.toString() ? `?${query.toString()}` : "";
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${API_URL}/auth/me${queryString}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
 
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return { success: false, message: "Session expired" };
+      return {
+        success: false,
+        message: data?.message || "Could not retrieve user profile",
+      };
     }
 
     return {
       success: true,
       message: "User verified",
       user: data.data?.user,
-      token,
+      token: token || undefined,
     };
   } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return { success: false, message: "Could not fetch user claims" };
@@ -316,13 +336,13 @@ export function clearAuthSession() {
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-  } catch { }
+  } catch {}
 }
 
 export async function logoutUser(): Promise<void> {
   try {
     await authClient.signOut().catch(() => null);
-  } catch { }
+  } catch {}
   clearAuthSession();
 }
 

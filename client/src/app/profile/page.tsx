@@ -39,6 +39,7 @@ import {
   getAuthSession,
   clearAuthSession,
   logoutUser,
+  getCurrentUserApi,
   AuthUser,
   AUTH_SESSION_UPDATED,
 } from "@/services/authService";
@@ -56,6 +57,8 @@ import {
 import { deleteBmiHistory, fetchBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
 import BillingSection from "@/components/profile/BillingSection";
+import BillingPaymentHistory from "@/components/BillingPaymentHistory";
+import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
 
 interface BMIHistory {
   _id: string;
@@ -345,6 +348,15 @@ export default function ProfilePage() {
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState("");
 
+  // Membership Expiry Banner Live State
+  const [membershipBannerData, setMembershipBannerData] = useState<{
+    status: "expiring_soon" | "expired" | "no_membership";
+    planName: string;
+    daysRemaining?: number;
+    expiryDate?: string;
+  } | null>(null);
+  const [isCheckingMembership, setIsCheckingMembership] = useState<boolean>(true);
+
   // Edit Modal State
 
   useEffect(() => {
@@ -363,6 +375,144 @@ export default function ProfilePage() {
       window.removeEventListener(AUTH_SESSION_UPDATED, syncLocalUser);
     };
   }, []);
+
+  // ── Authoritative Backend Membership Check ──
+  useEffect(() => {
+    let isCancelled = false;
+
+    const checkMembershipStatus = async () => {
+      // 1. Get logged-in user identification from existing authentication/session
+      const targetUserId =
+        authSession?.user?.id ||
+        localUser?.id ||
+        localUser?._id;
+      const targetEmail =
+        authSession?.user?.email ||
+        localUser?.email ||
+        (typeof window !== "undefined"
+          ? (localStorage.getItem("fitora_user_email") ?? undefined)
+          : undefined);
+
+      if (!targetUserId && !targetEmail) {
+        if (!isCancelled) {
+          setIsCheckingMembership(false);
+          setMembershipBannerData(null);
+        }
+        return;
+      }
+
+      setIsCheckingMembership(true);
+
+      try {
+        // 2. Fetch authoritative user & membership data directly from backend database
+        const res = await getCurrentUserApi({
+          userId: targetUserId,
+          email: targetEmail,
+        });
+
+        if (isCancelled) return;
+
+        // Error Handling: If request fails, gracefully do NOT show a false expired banner
+        if (!res.success || !res.user) {
+          setMembershipBannerData(null);
+          setIsCheckingMembership(false);
+          return;
+        }
+
+        const backendUser = res.user;
+        const currentPlan = backendUser.plan || localUser?.plan || "Free Pass";
+        const rawExpiry = backendUser.membershipExpiresAt;
+
+        const isFreeTier =
+          !currentPlan ||
+          currentPlan === "Free Pass" ||
+          currentPlan === "FREE MEMBER" ||
+          currentPlan.toLowerCase() === "free";
+
+        // State C: No active membership / Free tier without valid expiry
+        if (isFreeTier || !rawExpiry) {
+          setMembershipBannerData({
+            status: "no_membership",
+            planName: currentPlan,
+          });
+          setIsCheckingMembership(false);
+          return;
+        }
+
+        const expiryDateObj = new Date(rawExpiry);
+        const expiryTime = expiryDateObj.getTime();
+        const now = Date.now();
+
+        // If stored date is invalid
+        if (isNaN(expiryTime)) {
+          setMembershipBannerData({
+            status: "expired",
+            planName: currentPlan,
+          });
+          setIsCheckingMembership(false);
+          return;
+        }
+
+        const formattedExpiry = expiryDateObj.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+
+        const diffMs = expiryTime - now;
+
+        if (diffMs <= 0) {
+          // State C: Expired in the past (or today already elapsed)
+          setMembershipBannerData({
+            status: "expired",
+            planName: currentPlan,
+            expiryDate: formattedExpiry,
+          });
+        } else {
+          // Future expiration: evaluate 7-day boundary
+          const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+          if (diffMs <= SEVEN_DAYS_MS) {
+            // State B: Expiring soon (within next 7 days: 0 < diffMs <= 7 days)
+            const daysRemaining = Math.max(
+              1,
+              Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+            );
+            setMembershipBannerData({
+              status: "expiring_soon",
+              planName: currentPlan,
+              daysRemaining,
+              expiryDate: formattedExpiry,
+            });
+          } else {
+            // State A: Active membership (> 7 days remaining) -> Do NOT show banner
+            setMembershipBannerData(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check user membership status:", err);
+        // Error handling: gracefully avoid breaking profile page or showing false alert
+        if (!isCancelled) {
+          setMembershipBannerData(null);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsCheckingMembership(false);
+        }
+      }
+    };
+
+    checkMembershipStatus();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    authSession?.user?.id,
+    authSession?.user?.email,
+    localUser?.id,
+    localUser?._id,
+    localUser?.email,
+  ]);
 
   useEffect(() => {
     const fetchBMIHistory = async () => {
@@ -429,6 +579,11 @@ export default function ProfilePage() {
 
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [activeSubscriptionData, setActiveSubscriptionData] =
+    useState<any>(null);
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
+  const [renewPlan, setRenewPlan] = useState<PlanItem | null>(null);
 
   const [mealChart, setMealChart] = useState<MealChart | null>(null);
 
@@ -449,11 +604,28 @@ export default function ProfilePage() {
       setIsLoadingDailyPlan(true);
       setIsLoadingWorkouts(true);
       try {
-        const [dailyPlanRes, workoutsRes, mealChartsRes] = await Promise.all([
-          getDailyMealPlan(targetId),
-          getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
-          fetchMealCharts(targetId).catch(() => []),
-        ]);
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("fitora_token") ||
+              localStorage.getItem("fitora_auth_token")
+            : null;
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const headers: Record<string, string> = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const [dailyPlanRes, workoutsRes, mealChartsRes, paymentsRes] =
+          await Promise.all([
+            getDailyMealPlan(targetId),
+            getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
+            fetchMealCharts(targetId).catch(() => []),
+            fetch(
+              `${apiUrl}/payments/me?userId=${encodeURIComponent(targetId)}&email=${encodeURIComponent(userEmail)}`,
+              { headers },
+            )
+              .then((r) => (r.ok ? r.json() : { data: { payments: [] } }))
+              .catch(() => ({ data: { payments: [] } })),
+          ]);
 
         if (dailyPlanRes.success && dailyPlanRes.data) {
           setDailyPlanMeals(dailyPlanRes.data);
@@ -464,6 +636,12 @@ export default function ProfilePage() {
         if (mealChartsRes && mealChartsRes.length > 0) {
           setMealChart(mealChartsRes[0]);
         }
+        if (paymentsRes?.data?.payments) {
+          setTransactions(paymentsRes.data.payments);
+        }
+        if (paymentsRes?.data?.activeSubscription) {
+          setActiveSubscriptionData(paymentsRes.data.activeSubscription);
+        }
       } catch (err) {
         console.error("Failed to fetch profile data:", err);
       } finally {
@@ -473,7 +651,7 @@ export default function ProfilePage() {
     };
 
     fetchData();
-  }, [resolvedUserId]);
+  }, [resolvedUserId, userEmail]);
 
   // Handle direct file selection & upload (Local Preview + ImgBB Cloud Sync)
   const handleCopyMeal = (meal: any, index: number) => {
@@ -494,6 +672,35 @@ export default function ProfilePage() {
     }, 400);
   };
 
+  const handleOpenRenewModal = () => {
+    const currentPlanKey =
+      activeSubscriptionData?.planName || localUser?.plan || "Pro Athlete";
+    const foundPlan =
+      FITORA_PLANS.find(
+        (p) =>
+          p.name.toLowerCase() === currentPlanKey.toLowerCase() ||
+          p.planKey.toLowerCase() === currentPlanKey.toLowerCase() ||
+          p.id.toLowerCase() === currentPlanKey.toLowerCase(),
+      ) || FITORA_PLANS[1];
+    setRenewPlan(foundPlan);
+    setIsRenewModalOpen(true);
+  };
+
+  const handleSubscriptionSuccess = (
+    plan: PlanItem,
+    isAnnual: boolean,
+    paymentMethod: string,
+  ) => {
+    setIsRenewModalOpen(false);
+    toast.success(`🎉 Membership plan ${plan.name} updated successfully!`);
+    // Refetch or reload to update local auth & subscriptions
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    }
+  };
+
   if (!isMounted) return null;
 
   return (
@@ -512,6 +719,17 @@ export default function ProfilePage() {
             athletic potential.
           </p>
         </div>
+
+        {/* ── Membership Status Banner ── */}
+        {!isCheckingMembership && membershipBannerData && (
+          <MembershipExpiryBanner
+            status={membershipBannerData.status}
+            planName={membershipBannerData.planName}
+            daysRemaining={membershipBannerData.daysRemaining}
+            expiryDate={membershipBannerData.expiryDate}
+            actionHref="/dashboard?tab=upgrade"
+          />
+        )}
 
         {/* ── 1. Athlete Header Card ── */}
         <div className="bg-black border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
@@ -1126,7 +1344,37 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* ── 5. Admin Management Access (If Admin) ── */}
+        {/* ── 6. Billing & Payment History ── */}
+        <BillingPaymentHistory
+          userPlan={
+            activeSubscriptionData?.planName || localUser?.plan || "Free Pass"
+          }
+          transactions={transactions}
+          expiryDate={
+            activeSubscriptionData?.expiryDate ||
+            localUser?.subscriptionExpiryDate ||
+            localUser?.membershipExpiresAt
+          }
+          startDate={activeSubscriptionData?.startDate}
+          athleteName={localUser?.name || authSession?.user?.name}
+          athleteEmail={localUser?.email || authSession?.user?.email || userEmail}
+          athletePhone={localUser?.phone}
+          assignedBranch={localUser?.assignedBranch}
+          onRenewPlan={handleOpenRenewModal}
+        />
+
+        {/* ── Membership Renewal / Upgrade Modal ── */}
+        {renewPlan && (
+          <SubscriptionModal
+            isOpen={isRenewModalOpen}
+            onClose={() => setIsRenewModalOpen(false)}
+            plan={renewPlan}
+            isAnnual={false}
+            onSuccess={handleSubscriptionSuccess}
+          />
+        )}
+
+        {/* ── 7. Admin Management Access (If Admin) ── */}
         {(isMasterAdmin || isBranchAdmin) && (
           <div className="bg-black border border-white/20 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
             <div className="space-y-1">

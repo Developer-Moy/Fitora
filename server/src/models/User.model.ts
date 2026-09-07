@@ -39,12 +39,14 @@ export interface IUser extends Document {
   assignedBranchSlug: string;
   plan: UserPlan;
   status: UserStatus;
+  membershipExpiresAt?: Date;
 
   // User Stats
   attendanceStreakDays: number;
   hydrationTargetLiters: number;
   totalPaidBDT: number;
   paymentMethod: PaymentMethod;
+  subscriptionExpiryDate?: Date;
 
   // QR & Security
   qrCodeId: string;
@@ -133,6 +135,10 @@ const userSchema = new Schema<IUser>(
       required: true,
       enum: ["bKash", "Nagad", "Card", "Bank Transfer", "None"],
     },
+    subscriptionExpiryDate: {
+      type: Date,
+      required: false,
+    },
 
     // QR & Security
     qrCodeId: {
@@ -145,10 +151,13 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    membershipExpiresAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Indexes

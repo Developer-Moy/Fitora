@@ -117,5 +117,8 @@ Fixed two issues on the `/exercises` route in `client/src/components/ExerciseTra
 3. **Modal state reset** — Added `key={selectedExercise.id}` to `ExerciseModal` to force re-mount when opening a different exercise, ensuring form state (sets=3, reps=10) resets correctly
 
 ---
+"6-sep-2026"
+" enhance Billing & Payment History with plan management link and layout adjustments"
+" enhance BillingPaymentHistory with modal for managing plans and improved layout"
 
-<p align="right">Updated: 2026-09-02</p>
+
