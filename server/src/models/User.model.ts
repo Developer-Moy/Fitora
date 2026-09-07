@@ -99,41 +99,49 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
       trim: true,
+      default: "Gulshan Premium Branch",
     },
     assignedBranchSlug: {
       type: String,
       required: true,
       trim: true,
       lowercase: true,
+      default: "gulshan-branch",
     },
     plan: {
       type: String,
       required: true,
       enum: ["Free Pass", "Basic Pass", "Pro Athlete", "VIP Ultimate"],
+      default: "Free Pass",
     },
     status: {
       type: String,
       required: true,
       enum: ["active", "suspended", "pending"],
+      default: "active",
     },
 
     // User Stats
     attendanceStreakDays: {
       type: Number,
       required: true,
+      default: 1,
     },
     hydrationTargetLiters: {
       type: Number,
       required: true,
+      default: 3,
     },
     totalPaidBDT: {
       type: Number,
       required: true,
+      default: 0,
     },
     paymentMethod: {
       type: String,
       required: true,
       enum: ["bKash", "Nagad", "Card", "Bank Transfer", "None"],
+      default: "None",
     },
     subscriptionExpiryDate: {
       type: Date,
