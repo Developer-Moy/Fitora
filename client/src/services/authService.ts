@@ -32,6 +32,11 @@ export interface AuthUser {
   joinedDate?: string;
   isMasterAdmin?: boolean;
   isBranchAdmin?: boolean;
+  totalPaidBDT?: number;
+  paymentMethod?: string;
+  qrCodeId?: string;
+  createdAt?: string;
+  updatedAt?: string;
   membershipExpiresAt?: string | null;
 }
 

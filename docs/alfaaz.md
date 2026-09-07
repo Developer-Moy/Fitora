@@ -282,9 +282,45 @@ Implemented the client-side payment service layer and live subscription synchron
 ---
 
 
+## 13. Today's Task: Billing History & Invoice Action Integration (Profile)
+
+Implemented the **Billing & Transactions** section on the Profile page with a responsive payment history table and invoice actions wired to a reusable invoice modal.
+
+### What Was Implemented:
+
+* Created `client/src/components/profile/BillingSection.tsx` — the Billing & Transactions section on the Profile page.
+* Created `client/src/components/InvoiceModal.tsx` — a reusable, printer-friendly invoice modal for payment records.
+* Rendered a responsive payment history table with Date, Plan, Amount (BDT), Gateway, Status badge, and Actions columns.
+* Loaded the authenticated user's payment history through the existing `fetchMyPaymentsApi()` service (`GET /api/payments/me`).
+* Added a graceful session-based fallback (`derivePaymentFromUser()`) that builds a payment record from the user's real plan/payment fields when the dedicated endpoint is unavailable, instead of hardcoding mock data.
+* Added loading, empty, and error states for the billing table.
+* Wired **View Invoice** and **Print** actions for every payment row — View Invoice opens `InvoiceModal` with the selected payment, and Print opens the invoice and triggers the browser print dialog.
+* Extended the `AuthUser` interface with server-returned billing fields (`totalPaidBDT`, `paymentMethod`, `qrCodeId`, `createdAt`).
+* Added print-specific CSS so only the invoice document prints in clean black-on-white.
+
+### Implementation Flow:
+
+1. The Billing section resolves the authenticated session (`getAuthSession()`) on mount.
+2. When a token exists, `fetchMyPaymentsApi()` requests the user's payment history from the backend.
+3. If the API is unavailable or returns no records, a payment row is derived from the user's session data (plan, total paid BDT, payment method).
+4. Each table row exposes View Invoice and Print actions bound to that payment record.
+5. View Invoice stores the selected payment in component state and opens `InvoiceModal`; the modal updates cleanly when a different row is selected.
+6. Print opens the same modal for the selected payment and triggers `window.print()`; print CSS isolates the invoice document for clean output.
+
+### Relevant Frontend Areas:
+
+* `client/src/app/profile/page.tsx` — renders the Billing & Transactions section between the Calculation History and nutrition plan sections.
+* `client/src/components/profile/BillingSection.tsx` — billing history table, modal/print state management, and data loading.
+* `client/src/components/InvoiceModal.tsx` — reusable invoice modal with print support.
+* `client/src/services/paymentService.ts` — typed `Payment` model, typed `fetchMyPaymentsApi()`, and session-based payment fallback.
+* `client/src/services/authService.ts` — `AuthUser` billing fields for session-based billing data.
+* `client/src/app/globals.css` — print-only styles for the invoice modal.
+
+---
+
 ## Overview
 
-These contributions cover both the **frontend UI** and **backend API** development for **Fitora**, including homepage improvements, authentication UI, membership plans, dashboard statistics, UI polish, seed dataset creation, RBAC user management, branch portal workflows, live check-in operations, and stabilization work for production-ready admin features.
+These contributions cover both the **frontend UI** and **backend API** development for **Fitora**, including homepage improvements, authentication UI, membership plans, dashboard statistics, UI polish, seed dataset creation, RBAC user management, branch portal workflows, live check-in operations, billing history and invoice actions, and stabilization work for production-ready admin features.
 
 ---
 
@@ -412,6 +448,17 @@ These contributions cover both the **frontend UI** and **backend API** developme
 
 ---
 
+## 07-Sep-26
+
+* Added the **Billing & Transactions** section to the Profile page with a responsive payment history table (Date, Plan, Amount BDT, Gateway, Status, Actions).
+* Loaded the user's payment history through the existing `fetchMyPaymentsApi()` service with loading, empty, and error states.
+* Added a session-based fallback so billing rows render from real user plan/payment data instead of hardcoded mock records.
+* Created the reusable **InvoiceModal** component; every payment row exposes **View Invoice** and **Print** actions.
+* Added print-specific CSS so only the selected invoice document prints in clean black-on-white.
+* Verified the production build and TypeScript checks pass with the new section integrated.
+
+---
+
 ## Summary of My Contributions
 
 ### Frontend
@@ -425,6 +472,8 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Membership checkout client integration.
 - Live dashboard/profile subscription synchronization after payment.
 - Payment history service integration.
+- Billing & Transactions section on the Profile page.
+- Invoice modal with View Invoice / Print integration.
 
 ### Backend
 - Dashboard Statistics Controller.
@@ -450,6 +499,8 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Branch-admin attendance and live occupancy dashboard UI.
 - Typed branch API client service.
 - Branch and user seed-data dashboard directory views.
+- `BillingSection.tsx` — profile billing history table with invoice actions.
+- `InvoiceModal.tsx` — reusable invoice modal with print support.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.
