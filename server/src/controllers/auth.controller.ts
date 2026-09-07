@@ -1,9 +1,11 @@
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { AuthRequest } from "../middlewares/auth.middleware";
-import User, { IUser, UserRole } from "../models/User.model";
-import { errorResponse, successResponse } from "../utils/apiResponse";
+import mongoose from "mongoose";
+import { AuthRequest } from "../middlewares/auth.middleware.js";
+import User, { IUser, UserRole } from "../models/User.model.js";
+import UserTier from "../models/UserTier.model.js";
+import { errorResponse, successResponse } from "../utils/apiResponse.js";
 
 const getJwtSecret = (): string => {
   return (
@@ -190,6 +192,9 @@ export const loginUser = async (req: Request, res: Response) => {
           attendanceStreakDays: user.attendanceStreakDays,
           hydrationTargetLiters: user.hydrationTargetLiters,
           totalPaidBDT: user.totalPaidBDT,
+          membershipExpiresAt: user.membershipExpiresAt
+            ? new Date(user.membershipExpiresAt).toISOString()
+            : null,
         },
       }),
     );
@@ -383,7 +388,10 @@ export const dashboardLogin = async (req: Request, res: Response) => {
  */
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.user?.userId) {
+    const targetUserId = req.user?.userId || (req.query.userId as string);
+    const targetEmail = req.user?.email || (req.query.email as string);
+
+    if (!targetUserId && !targetEmail) {
       return res
         .status(401)
         .json(
@@ -391,11 +399,27 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
         );
     }
 
-    const user = await User.findById(req.user.userId).select("-passwordHash");
+    let user = null;
+    if (targetUserId && mongoose.Types.ObjectId.isValid(targetUserId)) {
+      user = await User.findById(targetUserId).select("-passwordHash");
+    }
+    if (!user && targetEmail) {
+      user = await User.findOne({ email: targetEmail.trim().toLowerCase() }).select("-passwordHash");
+    }
+
     if (!user) {
       return res
         .status(404)
         .json(errorResponse("User profile not found", "USER_NOT_FOUND", 404));
+    }
+
+    // Authoritative expiration lookup from DB: User.membershipExpiresAt or fallback to UserTier
+    let membershipExpiresAt = user.membershipExpiresAt || user.subscriptionExpiryDate;
+    if (!membershipExpiresAt) {
+      const userTier = await UserTier.findOne({ userId: user._id });
+      if (userTier?.expiryDate || userTier?.validUntil) {
+        membershipExpiresAt = userTier.expiryDate || userTier.validUntil;
+      }
     }
 
     return res.status(200).json(
@@ -417,6 +441,9 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
           totalPaidBDT: user.totalPaidBDT,
           paymentMethod: user.paymentMethod,
           qrCodeId: user.qrCodeId,
+          membershipExpiresAt: membershipExpiresAt
+            ? new Date(membershipExpiresAt).toISOString()
+            : null,
         },
       }),
     );
