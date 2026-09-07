@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { fetchPublicBranches, fetchMemberStats, type BranchInfo as APIBranchInfo, type MemberStatsResponse } from "@/services/dashboardService";
+import {
+  fetchPublicBranches,
+  fetchMemberStats,
+  type BranchInfo as APIBranchInfo,
+  type MemberStatsResponse,
+} from "@/services/dashboardService";
 import { sendAiChatApi } from "@/services/aiService";
 import {
   Crown,
@@ -33,7 +38,11 @@ import {
   Check,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { updateSessionAfterPayment } from "@/services/authService";
+import {
+  getAuthSession,
+  updateSessionAfterPayment,
+} from "@/services/authService";
+import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
 
 interface MemberDashboardViewProps {
   isPremium: boolean;
@@ -76,7 +85,9 @@ export default function MemberDashboardView({
   const [profileTargetWeight, setProfileTargetWeight] = useState("78.0");
   const [profileToast, setProfileToast] = useState<string | null>(null);
   const [branches, setBranches] = useState<APIBranchInfo[]>([]);
-  const [memberStats, setMemberStats] = useState<MemberStatsResponse | null>(null);
+  const [memberStats, setMemberStats] = useState<MemberStatsResponse | null>(
+    null,
+  );
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
@@ -85,17 +96,57 @@ export default function MemberDashboardView({
     setProfileBranch(assignedBranch);
   }, [userName, userEmail, assignedBranch]);
 
+  const [expiryBannerInfo, setExpiryBannerInfo] = useState<{
+    status: "expiring_soon" | "expired" | "no_membership";
+    daysRemaining: number;
+    expiryDate?: string;
+  } | null>(null);
+
   useEffect(() => {
-    fetchPublicBranches().then(res => {
+    fetchPublicBranches().then((res) => {
       if (res && res.length > 0) setBranches(res as any);
     });
 
     setStatsLoading(true);
-    fetchMemberStats().then(res => {
+    fetchMemberStats().then((res) => {
       if (res) setMemberStats(res);
       setStatsLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    const session = getAuthSession();
+    const expiry =
+      session?.user?.subscriptionExpiryDate ||
+      session?.user?.membershipExpiresAt;
+    const isFree = !userPlan || userPlan.toLowerCase().includes("free");
+    if (!isFree && expiry) {
+      const expDate = new Date(expiry);
+      const diffMs = expDate.getTime() - Date.now();
+      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      if (diffMs <= 0) {
+        setExpiryBannerInfo({
+          status: "expired",
+          daysRemaining: 0,
+          expiryDate: expDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+        });
+      } else if (days <= 3) {
+        setExpiryBannerInfo({
+          status: "expiring_soon",
+          daysRemaining: Math.max(0, days),
+          expiryDate: expDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+        });
+      }
+    }
+  }, [userPlan]);
 
   // Interactive Modals for Features
   const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(
@@ -105,7 +156,6 @@ export default function MemberDashboardView({
   const [aiChatQuery, setAiChatQuery] = useState("");
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
-
 
   const [goalId, setGoalId] = useState<string | null>(null);
   const [goalTargetWeight, setGoalTargetWeight] = useState("");
@@ -155,7 +205,7 @@ export default function MemberDashboardView({
     setAiResponse(null);
     const result = await sendAiChatApi(
       `[Athlete at ${assignedBranch}] ${aiChatQuery}`,
-      "coach"
+      "coach",
     );
     setAiLoading(false);
     if (result.success && result.data?.responseText) {
@@ -164,7 +214,6 @@ export default function MemberDashboardView({
       setAiResponse("AI coach is temporarily unavailable. Try again shortly.");
     }
   };
-
 
   const currentWeight = Number(profileWeight);
   const targetWeight = Number(goalTargetWeight);
@@ -178,64 +227,59 @@ export default function MemberDashboardView({
       0,
       Math.min(
         100,
-        100 -
-        (difference / Math.max(currentWeight, targetWeight)) * 100
-      )
+        100 - (difference / Math.max(currentWeight, targetWeight)) * 100,
+      ),
     );
   }
 
   const weightDifference = Math.abs(currentWeight - targetWeight);
 
   const isGoalReached =
-    currentWeight > 0 &&
-    targetWeight > 0 &&
-    currentWeight === targetWeight;
+    currentWeight > 0 && targetWeight > 0 && currentWeight === targetWeight;
 
   const isWeightLoss = currentWeight > targetWeight;
   const isWeightGain = currentWeight < targetWeight;
 
-    // Update Goal Function
+  // Update Goal Function
   const handleUpdateGoal = async () => {
-  try {
-    setGoalUpdating(true);
-    setGoalError(null);
-    setGoalSuccess(null);
+    try {
+      setGoalUpdating(true);
+      setGoalError(null);
+      setGoalSuccess(null);
 
-    const targetWeight = Number(goalTargetWeight);
-    const workoutFrequency = Number(weeklyWorkoutFrequency);
+      const targetWeight = Number(goalTargetWeight);
+      const workoutFrequency = Number(weeklyWorkoutFrequency);
 
-    if (!targetWeight || targetWeight <= 0) {
-      setGoalError("Please enter a valid target weight.");
-      return;
-    }
+      if (!targetWeight || targetWeight <= 0) {
+        setGoalError("Please enter a valid target weight.");
+        return;
+      }
 
-    if (!workoutFrequency || workoutFrequency < 1 || workoutFrequency > 7) {
-      setGoalError("Workout frequency must be between 1 and 7 days.");
-      return;
-    }
+      if (!workoutFrequency || workoutFrequency < 1 || workoutFrequency > 7) {
+        setGoalError("Workout frequency must be between 1 and 7 days.");
+        return;
+      }
 
-    let response;
+      let response;
 
-    if (goalId) {
-      // Existing goal → update
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/goals/${goalId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
+      if (goalId) {
+        // Existing goal → update
+        response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/goals/${goalId}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              targetWeight,
+              weeklyWorkoutFrequency: workoutFrequency,
+            }),
           },
-          body: JSON.stringify({
-            targetWeight,
-            weeklyWorkoutFrequency: workoutFrequency,
-          }),
-        }
-      );
-    } else {
-      // No goal → create
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/goals`,
-        {
+        );
+      } else {
+        // No goal → create
+        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/goals`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -245,50 +289,56 @@ export default function MemberDashboardView({
             targetWeight,
             weeklyWorkoutFrequency: workoutFrequency,
           }),
-        }
+        });
+      }
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to update fitness goal");
+      }
+
+      const updatedGoal = result.data;
+
+      setGoalId(updatedGoal._id);
+      setGoalTargetWeight(String(updatedGoal.targetWeight));
+      setWeeklyWorkoutFrequency(String(updatedGoal.weeklyWorkoutFrequency));
+      setProfileTargetWeight(String(updatedGoal.targetWeight));
+
+      setGoalSuccess("Fitness goal updated successfully!");
+
+      toast.success("Fitness goal updated successfully!");
+
+      setTimeout(() => {
+        setShowFitnessGoalModal(false);
+        setGoalSuccess(null);
+      }, 1200);
+    } catch (error) {
+      console.error("Failed to update fitness goal:", error);
+
+      setGoalError(
+        error instanceof Error
+          ? error.message
+          : "Failed to update fitness goal",
       );
+    } finally {
+      setGoalUpdating(false);
     }
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(
-        result.message || "Failed to update fitness goal"
-      );
-    }
-
-    const updatedGoal = result.data;
-
-    setGoalId(updatedGoal._id);
-    setGoalTargetWeight(String(updatedGoal.targetWeight));
-    setWeeklyWorkoutFrequency(
-      String(updatedGoal.weeklyWorkoutFrequency)
-    );
-    setProfileTargetWeight(String(updatedGoal.targetWeight));
-
-    setGoalSuccess("Fitness goal updated successfully!");
-
-    toast.success("Fitness goal updated successfully!");
-
-    setTimeout(() => {
-      setShowFitnessGoalModal(false);
-      setGoalSuccess(null);
-    }, 1200);
-  } catch (error) {
-    console.error("Failed to update fitness goal:", error);
-
-    setGoalError(
-      error instanceof Error
-        ? error.message
-        : "Failed to update fitness goal"
-    );
-  } finally {
-    setGoalUpdating(false);
-  }
-};
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
+      {/* ── MEMBERSHIP EXPIRY NOTIFICATION BANNER ── */}
+      {expiryBannerInfo && (
+        <MembershipExpiryBanner
+          status={expiryBannerInfo.status}
+          planName={userPlan}
+          daysRemaining={expiryBannerInfo.daysRemaining}
+          expiryDate={expiryBannerInfo.expiryDate}
+          onAction={() => setShowPaymentModal(true)}
+        />
+      )}
+
       {/* ── TOP HERO BANNER (HOMEPAGE LUXURY DARK) ── */}
       <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-neutral-950 p-6 sm:p-8 shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -423,7 +473,11 @@ export default function MemberDashboardView({
             </div>
             <div className="pt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-white tracking-tight">
-                {statsLoading ? "..." : ((memberStats as any)?.workoutCount ?? memberStats?.workoutsThisMonth ?? 18)}
+                {statsLoading
+                  ? "..."
+                  : ((memberStats as any)?.workoutCount ??
+                    memberStats?.workoutsThisMonth ??
+                    18)}
               </span>
               <span className="text-xs font-bold text-emerald-400 uppercase">
                 +3 vs last month
@@ -441,13 +495,26 @@ export default function MemberDashboardView({
             </div>
             <div className="pt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-white tracking-tight">
-                {statsLoading ? "..." : (((memberStats as any)?.burnedCalories ?? memberStats?.caloriesBurned)?.toLocaleString() ?? "11,400")}
+                {statsLoading
+                  ? "..."
+                  : ((
+                      (memberStats as any)?.burnedCalories ??
+                      memberStats?.caloriesBurned
+                    )?.toLocaleString() ?? "11,400")}
               </span>
               <span className="text-xs font-bold text-white/50 uppercase">
                 kcal
               </span>
             </div>
-            <p className="text-xs text-white/40 mt-1">Weekly avg: {Math.round((((memberStats as any)?.burnedCalories ?? memberStats?.caloriesBurned) ?? 11400) / 4).toLocaleString()} kcal</p>
+            <p className="text-xs text-white/40 mt-1">
+              Weekly avg:{" "}
+              {Math.round(
+                ((memberStats as any)?.burnedCalories ??
+                  memberStats?.caloriesBurned ??
+                  11400) / 4,
+              ).toLocaleString()}{" "}
+              kcal
+            </p>
           </div>
 
           <div className="p-6 rounded-3xl bg-neutral-950 border border-white/10 shadow-xl space-y-2">
@@ -457,13 +524,17 @@ export default function MemberDashboardView({
             </div>
             <div className="pt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-emerald-400 tracking-tight">
-                {statsLoading ? "..." : (memberStats?.streakDays ?? (isPremium ? "14" : "3"))}
+                {statsLoading
+                  ? "..."
+                  : (memberStats?.streakDays ?? (isPremium ? "14" : "3"))}
               </span>
               <span className="text-xs font-bold text-emerald-400 uppercase">
                 Days Streak
               </span>
             </div>
-            <p className="text-xs text-white/40 mt-1">Consistency score: {memberStats?.consistencyScore ?? 92}%</p>
+            <p className="text-xs text-white/40 mt-1">
+              Consistency score: {memberStats?.consistencyScore ?? 92}%
+            </p>
           </div>
 
           <div className="p-6 rounded-3xl bg-neutral-950 border border-white/10 shadow-xl space-y-2">
@@ -485,7 +556,6 @@ export default function MemberDashboardView({
           </div>
         </div>
       </div>
-
 
       {/* My Fitness Goals */}
       <div className="mt-8 bg-neutral-950">
@@ -515,9 +585,7 @@ export default function MemberDashboardView({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-white/50">Current Weight</p>
-              <p className="text-3xl font-bold">
-                {profileWeight} kg
-              </p>
+              <p className="text-3xl font-bold">{profileWeight} kg</p>
             </div>
 
             <div className="text-right">
@@ -563,85 +631,75 @@ export default function MemberDashboardView({
       </div>
 
       {showFitnessGoalModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <div className="w-full max-w-md rounded-2xl bg-neutral-950 p-6">
-      <h2 className="text-xl font-bold">
-        Update Fitness Goal
-      </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-2xl bg-neutral-950 p-6">
+            <h2 className="text-xl font-bold">Update Fitness Goal</h2>
 
-      <div className="mt-6 space-y-4">
-        {/* Target Weight */}
-        <div>
-          <label className="mb-2 block text-sm font-medium">
-            Target Weight (kg)
-          </label>
+            <div className="mt-6 space-y-4">
+              {/* Target Weight */}
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Target Weight (kg)
+                </label>
 
-          <input
-            type="number"
-            value={goalTargetWeight}
-            onChange={(e) => setGoalTargetWeight(e.target.value)}
-            className="w-full rounded-xl border px-4 py-3"
-          />
+                <input
+                  type="number"
+                  value={goalTargetWeight}
+                  onChange={(e) => setGoalTargetWeight(e.target.value)}
+                  className="w-full rounded-xl border px-4 py-3"
+                />
+              </div>
+
+              {/* Workout Frequency */}
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Weekly Workout Frequency
+                </label>
+
+                <select
+                  value={weeklyWorkoutFrequency}
+                  onChange={(e) => setWeeklyWorkoutFrequency(e.target.value)}
+                  className="w-full rounded-xl border border-white/15 bg-neutral-950 px-4 py-3"
+                  required
+                >
+                  <option value="1">1 day / week</option>
+                  <option value="2">2 days / week</option>
+                  <option value="3">3 days / week</option>
+                  <option value="4">4 days / week</option>
+                  <option value="5">5 days / week</option>
+                  <option value="6">6 days / week</option>
+                  <option value="7">7 days / week</option>
+                </select>
+              </div>
+
+              {goalError && <p className="text-sm text-red-500">{goalError}</p>}
+
+              {goalSuccess && (
+                <p className="text-sm text-green-600">{goalSuccess}</p>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowFitnessGoalModal(false)}
+                className="rounded-full border px-5 py-2.5"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleUpdateGoal}
+                disabled={goalUpdating}
+                className="rounded-full bg-white px-5 py-2.5 text-black"
+              >
+                {goalUpdating ? "Updating..." : "Save Goal"}
+              </button>
+            </div>
+          </div>
         </div>
-
-        {/* Workout Frequency */}
-        <div>
-          <label className="mb-2 block text-sm font-medium">
-            Weekly Workout Frequency
-          </label>
-
-          <select
-            value={weeklyWorkoutFrequency}
-            onChange={(e) =>
-              setWeeklyWorkoutFrequency(e.target.value)
-            }
-            className="w-full rounded-xl border border-white/15 bg-neutral-950 px-4 py-3"
-            required
-          >
-            <option value="1">1 day / week</option>
-            <option value="2">2 days / week</option>
-            <option value="3">3 days / week</option>
-            <option value="4">4 days / week</option>
-            <option value="5">5 days / week</option>
-            <option value="6">6 days / week</option>
-            <option value="7">7 days / week</option>
-          </select>
-        </div>
-
-        {goalError && (
-          <p className="text-sm text-red-500">
-            {goalError}
-          </p>
-        )}
-
-        {goalSuccess && (
-          <p className="text-sm text-green-600">
-            {goalSuccess}
-          </p>
-        )}
-      </div>
-
-      <div className="mt-6 flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => setShowFitnessGoalModal(false)}
-          className="rounded-full border px-5 py-2.5"
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          onClick={handleUpdateGoal}
-          disabled={goalUpdating}
-          className="rounded-full bg-white px-5 py-2.5 text-black"
-        >
-          {goalUpdating ? "Updating..." : "Save Goal"}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       {/* ── FEATURE MODULES & QUICK ACTIONS ── */}
       <div className="space-y-4">
@@ -999,10 +1057,11 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("bKash")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "bKash"
-                        ? "border-white bg-white text-black font-black shadow-lg"
-                        : "border-white/15 bg-neutral-900 text-white/60"
-                        }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
+                        selectedGateway === "bKash"
+                          ? "border-white bg-white text-black font-black shadow-lg"
+                          : "border-white/15 bg-neutral-900 text-white/60"
+                      }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">bKash</span>
@@ -1011,10 +1070,11 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("Nagad")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "Nagad"
-                        ? "border-white bg-white text-black font-black shadow-lg"
-                        : "border-white/15 bg-neutral-900 text-white/60"
-                        }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
+                        selectedGateway === "Nagad"
+                          ? "border-white bg-white text-black font-black shadow-lg"
+                          : "border-white/15 bg-neutral-900 text-white/60"
+                      }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">Nagad</span>
@@ -1023,10 +1083,11 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("Card")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "Card"
-                        ? "border-white bg-white text-black font-black shadow-lg"
-                        : "border-white/15 bg-neutral-900 text-white/60"
-                        }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
+                        selectedGateway === "Card"
+                          ? "border-white bg-white text-black font-black shadow-lg"
+                          : "border-white/15 bg-neutral-900 text-white/60"
+                      }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">Card</span>

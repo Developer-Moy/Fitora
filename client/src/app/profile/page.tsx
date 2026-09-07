@@ -57,15 +57,10 @@ import {
 import { deleteBmiHistory, fetchBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
 import BillingSection from "@/components/profile/BillingSection";
-import BillingPaymentHistory from "@/components/BillingPaymentHistory";
 import SubscriptionModal from "@/components/home/SubscriptionModal";
 import MembershipStatusCard from "@/components/subscription/MembershipStatusCard";
 import { FITORA_PLANS, PlanItem } from "@/components/home/PricingSection";
-import {
-  type MembershipData,
-  TEMP_MEMBERSHIP,
-  isFreePlan,
-} from "@/lib/membershipUtils";
+import { type MembershipData, isFreePlan } from "@/lib/membershipUtils";
 import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
 
 interface BMIHistory {
@@ -363,7 +358,8 @@ export default function ProfilePage() {
     daysRemaining?: number;
     expiryDate?: string;
   } | null>(null);
-  const [isCheckingMembership, setIsCheckingMembership] = useState<boolean>(true);
+  const [isCheckingMembership, setIsCheckingMembership] =
+    useState<boolean>(true);
 
   // Edit Modal State
 
@@ -391,9 +387,7 @@ export default function ProfilePage() {
     const checkMembershipStatus = async () => {
       // 1. Get logged-in user identification from existing authentication/session
       const targetUserId =
-        authSession?.user?.id ||
-        localUser?.id ||
-        localUser?._id;
+        authSession?.user?.id || localUser?.id || localUser?._id;
       const targetEmail =
         authSession?.user?.email ||
         localUser?.email ||
@@ -483,7 +477,7 @@ export default function ProfilePage() {
             // State B: Expiring soon (within next 7 days: 0 < diffMs <= 7 days)
             const daysRemaining = Math.max(
               1,
-              Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+              Math.ceil(diffMs / (1000 * 60 * 60 * 24)),
             );
             setMembershipBannerData({
               status: "expiring_soon",
@@ -595,38 +589,36 @@ export default function ProfilePage() {
 
   const [mealChart, setMealChart] = useState<MealChart | null>(null);
 
-  // Resolve the user's membership record for the dedicated status card.
-  // Real data is preferred (from /payments/me + local auth session); the
-  // isolated TEMP_MEMBERSHIP mock is only used as a last-resort fallback when
-  // no live membership data is available (e.g. backend not connected / demo).
+  // Resolve the user's membership record for the dedicated status card (100% dynamic)
   const resolvedMembership = useMemo<MembershipData>(() => {
     const planName =
-      activeSubscriptionData?.planName || localUser?.plan || "";
-    const startDate = activeSubscriptionData?.startDate || null;
+      activeSubscriptionData?.planName || localUser?.plan || "Free Pass";
+    const startDate =
+      activeSubscriptionData?.startDate || localUser?.createdAt || null;
     const expiryDate =
       activeSubscriptionData?.expiryDate ||
       localUser?.subscriptionExpiryDate ||
       localUser?.membershipExpiresAt ||
       null;
 
-    const hasExpiry = !!expiryDate;
-    const isExplicitFree = isFreePlan(planName) && planName !== "";
-
-    // Real paid membership with a known expiry -> use it directly.
-    if (hasExpiry && planName && !isFreePlan(planName)) {
-      return { planName, startDate, expiryDate };
-    }
-
-    // Explicit free user -> keep the free state (no mock dates).
-    if (isExplicitFree) {
+    // Free user -> keep free pass with no expiry
+    if (isFreePlan(planName)) {
       return { planName, startDate: null, expiryDate: null };
     }
 
-    // No usable membership data (offline / demo / unknown plan) -> fall back to
-    // the isolated temporary mock record.
+    // Real paid membership with known expiry -> use it directly
+    if (expiryDate) {
+      return { planName, startDate, expiryDate };
+    }
+
+    // Paid plan without explicit expiry in DB -> calculate dynamic 30-day window
+    const now = new Date();
+    const fallbackExpiry = new Date(now);
+    fallbackExpiry.setDate(fallbackExpiry.getDate() + 30);
     return {
-      ...TEMP_MEMBERSHIP,
-      planName: planName || TEMP_MEMBERSHIP.planName,
+      planName,
+      startDate: startDate || now,
+      expiryDate: fallbackExpiry,
     };
   }, [activeSubscriptionData, localUser]);
 
@@ -771,6 +763,7 @@ export default function ProfilePage() {
             daysRemaining={membershipBannerData.daysRemaining}
             expiryDate={membershipBannerData.expiryDate}
             actionHref="/dashboard?tab=upgrade"
+            onAction={handleOpenRenewModal}
           />
         )}
 
@@ -1401,25 +1394,6 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-
-        {/* ── 6. Billing & Payment History ── */}
-        <BillingPaymentHistory
-          userPlan={
-            activeSubscriptionData?.planName || localUser?.plan || "Free Pass"
-          }
-          transactions={transactions}
-          expiryDate={
-            activeSubscriptionData?.expiryDate ||
-            localUser?.subscriptionExpiryDate ||
-            localUser?.membershipExpiresAt
-          }
-          startDate={activeSubscriptionData?.startDate}
-          athleteName={localUser?.name || authSession?.user?.name}
-          athleteEmail={localUser?.email || authSession?.user?.email || userEmail}
-          athletePhone={localUser?.phone}
-          assignedBranch={localUser?.assignedBranch}
-          onRenewPlan={handleOpenRenewModal}
-        />
 
         {/* ── Membership Renewal / Upgrade Modal ── */}
         {renewPlan && (

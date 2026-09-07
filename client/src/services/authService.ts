@@ -37,7 +37,8 @@ export interface AuthUser {
   qrCodeId?: string;
   createdAt?: string;
   updatedAt?: string;
-  membershipExpiresAt?: string | null;
+  membershipExpiresAt?: string | Date | null;
+  subscriptionExpiryDate?: string | Date | null;
 }
 
 export interface AuthResponse {
@@ -194,7 +195,10 @@ export async function getCurrentUserApi(params?: {
         : null;
 
     if (!token && !params?.userId && !params?.email) {
-      return { success: false, message: "No active token or credentials found" };
+      return {
+        success: false,
+        message: "No active token or credentials found",
+      };
     }
 
     const query = new URLSearchParams();
@@ -272,7 +276,12 @@ export async function refreshCurrentUser(): Promise<AuthResponse> {
  */
 export async function updateSessionAfterPayment(
   planKey: string,
-  options?: { role?: string; refreshFromServer?: boolean },
+  options?: {
+    role?: string;
+    refreshFromServer?: boolean;
+    subscriptionExpiryDate?: string | Date | null;
+    membershipExpiresAt?: string | Date | null;
+  },
 ): Promise<AuthUser | null> {
   const { token, user } = getAuthSession();
   if (!user && !token) return null;
@@ -281,11 +290,23 @@ export async function updateSessionAfterPayment(
     ...(user || { name: "", email: "", role: "premium_user" }),
     plan: planKey,
     role: options?.role || "premium_user",
+    subscriptionExpiryDate:
+      options?.subscriptionExpiryDate ?? user?.subscriptionExpiryDate,
+    membershipExpiresAt:
+      options?.membershipExpiresAt ??
+      options?.subscriptionExpiryDate ??
+      user?.membershipExpiresAt,
   };
 
   saveAuthSession(token || "", updatedUser);
   localStorage.setItem("fitora_active_role", updatedUser.role);
   localStorage.setItem("fitora_user_plan", planKey);
+  if (updatedUser.subscriptionExpiryDate) {
+    localStorage.setItem(
+      "fitora_subscription_expiry",
+      String(updatedUser.subscriptionExpiryDate),
+    );
+  }
 
   if (options?.refreshFromServer && token) {
     const refreshed = await refreshCurrentUser();

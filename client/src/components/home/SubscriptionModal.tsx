@@ -11,7 +11,10 @@ import {
 } from "lucide-react";
 import { PlanItem } from "@/components/home/PricingSection";
 import toast from "react-hot-toast";
-import { getAuthSession, updateSessionAfterPayment } from "@/services/authService";
+import {
+  getAuthSession,
+  updateSessionAfterPayment,
+} from "@/services/authService";
 import { useSession } from "@/lib/auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -114,8 +117,17 @@ export default function SubscriptionModal({
         "Content-Type": "application/json",
       };
       if (token) headers["Authorization"] = `Bearer ${token}`;
+      const resolvedUserId = currentUser?.id || (currentUser as any)?._id || "";
+      const resolvedEmail = currentUser?.email || "";
 
-      const res = await fetch(`${API_URL}/payments/checkout`, {
+      const queryParams = new URLSearchParams();
+      if (resolvedUserId) queryParams.set("userId", resolvedUserId);
+      if (resolvedEmail) queryParams.set("email", resolvedEmail);
+      const queryStr = queryParams.toString()
+        ? `?${queryParams.toString()}`
+        : "";
+
+      const res = await fetch(`${API_URL}/payments/checkout${queryStr}`, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -126,8 +138,8 @@ export default function SubscriptionModal({
           gateway: gatewayFormatted,
           accountNumber,
           transactionId,
-          userId: currentUser?.id || (currentUser as any)?._id,
-          userEmail: currentUser?.email,
+          userId: resolvedUserId,
+          userEmail: resolvedEmail,
           userName:
             paymentMethod === "card" && cardName ? cardName : currentUser?.name,
         }),
@@ -136,24 +148,33 @@ export default function SubscriptionModal({
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !data?.success) {
-        throw new Error(data?.message || "Payment verification failed.");
+        throw new Error(
+          data?.message || data?.error || "Payment verification failed.",
+        );
       }
 
       const returnedUser = data?.data?.user;
       const finalRole = returnedUser?.role || "premium_user";
       const finalPlan = returnedUser?.plan || plan.planKey || plan.name;
+      const expiryDate =
+        returnedUser?.subscriptionExpiryDate ||
+        returnedUser?.membershipExpiresAt;
 
       // Immediately upgrade user session to premium_user and active plan
-      await updateSessionAfterPayment(finalPlan, { role: finalRole });
+      await updateSessionAfterPayment(finalPlan, {
+        role: finalRole,
+        subscriptionExpiryDate: expiryDate,
+        membershipExpiresAt: expiryDate,
+      });
 
       setIsProcessing(false);
       onSuccess(plan, isAnnual, gatewayFormatted);
     } catch (err: any) {
-      await updateSessionAfterPayment(plan.name || plan.planKey, {
-        role: "premium_user",
-      });
+      console.error("[SubscriptionModal Checkout Error]:", err);
+      toast.error(
+        err.message || "Payment processing failed. Please try again.",
+      );
       setIsProcessing(false);
-      onSuccess(plan, isAnnual, paymentMethod.toUpperCase());
     }
   };
 

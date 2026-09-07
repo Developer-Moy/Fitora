@@ -1,6 +1,3 @@
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:5000/api";
 // client/src/services/paymentService.ts
 
 import type { AuthUser } from "@/services/authService";
@@ -54,9 +51,7 @@ const BILLING_LABEL: Record<string, string> = {
  * dedicated `/payments/me` endpoint is not available, instead of hardcoding
  * static/mock data.
  */
-export function derivePaymentFromUser(
-  user: AuthUser | null,
-): Payment | null {
+export function derivePaymentFromUser(user: AuthUser | null): Payment | null {
   if (!user) return null;
 
   const plan = user.plan || "Free Pass";
@@ -77,10 +72,7 @@ export function derivePaymentFromUser(
   const dateStr = user.createdAt || user.joinedDate || new Date().toISOString();
 
   return {
-    _id:
-      user.id ||
-      user._id ||
-      `payment_${String(Math.random()).slice(2, 10)}`,
+    _id: user.id || user._id || `payment_${String(Math.random()).slice(2, 10)}`,
     invoiceNumber: `FIT-INV-${String(dateStr)
       .slice(0, 10)
       .replace(/-/g, "")
@@ -98,16 +90,6 @@ export function derivePaymentFromUser(
 }
 
 export const checkoutPaymentApi = async (
-  planId: string,
-  token: string
-) => {
-  const res = await fetch(`${BASE_URL}/payments/checkout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ planId }),
   payload:
     | {
         planId?: string;
@@ -123,10 +105,7 @@ export const checkoutPaymentApi = async (
     | string,
   token?: string,
 ) => {
-  const body =
-    typeof payload === "string"
-      ? { planId: payload }
-      : payload;
+  const body = typeof payload === "string" ? { planId: payload } : payload;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -136,24 +115,17 @@ export const checkoutPaymentApi = async (
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(
-    `${BASE_URL}/payments/checkout`,
-    {
-      method: "POST",
-      headers,
-      credentials: "include",
-      body: JSON.stringify(body),
-    },
-  );
+  const res = await fetch(`${BASE_URL}/payments/checkout`, {
+    method: "POST",
+    headers,
+    credentials: "include",
+    body: JSON.stringify(body),
+  });
 
   const json = await res.json().catch(() => null);
 
   if (!res.ok) {
-    throw new Error(
-      json?.message ||
-        json?.error ||
-        "Payment checkout failed",
-    );
+    throw new Error(json?.message || json?.error || "Payment checkout failed");
   }
 
   return json;
@@ -161,62 +133,97 @@ export const checkoutPaymentApi = async (
 
 /**
  * Fetch the authenticated user's payment history from GET /api/payments/me.
- * Returns a typed response; on any network/server error the boolean flag
- * is set to false with an explanatory message.
+ * Handles token resolution, query params, and returns unified payload.
  */
 export const fetchMyPaymentsApi = async (
-  token: string,
-): Promise<PaymentHistoryResponse> => {
+  token?: string,
+): Promise<
+  PaymentHistoryResponse & { data?: any; activeSubscription?: any }
+> => {
   try {
-    const res = await fetch(`${BASE_URL}/payments/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      cache: "no-store",
-    });
-
-    if (!res.ok) {
-      return { success: false, message: "Failed to fetch payments" };
+    let resolvedToken = token;
+    if (!resolvedToken && typeof window !== "undefined") {
+      resolvedToken =
+        localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token") ||
+        undefined;
     }
 
-    const data = await res.json();
-    // Standard response shape is { success, data: { payments: [...] } }
-    const payments: Payment[] | undefined =
-      data?.data?.payments || data?.payments || data?.data;
+    const headers: Record<string, string> = {};
+    if (resolvedToken) {
+      headers.Authorization = `Bearer ${resolvedToken}`;
+    }
 
-    return {
-      success: true,
-      payments: Array.isArray(payments) ? payments : [],
-    };
-  } catch {
-    return { success: false, message: "Could not reach payment server" };
-  }
-};
-export const fetchMyPaymentsApi = async (token?: string) => {
-  const headers: Record<string, string> = {};
+    let queryParams = "";
+    if (typeof window !== "undefined") {
+      const email = localStorage.getItem("fitora_user_email");
+      const sessionStr = localStorage.getItem("fitora_auth_session");
+      let userId: string | undefined;
+      if (sessionStr) {
+        try {
+          const parsed = JSON.parse(sessionStr);
+          userId = parsed?.user?.id || parsed?.user?._id;
+        } catch {}
+      }
+      const params = new URLSearchParams();
+      if (userId) params.set("userId", userId);
+      if (email) params.set("email", email);
+      const str = params.toString();
+      if (str) queryParams = `?${str}`;
+    }
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const res = await fetch(
-    `${BASE_URL}/payments/me`,
-    {
+    const res = await fetch(`${BASE_URL}/payments/me${queryParams}`, {
       method: "GET",
       headers,
       credentials: "include",
-    },
-  );
+      cache: "no-store",
+    });
 
-  const json = await res.json().catch(() => null);
+    const json = await res.json().catch(() => null);
 
-  if (!res.ok) {
-    throw new Error(
-      json?.message ||
-        json?.error ||
-        "Failed to fetch payments",
-    );
+    if (!res.ok) {
+      return {
+        success: false,
+        message: json?.message || json?.error || "Failed to fetch payments",
+        payments: [],
+      };
+    }
+
+    const rawPayments =
+      json?.data?.payments ||
+      json?.payments ||
+      (Array.isArray(json?.data) ? json.data : []);
+
+    const payments: Payment[] = Array.isArray(rawPayments)
+      ? rawPayments.map((p: any) => ({
+          _id: p._id || p.id || p.transactionId,
+          id: p.id || p._id,
+          invoiceNumber: p.invoiceNumber,
+          date: p.date || p.createdAt,
+          plan: p.plan || p.planName || "Pro Athlete",
+          amount: p.amount || p.amountBDT || 0,
+          gateway: p.gateway || p.paymentMethod || "Card",
+          status: p.status || "Completed",
+          transactionId: p.transactionId,
+          billingCycle: p.billingCycle || "monthly",
+          description:
+            p.description ||
+            `${p.plan || p.planName || "Pro Athlete"} Membership`,
+        }))
+      : [];
+
+    return {
+      success: true,
+      data: json?.data || { payments },
+      payments,
+      activeSubscription:
+        json?.data?.activeSubscription || json?.activeSubscription || null,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err?.message || "Could not reach payment server",
+      payments: [],
+    };
   }
-
-  return json;
 };

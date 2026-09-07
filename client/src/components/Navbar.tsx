@@ -118,8 +118,14 @@ export default function Navbar() {
 
       // Anti-tamper verification: Reconcile with authoritative server database claims
       const token = session.token;
-      if (token) {
-        getCurrentUserApi()
+      const targetUserId =
+        (currentUser as any)?.id ||
+        (currentUser as any)?._id ||
+        session?.user?.id;
+      const targetEmail = currentUser?.email || session?.user?.email;
+
+      if (token || targetUserId || targetEmail) {
+        getCurrentUserApi({ userId: targetUserId, email: targetEmail })
           .then((res) => {
             if (res.success && res.user) {
               const serverRole = res.user.role;
@@ -150,8 +156,6 @@ export default function Navbar() {
                 );
                 localStorage.removeItem("fitora_user_plan");
               }
-            } else {
-              setIsPremium(false);
             }
           })
           .catch(() => {});
