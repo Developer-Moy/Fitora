@@ -1124,6 +1124,13 @@ export async function getMyTransactions(
           planName: s.planName || "Pro Athlete",
           status: s.status === "paid" ? "Completed" : s.status,
           billingCycle: s.billingCycle || "monthly",
+          invoiceNumber:
+            s.invoiceNumber ||
+            `INV-${new Date(s.paidAt || s.createdAt || Date.now()).getFullYear()}-${(s._id?.toString() || "STRP").slice(-6).toUpperCase()}`,
+          subscriptionStartDate: s.paidAt || s.createdAt || new Date().toISOString(),
+          subscriptionExpiryDate: s.expiryDate || s.membershipExpiresAt || null,
+          userName: s.userName || "Valued Athlete",
+          userEmail: s.userEmail || targetEmail || "",
         }));
 
         const unifiedBdt = bdtPayments.map((b: any) => ({
@@ -1136,10 +1143,63 @@ export async function getMyTransactions(
           planName: b.planName,
           status: "Completed",
           billingCycle: b.billingCycle || "monthly",
+          invoiceNumber: b.invoiceNumber || generateInvoiceNumber(),
+          subscriptionStartDate: b.subscriptionStartDate || b.createdAt,
+          subscriptionExpiryDate: b.subscriptionExpiryDate || null,
+          accountNumber: b.accountNumber,
+          userName: b.userName || "Valued Athlete",
+          userEmail: b.userEmail || targetEmail || "",
         }));
 
         payments = [...unifiedBdt, ...unifiedStripe].sort(
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+
+        // Calculate verified active subscription and expiry countdown
+        let activeSubscription: any = null;
+        let matchedUser: any = null;
+
+        if (targetUserId && mongoose.Types.ObjectId.isValid(targetUserId)) {
+          matchedUser = await User.findById(targetUserId).lean();
+        }
+        if (!matchedUser && targetEmail) {
+          matchedUser = await User.findOne({ email: targetEmail.toLowerCase().trim() }).lean();
+        }
+
+        const now = new Date();
+        const latestTx = payments[0];
+        const effectivePlan = matchedUser?.plan || latestTx?.planName || "Free Pass";
+        const effectiveExpiry =
+          matchedUser?.subscriptionExpiryDate ||
+          matchedUser?.membershipExpiresAt ||
+          latestTx?.subscriptionExpiryDate;
+
+        if (effectivePlan && effectivePlan !== "Free Pass") {
+          const expDate = effectiveExpiry ? new Date(effectiveExpiry) : null;
+          const isExpired = expDate ? expDate.getTime() < now.getTime() : false;
+          const diffMs = expDate ? Math.max(0, expDate.getTime() - now.getTime()) : 0;
+          const remainingDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          const remainingHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+          activeSubscription = {
+            planName: effectivePlan,
+            status: isExpired ? "expired" : "active",
+            startDate: matchedUser?.createdAt || latestTx?.subscriptionStartDate || latestTx?.date,
+            expiryDate: expDate ? expDate.toISOString() : null,
+            remainingDays,
+            remainingHours,
+            isExpired,
+            isExpiringSoon: !isExpired && remainingDays < 3,
+            paymentMethod: matchedUser?.paymentMethod || latestTx?.paymentMethod || "Card",
+          };
+        }
+
+        return res.status(200).json(
+          successResponse("Transactions retrieved successfully", {
+            count: payments.length,
+            payments,
+            activeSubscription,
+          }),
         );
       } catch (dbErr) {
         console.warn("[Payment Controller] DB query failed:", dbErr);
@@ -1150,6 +1210,7 @@ export async function getMyTransactions(
       successResponse("Transactions retrieved successfully", {
         count: payments.length,
         payments,
+        activeSubscription: null,
       }),
     );
   } catch (error) {
@@ -1221,3 +1282,101 @@ export async function getAllPayments(
       );
   }
 }
+
+/**
+ * GET /api/payments/invoice/:id
+ * Retrieves formatted digital invoice by transaction ID, MongoDB ID, or invoice number
+ */
+export async function getInvoiceById(
+  req: Request,
+  res: Response,
+): Promise<Response> {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json(
+          errorResponse("Invoice ID or Transaction ID is required", "MISSING_ID", 400),
+        );
+    }
+
+    const query = id.trim();
+    let paymentDoc: any = null;
+
+    if (mongoose.Types.ObjectId.isValid(query)) {
+      paymentDoc = await Payment.findById(query).lean();
+    }
+    if (!paymentDoc) {
+      paymentDoc = await Payment.findOne({
+        $or: [{ transactionId: query }, { invoiceNumber: query }],
+      }).lean();
+    }
+
+    if (!paymentDoc) {
+      // Check Stripe transactions
+      const stripeTx: any = await PaymentTransaction.findOne({
+        $or: [
+          ...(mongoose.Types.ObjectId.isValid(query) ? [{ _id: query }] : []),
+          { stripeCheckoutSessionId: query },
+          { stripePaymentIntentId: query },
+        ],
+      }).lean();
+
+      if (stripeTx) {
+        paymentDoc = {
+          _id: stripeTx._id,
+          invoiceNumber: `INV-${new Date(stripeTx.createdAt || Date.now()).getFullYear()}-${stripeTx._id.toString().slice(-6).toUpperCase()}`,
+          transactionId:
+            stripeTx.stripePaymentIntentId || stripeTx.stripeCheckoutSessionId,
+          date: stripeTx.paidAt || stripeTx.createdAt,
+          paymentMethod: "Card",
+          amountBDT: Math.round(Number(stripeTx.amount || 0) * 120),
+          planName: stripeTx.planName || "Pro Athlete",
+          status: "Completed",
+          billingCycle: stripeTx.billingCycle || "monthly",
+          subscriptionStartDate: stripeTx.paidAt || stripeTx.createdAt,
+          subscriptionExpiryDate: stripeTx.expiryDate || null,
+        };
+      }
+    }
+
+    if (!paymentDoc) {
+      return res
+        .status(404)
+        .json(errorResponse("Invoice record not found", "NOT_FOUND", 404));
+    }
+
+    return res.status(200).json(
+      successResponse("Digital invoice fetched successfully", {
+        invoice: {
+          _id: paymentDoc._id,
+          invoiceNumber: paymentDoc.invoiceNumber || generateInvoiceNumber(),
+          transactionId: paymentDoc.transactionId,
+          date: paymentDoc.createdAt || paymentDoc.date,
+          planName: paymentDoc.planName,
+          billingCycle: paymentDoc.billingCycle || "monthly",
+          amount: paymentDoc.amountBDT,
+          paymentMethod: paymentDoc.gateway || paymentDoc.paymentMethod,
+          status: "Completed",
+          subscriptionStartDate: paymentDoc.subscriptionStartDate,
+          subscriptionExpiryDate: paymentDoc.subscriptionExpiryDate,
+          userName: paymentDoc.userName || "Valued Athlete",
+          userEmail: paymentDoc.userEmail || "",
+        },
+      }),
+    );
+  } catch (error) {
+    console.error("[Payment Controller] getInvoiceById Error:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve invoice",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+}
+

@@ -56,6 +56,8 @@ import {
 import { deleteBmiHistory, fetchBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
 import BillingPaymentHistory from "@/components/BillingPaymentHistory";
+import SubscriptionModal from "@/components/home/SubscriptionModal";
+import { FITORA_PLANS, PlanItem } from "@/components/home/PricingSection";
 
 interface BMIHistory {
   _id: string;
@@ -430,6 +432,10 @@ export default function ProfilePage() {
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [activeSubscriptionData, setActiveSubscriptionData] =
+    useState<any>(null);
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
+  const [renewPlan, setRenewPlan] = useState<PlanItem | null>(null);
 
   const [mealChart, setMealChart] = useState<MealChart | null>(null);
 
@@ -485,6 +491,9 @@ export default function ProfilePage() {
         if (paymentsRes?.data?.payments) {
           setTransactions(paymentsRes.data.payments);
         }
+        if (paymentsRes?.data?.activeSubscription) {
+          setActiveSubscriptionData(paymentsRes.data.activeSubscription);
+        }
       } catch (err) {
         console.error("Failed to fetch profile data:", err);
       } finally {
@@ -513,6 +522,35 @@ export default function ProfilePage() {
     setTimeout(() => {
       window.location.href = "/";
     }, 400);
+  };
+
+  const handleOpenRenewModal = () => {
+    const currentPlanKey =
+      activeSubscriptionData?.planName || localUser?.plan || "Pro Athlete";
+    const foundPlan =
+      FITORA_PLANS.find(
+        (p) =>
+          p.name.toLowerCase() === currentPlanKey.toLowerCase() ||
+          p.planKey.toLowerCase() === currentPlanKey.toLowerCase() ||
+          p.id.toLowerCase() === currentPlanKey.toLowerCase(),
+      ) || FITORA_PLANS[1];
+    setRenewPlan(foundPlan);
+    setIsRenewModalOpen(true);
+  };
+
+  const handleSubscriptionSuccess = (
+    plan: PlanItem,
+    isAnnual: boolean,
+    paymentMethod: string,
+  ) => {
+    setIsRenewModalOpen(false);
+    toast.success(`🎉 Membership plan ${plan.name} updated successfully!`);
+    // Refetch or reload to update local auth & subscriptions
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
+    }
   };
 
   if (!isMounted) return null;
@@ -1146,9 +1184,33 @@ export default function ProfilePage() {
 
         {/* ── 6. Billing & Payment History ── */}
         <BillingPaymentHistory
-          userPlan={localUser?.plan || "Free Pass"}
+          userPlan={
+            activeSubscriptionData?.planName || localUser?.plan || "Free Pass"
+          }
           transactions={transactions}
+          expiryDate={
+            activeSubscriptionData?.expiryDate ||
+            localUser?.subscriptionExpiryDate ||
+            localUser?.membershipExpiresAt
+          }
+          startDate={activeSubscriptionData?.startDate}
+          athleteName={localUser?.name || authSession?.user?.name}
+          athleteEmail={localUser?.email || authSession?.user?.email || userEmail}
+          athletePhone={localUser?.phone}
+          assignedBranch={localUser?.assignedBranch}
+          onRenewPlan={handleOpenRenewModal}
         />
+
+        {/* ── Membership Renewal / Upgrade Modal ── */}
+        {renewPlan && (
+          <SubscriptionModal
+            isOpen={isRenewModalOpen}
+            onClose={() => setIsRenewModalOpen(false)}
+            plan={renewPlan}
+            isAnnual={false}
+            onSuccess={handleSubscriptionSuccess}
+          />
+        )}
 
         {/* ── 7. Admin Management Access (If Admin) ── */}
         {(isMasterAdmin || isBranchAdmin) && (
