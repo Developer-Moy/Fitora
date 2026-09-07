@@ -39,6 +39,7 @@ import {
   getAuthSession,
   clearAuthSession,
   logoutUser,
+  getCurrentUserApi,
   AuthUser,
   AUTH_SESSION_UPDATED,
 } from "@/services/authService";
@@ -64,6 +65,7 @@ import {
   TEMP_MEMBERSHIP,
   isFreePlan,
 } from "@/lib/membershipUtils";
+import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
 
 interface BMIHistory {
   _id: string;
@@ -353,6 +355,15 @@ export default function ProfilePage() {
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState("");
 
+  // Membership Expiry Banner Live State
+  const [membershipBannerData, setMembershipBannerData] = useState<{
+    status: "expiring_soon" | "expired" | "no_membership";
+    planName: string;
+    daysRemaining?: number;
+    expiryDate?: string;
+  } | null>(null);
+  const [isCheckingMembership, setIsCheckingMembership] = useState<boolean>(true);
+
   // Edit Modal State
 
   useEffect(() => {
@@ -371,6 +382,144 @@ export default function ProfilePage() {
       window.removeEventListener(AUTH_SESSION_UPDATED, syncLocalUser);
     };
   }, []);
+
+  // ── Authoritative Backend Membership Check ──
+  useEffect(() => {
+    let isCancelled = false;
+
+    const checkMembershipStatus = async () => {
+      // 1. Get logged-in user identification from existing authentication/session
+      const targetUserId =
+        authSession?.user?.id ||
+        localUser?.id ||
+        localUser?._id;
+      const targetEmail =
+        authSession?.user?.email ||
+        localUser?.email ||
+        (typeof window !== "undefined"
+          ? (localStorage.getItem("fitora_user_email") ?? undefined)
+          : undefined);
+
+      if (!targetUserId && !targetEmail) {
+        if (!isCancelled) {
+          setIsCheckingMembership(false);
+          setMembershipBannerData(null);
+        }
+        return;
+      }
+
+      setIsCheckingMembership(true);
+
+      try {
+        // 2. Fetch authoritative user & membership data directly from backend database
+        const res = await getCurrentUserApi({
+          userId: targetUserId,
+          email: targetEmail,
+        });
+
+        if (isCancelled) return;
+
+        // Error Handling: If request fails, gracefully do NOT show a false expired banner
+        if (!res.success || !res.user) {
+          setMembershipBannerData(null);
+          setIsCheckingMembership(false);
+          return;
+        }
+
+        const backendUser = res.user;
+        const currentPlan = backendUser.plan || localUser?.plan || "Free Pass";
+        const rawExpiry = backendUser.membershipExpiresAt;
+
+        const isFreeTier =
+          !currentPlan ||
+          currentPlan === "Free Pass" ||
+          currentPlan === "FREE MEMBER" ||
+          currentPlan.toLowerCase() === "free";
+
+        // State C: No active membership / Free tier without valid expiry
+        if (isFreeTier || !rawExpiry) {
+          setMembershipBannerData({
+            status: "no_membership",
+            planName: currentPlan,
+          });
+          setIsCheckingMembership(false);
+          return;
+        }
+
+        const expiryDateObj = new Date(rawExpiry);
+        const expiryTime = expiryDateObj.getTime();
+        const now = Date.now();
+
+        // If stored date is invalid
+        if (isNaN(expiryTime)) {
+          setMembershipBannerData({
+            status: "expired",
+            planName: currentPlan,
+          });
+          setIsCheckingMembership(false);
+          return;
+        }
+
+        const formattedExpiry = expiryDateObj.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+
+        const diffMs = expiryTime - now;
+
+        if (diffMs <= 0) {
+          // State C: Expired in the past (or today already elapsed)
+          setMembershipBannerData({
+            status: "expired",
+            planName: currentPlan,
+            expiryDate: formattedExpiry,
+          });
+        } else {
+          // Future expiration: evaluate 7-day boundary
+          const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+          if (diffMs <= SEVEN_DAYS_MS) {
+            // State B: Expiring soon (within next 7 days: 0 < diffMs <= 7 days)
+            const daysRemaining = Math.max(
+              1,
+              Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+            );
+            setMembershipBannerData({
+              status: "expiring_soon",
+              planName: currentPlan,
+              daysRemaining,
+              expiryDate: formattedExpiry,
+            });
+          } else {
+            // State A: Active membership (> 7 days remaining) -> Do NOT show banner
+            setMembershipBannerData(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check user membership status:", err);
+        // Error handling: gracefully avoid breaking profile page or showing false alert
+        if (!isCancelled) {
+          setMembershipBannerData(null);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsCheckingMembership(false);
+        }
+      }
+    };
+
+    checkMembershipStatus();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    authSession?.user?.id,
+    authSession?.user?.email,
+    localUser?.id,
+    localUser?._id,
+    localUser?.email,
+  ]);
 
   useEffect(() => {
     const fetchBMIHistory = async () => {
@@ -612,6 +761,17 @@ export default function ProfilePage() {
             athletic potential.
           </p>
         </div>
+
+        {/* ── Membership Status Banner ── */}
+        {!isCheckingMembership && membershipBannerData && (
+          <MembershipExpiryBanner
+            status={membershipBannerData.status}
+            planName={membershipBannerData.planName}
+            daysRemaining={membershipBannerData.daysRemaining}
+            expiryDate={membershipBannerData.expiryDate}
+            actionHref="/dashboard?tab=upgrade"
+          />
+        )}
 
         {/* ── 1. Athlete Header Card ── */}
         <div className="bg-black border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
