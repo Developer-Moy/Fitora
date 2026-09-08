@@ -138,3 +138,35 @@ export const requireAdminOrBranchAdmin = requireRoles([
   "master_admin",
   "branch_admin",
 ]);
+
+/**
+ * Premium entitlement guard.
+ * Allows users whose JWT tier/plan is not "Free Pass".
+ */
+export const requirePremium = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (!req.user) {
+    return res.status(401).json(
+      errorResponse("Authentication required", "Unauthorized", 401)
+    );
+  }
+
+  const tier = (req.user.tier || "").trim();
+  const isPremium = tier !== "" && tier !== "Free Pass";
+
+  if (!isPremium) {
+    return res.status(403).json(
+      errorResponse(
+        "Premium subscription required to access this feature",
+        "FORBIDDEN",
+        403
+      )
+    );
+  }
+
+  next();
+};
+

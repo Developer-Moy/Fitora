@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { StopwatchPreset } from "../models/StopwatchPreset.model";
 import { StopwatchSession } from "../models/StopwatchSession.model";
+import { CustomRestPreset } from "../models/CustomRestPreset.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
+import { requirePremium } from "../middlewares/auth.middleware";
 import { estimateCalories } from "../services/calorieEstimation.service";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
@@ -467,6 +469,155 @@ export const getRecentSessions = async (
     return res.status(500).json(
       errorResponse(
         "Failed to fetch recent sessions",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
+  }
+};
+
+/**
+ * POST /api/stopwatch/rest-preset
+ * Premium authenticated endpoint - Create a custom rest preset
+ */
+export const createRestPreset = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<Response> => {
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json(
+        errorResponse("Authentication required", "Unauthorized", 401)
+      );
+    }
+
+    const { name, duration } = req.body;
+
+    if (!name || typeof name !== "string" || name.trim() === "") {
+      return res.status(400).json(
+        errorResponse("name is required and must be a non-empty string", "VALIDATION_ERROR", 400)
+      );
+    }
+
+    if (duration === undefined || duration === null) {
+      return res.status(400).json(
+        errorResponse("duration is required", "VALIDATION_ERROR", 400)
+      );
+    }
+
+    const dur = Number(duration);
+    if (isNaN(dur) || dur < 1 || dur > 3600) {
+      return res.status(400).json(
+        errorResponse("duration must be a number between 1 and 3600 seconds", "VALIDATION_ERROR", 400)
+      );
+    }
+
+    const preset = await CustomRestPreset.create({
+      userId: req.user.userId,
+      name: name.trim(),
+      duration: dur,
+    });
+
+    return res.status(201).json(
+      successResponse("Custom rest preset created successfully", {
+        _id: preset._id,
+        userId: preset.userId,
+        name: preset.name,
+        duration: preset.duration,
+        createdAt: preset.createdAt,
+        updatedAt: preset.updatedAt,
+      })
+    );
+  } catch (error) {
+    console.error("[Stopwatch Controller] createRestPreset Error:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Failed to create rest preset",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
+  }
+};
+
+/**
+ * GET /api/stopwatch/rest-presets
+ * Authenticated endpoint - Get user's custom rest presets
+ */
+export const getRestPresets = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<Response> => {
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json(
+        errorResponse("Authentication required to fetch rest presets", "UNAUTHORIZED", 401)
+      );
+    }
+
+    const presets = await CustomRestPreset.find({ userId: req.user.userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json(
+      successResponse("Rest presets retrieved successfully", presets)
+    );
+  } catch (error) {
+    console.error("[Stopwatch Controller] getRestPresets Error:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Failed to fetch rest presets",
+        error instanceof Error ? error.message : "Internal Server Error",
+        500
+      )
+    );
+  }
+};
+
+/**
+ * DELETE /api/stopwatch/rest-preset/:id
+ * Authenticated endpoint - Delete a custom rest preset
+ */
+export const deleteRestPreset = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<Response> => {
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json(
+        errorResponse("Authentication required", "Unauthorized", 401)
+      );
+    }
+
+    const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json(
+        errorResponse("Invalid preset ID", "VALIDATION_ERROR", 400)
+      );
+    }
+
+    const preset = await CustomRestPreset.findOne({
+      _id: id,
+      userId: req.user.userId,
+    });
+
+    if (!preset) {
+      return res.status(404).json(
+        errorResponse("Rest preset not found", "NOT_FOUND", 404)
+      );
+    }
+
+    await CustomRestPreset.findByIdAndDelete(id);
+
+    return res.status(200).json(
+      successResponse("Rest preset deleted successfully", { deleted: true })
+    );
+  } catch (error) {
+    console.error("[Stopwatch Controller] deleteRestPreset Error:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Failed to delete rest preset",
         error instanceof Error ? error.message : "Internal Server Error",
         500
       )
