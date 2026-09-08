@@ -8,12 +8,18 @@ import {
   Timer as TimerIcon,
   RotateCcw,
   Trash2,
+  Sparkles,
 } from "lucide-react";
+import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { createWorkoutLog } from "@/services/workoutService";
 import {
   completeStopwatchSession,
   fetchStopwatchPresets,
+  fetchRestPresets,
+  createRestPreset,
+  deleteRestPreset,
+  type CustomRestPreset,
 } from "@/services/stopwatchService";
 import type { CreateWorkoutLogPayload } from "@/types/workout";
 import { GymSessionCard } from "./GymSessionCard";
@@ -61,6 +67,13 @@ export default function GymTimer({
   const [isLoggerOpen, setIsLoggerOpen] = useState<boolean>(false);
   const [quickTargets, setQuickTargets] = useState<number[]>([]);
 
+  const [restPresets, setRestPresets] = useState<CustomRestPreset[]>([]);
+  const [newPresetName, setNewPresetName] = useState("");
+  const [newPresetDuration, setNewPresetDuration] = useState("");
+  const [isPremium, setIsPremium] = useState(false);
+  const [isLoadingPresets, setIsLoadingPresets] = useState(false);
+  const [presetSavedId, setPresetSavedId] = useState<string | null>(null);
+
   // Staged weight/reps from the Quick Set Logger — committed to history on Next Set / Stop
   const [pendingLog, setPendingLog] = useState<{
     weight: number;
@@ -69,6 +82,60 @@ export default function GymTimer({
 
   const { data: authSession } = useSession();
   const [localUserId, setLocalUserId] = useState<string | undefined>(undefined);
+
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const chimePlayedRef = useRef<Set<number>>(new Set());
+
+  const getAudioContext = useCallback(() => {
+    if (!audioContextRef.current) {
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
+      if (AudioContextClass) {
+        audioContextRef.current = new AudioContextClass();
+      }
+    }
+    return audioContextRef.current;
+  }, []);
+
+  const resumeAudioContext = useCallback(async () => {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === "suspended") {
+      try {
+        await ctx.resume();
+      } catch {
+        // ignore
+      }
+    }
+  }, [getAudioContext]);
+
+  const playChime = useCallback(
+    (freq: number, duration = 0.12, type: OscillatorType = "sine") => {
+      if (!soundEnabled) return;
+      resumeAudioContext().catch(() => {});
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          ctx.currentTime + duration,
+        );
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch {
+        // ignore
+      }
+    },
+    [soundEnabled, resumeAudioContext, getAudioContext],
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -122,7 +189,6 @@ export default function GymTimer({
     fetchStopwatchPresets()
       .then((res) => {
         if (res && res.length > 0) {
-          // Find public presets with rest durations, default to [30, 60, 90]
           const targets = res
             .filter((p) => p.restDuration && p.restDuration > 0)
             .map((p) => p.restDuration)
@@ -133,6 +199,34 @@ export default function GymTimer({
         }
       })
       .catch(() => {});
+
+    // Detect premium status from localStorage
+    if (typeof window !== "undefined") {
+      const role =
+        localStorage.getItem("fitora_active_role") ||
+        localStorage.getItem("fitora_user_role") ||
+        "";
+      const premium = role === "premium_user";
+      setIsPremium(premium);
+      if (premium) {
+        setIsLoadingPresets(true);
+        fetchRestPresets()
+          .then((res) => {
+            setRestPresets(res);
+            const presetDurations = res
+              .map((p) => p.duration)
+              .filter((d) => d > 0);
+            if (presetDurations.length > 0) {
+              setQuickTargets((prev) => {
+                const merged = new Set([...prev, ...presetDurations]);
+                return Array.from(merged).sort((a, b) => a - b).slice(0, 6);
+              });
+            }
+          })
+          .catch(() => {})
+          .finally(() => setIsLoadingPresets(false));
+      }
+    }
   }, []);
 
   // Save today's accumulated gym time
@@ -151,13 +245,10 @@ export default function GymTimer({
   const triggerAudioFeedback = useCallback(
     (freq = 880, type: OscillatorType = "sine", duration = 0.12) => {
       if (!soundEnabled || typeof window === "undefined") return;
+      resumeAudioContext().catch(() => {});
       try {
-        const AudioContextClass =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext })
-            .webkitAudioContext;
-        if (!AudioContextClass) return;
-        const ctx = new AudioContextClass();
+        const ctx = getAudioContext();
+        if (!ctx) return;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = type;
@@ -175,7 +266,7 @@ export default function GymTimer({
         // AudioContext not permitted yet
       }
     },
-    [soundEnabled],
+    [soundEnabled, resumeAudioContext, getAudioContext],
   );
 
   // Browser speech synthesis voice alert (Web Speech API)
@@ -261,9 +352,13 @@ export default function GymTimer({
 
     const remaining = targetSeconds - seconds;
 
-    // Warning beeps at 3, 2, 1 seconds left
+    // Distinct chimes at 3, 2, 1 seconds left
     if (remaining > 0 && remaining <= 3) {
-      triggerAudioFeedback(580, "sine", 0.08);
+      if (!chimePlayedRef.current.has(remaining)) {
+        chimePlayedRef.current.add(remaining);
+        const freq = remaining === 3 ? 523 : remaining === 2 ? 659 : 784;
+        playChime(freq, 0.15);
+      }
     }
 
     // Voice countdown at 3, 2, 1 seconds left (once per value)
@@ -282,6 +377,13 @@ export default function GymTimer({
       setIsRunning(false);
       setTargetSeconds(null);
 
+      // Completion chime at 0 (once per session)
+      if (!chimePlayedRef.current.has(0)) {
+        chimePlayedRef.current.add(0);
+        playChime(1047, 0.2);
+        setTimeout(() => playChime(1319, 0.35), 180);
+      }
+
       // Voice alert when rest timer hits zero (once per session)
       if (voiceAnnouncedRef.current !== 0) {
         voiceAnnouncedRef.current = 0;
@@ -291,12 +393,8 @@ export default function GymTimer({
       // Multi-beep completion alarm
       if (soundEnabled && typeof window !== "undefined") {
         try {
-          const AudioContextClass =
-            window.AudioContext ||
-            (window as unknown as { webkitAudioContext: typeof AudioContext })
-              .webkitAudioContext;
-          if (AudioContextClass) {
-            const ctx = new AudioContextClass();
+          const ctx = getAudioContext();
+          if (ctx) {
             [0, 0.16, 0.32, 0.48].forEach((offset, i) => {
               const osc = ctx.createOscillator();
               const gain = ctx.createGain();
@@ -329,7 +427,7 @@ export default function GymTimer({
       setSeconds(0);
     }
     // eslint-disable-next-line
-  }, [seconds, targetSeconds, isRunning]);
+  }, [seconds, targetSeconds, isRunning, playChime, getAudioContext, soundEnabled]);
 
   // Formatter for HH:MM:SS
   const formatTime = (totalSec: number) => {
@@ -430,6 +528,7 @@ export default function GymTimer({
     setIsRunning(false);
     setTargetSeconds(null);
     voiceAnnouncedRef.current = null;
+    chimePlayedRef.current.clear();
 
     // Rest time is not exercise — only genuine logged/timed sets count
     const wasRestMode = targetSeconds !== null;
@@ -504,10 +603,10 @@ export default function GymTimer({
 
   const handleNextSet = () => {
     triggerAudioFeedback(950);
-    // Rest time is not a set — skip logging if Next Set was pressed during rest
     const wasRestMode = targetSeconds !== null;
     setTargetSeconds(null);
     voiceAnnouncedRef.current = null;
+    chimePlayedRef.current.clear();
 
     // Commit the staged quick-log (if any) into history now
     if (pendingLog) {
@@ -594,6 +693,7 @@ export default function GymTimer({
     setSeconds(0);
     setIsRunning(false);
     voiceAnnouncedRef.current = null;
+    chimePlayedRef.current.clear();
     if (isDeselecting) {
       toast("Rest target cleared", { icon: "⏱️", id: "set-target" });
     } else {
@@ -608,6 +708,66 @@ export default function GymTimer({
     if (completedSets.length === 0) return;
     setCompletedSets([]);
     toast.success("Logged sets history cleared", { id: "clear-history" });
+  };
+
+  const handleSaveRestPreset = async () => {
+    const name = newPresetName.trim();
+    const duration = parseInt(newPresetDuration, 10);
+    if (!name) {
+      toast.error("Please enter a preset name", { id: "preset-error" });
+      return;
+    }
+    if (isNaN(duration) || duration < 1 || duration > 3600) {
+      toast.error("Duration must be between 1 and 3600 seconds", { id: "preset-error" });
+      return;
+    }
+    const created = await createRestPreset({ name, duration });
+    if (created) {
+      setRestPresets((prev) => [created, ...prev]);
+      setNewPresetName("");
+      setNewPresetDuration("");
+      setPresetSavedId(created._id);
+      setTimeout(() => setPresetSavedId(null), 2000);
+      toast.success(`Rest preset "${name}" saved`, { id: "preset-save" });
+    } else {
+      const role =
+        localStorage.getItem("fitora_active_role") ||
+        localStorage.getItem("fitora_user_role") ||
+        "";
+      if (role !== "premium_user") {
+        toast.error("Upgrade to Premium to save rest presets", { id: "preset-error" });
+      } else {
+        toast.error("Failed to save preset", { id: "preset-error" });
+      }
+    }
+  };
+
+  const handleDeleteRestPreset = async (id: string) => {
+    const preset = restPresets.find((p) => p._id === id);
+    const ok = await deleteRestPreset(id);
+    if (ok) {
+      setRestPresets((prev) => prev.filter((p) => p._id !== id));
+      if (preset) {
+        setQuickTargets((prev) =>
+          prev.filter((d) => d !== preset.duration)
+        );
+      }
+      toast.success("Preset removed", { id: "preset-delete" });
+    } else {
+      toast.error("Failed to delete preset", { id: "preset-error" });
+    }
+  };
+
+  const handleUsePreset = (duration: number) => {
+    setTargetSeconds(duration);
+    setSeconds(0);
+    setIsRunning(false);
+    voiceAnnouncedRef.current = null;
+    chimePlayedRef.current.clear();
+    toast.success(`Rest target set: ${duration}s — press Start`, {
+      icon: "⏱️",
+      id: "set-target",
+    });
   };
 
   const handleToggleSync = () => {
@@ -835,6 +995,110 @@ export default function GymTimer({
               </span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Custom Rest Presets */}
+      <div className="w-full max-w-4xl px-2 sm:px-4 mt-4">
+        <div className="bg-[#121417]/80 border border-[#222831] rounded-2xl p-4 shadow-md">
+          <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 mb-3">
+            {isPremium ? (
+              <>
+                <TimerIcon className="w-4 h-4 text-white" /> Custom Rest Presets
+              </>
+            ) : (
+              <>
+                <TimerIcon className="w-4 h-4 text-white" /> Rest Presets
+                <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-zinc-500 border border-zinc-700 rounded-full px-2 py-0.5">
+                  Premium
+                </span>
+              </>
+            )}
+          </div>
+
+          {isPremium ? (
+            <>
+              <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                <input
+                  type="text"
+                  placeholder="Preset name (e.g. Heavy Set)"
+                  value={newPresetName}
+                  onChange={(e) => setNewPresetName(e.target.value)}
+                  className="flex-1 min-w-0 bg-[#181a1f] border border-[#2a303d] rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-white font-medium"
+                />
+                <input
+                  type="number"
+                  placeholder="Seconds"
+                  min={1}
+                  max={3600}
+                  value={newPresetDuration}
+                  onChange={(e) => setNewPresetDuration(e.target.value)}
+                  className="w-full sm:w-24 bg-[#181a1f] border border-[#2a303d] rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-white font-mono font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveRestPreset}
+                  className="w-full sm:w-auto bg-white hover:bg-gray-100 text-black text-xs font-black px-5 py-2 rounded-xl transition cursor-pointer shadow-lg uppercase"
+                >
+                  Save
+                </button>
+              </div>
+
+              {isLoadingPresets ? (
+                <div className="text-xs text-zinc-500">Loading presets...</div>
+              ) : restPresets.length === 0 ? (
+                <div className="text-xs text-zinc-500">
+                  No custom rest presets yet. Add your first above.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {restPresets.map((p) => (
+                    <div
+                      key={p._id}
+                      className={`inline-flex items-center gap-2 border rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                        presetSavedId === p._id
+                          ? "bg-white text-black border-white shadow-[0_0_14px_rgba(255,255,255,0.3)]"
+                          : "bg-[#181a1f] text-zinc-300 border-[#252b38] hover:border-zinc-600"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleUsePreset(p.duration)}
+                        className="cursor-pointer"
+                      >
+                        <span className="font-semibold">{p.name}</span>
+                        <span className="ml-1.5 font-mono opacity-80">
+                          {p.duration}s
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRestPreset(p._id)}
+                        className="text-zinc-500 hover:text-white transition cursor-pointer"
+                        title="Delete preset"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#181a1f] border border-[#2a303d] rounded-xl px-4 py-3">
+              <p className="text-xs text-zinc-400 font-medium">
+                Unlock unlimited custom rest presets and sync them across all your
+                devices.
+              </p>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-1.5 bg-white text-black text-xs font-black px-4 py-2 rounded-full transition cursor-pointer shadow-lg uppercase shrink-0"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Upgrade to Premium</span>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 

@@ -7,54 +7,6 @@ import {
 } from "../data/workout.data.js";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
-// In-memory fallback storage for offline development
-interface LocalLogItem {
-  _id: string;
-  userId: string;
-  exerciseName: string;
-  setsCount: number;
-  repsCount: number;
-  weight: number;
-  durationMinutes: number;
-  caloriesBurned: number;
-  notes: string;
-  date: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Initial sample logs for realistic local database experience
-const inMemoryWorkoutLogs: LocalLogItem[] = [
-  {
-    _id: "log-seed-01",
-    userId: "guest_user",
-    exerciseName: "Barbell Bench Press",
-    setsCount: 4,
-    repsCount: 10,
-    weight: 75,
-    durationMinutes: 20,
-    caloriesBurned: 120,
-    notes: "Felt strong on the last set, hit all 10 reps cleanly.",
-    date: new Date(Date.now() - 24 * 60 * 60 * 1000), // yesterday
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-  },
-  {
-    _id: "log-seed-02",
-    userId: "guest_user",
-    exerciseName: "Barbell Back Squat",
-    setsCount: 4,
-    repsCount: 8,
-    weight: 100,
-    durationMinutes: 25,
-    caloriesBurned: 150,
-    notes: "Deep squats, good mobility and core stability.",
-    date: new Date(Date.now() - 48 * 60 * 60 * 1000), // 2 days ago
-    createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
-  },
-];
-
 /**
  * GET /api/workouts
  * Retrieve list of workout exercises from local catalog database
@@ -207,26 +159,23 @@ export const getWorkoutLogs = async (
           .sort({ createdAt: -1 })
           .limit(parseInt(limit as string, 10) || 100);
       } catch (dbErr) {
-        console.warn(
-          "[Workout Controller] MongoDB query failed, using in-memory store:",
+        console.error(
+          "[Workout Controller] MongoDB query failed:",
           dbErr,
         );
-        logs = inMemoryWorkoutLogs;
+        return res.status(500).json(
+          errorResponse(
+            "Failed to retrieve workout logs",
+            dbErr instanceof Error ? dbErr.message : "Internal Server Error",
+            500,
+          ),
+        );
       }
     }
 
-    // If no DB logs found or DB is offline, fall back to in-memory logs
+    // If no DB logs found, return empty array instead of dummy seed data
     if (!logs || logs.length === 0) {
-      logs = inMemoryWorkoutLogs;
-      if (
-        targetUserId &&
-        targetUserId !== "all" &&
-        targetUserId !== "guest_user"
-      ) {
-        logs = logs.filter(
-          (l) => l.userId === targetUserId || l.userId === "guest_user",
-        );
-      }
+      logs = [];
     }
 
     // Compute workout summary stats
@@ -367,42 +316,28 @@ export const createWorkoutLog = async (
       date: logDate,
     };
 
-    let createdLog: any = null;
     const isDbConnected = mongoose.connection.readyState === 1;
 
-    if (isDbConnected) {
-      try {
-        createdLog = await WorkoutLog.create(logPayload);
-      } catch (dbErr) {
-        console.warn(
-          "[Workout Controller] DB save failed, saving to local in-memory store:",
-          dbErr,
-        );
-      }
+    if (!isDbConnected) {
+      return res.status(503).json(
+        errorResponse("Database unavailable — please try again later", "SERVICE_UNAVAILABLE", 503)
+      );
     }
 
-    // In-memory fallback item creation
-    const localItem: LocalLogItem = {
-      _id: createdLog ? createdLog._id.toString() : `log-${Date.now()}`,
-      userId: finalUserId,
-      exerciseName: logPayload.exerciseName,
-      setsCount: logPayload.setsCount,
-      repsCount: logPayload.repsCount,
-      weight: logPayload.weight,
-      durationMinutes: logPayload.durationMinutes,
-      caloriesBurned: logPayload.caloriesBurned,
-      notes: logPayload.notes,
-      date: logPayload.date,
-      createdAt: createdLog?.createdAt || new Date(),
-      updatedAt: createdLog?.updatedAt || new Date(),
-    };
-
-    inMemoryWorkoutLogs.unshift(localItem);
+    let createdLog: any = null;
+    try {
+      createdLog = await WorkoutLog.create(logPayload);
+    } catch (dbErr) {
+      console.error("[Workout Controller] DB save failed:", dbErr);
+      return res.status(500).json(
+        errorResponse("Failed to save workout log", dbErr instanceof Error ? dbErr.message : "Internal Server Error", 500)
+      );
+    }
 
     return res
       .status(201)
       .json(
-        successResponse("Workout logged successfully", createdLog || localItem),
+        successResponse("Workout logged successfully", createdLog),
       );
   } catch (error) {
     console.error("[Workout Controller] createWorkoutLog Error:", error);
@@ -428,22 +363,27 @@ export const deleteWorkoutLog = async (
 ): Promise<Response> => {
   try {
     const { id } = req.params;
-    const isDbConnected = mongoose.connection.readyState === 1;
 
-    if (isDbConnected) {
-      try {
-        if (mongoose.Types.ObjectId.isValid(id)) {
-          await WorkoutLog.findByIdAndDelete(id);
-        }
-      } catch (dbErr) {
-        console.warn("[Workout Controller] DB delete failed:", dbErr);
-      }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json(
+        errorResponse("Invalid workout log ID", "VALIDATION_ERROR", 400)
+      );
     }
 
-    // Remove from in-memory fallback
-    const index = inMemoryWorkoutLogs.findIndex((l) => l._id === id);
-    if (index !== -1) {
-      inMemoryWorkoutLogs.splice(index, 1);
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    if (!isDbConnected) {
+      return res.status(503).json(
+        errorResponse("Database unavailable — please try again later", "SERVICE_UNAVAILABLE", 503)
+      );
+    }
+
+    const deleted = await WorkoutLog.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json(
+        errorResponse("Workout log not found", "NOT_FOUND", 404)
+      );
     }
 
     return res

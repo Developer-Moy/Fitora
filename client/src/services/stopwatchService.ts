@@ -32,6 +32,14 @@ export interface StopwatchPreset {
   isPublic: boolean;
 }
 
+export interface CustomRestPreset {
+  _id: string;
+  name: string;
+  duration: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export async function fetchStopwatchPresets(): Promise<StopwatchPreset[]> {
   try {
     const res = await fetch(`${API_URL}/stopwatch/presets`, {
@@ -114,5 +122,49 @@ export async function fetchRecentSessions(limit = 10) {
     return data.data?.sessions ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function fetchRestPresets(): Promise<CustomRestPreset[]> {
+  try {
+    const res = await fetch(`${API_URL}/stopwatch/rest-presets`, {
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function createRestPreset(payload: {
+  name: string;
+  duration: number;
+}): Promise<CustomRestPreset | null> {
+  try {
+    const res = await fetch(`${API_URL}/stopwatch/rest-preset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteRestPreset(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/stopwatch/rest-preset/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
