@@ -65,6 +65,7 @@ apiRouter.use("/bmi", bmiRoutes);
 apiRouter.use("/stopwatch", stopwatchRoutes);
 apiRouter.use("/ads", adRoutes);
 apiRouter.use("/dashboard", userRoutes);
+apiRouter.use("/users", userRoutes);
 apiRouter.use("/dashboard/master", masterRoutes);
 apiRouter.use("/consultations", consultationRoutes);
 apiRouter.use("/branches", branchRoutes);
