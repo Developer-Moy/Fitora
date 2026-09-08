@@ -1162,15 +1162,23 @@ export async function checkoutPayment(
         // If user record not found in MongoDB, auto-provision user so payment is never rejected
         if (!targetUser) {
           const passwordHash = await bcrypt.hash("FitoraAthlete2026!", 10);
-          const safeEmail = (resolvedEmail || "athlete@fitora.com").trim().toLowerCase();
+          const safeEmail = (resolvedEmail || "athlete@fitora.com")
+            .trim()
+            .toLowerCase();
           targetUser = await User.create({
             name: resolvedName || "Valued Athlete",
             email: safeEmail,
             passwordHash,
-            phone: validAccountNumber.startsWith("Card") ? "+8801700000000" : validAccountNumber,
+            phone: validAccountNumber.startsWith("Card")
+              ? "+8801700000000"
+              : validAccountNumber,
             assignedBranch: "Gulshan Premium Branch",
             assignedBranchSlug: "gulshan-branch",
-            plan: (planName === "VIP Ultimate" ? "VIP Ultimate" : planName === "Basic Pass" ? "Basic Pass" : "Pro Athlete") as UserPlan,
+            plan: (planName === "VIP Ultimate"
+              ? "VIP Ultimate"
+              : planName === "Basic Pass"
+                ? "Basic Pass"
+                : "Pro Athlete") as UserPlan,
             role: "premium_user",
             status: "active",
             attendanceStreakDays: 1,
@@ -1212,10 +1220,16 @@ export async function checkoutPayment(
         if (!targetUser.assignedBranchSlug) {
           targetUser.assignedBranchSlug = "gulshan-branch";
         }
-        if (targetUser.attendanceStreakDays === undefined || targetUser.attendanceStreakDays === null) {
+        if (
+          targetUser.attendanceStreakDays === undefined ||
+          targetUser.attendanceStreakDays === null
+        ) {
           targetUser.attendanceStreakDays = 1;
         }
-        if (targetUser.hydrationTargetLiters === undefined || targetUser.hydrationTargetLiters === null) {
+        if (
+          targetUser.hydrationTargetLiters === undefined ||
+          targetUser.hydrationTargetLiters === null
+        ) {
           targetUser.hydrationTargetLiters = 3;
         }
         if (!targetUser.phone) {
@@ -1228,7 +1242,9 @@ export async function checkoutPayment(
         await targetUser.save({ validateModifiedOnly: true });
 
         // Sign JWT token for the user so client can maintain authenticated session
-        const secret = process.env.JWT_SECRET || "FITORA_SUPER_SECRET_JWT_KEY_2026_PRODUCTION";
+        const secret =
+          process.env.JWT_SECRET ||
+          "FITORA_SUPER_SECRET_JWT_KEY_2026_PRODUCTION";
         userAuthToken = jwt.sign(
           {
             userId: targetUser._id.toString(),
@@ -1238,7 +1254,7 @@ export async function checkoutPayment(
             tier: targetUser.plan,
           },
           secret,
-          { expiresIn: "7d" }
+          { expiresIn: "7d" },
         );
 
         updatedUser = {
