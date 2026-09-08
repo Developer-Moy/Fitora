@@ -96,6 +96,58 @@ export default function CalculatorPage() {
     return calculateTdee(bmr, activityLevel);
   }, [bmr, activityLevel]);
 
+  const syncHealthMetrics = async () => {
+    try {
+      if (typeof window === "undefined") return;
+
+      const token =
+        localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token");
+
+      if (!token) return;
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/users/profile/health-metrics`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            bmr: Math.round(bmr),
+            tdee: Math.round(tdee),
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to sync health metrics");
+      }
+
+      const result = await response.json();
+
+      const storedUser = localStorage.getItem("fitora_user");
+
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+
+        localStorage.setItem(
+          "fitora_user",
+          JSON.stringify({
+            ...user,
+            bmr: Math.round(bmr),
+            tdee: Math.round(tdee),
+          }),
+        );
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Health metrics sync failed:", error);
+    }
+  };
+
   const targetCalories = useMemo(() => {
     switch (goal) {
       case "bulking":
@@ -310,6 +362,7 @@ export default function CalculatorPage() {
 
     setIsSavingHistory(true);
     setError(null);
+    await syncHealthMetrics();
 
     try {
       const apiUrl =
@@ -933,7 +986,7 @@ Macros:
                   </div>
                 </motion.div>
 
-                
+
 
                 {/* Macro Distribution Box */}
                 <div className="rounded-3xl border border-white/10 bg-neutral-950 p-5 sm:p-6 text-white shadow-xl space-y-4">
@@ -1049,13 +1102,13 @@ Macros:
             </div>
 
             {/* Pro Athlete Macro Adjuster */}
-                <MacroAdjuster
-                  isPremium={isPremium}
-                  protein={macroPercentages.protein}
-                  carbs={macroPercentages.carbs}
-                  fats={macroPercentages.fats}
-                  onChange={handleMacroChange}
-                />
+            <MacroAdjuster
+              isPremium={isPremium}
+              protein={macroPercentages.protein}
+              carbs={macroPercentages.carbs}
+              fats={macroPercentages.fats}
+              onChange={handleMacroChange}
+            />
 
             {/* =================================================
               FULL-WIDTH BOTTOM SUMMARY BAR (Nutrition Tip & Export CTA)

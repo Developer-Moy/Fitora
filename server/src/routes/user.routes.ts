@@ -6,6 +6,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  updateHealthMetrics,
 } from "../controllers/user.controller";
 import {
   authMiddleware,
@@ -56,6 +57,13 @@ router.delete(
   authMiddleware,
   requireMasterAdmin,
   deleteUser
+);
+
+// Update authenticated user's BMR and TDEE
+router.patch(
+  "/profile/health-metrics",
+  authMiddleware,
+  updateHealthMetrics
 );
 
 export default router;
