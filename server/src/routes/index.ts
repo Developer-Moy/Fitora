@@ -17,6 +17,7 @@ import nutritionRoutes from "./nutrition.routes";
 import dailyMealPlanRoutes from "./dailyMealPlan.routes";
 import searchRoutes from "./search.routes";
 import paymentRoutes from "./payment.routes.js";
+import masterRoutes from "./master.routes.js";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
 const apiRouter = Router();
@@ -64,6 +65,7 @@ apiRouter.use("/bmi", bmiRoutes);
 apiRouter.use("/stopwatch", stopwatchRoutes);
 apiRouter.use("/ads", adRoutes);
 apiRouter.use("/dashboard", userRoutes);
+apiRouter.use("/dashboard/master", masterRoutes);
 apiRouter.use("/consultations", consultationRoutes);
 apiRouter.use("/branches", branchRoutes);
 apiRouter.use("/newsletter", newsletterRoutes);
