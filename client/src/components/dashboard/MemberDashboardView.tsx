@@ -40,6 +40,7 @@ import {
 import toast from "react-hot-toast";
 import {
   getAuthSession,
+  getCurrentUserApi,
   updateSessionAfterPayment,
 } from "@/services/authService";
 import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
@@ -89,6 +90,14 @@ export default function MemberDashboardView({
     null,
   );
   const [statsLoading, setStatsLoading] = useState(true);
+
+  const [healthMetrics, setHealthMetrics] = useState<{
+    bmr: number | null;
+    tdee: number | null;
+  }>({
+    bmr: null,
+    tdee: null,
+  });
 
   useEffect(() => {
     setProfileName(userName);
@@ -326,6 +335,52 @@ export default function MemberDashboardView({
     }
   };
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadHealthMetrics = async () => {
+      try {
+        const { token, user } = getAuthSession();
+
+        if (!token && !user?.id && !user?._id && !user?.email) {
+          return;
+        }
+
+        const result = await getCurrentUserApi({
+          userId: user?.id || user?._id,
+          email: user?.email,
+        });
+
+        console.log("HEALTH METRICS API RESULT:", result);
+        console.log("HEALTH METRICS USER:", result.user);
+
+        if (cancelled || !result.success || !result.user) {
+          return;
+        }
+
+        setHealthMetrics({
+          bmr:
+            typeof result.user.bmr === "number" && result.user.bmr > 0
+              ? result.user.bmr
+              : null,
+
+          tdee:
+            typeof result.user.tdee === "number" && result.user.tdee > 0
+              ? result.user.tdee
+              : null,
+        });
+      } catch (error) {
+        console.error("Failed to load health metrics:", error);
+      }
+    };
+
+    loadHealthMetrics();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* ── MEMBERSHIP EXPIRY NOTIFICATION BANNER ── */}
@@ -498,9 +553,9 @@ export default function MemberDashboardView({
                 {statsLoading
                   ? "..."
                   : ((
-                      (memberStats as any)?.burnedCalories ??
-                      memberStats?.caloriesBurned
-                    )?.toLocaleString() ?? "11,400")}
+                    (memberStats as any)?.burnedCalories ??
+                    memberStats?.caloriesBurned
+                  )?.toLocaleString() ?? "11,400")}
               </span>
               <span className="text-xs font-bold text-white/50 uppercase">
                 kcal
@@ -553,6 +608,75 @@ export default function MemberDashboardView({
             <p className="text-xs text-white/40 mt-1">
               Next routine: Chest & Triceps PR
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── BMR & TDEE HEALTH METRICS ── */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-base font-black uppercase tracking-tight text-white">
+            Health & Energy Metrics
+          </h3>
+
+          <p className="mt-0.5 text-xs text-white/50">
+            Your latest calculated metabolic health metrics.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* BMR */}
+          <div className="rounded-3xl border border-white/10 bg-neutral-950 p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
+                  Basal Metabolic Rate
+                </p>
+
+                <p className="mt-1 text-xs text-white/30">
+                  Resting energy estimate
+                </p>
+              </div>
+
+              <Flame className="h-5 w-5 text-white" />
+            </div>
+
+            <div className="mt-5 flex items-end gap-2">
+              <span className="text-4xl font-black tracking-tight text-white">
+                {healthMetrics.bmr ?? "--"}
+              </span>
+
+              <span className="pb-1 text-xs font-bold uppercase text-white/40">
+                kcal/day
+              </span>
+            </div>
+          </div>
+
+          {/* TDEE */}
+          <div className="rounded-3xl border border-white/10 bg-neutral-950 p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">
+                  Total Daily Energy Expenditure
+                </p>
+
+                <p className="mt-1 text-xs text-white/30">
+                  Daily energy estimate
+                </p>
+              </div>
+
+              <Activity className="h-5 w-5 text-white" />
+            </div>
+
+            <div className="mt-5 flex items-end gap-2">
+              <span className="text-4xl font-black tracking-tight text-white">
+                {healthMetrics.tdee ?? "--"}
+              </span>
+
+              <span className="pb-1 text-xs font-bold uppercase text-white/40">
+                kcal/day
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -1057,11 +1181,10 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("bKash")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
-                        selectedGateway === "bKash"
-                          ? "border-white bg-white text-black font-black shadow-lg"
-                          : "border-white/15 bg-neutral-900 text-white/60"
-                      }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "bKash"
+                        ? "border-white bg-white text-black font-black shadow-lg"
+                        : "border-white/15 bg-neutral-900 text-white/60"
+                        }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">bKash</span>
@@ -1070,11 +1193,10 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("Nagad")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
-                        selectedGateway === "Nagad"
-                          ? "border-white bg-white text-black font-black shadow-lg"
-                          : "border-white/15 bg-neutral-900 text-white/60"
-                      }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "Nagad"
+                        ? "border-white bg-white text-black font-black shadow-lg"
+                        : "border-white/15 bg-neutral-900 text-white/60"
+                        }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">Nagad</span>
@@ -1083,11 +1205,10 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("Card")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
-                        selectedGateway === "Card"
-                          ? "border-white bg-white text-black font-black shadow-lg"
-                          : "border-white/15 bg-neutral-900 text-white/60"
-                      }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "Card"
+                        ? "border-white bg-white text-black font-black shadow-lg"
+                        : "border-white/15 bg-neutral-900 text-white/60"
+                        }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">Card</span>

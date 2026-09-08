@@ -520,6 +520,10 @@ export const extendUserMembership = async (
  * (master admin only) among the three paid tiers.
  */
 export const updateUserMembershipPlan = async (
+ * 7. PATCH /api/users/profile/health-metrics
+ * Sync calculated BMR and TDEE to the authenticated user's profile
+ */
+export const updateHealthMetrics = async (
   req: AuthRequest,
   res: Response
 ) => {
@@ -665,4 +669,5 @@ export default {
   extendUserMembership,
   updateUserMembershipPlan,
   getUserMembershipAudit,
+  updateHealthMetrics,
 };

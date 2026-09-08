@@ -1,11 +1,14 @@
 import { Router } from "express";
 import {
   getWorkouts,
+  getAdvancedWorkouts,
   getWorkoutById,
   getWorkoutLogs,
   createWorkoutLog,
   deleteWorkoutLog,
-} from "../controllers/workout.controller.js";
+} from "../controllers/workout.controller";
+import { authMiddleware } from "../middlewares/auth.middleware";
+import { requirePremiumTier } from "../middlewares/premium.middleware";
 
 const router = Router();
 
@@ -15,6 +18,12 @@ router.post("/log", createWorkoutLog);
 router.delete("/log/:id", deleteWorkoutLog);
 
 // Workout catalog routes
+router.get(
+  "/advanced",
+  authMiddleware,
+  requirePremiumTier,
+  getAdvancedWorkouts,
+);
 router.get("/", getWorkouts);
 router.get("/:id", getWorkoutById);
 

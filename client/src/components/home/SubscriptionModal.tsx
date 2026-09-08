@@ -83,7 +83,9 @@ export default function SubscriptionModal({
     } else if (paymentMethod === "card") {
       const cleanCard = cardNumber.replace(/\D/g, "");
       if (cleanCard.length < 12) {
-        toast.error("Please enter a valid card number (at least 12-16 digits).");
+        toast.error(
+          "Please enter a valid card number (at least 12-16 digits).",
+        );
         return;
       }
       if (!resolvedCardExpiry || resolvedCardExpiry.length < 4) {
@@ -115,9 +117,7 @@ export default function SubscriptionModal({
       const cleanDigits = cardNumber.replace(/\D/g, "");
       const last4 = cleanDigits.slice(-4) || "4242";
       const accountNumber =
-        paymentMethod === "card"
-          ? `Card **** ${last4}`
-          : phone;
+        paymentMethod === "card" ? `Card **** ${last4}` : phone;
 
       const transactionId =
         paymentMethod === "card"

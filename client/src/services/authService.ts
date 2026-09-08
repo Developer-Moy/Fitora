@@ -17,6 +17,8 @@ export interface AuthUser {
   name: string;
   email: string;
   role: string;
+  bmr?: number | null;
+  tdee?: number | null;
   plan?: string;
   assignedBranch?: string;
   status?: string;
@@ -191,7 +193,7 @@ export async function getCurrentUserApi(params?: {
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("fitora_token") ||
-          localStorage.getItem("fitora_auth_token")
+        localStorage.getItem("fitora_auth_token")
         : null;
 
     if (!token && !params?.userId && !params?.email) {
@@ -357,13 +359,13 @@ export function clearAuthSession() {
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-  } catch {}
+  } catch { }
 }
 
 export async function logoutUser(): Promise<void> {
   try {
     await authClient.signOut().catch(() => null);
-  } catch {}
+  } catch { }
   clearAuthSession();
 }
 

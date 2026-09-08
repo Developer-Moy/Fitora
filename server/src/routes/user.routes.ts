@@ -9,6 +9,7 @@ import {
   extendUserMembership,
   updateUserMembershipPlan,
   getUserMembershipAudit,
+  updateHealthMetrics,
 } from "../controllers/user.controller";
 import {
   authMiddleware,
@@ -85,6 +86,11 @@ router.put(
   authMiddleware,
   requireMasterAdmin,
   updateUserMembershipPlan
+// Update authenticated user's BMR and TDEE
+router.patch(
+  "/profile/health-metrics",
+  authMiddleware,
+  updateHealthMetrics
 );
 
 export default router;
