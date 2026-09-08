@@ -6,6 +6,9 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  extendUserMembership,
+  updateUserMembershipPlan,
+  getUserMembershipAudit,
 } from "../controllers/user.controller";
 import {
   authMiddleware,
@@ -56,6 +59,32 @@ router.delete(
   authMiddleware,
   requireMasterAdmin,
   deleteUser
+);
+
+// ── Membership Management (master admin only) ────────────────────────────────
+
+// Membership & payment audit (read-only)
+router.get(
+  "/users/:id/membership",
+  authMiddleware,
+  requireMasterAdmin,
+  getUserMembershipAudit
+);
+
+// Extend membership expiry by N days
+router.post(
+  "/users/:id/membership/extend",
+  authMiddleware,
+  requireMasterAdmin,
+  extendUserMembership
+);
+
+// Change subscription plan (Basic Pass / Pro Athlete / VIP Ultimate)
+router.put(
+  "/users/:id/membership/plan",
+  authMiddleware,
+  requireMasterAdmin,
+  updateUserMembershipPlan
 );
 
 export default router;

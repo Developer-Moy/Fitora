@@ -141,6 +141,91 @@ export async function fetchMasterRevenue(): Promise<MasterRevenue | null> {
   }
 }
 
+// ── Membership Management (master admin only) ────────────────────────────────
+
+export type PaidPlanName = "Basic Pass" | "Pro Athlete" | "VIP Ultimate";
+
+export interface UserMembership {
+  userId: string;
+  name: string;
+  email: string;
+  plan: string;
+  billingCycle: string | null;
+  transactionId: string | null;
+  gateway: string | null;
+  amountBDT: number;
+  subscriptionStartDate: string | null;
+  subscriptionExpiryDate: string | null;
+  invoiceNumber: string | null;
+  status: string;
+}
+
+/** Latest completed payment + membership snapshot for audit modal. */
+export async function fetchUserMembership(
+  id: string
+): Promise<UserMembership | null> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/users/${id}/membership`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data?.membership || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Extend a user's subscription expiry by N days. */
+export async function extendUserMembership(
+  id: string,
+  days: number
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${API_URL}/dashboard/users/${id}/membership/extend`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({ days }),
+      }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Change a user's subscription plan among the three paid tiers. */
+export async function updateUserMembershipPlan(
+  id: string,
+  planName: PaidPlanName
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${API_URL}/dashboard/users/${id}/membership/plan`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({ planName }),
+      }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export interface BranchInfo {
   id: string;
   name: string;

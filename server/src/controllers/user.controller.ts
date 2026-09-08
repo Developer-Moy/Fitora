@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import User from "../models/User.model";
 import WorkoutLog from "../models/WorkoutLog.model";
+import Payment from "../models/Payment.model";
 import { errorResponse, successResponse } from "../utils/apiResponse";
 
 /**
@@ -337,6 +338,20 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    // Root/Master Admin account is completely immutable (protected by email too)
+    const target = await User.findById(id);
+    if (target && isImmutableRootUser(target)) {
+      return res
+        .status(403)
+        .json(
+          errorResponse(
+            "Master Admin account is immutable and cannot be modified",
+            "",
+            403,
+          ),
+        );
+    }
+
     // Don't allow passwordHash updates through this route
     delete updates.passwordHash;
     delete updates.isMasterProtected;
@@ -381,14 +396,14 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
       return res.status(404).json(errorResponse("User not found", "", 404));
     }
 
-    if (user.isMasterProtected) {
+    if (isImmutableRootUser(user)) {
       return res
         .status(403)
         .json(
           errorResponse(
             "Master Admin account is permanently protected and cannot be deleted",
             "",
-            403
+            403,
           )
         );
     }
@@ -410,6 +425,236 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
   }
 };
 
+/**
+ * Root/Master Admin immutability guard.
+ * The account `master@fitora.com` (or any master-protected user) can never
+ * have its membership modified, plan changed, deleted, or suspended.
+ */
+const isImmutableRootUser = (user: any): boolean =>
+  (user?.email || "").toLowerCase() === "master@fitora.com" ||
+  user?.isMasterProtected === true;
+
+/** Resolve the current effective subscription expiry for a user. */
+const resolveUserExpiry = (user: any): Date | null => {
+  const candidates = [user?.subscriptionExpiryDate, user?.membershipExpiresAt]
+    .map((value) => (value ? new Date(value) : null))
+    .filter((d): d is Date => !!d && !Number.isNaN(d.getTime()))
+    .map((d) => d.getTime());
+
+  if (candidates.length === 0) return null;
+
+  const max = Math.max(...candidates);
+  // Only a future date counts as the live expiry; lapsed memberships are
+  // extended from today instead.
+  return max > Date.now() ? new Date(max) : null;
+};
+
+/**
+ * POST /api/dashboard/users/:id/membership/extend — Extend membership
+ * (master admin only) by `days`.
+ */
+export const extendUserMembership = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+    const { days } = req.body;
+
+    const daysToAdd = Number(days);
+    if (!Number.isFinite(daysToAdd) || daysToAdd < 1 || daysToAdd > 3650) {
+      return res
+        .status(400)
+        .json(
+          errorResponse("Days must be a number between 1 and 3650", "", 400)
+        );
+    }
+
+    const target = await User.findById(id);
+    if (!target) {
+      return res.status(404).json(errorResponse("User not found", "", 404));
+    }
+
+    if (isImmutableRootUser(target)) {
+      return res
+        .status(403)
+        .json(
+          errorResponse(
+            "Master Admin account is immutable and cannot be modified",
+            "",
+            403
+          )
+        );
+    }
+
+    const base = resolveUserExpiry(target) || new Date();
+    const newExpiry = new Date(base.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+
+    target.subscriptionExpiryDate = newExpiry;
+    target.membershipExpiresAt = newExpiry;
+    if (target.plan !== "Free Pass") {
+      target.status = "active";
+    }
+    await target.save();
+
+    return res.status(200).json(
+      successResponse(
+        `Membership extended by ${daysToAdd} day(s) for "${target.name}"`,
+        { name: target.name, subscriptionExpiryDate: newExpiry.toISOString() }
+      )
+    );
+  } catch (error: any) {
+    console.error("Error in extendUserMembership:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Failed to extend membership",
+        error.message || "Internal Server Error",
+        500
+      )
+    );
+  }
+};
+
+/**
+ * PUT /api/dashboard/users/:id/membership/plan — Modify membership plan
+ * (master admin only) among the three paid tiers.
+ */
+export const updateUserMembershipPlan = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+    const { planName } = req.body;
+
+    const allowedPlans = ["Basic Pass", "Pro Athlete", "VIP Ultimate"];
+    if (!planName || !allowedPlans.includes(planName)) {
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            `Plan must be one of: ${allowedPlans.join(", ")}`,
+            "",
+            400
+          )
+        );
+    }
+
+    const target = await User.findById(id);
+    if (!target) {
+      return res.status(404).json(errorResponse("User not found", "", 404));
+    }
+
+    if (isImmutableRootUser(target)) {
+      return res
+        .status(403)
+        .json(
+          errorResponse(
+            "Master Admin account is immutable — plan cannot be changed",
+            "",
+            403
+          )
+        );
+    }
+
+    target.plan = planName;
+    target.status = "active";
+
+    // Ensure a paid plan always has a valid future expiry.
+    const currentExpiry = resolveUserExpiry(target);
+    if (!currentExpiry) {
+      const newExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      target.subscriptionExpiryDate = newExpiry;
+      target.membershipExpiresAt = newExpiry;
+    }
+
+    await target.save();
+
+    const effectiveExpiry = (
+      target.subscriptionExpiryDate || target.membershipExpiresAt
+    )?.toISOString();
+
+    return res.status(200).json(
+      successResponse(
+        `Membership plan updated to "${planName}" for "${target.name}"`,
+        {
+          name: target.name,
+          plan: target.plan,
+          subscriptionExpiryDate: effectiveExpiry || null,
+        }
+      )
+    );
+  } catch (error: any) {
+    console.error("Error in updateUserMembershipPlan:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Failed to update membership plan",
+        error.message || "Internal Server Error",
+        500
+      )
+    );
+  }
+};
+
+/**
+ * GET /api/dashboard/users/:id/membership — Membership & payment audit
+ * (master admin only, read-only). Root account may be viewed, never edited.
+ */
+export const getUserMembershipAudit = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+
+    const target = await User.findById(id);
+    if (!target) {
+      return res.status(404).json(errorResponse("User not found", "", 404));
+    }
+
+    const latestPayment = await Payment.findOne({
+      userId: target._id,
+      status: "completed",
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const effectiveExpiry =
+      target.subscriptionExpiryDate || target.membershipExpiresAt || null;
+
+    return res.status(200).json(
+      successResponse("Membership audit retrieved successfully", {
+        membership: {
+          userId: target._id.toString(),
+          name: target.name,
+          email: target.email,
+          plan: target.plan,
+          billingCycle: latestPayment?.billingCycle || null,
+          transactionId: latestPayment?.transactionId || null,
+          gateway: latestPayment?.gateway || target.paymentMethod || null,
+          amountBDT: latestPayment?.amountBDT ?? target.totalPaidBDT ?? 0,
+          subscriptionStartDate:
+            latestPayment?.subscriptionStartDate?.toISOString() || null,
+          subscriptionExpiryDate: effectiveExpiry
+            ? new Date(effectiveExpiry).toISOString()
+            : null,
+          invoiceNumber: latestPayment?.invoiceNumber || null,
+          status: target.status,
+        },
+      })
+    );
+  } catch (error: any) {
+    console.error("Error in getUserMembershipAudit:", error);
+    return res.status(500).json(
+      errorResponse(
+        "Failed to retrieve membership audit",
+        error.message || "Internal Server Error",
+        500
+      )
+    );
+  }
+};
+
 export default {
   getDashboardStats,
   getPlatformStats,
@@ -417,4 +662,7 @@ export default {
   createUser,
   updateUser,
   deleteUser,
+  extendUserMembership,
+  updateUserMembershipPlan,
+  getUserMembershipAudit,
 };

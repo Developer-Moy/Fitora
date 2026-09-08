@@ -16,7 +16,12 @@ import {
   createUserAPI,
   updateUserAPI,
   deleteUserAPI,
+  extendUserMembership,
+  updateUserMembershipPlan,
+  fetchUserMembership,
   type BranchInfo,
+  type PaidPlanName,
+  type UserMembership,
 } from "@/services/dashboardService";
 import {
   Search,
@@ -41,8 +46,22 @@ import {
   ArrowUpRight,
   ChevronLeft,
   ChevronRight,
+  CalendarPlus,
+  Repeat,
+  ScrollText,
+  Loader2,
+  ShieldAlert,
 } from "lucide-react";
 import toast from "react-hot-toast";
+
+/** Emails that can never be mutated through membership controls. */
+const IMMUTABLE_ROOT_EMAIL = "master@fitora.com";
+
+const PAID_PLANS: PaidPlanName[] = [
+  "Basic Pass",
+  "Pro Athlete",
+  "VIP Ultimate",
+];
 
 interface UserManagementTableProps {
   currentRole: string;
@@ -120,6 +139,100 @@ export default function UserManagementTable({
     loadUsers();
     loadBranches();
   }, [loadUsers, loadBranches]);
+
+  // ── Membership Management State (master admin only) ───────────────────────
+  const [extendTarget, setExtendTarget] = useState<UserRecord | null>(null);
+  const [extendDays, setExtendDays] = useState("30");
+  const [isExtending, setIsExtending] = useState(false);
+
+  const [planTarget, setPlanTarget] = useState<UserRecord | null>(null);
+  const [planValue, setPlanValue] = useState<PaidPlanName>("Basic Pass");
+  const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
+
+  const [auditTarget, setAuditTarget] = useState<UserRecord | null>(null);
+  const [auditData, setAuditData] = useState<UserMembership | null>(null);
+  const [auditLoading, setAuditLoading] = useState(false);
+
+  /** Root account guard — mirrors the backend immutability rule. */
+  const isImmutableRoot = (user: UserRecord | null): boolean =>
+    !!user &&
+    (user.email.toLowerCase() === IMMUTABLE_ROOT_EMAIL ||
+      user.role === "master_admin");
+
+  const refreshUsers = useCallback(async () => {
+    await loadUsers();
+  }, [loadUsers]);
+
+  // Action 1 — Extend Membership
+  const handleOpenExtend = (user: UserRecord) => {
+    if (isImmutableRoot(user)) {
+      toast.error("Root Master account is immutable.");
+      return;
+    }
+    setExtendDays("30");
+    setExtendTarget(user);
+  };
+
+  const handleConfirmExtend = async () => {
+    if (!extendTarget) return;
+    const days = Number(extendDays);
+    if (!Number.isFinite(days) || days < 1) {
+      toast.error("Enter a valid number of days (minimum 1).");
+      return;
+    }
+    setIsExtending(true);
+    const ok = await extendUserMembership(extendTarget.id, days);
+    setIsExtending(false);
+    if (ok) {
+      toast.success(`Membership extended by ${days} day(s).`);
+      setExtendTarget(null);
+      refreshUsers();
+    } else {
+      toast.error("Could not extend membership. Please try again.");
+    }
+  };
+
+  // Action 2 — Modify Membership Plan
+  const handleOpenPlanModal = (user: UserRecord) => {
+    if (isImmutableRoot(user)) {
+      toast.error("Root Master account is immutable.");
+      return;
+    }
+    setPlanValue(
+      PAID_PLANS.includes(user.plan as PaidPlanName)
+        ? (user.plan as PaidPlanName)
+        : "Basic Pass"
+    );
+    setPlanTarget(user);
+  };
+
+  const handleConfirmPlanChange = async () => {
+    if (!planTarget) return;
+    setIsUpdatingPlan(true);
+    const ok = await updateUserMembershipPlan(planTarget.id, planValue);
+    setIsUpdatingPlan(false);
+    if (ok) {
+      toast.success(`Plan updated to ${planValue}.`);
+      setPlanTarget(null);
+      refreshUsers();
+    } else {
+      toast.error("Could not update the membership plan. Please try again.");
+    }
+  };
+
+  // Action 3 — Audit Membership
+  const handleOpenAudit = async (user: UserRecord) => {
+    setAuditTarget(user);
+    setAuditData(null);
+    setAuditLoading(true);
+    const data = await fetchUserMembership(user.id);
+    setAuditData(data);
+    setAuditLoading(false);
+    if (!data) {
+      toast.error("Could not load membership audit details.");
+    }
+  };
+
 
   useEffect(() => {
     setCurrentPage(1);
@@ -611,12 +724,45 @@ export default function UserManagementTable({
                     user.email === "master@fitora.com" ? (
                       <div className="flex items-center justify-end">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-neutral-900 border border-white/20 text-white shadow-sm">
-                          <Shield className="w-3 h-3 text-white" />
-                          System Master
+                          <ShieldAlert className="w-3 h-3 text-amber-400" />
+                          Immutable &middot; Root
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center justify-end gap-2">
+                        {currentRole === "master_admin" && (
+                          <>
+                            {/* Extend Membership */}
+                            <button
+                              onClick={() => handleOpenExtend(user)}
+                              disabled={isImmutableRoot(user)}
+                              className="p-2 rounded-full bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+                              title="Extend Membership"
+                            >
+                              <CalendarPlus className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Modify Membership Plan */}
+                            <button
+                              onClick={() => handleOpenPlanModal(user)}
+                              disabled={isImmutableRoot(user)}
+                              className="p-2 rounded-full bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+                              title="Modify Membership Plan"
+                            >
+                              <Repeat className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Audit Membership */}
+                            <button
+                              onClick={() => handleOpenAudit(user)}
+                              className="p-2 rounded-full bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+                              title="Audit Membership"
+                            >
+                              <ScrollText className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
+
                         <button
                           onClick={() => handleEditClick(user)}
                           className="p-2 rounded-full bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
@@ -1120,6 +1266,266 @@ export default function UserManagementTable({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Extend Membership Modal ─────────────────────────────────────────── */}
+      {extendTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div>
+                <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                  Extend Membership
+                </h3>
+                <p className="text-xs text-white/50 mt-0.5 truncate">
+                  {extendTarget.name} &bull; {extendTarget.email}
+                </p>
+              </div>
+              <button
+                onClick={() => setExtendTarget(null)}
+                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-neutral-900 border border-white/10">
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getPlanBadgeColor(extendTarget.plan)}`}
+              >
+                {extendTarget.plan}
+              </span>
+              <span className="text-xs font-bold text-white/60">
+                Expires: {formatSubscriptionDate(getSubscriptionExpiry(extendTarget))}
+              </span>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-white/50 mb-1.5">
+                Extend By (Days)
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={3650}
+                value={extendDays}
+                onChange={(e) => setExtendDays(e.target.value)}
+                className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white font-bold"
+              />
+              <div className="flex items-center gap-2 mt-3">
+                {[7, 30, 90, 365].map((days) => (
+                  <button
+                    key={days}
+                    type="button"
+                    onClick={() => setExtendDays(String(days))}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase border transition cursor-pointer ${
+                      extendDays === String(days)
+                        ? "bg-white text-black border-white"
+                        : "bg-neutral-900 text-white/60 border-white/15 hover:text-white"
+                    }`}
+                  >
+                    +{days}d
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-white/10 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setExtendTarget(null)}
+                className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmExtend}
+                disabled={isExtending}
+                className="px-6 py-2.5 rounded-full bg-white text-black font-black uppercase hover:bg-gray-100 transition shadow-md cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2"
+              >
+                {isExtending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Extend
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modify Membership Plan Modal ────────────────────────────────────── */}
+      {planTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div>
+                <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                  Modify Membership Plan
+                </h3>
+                <p className="text-xs text-white/50 mt-0.5 truncate">
+                  {planTarget.name} &bull; {planTarget.email}
+                </p>
+              </div>
+              <button
+                onClick={() => setPlanTarget(null)}
+                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-white/50 mb-1.5">
+                Subscription Plan
+              </label>
+              <select
+                value={planValue}
+                onChange={(e) => setPlanValue(e.target.value as PaidPlanName)}
+                className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
+              >
+                {PAID_PLANS.map((plan) => (
+                  <option key={plan} value={plan}>
+                    {plan}
+                  </option>
+                ))}
+              </select>
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase text-white/40">
+                  Current:
+                </span>
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getPlanBadgeColor(planTarget.plan)}`}
+                >
+                  {planTarget.plan}
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-white/10 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setPlanTarget(null)}
+                className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmPlanChange}
+                disabled={isUpdatingPlan}
+                className="px-6 py-2.5 rounded-full bg-white text-black font-black uppercase hover:bg-gray-100 transition shadow-md cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2"
+              >
+                {isUpdatingPlan && <Loader2 className="w-4 h-4 animate-spin" />}
+                Update Plan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Audit Membership Modal ──────────────────────────────────────────── */}
+      {auditTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div>
+                <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                  Membership Audit
+                </h3>
+                <p className="text-xs text-white/50 mt-0.5 truncate">
+                  {auditTarget.name} &bull; {auditTarget.email}
+                </p>
+              </div>
+              <button
+                onClick={() => setAuditTarget(null)}
+                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {auditLoading ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-3">
+                <Loader2 className="w-6 h-6 animate-spin text-white/60" />
+                <span className="text-xs font-black uppercase tracking-widest text-white/40">
+                  Loading membership records...
+                </span>
+              </div>
+            ) : auditData ? (
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-900 border border-white/10">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                    Current Plan
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getPlanBadgeColor(auditData.plan)}`}
+                  >
+                    {auditData.plan}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-900 border border-white/10">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                    Subscription Status
+                  </span>
+                  {getSubscriptionBadge(auditTarget)}
+                </div>
+
+                {[
+                  {
+                    label: "Billing Cycle",
+                    value: auditData.billingCycle
+                      ? auditData.billingCycle.toUpperCase()
+                      : "—",
+                  },
+                  {
+                    label: "Transaction ID",
+                    value: auditData.transactionId || "—",
+                  },
+                  { label: "Gateway", value: auditData.gateway || "—" },
+                  {
+                    label: "Amount",
+                    value: `৳${auditData.amountBDT.toLocaleString("en-IN")}`,
+                  },
+                  {
+                    label: "Start Date",
+                    value: formatSubscriptionDate(
+                      toDate(auditData.subscriptionStartDate)
+                    ),
+                  },
+                  {
+                    label: "Expiry Date",
+                    value: formatSubscriptionDate(
+                      toDate(auditData.subscriptionExpiryDate)
+                    ),
+                  },
+                  {
+                    label: "Invoice Number",
+                    value: auditData.invoiceNumber || "—",
+                  },
+                ].map((row) => (
+                  <div
+                    key={row.label}
+                    className="flex items-center justify-between gap-4 p-3.5 rounded-2xl bg-neutral-900 border border-white/10"
+                  >
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/40 shrink-0">
+                      {row.label}
+                    </span>
+                    <span className="text-xs font-bold text-white text-right break-all">
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-10 text-center space-y-2">
+                <AlertCircle className="w-6 h-6 text-white/30 mx-auto" />
+                <p className="text-xs font-bold uppercase tracking-wider text-white/40">
+                  No membership records found for this member.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
