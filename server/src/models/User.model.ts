@@ -46,6 +46,8 @@ export interface IUser extends Document {
   hydrationTargetLiters: number;
   totalPaidBDT: number;
   paymentMethod: PaymentMethod;
+  bmr?: number;
+  tdee?: number;
   subscriptionExpiryDate?: Date;
 
   // QR & Security
@@ -122,6 +124,14 @@ const userSchema = new Schema<IUser>(
     },
 
     // User Stats
+    bmr: {
+      type: Number,
+      default: null,
+    },
+    tdee: {
+      type: Number,
+      default: null,
+    },
     attendanceStreakDays: {
       type: Number,
       required: true,

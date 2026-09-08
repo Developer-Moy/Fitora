@@ -17,6 +17,8 @@ import BmiCalculator from "@/components/BmiCalculator";
 import { calculateBmr } from "@/utils/calculateBmr";
 import { calculateTdee } from "@/utils/calculateTdee";
 import { calculateNutritionApi } from "@/services/nutritionService";
+import MacroAdjuster from "@/components/calculator/MacroAdjuster";
+import AthleteHealthAssessmentCard from "@/components/calculator/AthleteHealthAssessmentCard";
 
 type Gender = "male" | "female";
 type Goal = "bulking" | "cutting" | "maintenance";
@@ -28,25 +30,25 @@ const goalOptions: {
   calories: string;
   icon: string;
 }[] = [
-  {
-    value: "bulking",
-    label: "Bulking",
-    calories: "+500 kcal",
-    icon: "↑",
-  },
-  {
-    value: "cutting",
-    label: "Cutting",
-    calories: "-500 kcal",
-    icon: "↓",
-  },
-  {
-    value: "maintenance",
-    label: "Maintenance",
-    calories: "TDEE",
-    icon: "↔",
-  },
-];
+    {
+      value: "bulking",
+      label: "Bulking",
+      calories: "+500 kcal",
+      icon: "↑",
+    },
+    {
+      value: "cutting",
+      label: "Cutting",
+      calories: "-500 kcal",
+      icon: "↓",
+    },
+    {
+      value: "maintenance",
+      label: "Maintenance",
+      calories: "TDEE",
+      icon: "↔",
+    },
+  ];
 
 export default function CalculatorPage() {
   const [age, setAge] = useState(25);
@@ -65,6 +67,12 @@ export default function CalculatorPage() {
     carbs: number;
     fats: number;
   } | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [customMacroPercentages, setCustomMacroPercentages] = useState({
+    protein: 30,
+    carbs: 40,
+    fats: 30,
+  });
 
   // Sync with backend nutrition API when inputs change
   useEffect(() => {
@@ -89,6 +97,58 @@ export default function CalculatorPage() {
     return calculateTdee(bmr, activityLevel);
   }, [bmr, activityLevel]);
 
+  const syncHealthMetrics = async () => {
+    try {
+      if (typeof window === "undefined") return;
+
+      const token =
+        localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token");
+
+      if (!token) return;
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/profile/health-metrics`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            bmr: Math.round(bmr),
+            tdee: Math.round(tdee),
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to sync health metrics");
+      }
+
+      const result = await response.json();
+
+      const storedUser = localStorage.getItem("fitora_user");
+
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+
+        localStorage.setItem(
+          "fitora_user",
+          JSON.stringify({
+            ...user,
+            bmr: Math.round(bmr),
+            tdee: Math.round(tdee),
+          }),
+        );
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Health metrics sync failed:", error);
+    }
+  };
+
   const targetCalories = useMemo(() => {
     switch (goal) {
       case "bulking":
@@ -103,7 +163,7 @@ export default function CalculatorPage() {
     }
   }, [tdee, goal]);
 
-  const macroPercentages = useMemo(() => {
+  const defaultMacroPercentages = useMemo(() => {
     switch (goal) {
       case "bulking":
         return {
@@ -129,25 +189,83 @@ export default function CalculatorPage() {
     }
   }, [goal]);
 
+  useEffect(() => {
+    setCustomMacroPercentages(defaultMacroPercentages);
+  }, [defaultMacroPercentages]);
+
+  const macroPercentages = isPremium
+    ? customMacroPercentages
+    : defaultMacroPercentages;
+
   // Prefer server-verified macros, fall back to client-side calculation
   const macros = useMemo(() => {
-    if (serverMacros) {
-      return {
-        protein: serverMacros.protein,
-        carbs: serverMacros.carbs,
-        fats: serverMacros.fats,
-      };
-    }
-    const proteinCalories = targetCalories * (macroPercentages.protein / 100);
-    const carbsCalories = targetCalories * (macroPercentages.carbs / 100);
-    const fatsCalories = targetCalories * (macroPercentages.fats / 100);
+    const proteinCalories =
+      targetCalories * (macroPercentages.protein / 100);
+
+    const carbsCalories =
+      targetCalories * (macroPercentages.carbs / 100);
+
+    const fatsCalories =
+      targetCalories * (macroPercentages.fats / 100);
 
     return {
       protein: Math.round(proteinCalories / 4),
       carbs: Math.round(carbsCalories / 4),
       fats: Math.round(fatsCalories / 9),
     };
-  }, [serverMacros, targetCalories, macroPercentages]);
+  }, [targetCalories, macroPercentages]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const userStr = localStorage.getItem("fitora_user");
+
+      if (!userStr) {
+        setIsPremium(false);
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+
+      const plan = String(
+        user?.plan ||
+        user?.tier ||
+        user?.subscription?.plan ||
+        user?.subscription?.tier ||
+        "",
+      ).toLowerCase();
+
+      const premiumPlans = ["premium", "pro", "athlete", "paid"];
+
+      setIsPremium(premiumPlans.includes(plan));
+    } catch (error) {
+      console.error("Premium status check failed:", error);
+      setIsPremium(false);
+    }
+  }, []);
+
+  const handleMacroChange = (
+    macro: "protein" | "carbs" | "fats",
+    value: number,
+  ) => {
+    if (!isPremium) return;
+
+    setCustomMacroPercentages((current) => {
+      const next = {
+        ...current,
+        [macro]: value,
+      };
+
+      const total = next.protein + next.carbs + next.fats;
+
+      if (total === 100) {
+        return next;
+      }
+
+      return next;
+    });
+  };
 
   const maxMacro = Math.max(macros.protein, macros.carbs, macros.fats, 1);
 
@@ -245,6 +363,7 @@ export default function CalculatorPage() {
 
     setIsSavingHistory(true);
     setError(null);
+    await syncHealthMetrics();
 
     try {
       const apiUrl =
@@ -266,7 +385,7 @@ export default function CalculatorPage() {
             const u = JSON.parse(userStr);
             if (u.id || u._id) userId = u.id || u._id;
           }
-        } catch {}
+        } catch { }
       }
 
       const calculatedBmi =
@@ -320,41 +439,50 @@ export default function CalculatorPage() {
   };
 
   const handleExport = async () => {
-    const metrics = `FITORA NUTRITION & BMI REPORT
+    const metrics = `FITORA ATHLETE HEALTH ASSESSMENT
 Goal: ${goalLabel}
 Age: ${age} | Gender: ${gender}
 Height: ${height} cm | Weight: ${weight} kg
 Activity: ${activityDescription}
 
-BMR: ${bmr} kcal/day
-TDEE: ${tdee} kcal/day
-Target Calories: ${targetCalories} kcal/day
+BMI: ${bmi.toFixed(1)}
+BMR: ${Math.round(bmr)} kcal/day
+TDEE: ${Math.round(tdee)} kcal/day
+Target Calories: ${Math.round(targetCalories)} kcal/day
 
 Macros:
-- Protein: ${macros.protein}g (${macroPercentages.protein}%)
-- Carbs: ${macros.carbs}g (${macroPercentages.carbs}%)
-- Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
+Protein: ${macros.protein}g (${macroPercentages.protein}%)
+Carbs: ${macros.carbs}g (${macroPercentages.carbs}%)
+Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
     try {
       await navigator.clipboard.writeText(metrics);
-      toast.success("Metrics and nutrition plan copied to clipboard!");
-    } catch {
-      toast.error("Failed to copy metrics to clipboard.");
+
+      toast.success("Assessment copied. Opening print preview...");
+
+      setTimeout(() => {
+        window.print();
+      }, 400);
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export assessment.");
     }
   };
 
+
   return (
     <div className="w-full bg-black text-white selection:bg-white selection:text-black">
+
+
       <div className="mx-auto w-10/12 max-w-7xl pt-6">
         <div className="mx-auto flex max-w-xl rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setActiveTab("bmi")}
-            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${
-              activeTab === "bmi"
-                ? "bg-white text-black shadow-lg"
-                : "text-white/60 hover:bg-white/10 hover:text-white"
-            }`}
+            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${activeTab === "bmi"
+              ? "bg-white text-black shadow-lg"
+              : "text-white/60 hover:bg-white/10 hover:text-white"
+              }`}
           >
             BMI Calculator
           </button>
@@ -362,11 +490,10 @@ Macros:
           <button
             type="button"
             onClick={() => setActiveTab("nutrition")}
-            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${
-              activeTab === "nutrition"
-                ? "bg-white text-black shadow-lg"
-                : "text-white/60 hover:bg-white/10 hover:text-white"
-            }`}
+            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${activeTab === "nutrition"
+              ? "bg-white text-black shadow-lg"
+              : "text-white/60 hover:bg-white/10 hover:text-white"
+              }`}
           >
             BMR & Daily Calorie
           </button>
@@ -689,19 +816,17 @@ Macros:
                             key={item.value}
                             type="button"
                             onClick={() => setGoal(item.value)}
-                            className={`flex w-full items-center justify-between p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${
-                              isActive
-                                ? "border-white bg-white text-black shadow-lg"
-                                : "border-white/15 bg-neutral-900 text-white hover:border-white/30 hover:bg-neutral-800"
-                            }`}
+                            className={`flex w-full items-center justify-between p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${isActive
+                              ? "border-white bg-white text-black shadow-lg"
+                              : "border-white/15 bg-neutral-900 text-white hover:border-white/30 hover:bg-neutral-800"
+                              }`}
                           >
                             <div className="flex items-center gap-2.5">
                               <span
-                                className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black transition-colors ${
-                                  isActive
-                                    ? "bg-black text-white"
-                                    : "bg-neutral-800 text-white"
-                                }`}
+                                className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black transition-colors ${isActive
+                                  ? "bg-black text-white"
+                                  : "bg-neutral-800 text-white"
+                                  }`}
                               >
                                 {item.icon}
                               </span>
@@ -712,11 +837,10 @@ Macros:
                             </div>
 
                             <span
-                              className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
-                                isActive
-                                  ? "bg-black text-white font-black"
-                                  : "bg-neutral-800 text-gray-300"
-                              }`}
+                              className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${isActive
+                                ? "bg-black text-white font-black"
+                                : "bg-neutral-800 text-gray-300"
+                                }`}
                             >
                               {item.calories}
                             </span>
@@ -873,6 +997,8 @@ Macros:
                   </div>
                 </motion.div>
 
+
+
                 {/* Macro Distribution Box */}
                 <div className="rounded-3xl border border-white/10 bg-neutral-950 p-5 sm:p-6 text-white shadow-xl space-y-4">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2 pb-2 border-b border-white/10">
@@ -984,6 +1110,65 @@ Macros:
                   </div>
                 </div>
               </div>
+
+            </div>
+
+            {/* Pro Athlete Macro Adjuster */}
+            <div className="mt-8">
+              <div className="mb-4">
+                <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
+                  04 / PREMIUM CONTROLS
+                </span>
+
+                <h2 className="mt-1 text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                  Pro Athlete{" "}
+                  <span className="font-normal text-gray-400">
+                    Macro Control.
+                  </span>
+                </h2>
+              </div>
+
+              <MacroAdjuster
+                isPremium={isPremium}
+                protein={macroPercentages.protein}
+                carbs={macroPercentages.carbs}
+                fats={macroPercentages.fats}
+                onChange={handleMacroChange}
+              />
+            </div>
+
+            {/* Athlete Health Assessment Card */}
+            <div id="athlete-report-section" className="mt-8">
+              <div className="mb-4 flex flex-col items-start gap-2">
+                <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
+                  05 / PERFORMANCE REPORT
+                </span>
+
+                <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                  Athlete Health{" "}
+                  <span className="font-normal text-gray-400">
+                    Assessment.
+                  </span>
+                </h2>
+
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-gray-500">
+                  Live Report
+                </span>
+              </div>
+
+              <AthleteHealthAssessmentCard
+                age={age}
+                gender={gender}
+                height={height}
+                weight={weight}
+                bmi={bmi}
+                bmr={bmr}
+                tdee={tdee}
+                targetCalories={targetCalories}
+                goal={goal}
+                macros={macros}
+                macroPercentages={macroPercentages}
+              />
             </div>
 
             {/* =================================================

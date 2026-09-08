@@ -403,6 +403,79 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
   }
 };
 
+/**
+ * 7. PATCH /api/users/profile/health-metrics
+ * Sync calculated BMR and TDEE to the authenticated user's profile
+ */
+export const updateHealthMetrics = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const userId = req.user?.userId || (req as any).user?.id;
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json(errorResponse("Unauthorized", "", 401));
+    }
+
+    const { bmr, tdee } = req.body;
+
+    if (
+      typeof bmr !== "number" ||
+      typeof tdee !== "number" ||
+      bmr <= 0 ||
+      tdee <= 0
+    ) {
+      return res.status(400).json(
+        errorResponse(
+          "Valid BMR and TDEE are required",
+          "",
+          400
+        )
+      );
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          bmr: Math.round(bmr),
+          tdee: Math.round(tdee),
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("-passwordHash");
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json(errorResponse("User not found", "", 404));
+    }
+
+    return res.status(200).json(
+      successResponse("Health metrics updated successfully", {
+        bmr: updatedUser.bmr,
+        tdee: updatedUser.tdee,
+      })
+    );
+  } catch (error: any) {
+    console.error("Error in updateHealthMetrics:", error);
+
+    return res.status(500).json(
+      errorResponse(
+        "Failed to update health metrics",
+        error.message || "Internal Server Error",
+        500
+      )
+    );
+  }
+};
+
 export default {
   getDashboardStats,
   getPlatformStats,
@@ -410,4 +483,5 @@ export default {
   createUser,
   updateUser,
   deleteUser,
+  updateHealthMetrics,
 };
