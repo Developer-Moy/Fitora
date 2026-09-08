@@ -88,6 +88,56 @@ export interface PlatformStatsResponse {
   recentCheckIns: CheckInRecord[];
 }
 
+// ── Master Revenue Dashboard ────────────────────────────────────────────────
+
+export interface RevenueSummary {
+  totalRevenueBDT: number;
+  successfulPayments: number;
+  averagePaymentBDT: number;
+}
+
+export interface PlanRevenue {
+  planName: string;
+  totalRevenueBDT: number;
+  subscriptions: number;
+}
+
+export interface MonthlyRevenue {
+  month: string;
+  revenueBDT: number;
+  payments: number;
+}
+
+export interface GatewayRevenue {
+  gateway: string;
+  revenueBDT: number;
+  payments: number;
+}
+
+export interface MasterRevenue {
+  summary: RevenueSummary;
+  planRevenue: PlanRevenue[];
+  monthlyRevenue: MonthlyRevenue[];
+  gatewayRevenue: GatewayRevenue[];
+}
+
+export async function fetchMasterRevenue(): Promise<MasterRevenue | null> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/master/revenue`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data || null;
+  } catch {
+    return null;
+  }
+}
+
 export interface BranchInfo {
   id: string;
   name: string;

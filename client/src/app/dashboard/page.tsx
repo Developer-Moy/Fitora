@@ -4,8 +4,7 @@ import BranchManagementView from "@/components/dashboard/BranchManagementView";
 import MemberDashboardView from "@/components/dashboard/MemberDashboardView";
 import UserManagementTable from "@/components/dashboard/UserManagementTable";
 import {
-  INITIAL_CHECKINS,
-  REVENUE_MONTHLY_CHART
+  INITIAL_CHECKINS
 } from "@/data/dashboardData";
 import { useDashboardRole } from "@/hooks/useDashboardRole";
 import {
@@ -14,11 +13,17 @@ import {
   fetchBranchOverview,
 } from "@/services/branchService";
 import {
+  fetchMasterRevenue,
   fetchPlatformStats,
   type CheckInRecord,
+  type GatewayRevenue,
+  type MasterRevenue,
+  type MonthlyRevenue,
   type PackageSalesBreakdown,
   type PaymentGatewayBreakdown,
   type PlatformStats,
+  type PlanRevenue,
+  type RevenueSummary,
 } from "@/services/dashboardService";
 import {
   Activity,
@@ -60,6 +65,31 @@ export default function MasterDashboardPage() {
   const [packageBreakdown, setPackageBreakdown] = useState<PackageSalesBreakdown[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
 
+  // ── Live Master Revenue Aggregation Dashboard (master_admin only) ────────
+  const [masterRevenue, setMasterRevenue] = useState<MasterRevenue | null>(null);
+  const [revenueLoading, setRevenueLoading] = useState(false);
+  const [revenueError, setRevenueError] = useState("");
+
+  const loadMasterRevenue = useCallback(async () => {
+    if (role !== "master_admin") {
+      setMasterRevenue(null);
+      return;
+    }
+    setRevenueLoading(true);
+    setRevenueError("");
+    const data = await fetchMasterRevenue();
+    console.log(data, 'data');
+    if (data) {
+      setMasterRevenue(data);
+    } else {
+      setMasterRevenue(null);
+      setRevenueError(
+        "Could not load live revenue analytics. Showing last synced figures.",
+      );
+    }
+    setRevenueLoading(false);
+  }, [role]);
+
   const loadPlatformStats = useCallback(async () => {
     if (role !== "master_admin" && role !== "branch_admin") return;
     setStatsLoading(true);
@@ -75,7 +105,8 @@ export default function MasterDashboardPage() {
 
   useEffect(() => {
     loadPlatformStats();
-  }, [loadPlatformStats]);
+    loadMasterRevenue();
+  }, [loadPlatformStats, loadMasterRevenue]);
 
   const [checkinPage, setCheckinPage] = useState<number>(1);
   const [selectedBranchName, setSelectedBranchName] = useState(
@@ -98,6 +129,71 @@ export default function MasterDashboardPage() {
     (checkinPage - 1) * checkinsPerPage,
     checkinPage * checkinsPerPage,
   );
+
+  // ── Live Master Revenue derived values (master_admin) ─────────────────────
+  const revenueSummary: RevenueSummary = masterRevenue?.summary ?? {
+    totalRevenueBDT: 0,
+    successfulPayments: 0,
+    averagePaymentBDT: 0,
+  };
+  const gateways: GatewayRevenue[] = masterRevenue?.gatewayRevenue ?? [];
+  const plans: PlanRevenue[] = masterRevenue?.planRevenue ?? [];
+
+  const planRevenueList: PlanRevenue[] = [
+    "Basic Pass",
+    "Pro Athlete",
+    "VIP Ultimate",
+  ].map((planName) => {
+    const found = plans.find((item) => item.planName === planName);
+    return {
+      planName,
+      totalRevenueBDT: found?.totalRevenueBDT ?? 0,
+      subscriptions: found?.subscriptions ?? 0,
+    };
+  });
+
+  const revenueByMonth: Record<string, number> = {};
+  const apiMonthly: MonthlyRevenue[] = masterRevenue?.monthlyRevenue ?? [];
+  for (const item of apiMonthly) {
+    revenueByMonth[item.month] = (revenueByMonth[item.month] ?? 0) + item.revenueBDT;
+  }
+  const MONTHS_IN_ORDER = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  const monthlyRevenueChart = MONTHS_IN_ORDER.map((month) => ({
+    month,
+    revenue: revenueByMonth[month] ?? 0,
+    payments:
+      apiMonthly.find((item) => item.month === month)?.payments ?? 0,
+    netProfit: 0, // single-series chart: keep revenue bars only
+  }));
+
+  const monthlyMaxRevenue = Math.max(
+    1,
+    ...monthlyRevenueChart.map((item) => item.revenue),
+  );
+
+  const gatewayList: PaymentGatewayBreakdown[] = (() => {
+    if (gateways.length === 0) return [];
+    const total = gateways.reduce((sum, item) => sum + item.revenueBDT, 0) || 1;
+    return gateways.map((item) => ({
+      name: item.gateway,
+      percentage: Math.round((item.revenueBDT / total) * 100),
+      amountBDT: item.revenueBDT,
+      color: "#ffffff",
+    }));
+  })();
 
   useEffect(() => {
     if (tabParam) {
@@ -193,6 +289,19 @@ export default function MasterDashboardPage() {
           {/* TAB 1: FINANCIAL & GROWTH OVERVIEW / REVENUE */}
           {(activeTab === "overview" || activeTab === "revenue") && (
             <div className="space-y-8 animate-in fade-in duration-200">
+              {/* Live Revenue API status banner (master_admin only) */}
+              {isMasterAdmin && revenueLoading && (
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-white/50 animate-pulse">
+                  <Zap className="w-4 h-4 text-white" />
+                  Loading live revenue analytics from MongoDB...
+                </div>
+              )}
+              {isMasterAdmin && revenueError && (
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-amber-400/90">
+                  <CircleAlert className="w-4 h-4 text-amber-400" />
+                  {revenueError}
+                </div>
+              )}
               {/* 4 Core Financial KPIs (Luxury Monochrome with Green / Red numbers only) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 <div className="p-6 rounded-3xl bg-neutral-950 border border-white/10 shadow-xl space-y-2">
@@ -206,12 +315,14 @@ export default function MasterDashboardPage() {
                   </div>
                   <div className="pt-2">
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                      ৳{platformStats
-                        ? (isMasterAdmin
-                          ? platformStats.totalRevenueBDT
-                          : platformStats.mrrBDT
-                        ).toLocaleString("en-IN")
-                        : isMasterAdmin ? "84,50,000" : "6,80,000"}
+                      ৳{isMasterAdmin && masterRevenue
+                        ? revenueSummary.totalRevenueBDT.toLocaleString("en-IN")
+                        : platformStats
+                          ? (isMasterAdmin
+                            ? platformStats.totalRevenueBDT
+                            : platformStats.mrrBDT
+                          ).toLocaleString("en-IN")
+                          : isMasterAdmin ? "84,50,000" : "6,80,000"}
                     </span>
                   </div>
                   {/* Growth delta: ONLY Green or Red for numbers */}
@@ -223,14 +334,25 @@ export default function MasterDashboardPage() {
 
                 <div className="p-6 rounded-3xl bg-neutral-950 border border-white/10 shadow-xl space-y-2">
                   <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-white/50">
-                    <span>Monthly Recurring (MRR)</span>
+                    <span>
+                      {isMasterAdmin
+                        ? "Successful Payments"
+                        : "Monthly Recurring (MRR)"}
+                    </span>
                     <CreditCard className="w-4 h-4 text-white" />
                   </div>
                   <div className="pt-2">
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                      ৳{platformStats
-                        ? platformStats.mrrBDT.toLocaleString("en-IN")
-                        : isMasterAdmin ? "14,20,000" : "1,95,000"}
+                      {isMasterAdmin && masterRevenue
+                        ? revenueSummary.successfulPayments.toLocaleString()
+                        : `৳${platformStats
+                          ? platformStats.mrrBDT.toLocaleString("en-IN")
+                          : isMasterAdmin ? "14,20,000" : "1,95,000"}`}
+                      {isMasterAdmin && masterRevenue && (
+                        <span className="text-xs font-black text-white/40 ml-2 uppercase">
+                          Completed
+                        </span>
+                      )}
                     </span>
                   </div>
                   <div className="pt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
@@ -243,22 +365,26 @@ export default function MasterDashboardPage() {
                   <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-white/50">
                     <span>
                       {isMasterAdmin
-                        ? "Total Active Members"
+                        ? "Average Payment"
                         : "Branch Members"}
                     </span>
                     <Users className="w-4 h-4 text-white" />
                   </div>
                   <div className="pt-2">
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                      {platformStats
+                      {isMasterAdmin && masterRevenue ? (
+                        <>
+                          ৳{revenueSummary.averagePaymentBDT.toLocaleString("en-IN")}
+                          <span className="text-xs font-black text-white/40 ml-2 uppercase">
+                            / Payment
+                          </span>
+                        </>
+                      ) : platformStats
                         ? (isMasterAdmin
                           ? platformStats.totalMembers
                           : platformStats.activeMembersToday
                         ).toLocaleString()
                         : isMasterAdmin ? "4,850" : "480"}
-                    </span>
-                    <span className="text-xs font-black text-white/40 ml-2 uppercase">
-                      Athletes
                     </span>
                   </div>
                   <div className="pt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
@@ -289,11 +415,10 @@ export default function MasterDashboardPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="font-black text-base uppercase tracking-tight text-white">
-                      Monthly Financial Progression (2025)
+                      Monthly Revenue Progression
                     </h3>
                     <p className="text-xs text-white/50 mt-0.5">
-                      Revenue volume vs Net Operational Margin across all
-                      branches.
+                      Live revenue volume across all branches (Calendar Year).
                     </p>
                   </div>
 
@@ -302,21 +427,20 @@ export default function MasterDashboardPage() {
                       <span className="w-3 h-3 rounded-full bg-white" />
                       <span className="text-white">Revenue (BDT)</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-neutral-600" />
-                      <span className="text-white/60">Net Profit</span>
-                    </div>
                   </div>
                 </div>
 
-                {/* Custom Monochrome Chart */}
-                <div className="grid grid-cols-6 gap-3 pt-4 items-end min-h-[220px]">
-                  {REVENUE_MONTHLY_CHART.map((item, idx) => {
+                {/* Custom Monochrome Bar Chart (fed from live monthlyRevenue) */}
+                {revenueLoading && (
+                  <div className="w-full text-xs font-black uppercase tracking-widest text-white/40 animate-pulse">
+                    Loading revenue analytics...
+                  </div>
+                )}
+                <div className="grid grid-cols-12 gap-2 pt-4 items-end min-h-[220px]">
+                  {monthlyRevenueChart.map((item, idx) => {
+                    const hasData = item.revenue > 0;
                     const heightPercent = Math.round(
-                      (item.revenue / 1500000) * 100,
-                    );
-                    const profitPercent = Math.round(
-                      (item.netProfit / 1500000) * 100,
+                      (item.revenue / monthlyMaxRevenue) * 100,
                     );
 
                     return (
@@ -324,22 +448,23 @@ export default function MasterDashboardPage() {
                         key={idx}
                         className="flex flex-col items-center gap-2 h-full justify-end group"
                       >
-                        <span className="text-[10px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[9px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity">
                           ৳{(item.revenue / 100000).toFixed(1)}L
                         </span>
-                        <div className="w-full max-w-[48px] flex items-end gap-1 h-[160px] bg-neutral-900 p-1.5 rounded-2xl border border-white/5">
+                        <div className="w-full max-w-[24px] flex items-end gap-1 h-[160px] bg-neutral-900 p-1 rounded-2xl border border-white/5">
                           <div
-                            className="w-1/2 bg-white rounded-xl transition-all duration-500"
-                            style={{ height: `${heightPercent}%` }}
-                            title={`Revenue: ৳${item.revenue.toLocaleString()}`}
-                          />
-                          <div
-                            className="w-1/2 bg-neutral-600 rounded-xl transition-all duration-500"
-                            style={{ height: `${profitPercent}%` }}
-                            title={`Net Profit: ৳${item.netProfit.toLocaleString()}`}
+                            className={`w-full rounded-xl transition-all duration-500 ${hasData ? "bg-white" : "bg-neutral-700/30"}`}
+                            style={{
+                              height: hasData ? `${Math.max(heightPercent, 4)}%` : "8%",
+                            }}
+                            title={
+                              hasData
+                                ? `Revenue: ৳${item.revenue.toLocaleString()} (${item.payments} payments)`
+                                : `${item.month}: No revenue`
+                            }
                           />
                         </div>
-                        <span className="text-xs font-black text-white/50 uppercase">
+                        <span className="text-[10px] font-black text-white/50 uppercase">
                           {item.month}
                         </span>
                       </div>
@@ -579,13 +704,15 @@ export default function MasterDashboardPage() {
               </div>
 
               <div className="space-y-4 pt-2">
-                {(gatewayBreakdown.length > 0
-                  ? gatewayBreakdown
-                  : [
-                    { name: "bKash Direct", percentage: 62, amountBDT: 5239000, color: "#E2136E" },
-                    { name: "Nagad Gateway", percentage: 26, amountBDT: 2197000, color: "#F7941D" },
-                    { name: "Visa / Mastercard", percentage: 12, amountBDT: 1014000, color: "#00579F" },
-                  ]
+                {(isMasterAdmin && gatewayList.length > 0
+                  ? gatewayList
+                  : gatewayBreakdown.length > 0
+                    ? gatewayBreakdown
+                    : [
+                      { name: "bKash Direct", percentage: 62, amountBDT: 5239000, color: "#E2136E" },
+                      { name: "Nagad Gateway", percentage: 26, amountBDT: 2197000, color: "#F7941D" },
+                      { name: "Visa / Mastercard", percentage: 12, amountBDT: 1014000, color: "#00579F" },
+                    ]
                 ).map((gw, idx) => (
                   <div
                     key={idx}
@@ -606,6 +733,11 @@ export default function MasterDashboardPage() {
                     </div>
                   </div>
                 ))}
+                {isMasterAdmin && gatewayList.length === 0 && !revenueLoading && (
+                  <div className="p-5 rounded-2xl bg-neutral-900 border border-white/5 text-xs text-white/50">
+                    No completed payments recorded yet for gateway breakdown.
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -618,20 +750,40 @@ export default function MasterDashboardPage() {
                   Membership Tiers & Subscriber Distribution
                 </h3>
                 <p className="text-xs text-white/50 mt-0.5">
-                  Breakdown across Free Trial, Basic Pass, Pro Athlete, and VIP
-                  Ultimate.
+                  {isMasterAdmin
+                    ? "Live subscription revenue and subscriber count per plan (Basic, Pro, VIP)."
+                    : "Breakdown across Free Trial, Basic Pass, Pro Athlete, and VIP Ultimate."}
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {(packageBreakdown.length > 0
-                  ? packageBreakdown
-                  : [
-                    { name: "Free Tier (Trial)", members: 3200, priceBDT: 0, share: "66%" },
-                    { name: "Basic Pass", members: 680, priceBDT: 2500, share: "14%" },
-                    { name: "Pro Athlete (AI Suite)", members: 820, priceBDT: 4900, share: "17%" },
-                    { name: "VIP Ultimate (All-Branch)", members: 150, priceBDT: 9900, share: "3%" },
-                  ]
+                {(isMasterAdmin && masterRevenue
+                  ? planRevenueList.map((plan) => ({
+                    name: plan.planName,
+                    members: plan.subscriptions,
+                    priceBDT: plan.totalRevenueBDT,
+                    share: planRevenueList.reduce(
+                      (total, p) => total + p.totalRevenueBDT,
+                      0,
+                    ) > 0
+                      ? `${Math.round(
+                        (plan.totalRevenueBDT /
+                          planRevenueList.reduce(
+                            (total, p) => total + p.totalRevenueBDT,
+                            0,
+                          )) *
+                          100,
+                      )}%`
+                      : "0%",
+                  }))
+                  : packageBreakdown.length > 0
+                    ? packageBreakdown
+                    : [
+                      { name: "Free Tier (Trial)", members: 3200, priceBDT: 0, share: "66%" },
+                      { name: "Basic Pass", members: 680, priceBDT: 2500, share: "14%" },
+                      { name: "Pro Athlete (AI Suite)", members: 820, priceBDT: 4900, share: "17%" },
+                      { name: "VIP Ultimate (All-Branch)", members: 150, priceBDT: 9900, share: "3%" },
+                    ]
                 ).map((pkg, idx) => (
                   <div
                     key={idx}
@@ -646,13 +798,13 @@ export default function MasterDashboardPage() {
                     <div className="text-3xl font-black text-white tracking-tight">
                       {pkg.priceBDT > 0
                         ? `৳${pkg.priceBDT.toLocaleString()}`
-                        : "Free"}
+                        : "৳0"}
                       <span className="text-xs text-white/40 font-normal uppercase">
-                        /mo
+                        {isMasterAdmin && masterRevenue ? " Revenue" : " /mo"}
                       </span>
                     </div>
                     <div className="text-xs font-black uppercase text-emerald-400">
-                      {pkg.members} Active Subscribers
+                      {pkg.members} {isMasterAdmin && masterRevenue ? "Subscriptions" : "Active Subscribers"}
                     </div>
                   </div>
                 ))}
