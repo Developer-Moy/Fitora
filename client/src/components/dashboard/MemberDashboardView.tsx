@@ -270,25 +270,27 @@ export default function MemberDashboardView({
       }
 
       let response;
+      const rawApiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const apiBase = rawApiUrl.endsWith("/api")
+        ? rawApiUrl
+        : `${rawApiUrl}/api`;
 
       if (goalId) {
         // Existing goal → update
-        response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/goals/${goalId}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              targetWeight,
-              weeklyWorkoutFrequency: workoutFrequency,
-            }),
+        response = await fetch(`${apiBase}/goals/${goalId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+          body: JSON.stringify({
+            targetWeight,
+            weeklyWorkoutFrequency: workoutFrequency,
+          }),
+        });
       } else {
         // No goal → create
-        response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/goals`, {
+        response = await fetch(`${apiBase}/goals`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -553,9 +555,9 @@ export default function MemberDashboardView({
                 {statsLoading
                   ? "..."
                   : ((
-                    (memberStats as any)?.burnedCalories ??
-                    memberStats?.caloriesBurned
-                  )?.toLocaleString() ?? "11,400")}
+                      (memberStats as any)?.burnedCalories ??
+                      memberStats?.caloriesBurned
+                    )?.toLocaleString() ?? "11,400")}
               </span>
               <span className="text-xs font-bold text-white/50 uppercase">
                 kcal
@@ -1181,10 +1183,11 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("bKash")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "bKash"
-                        ? "border-white bg-white text-black font-black shadow-lg"
-                        : "border-white/15 bg-neutral-900 text-white/60"
-                        }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
+                        selectedGateway === "bKash"
+                          ? "border-white bg-white text-black font-black shadow-lg"
+                          : "border-white/15 bg-neutral-900 text-white/60"
+                      }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">bKash</span>
@@ -1193,10 +1196,11 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("Nagad")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "Nagad"
-                        ? "border-white bg-white text-black font-black shadow-lg"
-                        : "border-white/15 bg-neutral-900 text-white/60"
-                        }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
+                        selectedGateway === "Nagad"
+                          ? "border-white bg-white text-black font-black shadow-lg"
+                          : "border-white/15 bg-neutral-900 text-white/60"
+                      }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">Nagad</span>
@@ -1205,10 +1209,11 @@ export default function MemberDashboardView({
                     <button
                       type="button"
                       onClick={() => setSelectedGateway("Card")}
-                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${selectedGateway === "Card"
-                        ? "border-white bg-white text-black font-black shadow-lg"
-                        : "border-white/15 bg-neutral-900 text-white/60"
-                        }`}
+                      className={`p-3.5 rounded-2xl border flex flex-col items-center gap-1.5 transition cursor-pointer ${
+                        selectedGateway === "Card"
+                          ? "border-white bg-white text-black font-black shadow-lg"
+                          : "border-white/15 bg-neutral-900 text-white/60"
+                      }`}
                     >
                       <CreditCard className="w-5 h-5" />
                       <span className="font-black">Card</span>

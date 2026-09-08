@@ -11,13 +11,14 @@ import { errorResponse, successResponse } from "../utils/apiResponse";
  */
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.id || (req.query.userId as string) || "guest_user";
+    const userId =
+      (req as any).user?.id || (req.query.userId as string) || "guest_user";
 
     const workouts = await WorkoutLog.find({ userId });
     const workoutCount = workouts.length;
     const burnedCalories = workouts.reduce(
       (total: number, workout: any) => total + (workout.caloriesBurned || 0),
-      0
+      0,
     );
 
     return res.status(200).json(
@@ -29,22 +30,24 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             (workouts.reduce(
               (total: number, workout: any) =>
                 total + (workout.durationMinutes || 0),
-              0
+              0,
             ) /
               60) *
-            10
+              10,
           ) / 10,
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in getDashboardStats controller:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to fetch dashboard statistics",
-        error.message || "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to fetch dashboard statistics",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -103,12 +106,17 @@ export const getPlatformStats = async (req: AuthRequest, res: Response) => {
       branchName: u.assignedBranch || "Dhaka - Gulshan-2 Branch",
       time: u.updatedAt
         ? new Date(u.updatedAt).toLocaleTimeString("en-BD", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+            hour: "2-digit",
+            minute: "2-digit",
+          })
         : "N/A",
       status: "Verified Entry",
-      method: i % 3 === 0 ? "QR Scan" : i % 3 === 1 ? "Manual Entry" : "Biometric NFC",
+      method:
+        i % 3 === 0
+          ? "QR Scan"
+          : i % 3 === 1
+            ? "Manual Entry"
+            : "Biometric NFC",
     }));
 
     return res.status(200).json(
@@ -160,17 +168,19 @@ export const getPlatformStats = async (req: AuthRequest, res: Response) => {
           share: `${Math.round((p.count / (totalMembers || 1)) * 100)}%`,
         })),
         recentCheckIns: checkIns,
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in getPlatformStats:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to fetch platform statistics",
-        error.message || "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to fetch platform statistics",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -217,11 +227,9 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
         ? new Date(u.createdAt).toISOString().split("T")[0]
         : "",
       expiryDate: u.updatedAt
-        ? new Date(
-          new Date(u.updatedAt).getTime() + 30 * 24 * 60 * 60 * 1000
-        )
-          .toISOString()
-          .split("T")[0]
+        ? new Date(new Date(u.updatedAt).getTime() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0]
         : "",
       totalPaidBDT: u.totalPaidBDT || 0,
       paymentMethod: u.paymentMethod || "None",
@@ -236,7 +244,8 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
       lastCheckIn: u.updatedAt
         ? new Date(u.updatedAt).toLocaleDateString("en-BD")
         : "Never",
-      qrCodeId: u.qrCodeId || `FIT-QR-${u._id.toString().slice(-6).toUpperCase()}`,
+      qrCodeId:
+        u.qrCodeId || `FIT-QR-${u._id.toString().slice(-6).toUpperCase()}`,
     }));
 
     return res.status(200).json(
@@ -246,17 +255,19 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
         page: Number(page),
         limit: Number(limit),
         totalPages: Math.ceil(total / Number(limit)),
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in getAllUsers:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to fetch users",
-        error.message || "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to fetch users",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -265,8 +276,16 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
  */
 export const createUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, phone, role, assignedBranch, plan, status, paymentMethod } =
-      req.body;
+    const {
+      name,
+      email,
+      phone,
+      role,
+      assignedBranch,
+      plan,
+      status,
+      paymentMethod,
+    } = req.body;
 
     if (!name || !email || !phone) {
       return res
@@ -296,7 +315,14 @@ export const createUser = async (req: AuthRequest, res: Response) => {
       passwordHash: "temp_hash_" + Date.now(),
       attendanceStreakDays: 0,
       hydrationTargetLiters: 2.5,
-      totalPaidBDT: plan === "Pro Athlete" ? 4900 : plan === "Basic Pass" ? 2500 : plan === "VIP Ultimate" ? 9900 : 0,
+      totalPaidBDT:
+        plan === "Pro Athlete"
+          ? 4900
+          : plan === "Basic Pass"
+            ? 2500
+            : plan === "VIP Ultimate"
+              ? 9900
+              : 0,
       qrCodeId: `FIT-QR-${Date.now().toString(36).toUpperCase()}`,
       isMasterProtected: false,
     });
@@ -308,17 +334,19 @@ export const createUser = async (req: AuthRequest, res: Response) => {
         id: newUser._id.toString(),
         name: newUser.name,
         email: newUser.email,
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in createUser:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to create user",
-        error.message || "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to create user",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -359,7 +387,7 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     const updated = await User.findByIdAndUpdate(
       id,
       { ...updates },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-passwordHash");
 
     if (!updated) {
@@ -370,17 +398,19 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
       successResponse("User updated successfully", {
         id: updated._id.toString(),
         name: updated.name,
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in updateUser:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to update user",
-        error.message || "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to update user",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -404,7 +434,7 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
             "Master Admin account is permanently protected and cannot be deleted",
             "",
             403,
-          )
+          ),
         );
     }
 
@@ -415,13 +445,15 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
       .json(successResponse(`User "${user.name}" deleted successfully`, {}));
   } catch (error: any) {
     console.error("Error in deleteUser:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to delete user",
-        error.message || "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to delete user",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -453,10 +485,7 @@ const resolveUserExpiry = (user: any): Date | null => {
  * POST /api/dashboard/users/:id/membership/extend — Extend membership
  * (master admin only) by `days`.
  */
-export const extendUserMembership = async (
-  req: AuthRequest,
-  res: Response
-) => {
+export const extendUserMembership = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { days } = req.body;
@@ -466,7 +495,7 @@ export const extendUserMembership = async (
       return res
         .status(400)
         .json(
-          errorResponse("Days must be a number between 1 and 3650", "", 400)
+          errorResponse("Days must be a number between 1 and 3650", "", 400),
         );
     }
 
@@ -482,13 +511,15 @@ export const extendUserMembership = async (
           errorResponse(
             "Master Admin account is immutable and cannot be modified",
             "",
-            403
-          )
+            403,
+          ),
         );
     }
 
     const base = resolveUserExpiry(target) || new Date();
-    const newExpiry = new Date(base.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+    const newExpiry = new Date(
+      base.getTime() + daysToAdd * 24 * 60 * 60 * 1000,
+    );
 
     target.subscriptionExpiryDate = newExpiry;
     target.membershipExpiresAt = newExpiry;
@@ -497,21 +528,28 @@ export const extendUserMembership = async (
     }
     await target.save();
 
-    return res.status(200).json(
-      successResponse(
-        `Membership extended by ${daysToAdd} day(s) for "${target.name}"`,
-        { name: target.name, subscriptionExpiryDate: newExpiry.toISOString() }
-      )
-    );
+    return res
+      .status(200)
+      .json(
+        successResponse(
+          `Membership extended by ${daysToAdd} day(s) for "${target.name}"`,
+          {
+            name: target.name,
+            subscriptionExpiryDate: newExpiry.toISOString(),
+          },
+        ),
+      );
   } catch (error: any) {
     console.error("Error in extendUserMembership:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to extend membership",
-        error.message || "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to extend membership",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -520,12 +558,8 @@ export const extendUserMembership = async (
  * (master admin only) among the three paid tiers.
  */
 export const updateUserMembershipPlan = async (
- * 7. PATCH /api/users/profile/health-metrics
- * Sync calculated BMR and TDEE to the authenticated user's profile
- */
-export const updateHealthMetrics = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { id } = req.params;
@@ -539,8 +573,8 @@ export const updateHealthMetrics = async (
           errorResponse(
             `Plan must be one of: ${allowedPlans.join(", ")}`,
             "",
-            400
-          )
+            400,
+          ),
         );
     }
 
@@ -556,8 +590,8 @@ export const updateHealthMetrics = async (
           errorResponse(
             "Master Admin account is immutable — plan cannot be changed",
             "",
-            403
-          )
+            403,
+          ),
         );
     }
 
@@ -585,18 +619,20 @@ export const updateHealthMetrics = async (
           name: target.name,
           plan: target.plan,
           subscriptionExpiryDate: effectiveExpiry || null,
-        }
-      )
+        },
+      ),
     );
   } catch (error: any) {
     console.error("Error in updateUserMembershipPlan:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to update membership plan",
-        error.message || "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to update membership plan",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 
@@ -606,7 +642,7 @@ export const updateHealthMetrics = async (
  */
 export const getUserMembershipAudit = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { id } = req.params;
@@ -645,17 +681,83 @@ export const getUserMembershipAudit = async (
           invoiceNumber: latestPayment?.invoiceNumber || null,
           status: target.status,
         },
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error in getUserMembershipAudit:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to retrieve membership audit",
-        error.message || "Internal Server Error",
-        500
-      )
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve membership audit",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
+  }
+};
+
+/**
+ * PATCH /api/users/profile/health-metrics
+ * Sync calculated BMR and TDEE to the authenticated user's profile
+ */
+export const updateHealthMetrics = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId || (req as any).user?.id;
+
+    if (!userId) {
+      return res.status(401).json(errorResponse("Unauthorized", "", 401));
+    }
+
+    const { bmr, tdee } = req.body;
+
+    if (
+      typeof bmr !== "number" ||
+      typeof tdee !== "number" ||
+      bmr <= 0 ||
+      tdee <= 0
+    ) {
+      return res
+        .status(400)
+        .json(errorResponse("Valid BMR and TDEE are required", "", 400));
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          bmr: Math.round(bmr),
+          tdee: Math.round(tdee),
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).select("-passwordHash");
+
+    if (!updatedUser) {
+      return res.status(404).json(errorResponse("User not found", "", 404));
+    }
+
+    return res.status(200).json(
+      successResponse("Health metrics updated successfully", {
+        bmr: updatedUser.bmr,
+        tdee: updatedUser.tdee,
+      }),
     );
+  } catch (error: any) {
+    console.error("Error in updateHealthMetrics:", error);
+
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to update health metrics",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
 

@@ -19,20 +19,21 @@
 ![Fitora Base Design Reference](docs/fitora.png)
 
 ### Key Design Highlights:
-* **Pure Black & White Theme**: High-contrast, premium aesthetic with zero red or extraneous accent colors.
-* **Signature Pill Buttons**: Uniform `rounded-full` pill button system with rotating `ArrowUpRight` (`↗`) round icon badges.
-* **Zoom-Proof & Responsive Layout**: Responsive max-width container architecture locking relative component positions during browser zoom and ultra-wide screens.
-* **Strict Brand Identity**: Standardized 100% brand consistency under **FITORA** / **FITORA GYM & AI**.
+
+- **Pure Black & White Theme**: High-contrast, premium aesthetic with zero red or extraneous accent colors.
+- **Signature Pill Buttons**: Uniform `rounded-full` pill button system with rotating `ArrowUpRight` (`↗`) round icon badges.
+- **Zoom-Proof & Responsive Layout**: Responsive max-width container architecture locking relative component positions during browser zoom and ultra-wide screens.
+- **Strict Brand Identity**: Standardized 100% brand consistency under **FITORA** / **FITORA GYM & AI**.
 
 ---
 
 ## 🌟 Core Modules & Standalone Pages
 
-- 🏋️ **Hero Section (`HeroSection.tsx`)**: Title Case Serif Italic *"Build Your Body"* headline, transparent athlete cutout (`/hero.png`), non-clipped SVG bottom notch, left-middle details text, far-left bottom social icons, right-middle *"See Packages"* button, and 3-column animated stats counter strip.
-- ⭐️ **Why Choose Fitora (`WhyChooseUs.tsx`)**: Clean white background theme, 3 stacked rounded workout images, feature checklist, and signature *"Free Trial Today"* button.
+- 🏋️ **Hero Section (`HeroSection.tsx`)**: Title Case Serif Italic _"Build Your Body"_ headline, transparent athlete cutout (`/hero.png`), non-clipped SVG bottom notch, left-middle details text, far-left bottom social icons, right-middle _"See Packages"_ button, and 3-column animated stats counter strip.
+- ⭐️ **Why Choose Fitora (`WhyChooseUs.tsx`)**: Clean white background theme, 3 stacked rounded workout images, feature checklist, and signature _"Free Trial Today"_ button.
 - 💳 **Membership Pricing Section (`PricingSection.tsx`)**: 3-card membership tier showcase (Basic Pass, Pro Athlete, VIP Ultimate), Monthly/Annual 20% discount billing toggle, and signature CTA buttons.
-- 📞 **Trainer Callout Banner (`TrainerCalloutBanner.tsx`)**: High-contrast black callout banner *"Need a Fitness Trainer?"*, contact phone line, and signature *"PURCHASE NOW"* button.
-- 📝 **Consultation Form (`ContactInfoForm.tsx`)**: *"Leave Us Your Info"* consultation form, office location (`Fitora Tower, Gulshan-2, Dhaka 1212` & `64 Branches in Bangladesh`), opening hours, and signature *"SUBMIT NOW"* button.
+- 📞 **Trainer Callout Banner (`TrainerCalloutBanner.tsx`)**: High-contrast black callout banner _"Need a Fitness Trainer?"_, contact phone line, and signature _"PURCHASE NOW"_ button.
+- 📝 **Consultation Form (`ContactInfoForm.tsx`)**: _"Leave Us Your Info"_ consultation form, office location (`Fitora Tower, Gulshan-2, Dhaka 1212` & `64 Branches in Bangladesh`), opening hours, and signature _"SUBMIT NOW"_ button.
 - 🏋️ **Real-Time Gym Timer HUD (`/stopwatch`)**: Fullscreen distraction-free rest timer with exercise selector chips, quick rest add buttons (+30s, +60s), and automated Web Audio alerts.
 - 🤖 **AI Coach Studio (`/dashboard/user/ai-coach`)**: Full-screen AI Studio layout featuring quick prompt chips ("Chest & Push Split", "Calculate Protein Macros", "DOMS Recovery", "Progressive Overload"), 1-click clipboard export, and real-time typing animation.
 - 📊 **Metric & BMI Calculator (`/calculator`)**: Dynamic height/weight sliders with real-time BMI, BMR, and TDEE macro gauge visualizations.
@@ -40,8 +41,10 @@
 - 🏆 **User Profile & Milestones (`/profile`)**: Fitness streak counter (🔥 12-day streak), earned achievement badges ("100k KG Lifted", "Streak Champion"), and completed goal history.
 - 💎 **Membership & Pricing Tiers Page (`/plans`)**: Expanded membership tiers, feature comparison matrix, interactive FAQ accordion, and Stripe mock checkout modal.
 - 👑 **Membership Expiry & Live Countdown (`/profile` & `/dashboard`)**: Real-time ticker counting down remaining membership duration (`29 Days, 18 Hours Left`), visual status indicators (`Active`, `Expiring Soon`, `Expired`), and global sticky renewal alerts.
-- 🧾 **Digital Printable / PDF Invoice Engine**: Luxury Pure B&W downloadable invoice modal generating dynamic serials (`INV-YYYY-XXXXXX`), customer information, payment gateway details, and native print / PDF export support.
+- 🔄 **1-Click Dynamic Renewal & Future Expiry Extension**: Server-authoritative subscription renewal logic that automatically adds 30 days (monthly) or 365 days (annual) to the athlete's existing future expiration date, preventing any loss of remaining paid days.
+- 🧾 **Direct Pure Vector PDF & Printable Invoice Engine**: Luxury Pure B&W invoice modal generating dynamic serials (`INV-YYYY-XXXXXX`), customer information, transaction IDs, tax calculations, and direct high-resolution vector PDF export via `jspdf` alongside native print support.
 - 💳 **Multi-Gateway Payment & Anti-Tamper Engine**: Server-authoritative checkout supporting bKash, Nagad, Card, and Stripe with instant `FITORA PRO` badge synchronization on the global navigation brand logo.
+- 🛡️ **VIP & Pro Tier Protection Middleware (`requirePremiumTier`)**: Role-based access control protecting advanced workouts and premium coaching features with Master Admin overrides and graceful user model fallbacks.
 - 🔐 **Authentication Flow (`/login` & `/register`)**: Glassmorphism UI with form validation, toast feedback, and Better Auth integration.
 
 ---
@@ -49,6 +52,7 @@
 ## 🛠️ Tech Stack
 
 ### Frontend (`/client`)
+
 - **Framework**: Next.js 16 (App Router / Turbopack)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4, HeroUI, Framer Motion
@@ -57,6 +61,7 @@
 - **Realtime**: Socket.IO Client
 
 ### Backend (`/server`)
+
 - **Runtime**: Node.js & Express.js
 - **Database**: MongoDB with Mongoose ODM
 - **Language**: TypeScript (`tsx` engine)
@@ -115,6 +120,7 @@ Fitora/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - **Node.js**: v18.x or higher
 - **NPM**: v9.x or higher
 - **MongoDB**: Local MongoDB server or MongoDB Atlas URI
@@ -122,6 +128,7 @@ Fitora/
 ### Installation & Setup
 
 1. **Clone the Repository**:
+
    ```bash
    git clone https://github.com/Developer-Moy/Fitora.git
    cd Fitora
@@ -132,6 +139,7 @@ Fitora/
    - Copy `.env.example` in `server/` to `server/.env`
 
 3. **Install Dependencies**:
+
    ```bash
    # Install root runner
    npm install
@@ -148,10 +156,12 @@ Fitora/
    ```bash
    npm run dev
    ```
+
    - **Frontend App**: `http://localhost:3000`
    - **Backend API & Socket Server**: `http://localhost:5000`
 
 ---
 
 ## 📄 License
+
 This project is licensed under the MIT License.

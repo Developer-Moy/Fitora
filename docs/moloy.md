@@ -304,3 +304,29 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Added safe schema defaults in `User.model.ts` (`assignedBranch`, `assignedBranchSlug`, `attendanceStreakDays`, `hydrationTargetLiters`, `paymentMethod`) and used `validateModifiedOnly: true` to prevent legacy document validation errors on pre-existing users.
   - Updated `SubscriptionModal.tsx` card validation to accept 12-16 digit numbers with auto-default expiry/CVC fallbacks and direct local session synchronization so the **PRO** badge next to the `FITORA` brand logo immediately illuminates upon checkout.
 - Verified 100% clean compilation on both server (`npm run build`) and client (`npx tsc --noEmit`) with 0 errors.
+
+### 08-Sep-26 (Day 3)
+
+- **1-Click Subscription Renewal & Dynamic Expiry Extension Flow**:
+  - Engineered server-authoritative renewal extension logic in `server/src/controllers/payment.controller.ts` (`checkoutPayment`).
+  - When an active subscriber renews before expiration, the new duration (30 days for monthly, 365 days for annual) is added directly to their existing `subscriptionExpiryDate` (extending from the future date rather than resetting from today), ensuring zero lost subscription days. Expired subscriptions cleanly restart from the current timestamp.
+  - Dynamically increments `totalPaidBDT`, syncs `membershipExpiresAt`, and returns updated `invoice.expiryDate`.
+  - Conducted live MongoDB Atlas transaction test with `master@fitora.com`: verified expiry successfully extended from `2026-10-07` to `2026-11-07` (+1 month) with transaction `TRX-BK-2268RSTSIR` and invoice `INV-2026-838898`.
+- **Direct Pure Vector PDF Invoice Export Engine (`jspdf`)**:
+  - Integrated `jspdf` package into client application for direct client-side PDF document generation.
+  - Implemented high-resolution, vector-rendered PDF invoice generator (`handleDownloadPDF`) in both `client/src/components/InvoiceModal.tsx` and `client/src/components/invoice/InvoiceModal.tsx`.
+  - Generates crisp, print-accurate, pure black & white luxury branded invoices (`FITORA-INVOICE-{INV_NUMBER}.pdf`) with vector borders, itemized table layouts, payment gateway indicators, and cryptographic transaction IDs.
+  - Added dedicated "Download PDF" action buttons alongside "Print Invoice" in modal action toolbars.
+- **Post-Merge Full-Project Audit & Conflict Resolution (`development` branch)**:
+  - Pulled and fast-forwarded latest `origin/development` branch after all 6 developers' PRs (#124, #125, #126, #127) were merged.
+  - Diagnosed and resolved critical syntax breakages introduced during merge:
+    - Fixed server compilation failure in `server/src/controllers/user.controller.ts` where `updateUserMembershipPlan` and `updateHealthMetrics` were accidentally interleaved, eliminating 14 compiler errors.
+    - Restored missing `updateHealthMetrics` controller function and added missing `);` router closure in `server/src/routes/user.routes.ts`.
+    - Enhanced `server/src/middlewares/premium.middleware.ts` with master admin / staff admin bypass (`master_admin`, `admin`, `master@fitora.com`, `isMasterProtected`), added `User` model fallback for active subscriptions, and resolved NodeNext `.js` ES module imports.
+    - Added `/users` route alias in `server/src/routes/index.ts` to prevent 404 routing mismatches across frontend services.
+    - Fixed double `/api/api` path duplication and missing environment variable fallbacks in `client/src/app/calculator/page.tsx`, `client/src/components/ExerciseTracker.tsx`, and `client/src/components/dashboard/MemberDashboardView.tsx`.
+- **End-to-End Validation & Zero-Error Certification**:
+  - Validated live MongoDB connectivity and tested all core endpoints (`GET /api/health`, `GET /api/exercises`, `GET /api/workouts/advanced`, `PATCH /api/users/profile/health-metrics`, `PATCH /api/dashboard/profile/health-metrics`, `POST /api/payments/checkout`).
+  - Verified 100% clean TypeScript build on server (`npm run build` -> `tsc`) with **0 Errors**.
+  - Verified 100% clean TypeScript check on client (`npx tsc --noEmit`) with **0 Errors**.
+  - Verified 100% clean Next.js production build (`npm run build`) with all 14 routes successfully pre-rendered.

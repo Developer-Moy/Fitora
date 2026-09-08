@@ -30,25 +30,25 @@ const goalOptions: {
   calories: string;
   icon: string;
 }[] = [
-    {
-      value: "bulking",
-      label: "Bulking",
-      calories: "+500 kcal",
-      icon: "↑",
-    },
-    {
-      value: "cutting",
-      label: "Cutting",
-      calories: "-500 kcal",
-      icon: "↓",
-    },
-    {
-      value: "maintenance",
-      label: "Maintenance",
-      calories: "TDEE",
-      icon: "↔",
-    },
-  ];
+  {
+    value: "bulking",
+    label: "Bulking",
+    calories: "+500 kcal",
+    icon: "↑",
+  },
+  {
+    value: "cutting",
+    label: "Cutting",
+    calories: "-500 kcal",
+    icon: "↓",
+  },
+  {
+    value: "maintenance",
+    label: "Maintenance",
+    calories: "TDEE",
+    icon: "↔",
+  },
+];
 
 export default function CalculatorPage() {
   const [age, setAge] = useState(25);
@@ -107,8 +107,14 @@ export default function CalculatorPage() {
 
       if (!token) return;
 
+      const rawApiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const apiBase = rawApiUrl.endsWith("/api")
+        ? rawApiUrl
+        : `${rawApiUrl}/api`;
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/profile/health-metrics`,
+        `${apiBase}/dashboard/profile/health-metrics`,
         {
           method: "PATCH",
           headers: {
@@ -199,14 +205,11 @@ export default function CalculatorPage() {
 
   // Prefer server-verified macros, fall back to client-side calculation
   const macros = useMemo(() => {
-    const proteinCalories =
-      targetCalories * (macroPercentages.protein / 100);
+    const proteinCalories = targetCalories * (macroPercentages.protein / 100);
 
-    const carbsCalories =
-      targetCalories * (macroPercentages.carbs / 100);
+    const carbsCalories = targetCalories * (macroPercentages.carbs / 100);
 
-    const fatsCalories =
-      targetCalories * (macroPercentages.fats / 100);
+    const fatsCalories = targetCalories * (macroPercentages.fats / 100);
 
     return {
       protein: Math.round(proteinCalories / 4),
@@ -230,10 +233,10 @@ export default function CalculatorPage() {
 
       const plan = String(
         user?.plan ||
-        user?.tier ||
-        user?.subscription?.plan ||
-        user?.subscription?.tier ||
-        "",
+          user?.tier ||
+          user?.subscription?.plan ||
+          user?.subscription?.tier ||
+          "",
       ).toLowerCase();
 
       const premiumPlans = ["premium", "pro", "athlete", "paid"];
@@ -385,7 +388,7 @@ export default function CalculatorPage() {
             const u = JSON.parse(userStr);
             if (u.id || u._id) userId = u.id || u._id;
           }
-        } catch { }
+        } catch {}
       }
 
       const calculatedBmi =
@@ -469,20 +472,18 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
     }
   };
 
-
   return (
     <div className="w-full bg-black text-white selection:bg-white selection:text-black">
-
-
       <div className="mx-auto w-10/12 max-w-7xl pt-6">
         <div className="mx-auto flex max-w-xl rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setActiveTab("bmi")}
-            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${activeTab === "bmi"
-              ? "bg-white text-black shadow-lg"
-              : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
+            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${
+              activeTab === "bmi"
+                ? "bg-white text-black shadow-lg"
+                : "text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
           >
             BMI Calculator
           </button>
@@ -490,10 +491,11 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
           <button
             type="button"
             onClick={() => setActiveTab("nutrition")}
-            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${activeTab === "nutrition"
-              ? "bg-white text-black shadow-lg"
-              : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
+            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${
+              activeTab === "nutrition"
+                ? "bg-white text-black shadow-lg"
+                : "text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
           >
             BMR & Daily Calorie
           </button>
@@ -816,17 +818,19 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                             key={item.value}
                             type="button"
                             onClick={() => setGoal(item.value)}
-                            className={`flex w-full items-center justify-between p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${isActive
-                              ? "border-white bg-white text-black shadow-lg"
-                              : "border-white/15 bg-neutral-900 text-white hover:border-white/30 hover:bg-neutral-800"
-                              }`}
+                            className={`flex w-full items-center justify-between p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${
+                              isActive
+                                ? "border-white bg-white text-black shadow-lg"
+                                : "border-white/15 bg-neutral-900 text-white hover:border-white/30 hover:bg-neutral-800"
+                            }`}
                           >
                             <div className="flex items-center gap-2.5">
                               <span
-                                className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black transition-colors ${isActive
-                                  ? "bg-black text-white"
-                                  : "bg-neutral-800 text-white"
-                                  }`}
+                                className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black transition-colors ${
+                                  isActive
+                                    ? "bg-black text-white"
+                                    : "bg-neutral-800 text-white"
+                                }`}
                               >
                                 {item.icon}
                               </span>
@@ -837,10 +841,11 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                             </div>
 
                             <span
-                              className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${isActive
-                                ? "bg-black text-white font-black"
-                                : "bg-neutral-800 text-gray-300"
-                                }`}
+                              className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
+                                isActive
+                                  ? "bg-black text-white font-black"
+                                  : "bg-neutral-800 text-gray-300"
+                              }`}
                             >
                               {item.calories}
                             </span>
@@ -997,8 +1002,6 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                   </div>
                 </motion.div>
 
-
-
                 {/* Macro Distribution Box */}
                 <div className="rounded-3xl border border-white/10 bg-neutral-950 p-5 sm:p-6 text-white shadow-xl space-y-4">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2 pb-2 border-b border-white/10">
@@ -1110,7 +1113,6 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                   </div>
                 </div>
               </div>
-
             </div>
 
             {/* Pro Athlete Macro Adjuster */}
@@ -1146,9 +1148,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                 <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
                   Athlete Health{" "}
-                  <span className="font-normal text-gray-400">
-                    Assessment.
-                  </span>
+                  <span className="font-normal text-gray-400">Assessment.</span>
                 </h2>
 
                 <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-gray-500">

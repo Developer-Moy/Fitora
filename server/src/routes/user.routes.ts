@@ -27,40 +27,20 @@ router.get(
   "/platform-stats",
   authMiddleware,
   requireAdminOrBranchAdmin,
-  getPlatformStats
+  getPlatformStats,
 );
 
 // List all users with filters (admin only)
-router.get(
-  "/users",
-  authMiddleware,
-  requireAdminOrBranchAdmin,
-  getAllUsers
-);
+router.get("/users", authMiddleware, requireAdminOrBranchAdmin, getAllUsers);
 
 // Create new user (admin only)
-router.post(
-  "/users",
-  authMiddleware,
-  requireAdminOrBranchAdmin,
-  createUser
-);
+router.post("/users", authMiddleware, requireAdminOrBranchAdmin, createUser);
 
 // Update user (admin only)
-router.put(
-  "/users/:id",
-  authMiddleware,
-  requireAdminOrBranchAdmin,
-  updateUser
-);
+router.put("/users/:id", authMiddleware, requireAdminOrBranchAdmin, updateUser);
 
 // Delete user (master admin only)
-router.delete(
-  "/users/:id",
-  authMiddleware,
-  requireMasterAdmin,
-  deleteUser
-);
+router.delete("/users/:id", authMiddleware, requireMasterAdmin, deleteUser);
 
 // ── Membership Management (master admin only) ────────────────────────────────
 
@@ -69,7 +49,7 @@ router.get(
   "/users/:id/membership",
   authMiddleware,
   requireMasterAdmin,
-  getUserMembershipAudit
+  getUserMembershipAudit,
 );
 
 // Extend membership expiry by N days
@@ -77,7 +57,7 @@ router.post(
   "/users/:id/membership/extend",
   authMiddleware,
   requireMasterAdmin,
-  extendUserMembership
+  extendUserMembership,
 );
 
 // Change subscription plan (Basic Pass / Pro Athlete / VIP Ultimate)
@@ -85,12 +65,10 @@ router.put(
   "/users/:id/membership/plan",
   authMiddleware,
   requireMasterAdmin,
-  updateUserMembershipPlan
-// Update authenticated user's BMR and TDEE
-router.patch(
-  "/profile/health-metrics",
-  authMiddleware,
-  updateHealthMetrics
+  updateUserMembershipPlan,
 );
+
+// Update authenticated user's BMR and TDEE
+router.patch("/profile/health-metrics", authMiddleware, updateHealthMetrics);
 
 export default router;

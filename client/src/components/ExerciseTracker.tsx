@@ -114,40 +114,40 @@ export default function ExercisePage() {
     return filteredExercises.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredExercises, currentPage]);
 
-
-
   useEffect(() => {
-  const checkPremiumAccess = async () => {
-    try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("fitora_token") ||
-            localStorage.getItem("fitora_auth_token")
-          : null;
+    const checkPremiumAccess = async () => {
+      try {
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("fitora_token") ||
+              localStorage.getItem("fitora_auth_token")
+            : null;
 
-      if (!token) {
-        setIsPremium(false);
-        return;
-      }
+        if (!token) {
+          setIsPremium(false);
+          return;
+        }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/workouts/advanced`,
-        {
+        const rawApiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const apiBase = rawApiUrl.endsWith("/api")
+          ? rawApiUrl
+          : `${rawApiUrl}/api`;
+
+        const response = await fetch(`${apiBase}/workouts/advanced`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
-      );
+        });
 
-      setIsPremium(response.ok);
-    } catch {
-      setIsPremium(false);
-    }
-  };
+        setIsPremium(response.ok);
+      } catch {
+        setIsPremium(false);
+      }
+    };
 
-  checkPremiumAccess();
-}, []);
-
+    checkPremiumAccess();
+  }, []);
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -239,11 +239,14 @@ export default function ExercisePage() {
                     key={exercise.id}
                     exercise={exercise}
                     index={(currentPage - 1) * ITEMS_PER_PAGE + index}
-                     locked={exercise.difficulty === "ADVANCED" && !isPremium}
-                    onClick={() => { if (exercise.difficulty === "ADVANCED" && !isPremium) {
-                      setShowPremiumMessage(true);
-                      return;
-                    } setSelectedExercise(exercise)}}
+                    locked={exercise.difficulty === "ADVANCED" && !isPremium}
+                    onClick={() => {
+                      if (exercise.difficulty === "ADVANCED" && !isPremium) {
+                        setShowPremiumMessage(true);
+                        return;
+                      }
+                      setSelectedExercise(exercise);
+                    }}
                   />
                 ))}
               </div>
@@ -331,52 +334,51 @@ export default function ExercisePage() {
         />
       )}
 
-
       {showPremiumMessage && (
-  <div
-    className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-5"
-    onClick={() => setShowPremiumMessage(false)}
-  >
-    <div
-      className="w-full max-w-md bg-neutral-950 border border-white/15 rounded-3xl p-7 text-center shadow-2xl"
-      onClick={(event) => event.stopPropagation()}
-    >
-      <div className="w-14 h-14 mx-auto rounded-full bg-white text-black flex items-center justify-center mb-5">
-        <Lock className="w-6 h-6" />
-      </div>
-
-      <h2 className="text-2xl font-black uppercase tracking-tight">
-        Premium Workout
-      </h2>
-
-      <p className="text-sm text-white/50 leading-relaxed mt-3">
-        Advanced workouts are available for Pro and VIP members only.
-        Upgrade your membership to unlock this workout.
-      </p>
-
-      <div className="flex flex-col sm:flex-row gap-2 mt-6">
-        <button
-          type="button"
+        <div
+          className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-5"
           onClick={() => setShowPremiumMessage(false)}
-          className="flex-1 px-5 py-3 rounded-full border border-white/15 bg-neutral-900 text-white text-xs font-black uppercase tracking-wider hover:border-white/40 transition"
         >
-          Maybe Later
-        </button>
+          <div
+            className="w-full max-w-md bg-neutral-950 border border-white/15 rounded-3xl p-7 text-center shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="w-14 h-14 mx-auto rounded-full bg-white text-black flex items-center justify-center mb-5">
+              <Lock className="w-6 h-6" />
+            </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setShowPremiumMessage(false);
-            window.location.href = "/pricing";
-          }}
-          className="flex-1 px-5 py-3 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-gray-200 transition"
-        >
-          Upgrade Now
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+            <h2 className="text-2xl font-black uppercase tracking-tight">
+              Premium Workout
+            </h2>
+
+            <p className="text-sm text-white/50 leading-relaxed mt-3">
+              Advanced workouts are available for Pro and VIP members only.
+              Upgrade your membership to unlock this workout.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowPremiumMessage(false)}
+                className="flex-1 px-5 py-3 rounded-full border border-white/15 bg-neutral-900 text-white text-xs font-black uppercase tracking-wider hover:border-white/40 transition"
+              >
+                Maybe Later
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPremiumMessage(false);
+                  window.location.href = "/pricing";
+                }}
+                className="flex-1 px-5 py-3 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-gray-200 transition"
+              >
+                Upgrade Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -427,10 +429,10 @@ function ExerciseCard({
     <article
       onClick={onClick}
       className={`group relative h-[280px] sm:h-[310px] overflow-hidden rounded-2xl bg-neutral-900 border border-white/10 hover:border-white/30 transition-all duration-300 cursor-pointer shadow-xl select-none ${
-  locked
-    ? "border-white/10 cursor-pointer"
-    : "border-white/10 hover:border-white/30 cursor-pointer"
-}`}
+        locked
+          ? "border-white/10 cursor-pointer"
+          : "border-white/10 hover:border-white/30 cursor-pointer"
+      }`}
     >
       {/* Image */}
       <img
@@ -449,24 +451,24 @@ function ExerciseCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
 
       {locked && (
-  <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
-    <div className="flex flex-col items-center gap-3 text-center px-6">
-      <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center">
-        <Lock className="w-5 h-5" />
-      </div>
+        <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-center px-6">
+            <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center">
+              <Lock className="w-5 h-5" />
+            </div>
 
-      <div>
-        <p className="text-sm font-black uppercase tracking-wider text-white">
-          Premium Workout
-        </p>
+            <div>
+              <p className="text-sm font-black uppercase tracking-wider text-white">
+                Premium Workout
+              </p>
 
-        <p className="text-[10px] font-bold uppercase tracking-wider text-white/50 mt-1">
-          Upgrade to unlock
-        </p>
-      </div>
-    </div>
-  </div>
-)}
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/50 mt-1">
+                Upgrade to unlock
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Number */}
       <div className="absolute top-4 left-4">
