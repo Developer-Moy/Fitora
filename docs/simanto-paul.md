@@ -460,6 +460,15 @@ https://github.com/Developer-Moy/Fitora/tree/simanto-paul
 * Continued payment and authentication backend debugging.
 * Performed final review of payment-related implementation and integration.
 
+### 08-Sep-26
+
+* Added premium-only Pro Athlete Macro Adjuster with Protein, Carbs, and Fats sliders.
+* Added live macro calculation for Bulking, Cutting, and Maintenance goals.
+* Added free-tier lock and upgrade CTA.
+* Synced calculated BMR and TDEE values to the user profile.
+* Added Athlete Health Assessment Card with BMI, BMR, TDEE, target calories, and macro summary.
+* Added copy-to-clipboard and print/PDF export functionality.
+
 
 ---
 
