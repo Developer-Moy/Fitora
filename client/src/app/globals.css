@@ -90,3 +90,41 @@ body {
     display: none !important;
   }
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #athlete-health-assessment-card,
+  #athlete-health-assessment-card * {
+    visibility: visible !important;
+  }
+
+  #athlete-health-assessment-card {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+
+    background: #0a0a0a !important;
+    color: white !important;
+
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+}

@@ -439,31 +439,41 @@ export default function CalculatorPage() {
   };
 
   const handleExport = async () => {
-    const metrics = `FITORA NUTRITION & BMI REPORT
+    const metrics = `FITORA ATHLETE HEALTH ASSESSMENT
 Goal: ${goalLabel}
 Age: ${age} | Gender: ${gender}
 Height: ${height} cm | Weight: ${weight} kg
 Activity: ${activityDescription}
 
-BMR: ${bmr} kcal/day
-TDEE: ${tdee} kcal/day
-Target Calories: ${targetCalories} kcal/day
+BMI: ${bmi.toFixed(1)}
+BMR: ${Math.round(bmr)} kcal/day
+TDEE: ${Math.round(tdee)} kcal/day
+Target Calories: ${Math.round(targetCalories)} kcal/day
 
 Macros:
-- Protein: ${macros.protein}g (${macroPercentages.protein}%)
-- Carbs: ${macros.carbs}g (${macroPercentages.carbs}%)
-- Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
+Protein: ${macros.protein}g (${macroPercentages.protein}%)
+Carbs: ${macros.carbs}g (${macroPercentages.carbs}%)
+Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
     try {
       await navigator.clipboard.writeText(metrics);
-      toast.success("Metrics and nutrition plan copied to clipboard!");
-    } catch {
-      toast.error("Failed to copy metrics to clipboard.");
+
+      toast.success("Assessment copied. Opening print preview...");
+
+      setTimeout(() => {
+        window.print();
+      }, 400);
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export assessment.");
     }
   };
 
+
   return (
     <div className="w-full bg-black text-white selection:bg-white selection:text-black">
+
+
       <div className="mx-auto w-10/12 max-w-7xl pt-6">
         <div className="mx-auto flex max-w-xl rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur-md">
           <button
@@ -1128,7 +1138,7 @@ Macros:
             </div>
 
             {/* Athlete Health Assessment Card */}
-            <div className="mt-8">
+            <div id="athlete-report-section" className="mt-8">
               <div className="mb-4 flex flex-col items-start gap-2">
                 <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
                   05 / PERFORMANCE REPORT
