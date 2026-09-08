@@ -18,6 +18,7 @@ import { calculateBmr } from "@/utils/calculateBmr";
 import { calculateTdee } from "@/utils/calculateTdee";
 import { calculateNutritionApi } from "@/services/nutritionService";
 import MacroAdjuster from "@/components/calculator/MacroAdjuster";
+import AthleteHealthAssessmentCard from "@/components/calculator/AthleteHealthAssessmentCard";
 
 type Gender = "male" | "female";
 type Goal = "bulking" | "cutting" | "maintenance";
@@ -1099,16 +1100,66 @@ Macros:
                   </div>
                 </div>
               </div>
+
             </div>
 
             {/* Pro Athlete Macro Adjuster */}
-            <MacroAdjuster
-              isPremium={isPremium}
-              protein={macroPercentages.protein}
-              carbs={macroPercentages.carbs}
-              fats={macroPercentages.fats}
-              onChange={handleMacroChange}
-            />
+            <div className="mt-8">
+              <div className="mb-4">
+                <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
+                  04 / PREMIUM CONTROLS
+                </span>
+
+                <h2 className="mt-1 text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                  Pro Athlete{" "}
+                  <span className="font-normal text-gray-400">
+                    Macro Control.
+                  </span>
+                </h2>
+              </div>
+
+              <MacroAdjuster
+                isPremium={isPremium}
+                protein={macroPercentages.protein}
+                carbs={macroPercentages.carbs}
+                fats={macroPercentages.fats}
+                onChange={handleMacroChange}
+              />
+            </div>
+
+            {/* Athlete Health Assessment Card */}
+            <div className="mt-8">
+              <div className="mb-4 flex flex-col items-start gap-2">
+                <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
+                  05 / PERFORMANCE REPORT
+                </span>
+
+                <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                  Athlete Health{" "}
+                  <span className="font-normal text-gray-400">
+                    Assessment.
+                  </span>
+                </h2>
+
+                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-gray-500">
+                  Live Report
+                </span>
+              </div>
+
+              <AthleteHealthAssessmentCard
+                age={age}
+                gender={gender}
+                height={height}
+                weight={weight}
+                bmi={bmi}
+                bmr={bmr}
+                tdee={tdee}
+                targetCalories={targetCalories}
+                goal={goal}
+                macros={macros}
+                macroPercentages={macroPercentages}
+              />
+            </div>
 
             {/* =================================================
               FULL-WIDTH BOTTOM SUMMARY BAR (Nutrition Tip & Export CTA)
