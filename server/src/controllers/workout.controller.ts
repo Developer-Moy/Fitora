@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { WorkoutLog, IWorkoutLog } from "../models/WorkoutLog.model.js";
+import { WorkoutLog, IWorkoutLog } from "../models/WorkoutLog.model";
 import {
   LOCAL_WORKOUTS_DATABASE,
   WorkoutExercise,
 } from "../data/workout.data.js";
 import { successResponse, errorResponse } from "../utils/apiResponse";
+import { AuthRequest } from "../middlewares/auth.middleware";
+import UserTier from "../models/UserTier.model";
 
 // In-memory fallback storage for offline development
 interface LocalLogItem {
@@ -60,11 +62,24 @@ const inMemoryWorkoutLogs: LocalLogItem[] = [
  * Retrieve list of workout exercises from local catalog database
  */
 export const getWorkouts = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
 ): Promise<Response> => {
   try {
     const { category, difficulty, equipment, search, limit, page } = req.query;
+
+    if (
+  difficulty &&
+  String(difficulty).toLowerCase() === "advanced"
+) {
+  return res.status(403).json(
+    errorResponse(
+      "Advanced workouts require premium access. Use /api/workouts/advanced.",
+      "Premium Required",
+      403,
+    ),
+  );
+}
 
     let results: WorkoutExercise[] = [...LOCAL_WORKOUTS_DATABASE];
 
@@ -129,6 +144,99 @@ export const getWorkouts = async (
       );
   }
 };
+
+
+
+/**
+ * GET /api/workouts/advanced
+ * Retrieve advanced workouts for premium users only
+ */
+export const getAdvancedWorkouts = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    const { category, equipment, search, limit, page } = req.query;
+
+    let results: WorkoutExercise[] = LOCAL_WORKOUTS_DATABASE.filter(
+      (workout) => workout.difficulty.toLowerCase() === "advanced",
+    );
+
+    // Filter by category / muscle group
+    if (category && typeof category === "string") {
+      const catLower = category.toLowerCase();
+
+      results = results.filter(
+        (workout) =>
+          workout.category.toLowerCase() === catLower ||
+          workout.muscleGroup.toLowerCase().includes(catLower),
+      );
+    }
+
+    // Filter by equipment
+    if (equipment && typeof equipment === "string") {
+      const equipmentLower = equipment.toLowerCase();
+
+      results = results.filter(
+        (workout) =>
+          workout.equipment.toLowerCase() === equipmentLower,
+      );
+    }
+
+    // Search
+    if (search && typeof search === "string") {
+      const query = search.toLowerCase();
+
+      results = results.filter(
+        (workout) =>
+          workout.name.toLowerCase().includes(query) ||
+          workout.muscleGroup.toLowerCase().includes(query) ||
+          workout.targetMuscles.some((muscle) =>
+            muscle.toLowerCase().includes(query),
+          ),
+      );
+    }
+
+    const total = results.length;
+
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || total || 1;
+
+    const startIndex = (pageNum - 1) * limitNum;
+
+    const paginatedResults = results.slice(
+      startIndex,
+      startIndex + limitNum,
+    );
+
+    return res.status(200).json(
+      successResponse("Advanced workouts retrieved successfully", {
+        items: paginatedResults,
+        count: paginatedResults.length,
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum) || 1,
+      }),
+    );
+  } catch (error) {
+    console.error(
+      "[Workout Controller] getAdvancedWorkouts Error:",
+      error,
+    );
+
+    return res.status(500).json(
+      errorResponse(
+        "Failed to fetch advanced workouts",
+        error instanceof Error
+          ? error.message
+          : "Internal Server Error",
+        500,
+      ),
+    );
+  }
+};
+
+
 
 /**
  * GET /api/workouts/:id
