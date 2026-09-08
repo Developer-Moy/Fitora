@@ -347,6 +347,24 @@ export default function ProfilePage() {
   const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>([]);
   const [isLoadingDailyPlan, setIsLoadingDailyPlan] = useState<boolean>(true);
 
+
+  const [fitnessGoalData, setFitnessGoalData] = useState<{
+    goal: {
+      _id: string;
+      goalType?: string;
+      targetWeight: number;
+      weeklyWorkoutFrequency: number;
+    };
+    activeStreak: number;
+    totalVolumeLifted: number;
+    milestone?: {
+      achieved: boolean;
+      current: number | null;
+    };
+  } | null>(null);
+
+  const [fitnessGoalLoading, setFitnessGoalLoading] = useState(true);
+
   const [history, setHistory] = useState<BMIHistory[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState("");
@@ -642,7 +660,7 @@ export default function ProfilePage() {
         const token =
           typeof window !== "undefined"
             ? localStorage.getItem("fitora_token") ||
-              localStorage.getItem("fitora_auth_token")
+            localStorage.getItem("fitora_auth_token")
             : null;
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -700,7 +718,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch {}
+    } catch { }
     toast.success("Logged out successfully. See you soon, Champion!");
     setTimeout(() => {
       window.location.href = "/";
@@ -737,6 +755,130 @@ export default function ProfilePage() {
   };
 
   if (!isMounted) return null;
+
+
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchFitnessGoal = async () => {
+      const targetUserId =
+        authSession?.user?.id ||
+        localUser?.id ||
+        localUser?._id;
+
+      if (!targetUserId) {
+        setFitnessGoalLoading(false);
+        return;
+      }
+
+      try {
+        setFitnessGoalLoading(true);
+
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL ||
+          "http://localhost:5000/api";
+
+        const response = await fetch(
+          `${apiUrl}/goals/${encodeURIComponent(targetUserId)}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            cache: "no-store",
+          }
+        );
+
+        const result = await response.json();
+
+        if (cancelled) return;
+
+        if (response.status === 404) {
+          setFitnessGoalData(null);
+          return;
+        }
+
+        if (!response.ok || !result.success) {
+          throw new Error(
+            result.message || "Failed to load fitness goal"
+          );
+        }
+
+        setFitnessGoalData(result.data);
+      } catch (error) {
+        console.error("Failed to fetch fitness goal:", error);
+
+        if (!cancelled) {
+          setFitnessGoalData(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setFitnessGoalLoading(false);
+        }
+      }
+    };
+
+    fetchFitnessGoal();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    authSession?.user?.id,
+    localUser?.id,
+    localUser?._id,
+  ]);
+
+
+
+  // Dynamic progress calculation
+
+  const currentWeight = Number(localUser?.weight || 0);
+  const targetWeight = Number(
+    fitnessGoalData?.goal?.targetWeight || 0
+  );
+
+  const activeStreak = Number(
+    fitnessGoalData?.activeStreak || 0
+  );
+
+  const weeklyWorkoutFrequency = Number(
+    fitnessGoalData?.goal?.weeklyWorkoutFrequency || 0
+  );
+
+  const goalType =
+    fitnessGoalData?.goal?.goalType ||
+    localUser?.fitnessGoal ||
+    "Fitness Goal";
+
+  const weightDifference = Math.abs(
+    currentWeight - targetWeight
+  );
+
+  // Progress toward target weight.
+  // This keeps the existing UI behavior but makes it API-driven.
+  const weightProgress =
+    currentWeight > 0 && targetWeight > 0
+      ? Math.min(
+        100,
+        Math.max(
+          0,
+          100 -
+          (weightDifference /
+            Math.max(currentWeight, targetWeight)) *
+          100
+        )
+      )
+      : 0;
+
+  const isGoalReached =
+    currentWeight > 0 &&
+    targetWeight > 0 &&
+    currentWeight === targetWeight;
+
+  const isWeightLoss = currentWeight > targetWeight;
+
 
   return (
     <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-12 sm:py-16 px-6 sm:px-10 lg:px-16 select-none">
@@ -1004,11 +1146,11 @@ export default function ProfilePage() {
                       <p className="text-xs text-white/60 mt-0.5">
                         {log.date
                           ? new Date(log.date).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
                           : "Recently"}
                       </p>
                     </div>
@@ -1166,6 +1308,76 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* weight progress */}
+
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-xs font-black uppercase tracking-wider text-white">
+              Weight Progress
+            </span>
+
+            <span className="text-xs font-black text-white">
+              {fitnessGoalLoading
+                ? "..."
+                : `${Math.round(weightProgress)}%`}
+            </span>
+          </div>
+
+          <div className="h-4 w-full overflow-hidden rounded-full border border-white/5 bg-neutral-900">
+            <div
+              className="h-full rounded-full bg-white transition-all duration-700"
+              style={{
+                width: `${weightProgress}%`,
+              }}
+            />
+          </div>
+
+          <div className="mt-3 flex justify-between">
+            <span className="text-[10px] font-bold text-white/40">
+              {currentWeight > 0 ? `${currentWeight} kg` : "--"}
+            </span>
+
+            <span className="text-[10px] font-bold text-white/40">
+              {targetWeight > 0 ? `${targetWeight} kg` : "--"}
+            </span>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-white/5 bg-neutral-900 p-4">
+            {isGoalReached ? (
+              <>
+                <p className="text-xs font-black uppercase text-white">
+                  Goal Reached 🎉
+                </p>
+
+                <p className="mt-1 text-[10px] text-white/40">
+                  Congratulations! You reached your target weight.
+                </p>
+              </>
+            ) : targetWeight > 0 ? (
+              <>
+                <p className="text-xs font-black uppercase text-white">
+                  {weightDifference.toFixed(1)} kg{" "}
+                  {isWeightLoss ? "remaining to lose" : "remaining to gain"}
+                </p>
+
+                <p className="mt-1 text-[10px] text-white/40">
+                  Keep training consistently to reach your target.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-black uppercase text-white">
+                  No Active Goal
+                </p>
+
+                <p className="mt-1 text-[10px] text-white/40">
+                  Set a fitness goal to start tracking your progress.
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         {/* ── 5. Billing & Transactions ── */}
