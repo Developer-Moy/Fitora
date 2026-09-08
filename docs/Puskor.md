@@ -138,7 +138,66 @@ Added a dedicated, premium **Membership Status Card** to the user profile page s
 * **Active**: >3 days remaining (green).
 * **Expiring Soon**: <3 days and not expired (amber).
 * **Expired**: <=0 (red), shows prominent `Renew Now`.
-* Progress bar represents **remaining** membership time, clamped 0–100.
-* Countdown updates every second; values are clamped to 0 when expired.
+ * Progress bar represents **remaining** membership time, clamped 0–100.
+ * Countdown updates every second; values are clamped to 0 when expired.
 
+## 6. Stopwatch Enhancements — Custom Rest Presets, Audio Alerts & Real Data (2026-09-08)
 
+### Backend
+- **New Model**: `server/src/models/CustomRestPreset.model.ts`
+  - Fields: `userId` (ref User, indexed), `name`, `duration` (1–3600s), `createdAt`, `updatedAt`
+  - Compound index on `{ userId, createdAt: -1 }`
+- **Premium Middleware**: Added `requirePremium` in `server/src/middlewares/auth.middleware.ts`
+  - Blocks non-premium users by checking JWT `tier` (plan) field
+- **New Routes** (`server/src/routes/stopwatch.routes.ts`):
+  - `POST /api/stopwatch/rest-preset` — create custom rest preset (auth + premium)
+  - `GET /api/stopwatch/rest-presets` — fetch user's presets (auth)
+  - `DELETE /api/stopwatch/rest-preset/:id` — delete preset (auth + ownership)
+- **Controller** (`server/src/controllers/stopwatch.controller.ts`):
+  - `createRestPreset` — validates `name` and `duration`, associates with authenticated user, premium-gated
+  - `getRestPresets` — returns only the current user's presets
+  - `deleteRestPreset` — verifies ownership before deletion
+- **Removed Dummy Data** (`server/src/controllers/workout.controller.ts`):
+  - Removed in-memory seed logs (`log-seed-01`, `log-seed-02`, etc.)
+  - `GET /api/workouts/log` now returns empty array instead of dummy data when no real logs exist
+  - `POST /api/workouts/log` returns 503 if DB is unavailable, 500 on DB write failure
+  - `DELETE /api/workouts/log/:id` returns 404 if record not found in MongoDB
+
+### Frontend
+- **Service Layer** (`client/src/services/stopwatchService.ts`):
+  - Added `CustomRestPreset` type
+  - Added `fetchRestPresets()`, `createRestPreset()`, `deleteRestPreset()`
+- **GymTimer** (`client/src/components/time/GymTimer.tsx`):
+  - Detects premium status from localStorage on mount
+  - Loads custom rest presets from backend when premium
+  - Merges preset durations into `quickTargets` chips (up to 6 total)
+  - Added "Custom Rest Presets" management card with name/duration inputs, save, use, and delete
+  - Non-premium users see a locked state with "Upgrade to Premium" prompt
+- **Audio Improvements** (`client/src/components/time/GymTimer.tsx`):
+  - Single reusable `AudioContext` stored in ref instead of creating per chime
+  - Added `resumeAudioContext()` to handle browser autoplay restrictions
+  - Distinct ascending chimes at 3s (523 Hz), 2s (659 Hz), 1s (784 Hz), 0s (1047+1319 Hz)
+  - Deduplication via `chimePlayedRef` Set prevents duplicate/stale sounds
+  - Cleared on stop, pause, reset, and target change
+
+### Data Flow Verified
+```text
+Stopwatch completion
+        ↓
+POST /api/workouts/log
+        ↓
+MongoDB WorkoutLog collection (real data only)
+        ↓
+Profile activity API/query
+        ↓
+Profile workout history table
+```
+
+### Build Status
+- `npm run build:server` — passes
+- `npm run build:client` — passes
+- Server running on `http://localhost:5001` with MongoDB connected
+
+---
+
+<p align="right">Updated: 2026-09-08</p>
