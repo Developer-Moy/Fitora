@@ -1191,10 +1191,32 @@ export async function checkoutPayment(
           });
         }
 
+        // Dynamically calculate renewal: If user already has an active subscription, extend from existing expiry date!
+        const now = new Date();
+        let effectiveStartDate = now;
+        if (
+          targetUser.subscriptionExpiryDate &&
+          new Date(targetUser.subscriptionExpiryDate) > now
+        ) {
+          effectiveStartDate = new Date(targetUser.subscriptionExpiryDate);
+        } else if (
+          targetUser.membershipExpiresAt &&
+          new Date(targetUser.membershipExpiresAt) > now
+        ) {
+          effectiveStartDate = new Date(targetUser.membershipExpiresAt);
+        }
+
+        const { expiryDate: finalExpiryDate } = calculateSubscriptionDetails(
+          effectiveStartDate,
+          cycle,
+        );
+
         // CRITICAL: Ensure paymentPayload.userId is assigned the actual targetUser._id
         paymentPayload.userId = targetUser._id;
         paymentPayload.userName = targetUser.name || resolvedName;
         paymentPayload.userEmail = targetUser.email || resolvedEmail;
+        paymentPayload.subscriptionStartDate = now;
+        paymentPayload.subscriptionExpiryDate = finalExpiryDate;
 
         // Create payment document
         createdPayment = await Payment.create(paymentPayload);
@@ -1209,8 +1231,8 @@ export async function checkoutPayment(
 
         targetUser.totalPaidBDT = (targetUser.totalPaidBDT || 0) + amount;
         targetUser.paymentMethod = validGateway;
-        targetUser.subscriptionExpiryDate = expiryDate;
-        targetUser.membershipExpiresAt = expiryDate;
+        targetUser.subscriptionExpiryDate = finalExpiryDate;
+        targetUser.membershipExpiresAt = finalExpiryDate;
         targetUser.status = "active";
         targetUser.role = "premium_user";
 
@@ -1307,8 +1329,7 @@ export async function checkoutPayment(
             gateway: validGateway,
 
             date: startDate,
-
-            expiryDate,
+            expiryDate: updatedUser?.subscriptionExpiryDate || expiryDate,
           },
         },
       ),

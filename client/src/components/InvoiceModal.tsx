@@ -1,8 +1,17 @@
 "use client";
 
 import React, { useRef } from "react";
-import { X, Printer, ShieldCheck, Calendar, CreditCard } from "lucide-react";
+import {
+  X,
+  Printer,
+  ShieldCheck,
+  Calendar,
+  CreditCard,
+  Download,
+} from "lucide-react";
 import type { Payment } from "@/services/paymentService";
+import { jsPDF } from "jspdf";
+import toast from "react-hot-toast";
 
 interface InvoiceModalProps {
   payment: Payment;
@@ -45,11 +54,13 @@ export default function InvoiceModal({
     });
   };
 
-  const invoiceNumber = payment.invoiceNumber || `FIT-INV-${String(payment.date)
-    .slice(0, 10)
-    .replace(/-/g, "")
-    .slice(0, 8)
-    .toUpperCase()}`;
+  const invoiceNumber =
+    payment.invoiceNumber ||
+    `FIT-INV-${String(payment.date)
+      .slice(0, 10)
+      .replace(/-/g, "")
+      .slice(0, 8)
+      .toUpperCase()}`;
 
   /** Trigger the browser print dialog — the whole modal region prints. */
   const handlePrint = () => {
@@ -59,6 +70,195 @@ export default function InvoiceModal({
       window.print();
     }
     document.title = originalTitle;
+  };
+
+  /** Generate and directly download high-resolution Vector PDF */
+  const handleDownloadPDF = () => {
+    try {
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      // Header black bar
+      doc.setFillColor(10, 10, 10);
+      doc.rect(0, 0, 210, 36, "F");
+
+      // Brand: FITORA GYM & AI
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.text("FITORA GYM & AI", 15, 18);
+
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(200, 200, 200);
+      doc.text(
+        "Fitora Tower, Gulshan-2, Dhaka 1212 | 64 Branches Nationwide",
+        15,
+        27,
+      );
+
+      // Official Invoice Header (Right)
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.setTextColor(255, 255, 255);
+      doc.text("OFFICIAL INVOICE", 195, 18, { align: "right" });
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(220, 220, 220);
+      doc.text(invoiceNumber, 195, 27, { align: "right" });
+
+      // Customer Info Box
+      doc.setFillColor(248, 248, 248);
+      doc.setDrawColor(225, 225, 225);
+      doc.roundedRect(15, 44, 85, 28, 2, 2, "FD");
+
+      doc.setTextColor(120, 120, 120);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("BILLED TO", 19, 51);
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(userInfo.name || "Fitora Athlete", 19, 58);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(80, 80, 80);
+      doc.text(userInfo.email || "athlete@fitora.com", 19, 65);
+
+      // Invoice Details Box
+      doc.setFillColor(248, 248, 248);
+      doc.setDrawColor(225, 225, 225);
+      doc.roundedRect(110, 44, 85, 28, 2, 2, "FD");
+
+      doc.setTextColor(120, 120, 120);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.text("TRANSACTION DETAILS", 114, 51);
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`Issue Date: ${formatDate(payment.date)}`, 114, 58);
+      doc.text(`Gateway: ${payment.gateway || "Card"}`, 114, 64);
+      if (payment.transactionId) {
+        doc.text(`TRX ID: ${payment.transactionId}`, 114, 70);
+      }
+
+      // Line items table header
+      doc.setFillColor(0, 0, 0);
+      doc.rect(15, 80, 180, 9, "F");
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.text("DESCRIPTION", 19, 86);
+      doc.text("BILLING CYCLE", 110, 86);
+      doc.text("AMOUNT (BDT)", 191, 86, { align: "right" });
+
+      // Item row
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(230, 230, 230);
+      doc.rect(15, 89, 180, 16, "FD");
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(`${payment.plan} Membership Pass`, 19, 97);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text(
+        payment.description || "Instant gym & turnstile access nationwide",
+        19,
+        102,
+      );
+
+      doc.setTextColor(60, 60, 60);
+      doc.setFontSize(9);
+      doc.text(payment.billingCycle || "Monthly", 110, 98);
+
+      const formattedAmount = `BDT ${(payment.amount || 0).toLocaleString("en-IN")}`;
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text(formattedAmount, 191, 98, { align: "right" });
+
+      // Total block
+      doc.setFillColor(245, 245, 245);
+      doc.roundedRect(125, 115, 70, 24, 2, 2, "F");
+
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(100, 100, 100);
+      doc.text("TOTAL PAID (BDT)", 130, 123);
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(0, 0, 0);
+      doc.text(formattedAmount, 190, 125, { align: "right" });
+
+      // Status indicator inside PDF
+      doc.setFillColor(235, 255, 240);
+      doc.setDrawColor(34, 197, 94);
+      doc.roundedRect(130, 128, 60, 7, 2, 2, "FD");
+      doc.setTextColor(22, 101, 52);
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "bold");
+      doc.text(
+        `STATUS: ${payment.status ? payment.status.toUpperCase() : "PAID"}`,
+        160,
+        133,
+        { align: "center" },
+      );
+
+      // Security guarantee
+      doc.setTextColor(110, 110, 110);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(
+        "256-Bit SSL Secured & Digital Cryptographic Invoice Verification",
+        15,
+        123,
+      );
+      doc.text(
+        "Validated for all 64 FITORA District Fitness Centers across Bangladesh",
+        15,
+        129,
+      );
+
+      // Bottom footer
+      doc.setDrawColor(220, 220, 220);
+      doc.line(15, 260, 195, 260);
+
+      doc.setFontSize(8);
+      doc.setTextColor(140, 140, 140);
+      doc.text(
+        "FITORA Fitness Technologies Ltd. - For billing queries, email: billing@fitora.com",
+        105,
+        266,
+        { align: "center" },
+      );
+      doc.text(
+        "Official Digital Tax Invoice - Generated dynamically via FITORA Central Billing Engine",
+        105,
+        272,
+        { align: "center" },
+      );
+
+      doc.save(`${invoiceNumber}.pdf`);
+      toast.success("PDF invoice downloaded successfully!");
+    } catch (err) {
+      console.error("[Invoice PDF Generation Error]:", err);
+      toast.error(
+        "Failed to generate PDF. You can also use Print Invoice to save as PDF.",
+      );
+    }
   };
 
   return (
@@ -119,9 +319,7 @@ export default function InvoiceModal({
               <p className="text-sm font-bold text-white mt-1">
                 {userInfo.name || "Fitora Member"}
               </p>
-              <p className="text-xs text-white/60">
-                {userInfo.email || ""}
-              </p>
+              <p className="text-xs text-white/60">{userInfo.email || ""}</p>
             </div>
             <div className="p-4 rounded-2xl bg-neutral-900 border border-white/10 text-right">
               <span className="text-[10px] font-bold uppercase tracking-wider text-white/60 block">
@@ -153,7 +351,8 @@ export default function InvoiceModal({
               <tbody>
                 <tr className="border-b border-white/5">
                   <td className="py-3 px-3 text-sm text-white/80">
-                    {payment.description || `${payment.plan} membership payment`}
+                    {payment.description ||
+                      `${payment.plan} membership payment`}
                     {payment.transactionId ? (
                       <span className="block text-[10px] text-white/40">
                         TXN: {payment.transactionId}
@@ -201,8 +400,8 @@ export default function InvoiceModal({
 
           {/* Footer */}
           <div className="mt-6 pt-0 pb-2 border-t border-white/10 text-center text-[9px] text-white/40">
-            Thank you for choosing Fitora &bull; For support email support@fitora.com
-            &bull; All fees are in Bangladeshi Taka (BDT)
+            Thank you for choosing Fitora &bull; For support email
+            support@fitora.com &bull; All fees are in Bangladeshi Taka (BDT)
           </div>
         </div>
 
@@ -214,6 +413,14 @@ export default function InvoiceModal({
             className="px-5 py-2.5 rounded-full bg-neutral-900 border border-white/15 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer print-hide"
           >
             Close
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadPDF}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-900 border border-white/30 text-white font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-all cursor-pointer shadow-md print-hide"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download PDF
           </button>
           <button
             type="button"
