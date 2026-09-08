@@ -6,6 +6,11 @@ import {
   INITIAL_BRANCHES,
 } from "@/data/dashboardData";
 import {
+  STATUS_CONFIG,
+  getPlanBadgeColor,
+  toDate,
+} from "@/lib/membershipUtils";
+import {
   fetchAllUsers,
   fetchPublicBranches,
   createUserAPI,
@@ -276,6 +281,53 @@ export default function UserManagementTable({
     });
   };
 
+  const getSubscriptionExpiry = (user: UserRecord): Date | null =>
+    toDate(user.subscriptionExpiryDate) ?? toDate(user.membershipExpiresAt);
+
+  /**
+   * Resolve subscription status from the live expiry date.
+   * Rules (per spec):
+   *  - Expiry within the next 7 days -> "expiring-soon"
+   *  - Expiry today or in the past  -> "expired"
+   *  - Expiry in the future          -> "active"
+   * Returns null when no expiry exists (e.g. free tier).
+   */
+  const getSubscriptionStatus = (
+    expiry: Date | null,
+  ): "active" | "expiring-soon" | "expired" | null => {
+    if (!expiry) return null;
+    const diffMs = expiry.getTime() - Date.now();
+    if (diffMs <= 0) return "expired";
+    if (diffMs < 7 * 24 * 60 * 60 * 1000) return "expiring-soon";
+    return "active";
+  };
+
+  const formatSubscriptionDate = (expiry: Date | null): string =>
+    expiry ? expiry.toLocaleDateString("en-BD", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    }) : "—";
+
+  const getSubscriptionBadge = (user: UserRecord) => {
+    const status = getSubscriptionStatus(getSubscriptionExpiry(user));
+    if (!status) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-neutral-900 text-white/50 border border-white/10">
+          Free / No Plan
+        </span>
+      );
+    }
+    const config = STATUS_CONFIG[status];
+    return (
+      <span
+        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${config.colorClass}`}
+      >
+        {config.label}
+      </span>
+    );
+  };
+
   const getRoleBadge = (role: UserRecord["role"]) => {
     switch (role) {
       case "master_admin":
@@ -415,6 +467,9 @@ export default function UserManagementTable({
               <th className="py-4 px-5">Role & Tier</th>
               <th className="py-4 px-5">Assigned Branch</th>
               <th className="py-4 px-5">Payment & Plan</th>
+              <th className="py-4 px-5">Subscription Plan</th>
+              <th className="py-4 px-5">Expiry Date</th>
+              <th className="py-4 px-5">Sub Status</th>
               <th className="py-4 px-5">Attendance</th>
               <th className="py-4 px-5">Status</th>
               <th className="py-4 px-5 text-right">Action</th>
@@ -423,7 +478,7 @@ export default function UserManagementTable({
           <tbody className="divide-y divide-white/5">
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center">
+                <td colSpan={10} className="py-12 text-center">
                   <div className="flex flex-col items-center gap-3 text-white/40">
                     <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                     <span className="text-xs font-bold uppercase tracking-wider">Loading members from backend...</span>
@@ -432,14 +487,14 @@ export default function UserManagementTable({
               </tr>
             ) : fetchError ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-rose-400 text-xs font-bold uppercase">
+                <td colSpan={10} className="py-8 text-center text-rose-400 text-xs font-bold uppercase">
                   {fetchError}
                 </td>
               </tr>
             ) : filteredUsers.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={10}
                   className="py-8 text-center text-white/40 uppercase font-bold"
                 >
                   No matching members found.
@@ -494,6 +549,28 @@ export default function UserManagementTable({
                         "Free Tier / Unpaid"
                       )}
                     </div>
+                  </td>
+
+                  {/* Subscription Plan */}
+                  <td className="py-4 px-5">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getPlanBadgeColor(user.plan)}`}
+                    >
+                      {user.plan}
+                    </span>
+                  </td>
+
+                  {/* Expiry Date */}
+                  <td className="py-4 px-5">
+                    <div className="flex items-center gap-1.5 font-bold text-white">
+                      <Calendar className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                      {formatSubscriptionDate(getSubscriptionExpiry(user))}
+                    </div>
+                  </td>
+
+                  {/* Subscription Status */}
+                  <td className="py-4 px-5">
+                    {getSubscriptionBadge(user)}
                   </td>
 
                   {/* Attendance */}

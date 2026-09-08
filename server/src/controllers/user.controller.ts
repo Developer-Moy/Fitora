@@ -224,6 +224,13 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
         : "",
       totalPaidBDT: u.totalPaidBDT || 0,
       paymentMethod: u.paymentMethod || "None",
+      // Live subscription data (from latest completed payment)
+      subscriptionExpiryDate: u.subscriptionExpiryDate
+        ? new Date(u.subscriptionExpiryDate).toISOString()
+        : null,
+      membershipExpiresAt: u.membershipExpiresAt
+        ? new Date(u.membershipExpiresAt).toISOString()
+        : null,
       attendanceStreakDays: u.attendanceStreakDays || 0,
       lastCheckIn: u.updatedAt
         ? new Date(u.updatedAt).toLocaleDateString("en-BD")
