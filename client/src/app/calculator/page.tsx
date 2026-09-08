@@ -107,7 +107,7 @@ export default function CalculatorPage() {
       if (!token) return;
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/users/profile/health-metrics`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/profile/health-metrics`,
         {
           method: "PATCH",
           headers: {
