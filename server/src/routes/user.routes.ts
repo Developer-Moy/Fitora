@@ -6,6 +6,9 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  extendUserMembership,
+  updateUserMembershipPlan,
+  getUserMembershipAudit,
   updateHealthMetrics,
 } from "../controllers/user.controller";
 import {
@@ -59,6 +62,30 @@ router.delete(
   deleteUser
 );
 
+// ── Membership Management (master admin only) ────────────────────────────────
+
+// Membership & payment audit (read-only)
+router.get(
+  "/users/:id/membership",
+  authMiddleware,
+  requireMasterAdmin,
+  getUserMembershipAudit
+);
+
+// Extend membership expiry by N days
+router.post(
+  "/users/:id/membership/extend",
+  authMiddleware,
+  requireMasterAdmin,
+  extendUserMembership
+);
+
+// Change subscription plan (Basic Pass / Pro Athlete / VIP Ultimate)
+router.put(
+  "/users/:id/membership/plan",
+  authMiddleware,
+  requireMasterAdmin,
+  updateUserMembershipPlan
 // Update authenticated user's BMR and TDEE
 router.patch(
   "/profile/health-metrics",

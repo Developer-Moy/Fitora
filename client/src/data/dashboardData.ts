@@ -43,6 +43,9 @@ export interface UserRecord {
   attendanceStreakDays: number;
   lastCheckIn: string;
   qrCodeId: string;
+  // Live subscription info surfaced from the latest completed payment
+  subscriptionExpiryDate?: string | null;
+  membershipExpiresAt?: string | null;
 }
 
 export interface CheckInRecord {

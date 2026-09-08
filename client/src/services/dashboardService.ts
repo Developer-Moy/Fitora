@@ -44,6 +44,9 @@ export interface UserRecord {
   attendanceStreakDays: number;
   lastCheckIn: string;
   qrCodeId: string;
+  // Live subscription info surfaced from the latest completed payment
+  subscriptionExpiryDate?: string | null;
+  membershipExpiresAt?: string | null;
 }
 
 export interface PlatformStats {
@@ -86,6 +89,141 @@ export interface PlatformStatsResponse {
   paymentGatewayBreakdown: PaymentGatewayBreakdown[];
   packageSalesBreakdown: PackageSalesBreakdown[];
   recentCheckIns: CheckInRecord[];
+}
+
+// ── Master Revenue Dashboard ────────────────────────────────────────────────
+
+export interface RevenueSummary {
+  totalRevenueBDT: number;
+  successfulPayments: number;
+  averagePaymentBDT: number;
+}
+
+export interface PlanRevenue {
+  planName: string;
+  totalRevenueBDT: number;
+  subscriptions: number;
+}
+
+export interface MonthlyRevenue {
+  month: string;
+  revenueBDT: number;
+  payments: number;
+}
+
+export interface GatewayRevenue {
+  gateway: string;
+  revenueBDT: number;
+  payments: number;
+}
+
+export interface MasterRevenue {
+  summary: RevenueSummary;
+  planRevenue: PlanRevenue[];
+  monthlyRevenue: MonthlyRevenue[];
+  gatewayRevenue: GatewayRevenue[];
+}
+
+export async function fetchMasterRevenue(): Promise<MasterRevenue | null> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/master/revenue`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data || null;
+  } catch {
+    return null;
+  }
+}
+
+// ── Membership Management (master admin only) ────────────────────────────────
+
+export type PaidPlanName = "Basic Pass" | "Pro Athlete" | "VIP Ultimate";
+
+export interface UserMembership {
+  userId: string;
+  name: string;
+  email: string;
+  plan: string;
+  billingCycle: string | null;
+  transactionId: string | null;
+  gateway: string | null;
+  amountBDT: number;
+  subscriptionStartDate: string | null;
+  subscriptionExpiryDate: string | null;
+  invoiceNumber: string | null;
+  status: string;
+}
+
+/** Latest completed payment + membership snapshot for audit modal. */
+export async function fetchUserMembership(
+  id: string
+): Promise<UserMembership | null> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/users/${id}/membership`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data?.membership || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Extend a user's subscription expiry by N days. */
+export async function extendUserMembership(
+  id: string,
+  days: number
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${API_URL}/dashboard/users/${id}/membership/extend`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({ days }),
+      }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Change a user's subscription plan among the three paid tiers. */
+export async function updateUserMembershipPlan(
+  id: string,
+  planName: PaidPlanName
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${API_URL}/dashboard/users/${id}/membership/plan`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({ planName }),
+      }
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export interface BranchInfo {
