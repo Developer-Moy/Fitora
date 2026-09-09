@@ -330,3 +330,24 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Verified 100% clean TypeScript build on server (`npm run build` -> `tsc`) with **0 Errors**.
   - Verified 100% clean TypeScript check on client (`npx tsc --noEmit`) with **0 Errors**.
   - Verified 100% clean Next.js production build (`npm run build`) with all 14 routes successfully pre-rendered.
+
+### 09-Sep-26 (Day 4)
+
+- **Subscription Tier Switching & Auto-Renewal / Cancellation Engine**:
+  - Added `autoRenew` and `cancelAtPeriodEnd` fields to `User.model.ts` and `userSchema`.
+  - Implemented `toggleAutoRenew` (`POST /api/payments/toggle-auto-renew`): enables users to cancel renewal without premature lockout (benefits stay 100% active until `subscriptionExpiryDate`) or re-enable automatic renewal at will.
+  - Implemented `changeMembershipPlan` (`POST /api/payments/change-plan`): dynamic 1-click plan switching (Basic Pass, Pro Athlete, VIP Ultimate), auto-updating role, syncing `UserTier`, and reissuing fresh JWT token claims.
+  - Built luxury **Membership & Subscription Control** card in `client/src/components/profile/BillingSection.tsx` with active plan status pill, auto-renew toggle button, and interactive Plan Switcher modal.
+  - Added `toggleAutoRenewApi` and `changeMembershipPlanApi` in `client/src/services/paymentService.ts`.
+- **In-App Notification Center & Real-Time Alert System**:
+  - Created `server/src/models/Notification.model.ts` supporting `invoice`, `payment`, `renewal`, `upgrade`, and `system` notifications with unread indexing.
+  - Built `server/src/controllers/notification.controller.ts` and mounted `/api/notifications` in `server/src/routes/index.ts`:
+    - `GET /api/notifications`: fetches newest notifications with dynamic unread counter and fallback bootstrapping from user's latest payments.
+    - `PATCH /api/notifications/:id/read`: marks single notification as read.
+    - `PATCH /api/notifications/read-all`: marks all notifications as read.
+  - Integrated automated notification hooks inside payment checkout, plan changing, and auto-renew toggling.
+  - Built luxury Pure B&W `NotificationBell.tsx` component in `client/src/components/notifications/` with unread count badge, animated indicator, relative timestamps, type-specific icons, and click-through routing to `/profile`.
+  - Integrated `NotificationBell` into both desktop and mobile navigation bars in `client/src/components/Navbar.tsx`.
+- **Full-Stack Verification**:
+  - Tested live endpoints against MongoDB Atlas database.
+  - Verified 100% clean builds across client and server with 0 TypeScript/compilation errors.
