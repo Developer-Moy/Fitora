@@ -45,20 +45,118 @@ export const getMasterRevenue = async (req: AuthRequest, res: Response) => {
     if (paymentCount === 0) {
       const currentYear = new Date().getFullYear();
       const samplePayments = [
-        { planName: "VIP Ultimate", billingCycle: "yearly", amountBDT: 99000, gateway: "bKash", month: 0, day: 15 },
-        { planName: "Pro Athlete", billingCycle: "monthly", amountBDT: 4900, gateway: "Nagad", month: 1, day: 10 },
-        { planName: "Basic Pass", billingCycle: "monthly", amountBDT: 2500, gateway: "Card", month: 1, day: 22 },
-        { planName: "VIP Ultimate", billingCycle: "monthly", amountBDT: 9900, gateway: "bKash", month: 2, day: 5 },
-        { planName: "Pro Athlete", billingCycle: "yearly", amountBDT: 49000, gateway: "bKash", month: 2, day: 18 },
-        { planName: "Basic Pass", billingCycle: "monthly", amountBDT: 2500, gateway: "Nagad", month: 3, day: 2 },
-        { planName: "VIP Ultimate", billingCycle: "monthly", amountBDT: 9900, gateway: "Card", month: 3, day: 14 },
-        { planName: "Pro Athlete", billingCycle: "monthly", amountBDT: 4900, gateway: "bKash", month: 4, day: 8 },
-        { planName: "VIP Ultimate", billingCycle: "yearly", amountBDT: 99000, gateway: "Nagad", month: 4, day: 25 },
-        { planName: "Pro Athlete", billingCycle: "monthly", amountBDT: 4900, gateway: "bKash", month: 5, day: 12 },
-        { planName: "Basic Pass", billingCycle: "monthly", amountBDT: 2500, gateway: "Card", month: 6, day: 20 },
-        { planName: "VIP Ultimate", billingCycle: "monthly", amountBDT: 9900, gateway: "bKash", month: 7, day: 11 },
-        { planName: "Pro Athlete", billingCycle: "yearly", amountBDT: 49000, gateway: "Nagad", month: 7, day: 29 },
-        { planName: "VIP Ultimate", billingCycle: "monthly", amountBDT: 9900, gateway: "Card", month: 8, day: 3 },
+        {
+          planName: "VIP Ultimate",
+          billingCycle: "yearly",
+          amountBDT: 99000,
+          gateway: "bKash",
+          month: 0,
+          day: 15,
+        },
+        {
+          planName: "Pro Athlete",
+          billingCycle: "monthly",
+          amountBDT: 4900,
+          gateway: "Nagad",
+          month: 1,
+          day: 10,
+        },
+        {
+          planName: "Basic Pass",
+          billingCycle: "monthly",
+          amountBDT: 2500,
+          gateway: "Card",
+          month: 1,
+          day: 22,
+        },
+        {
+          planName: "VIP Ultimate",
+          billingCycle: "monthly",
+          amountBDT: 9900,
+          gateway: "bKash",
+          month: 2,
+          day: 5,
+        },
+        {
+          planName: "Pro Athlete",
+          billingCycle: "yearly",
+          amountBDT: 49000,
+          gateway: "bKash",
+          month: 2,
+          day: 18,
+        },
+        {
+          planName: "Basic Pass",
+          billingCycle: "monthly",
+          amountBDT: 2500,
+          gateway: "Nagad",
+          month: 3,
+          day: 2,
+        },
+        {
+          planName: "VIP Ultimate",
+          billingCycle: "monthly",
+          amountBDT: 9900,
+          gateway: "Card",
+          month: 3,
+          day: 14,
+        },
+        {
+          planName: "Pro Athlete",
+          billingCycle: "monthly",
+          amountBDT: 4900,
+          gateway: "bKash",
+          month: 4,
+          day: 8,
+        },
+        {
+          planName: "VIP Ultimate",
+          billingCycle: "yearly",
+          amountBDT: 99000,
+          gateway: "Nagad",
+          month: 4,
+          day: 25,
+        },
+        {
+          planName: "Pro Athlete",
+          billingCycle: "monthly",
+          amountBDT: 4900,
+          gateway: "bKash",
+          month: 5,
+          day: 12,
+        },
+        {
+          planName: "Basic Pass",
+          billingCycle: "monthly",
+          amountBDT: 2500,
+          gateway: "Card",
+          month: 6,
+          day: 20,
+        },
+        {
+          planName: "VIP Ultimate",
+          billingCycle: "monthly",
+          amountBDT: 9900,
+          gateway: "bKash",
+          month: 7,
+          day: 11,
+        },
+        {
+          planName: "Pro Athlete",
+          billingCycle: "yearly",
+          amountBDT: 49000,
+          gateway: "Nagad",
+          month: 7,
+          day: 29,
+        },
+        {
+          planName: "VIP Ultimate",
+          billingCycle: "monthly",
+          amountBDT: 9900,
+          gateway: "Card",
+          month: 8,
+          day: 3,
+        },
       ];
 
       const paymentDocs = samplePayments.map((p, i) => {
@@ -74,7 +172,9 @@ export const getMasterRevenue = async (req: AuthRequest, res: Response) => {
           transactionId: `${p.gateway.toUpperCase()}-TRX-2026-${(100 + i).toString()}`,
           status: "completed",
           subscriptionStartDate: created,
-          subscriptionExpiryDate: new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000),
+          subscriptionExpiryDate: new Date(
+            created.getTime() + 30 * 24 * 60 * 60 * 1000,
+          ),
           invoiceNumber: `INV-2026-${(1000 + i).toString()}`,
           createdAt: created,
           updatedAt: created,
@@ -138,10 +238,7 @@ export const getMasterRevenue = async (req: AuthRequest, res: Response) => {
               $project: {
                 _id: 0,
                 month: {
-                  $arrayElemAt: [
-                    MONTH_NAMES,
-                    { $subtract: ["$_id.month", 1] },
-                  ],
+                  $arrayElemAt: [MONTH_NAMES, { $subtract: ["$_id.month", 1] }],
                 },
                 year: "$_id.year",
                 monthNumber: "$_id.month",
@@ -215,12 +312,14 @@ export const getMasterRevenue = async (req: AuthRequest, res: Response) => {
     );
   } catch (error: any) {
     console.error("Error in getMasterRevenue:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to retrieve master revenue analytics",
-        error.message || "Internal Server Error",
-        500,
-      ),
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve master revenue analytics",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
