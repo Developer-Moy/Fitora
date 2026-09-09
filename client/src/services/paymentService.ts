@@ -227,3 +227,52 @@ export const fetchMyPaymentsApi = async (
     };
   }
 };
+
+/**
+ * Toggle auto-renew preference for authenticated user
+ */
+export const toggleAutoRenewApi = async (token: string) => {
+  try {
+    const res = await fetch(`${BASE_URL}/payments/toggle-auto-renew`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const json = await res.json();
+    return json;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.message || "Failed to toggle auto-renewal",
+    };
+  }
+};
+
+/**
+ * Change or upgrade membership plan for authenticated user
+ */
+export const changeMembershipPlanApi = async (
+  token: string,
+  newPlanId: string,
+  billingCycle: string = "monthly",
+) => {
+  try {
+    const res = await fetch(`${BASE_URL}/payments/change-plan`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ newPlanId, billingCycle }),
+    });
+    const json = await res.json();
+    return json;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.message || "Failed to change membership plan",
+    };
+  }
+};

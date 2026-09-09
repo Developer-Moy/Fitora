@@ -7,6 +7,8 @@ import {
   getMyTransactions,
   getAllPayments,
   getInvoiceById,
+  toggleAutoRenew,
+  changeMembershipPlan,
 } from "../controllers/payment.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
@@ -26,5 +28,9 @@ router.get("/all", authMiddleware, getAllPayments);
 
 // Digital Invoice by ID or Transaction ID
 router.get("/invoice/:id", authMiddleware, getInvoiceById);
+
+// Auto-Renewal and Subscription Management
+router.post("/toggle-auto-renew", authMiddleware, toggleAutoRenew);
+router.post("/change-plan", authMiddleware, changeMembershipPlan);
 
 export default router;

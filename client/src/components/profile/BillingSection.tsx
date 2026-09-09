@@ -8,13 +8,25 @@ import {
   FileText,
   Loader2,
   ArrowUpRight,
+  ShieldCheck,
+  RefreshCw,
+  Sparkles,
+  Check,
+  AlertTriangle,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import {
   fetchMyPaymentsApi,
   derivePaymentFromUser,
+  toggleAutoRenewApi,
+  changeMembershipPlanApi,
   type Payment,
 } from "@/services/paymentService";
-import { getAuthSession } from "@/services/authService";
+import {
+  getAuthSession,
+  saveAuthSession,
+  AUTH_SESSION_UPDATED,
+} from "@/services/authService";
 import InvoiceModal from "@/components/InvoiceModal";
 
 /**
@@ -58,6 +70,16 @@ export default function BillingSection() {
     email: "",
   });
 
+  // Subscription management state
+  const [currentPlan, setCurrentPlan] = useState<string>("Free Pass");
+  const [autoRenew, setAutoRenew] = useState<boolean>(true);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState<boolean>(false);
+  const [expiryDate, setExpiryDate] = useState<string>("");
+  const [isTogglingAutoRenew, setIsTogglingAutoRenew] =
+    useState<boolean>(false);
+  const [planModalOpen, setPlanModalOpen] = useState<boolean>(false);
+  const [isChangingPlan, setIsChangingPlan] = useState<boolean>(false);
+
   useEffect(() => {
     const session = getAuthSession();
     const tok = session?.token || "";
@@ -69,6 +91,14 @@ export default function BillingSection() {
 
       if (user) {
         setUserInfo({ name: user.name || "", email: user.email || "" });
+        setCurrentPlan(user.plan || "Free Pass");
+        setAutoRenew((user as any).autoRenew ?? true);
+        setCancelAtPeriodEnd((user as any).cancelAtPeriodEnd ?? false);
+        setExpiryDate(
+          (user as any).subscriptionExpiryDate ||
+            (user as any).membershipExpiresAt ||
+            "",
+        );
       }
 
       // 1) Try the dedicated payment history API when a token exists.
@@ -81,9 +111,7 @@ export default function BillingSection() {
         }
       }
 
-      // 2) Fallback: derive a payment record from the logged-in user's
-      //    session (plan, totalPaidBDT, paymentMethod) instead of
-      //    hardcoding mock data.
+      // 2) Fallback: derive a payment record from the logged-in user's session
       const derived = derivePaymentFromUser(user);
       if (derived) {
         setPayments([derived]);
@@ -97,6 +125,82 @@ export default function BillingSection() {
     loadPayments();
   }, []);
 
+  const handleToggleAutoRenew = async () => {
+    const session = getAuthSession();
+    const token = session?.token;
+    if (!token) {
+      toast.error("Please login to manage your subscription");
+      return;
+    }
+
+    setIsTogglingAutoRenew(true);
+    try {
+      const res = await toggleAutoRenewApi(token);
+      if (res.success && res.data) {
+        setAutoRenew(res.data.autoRenew);
+        setCancelAtPeriodEnd(res.data.cancelAtPeriodEnd);
+        toast.success(res.message || "Auto-renew status updated");
+
+        if (session && session.user) {
+          const updatedUser = {
+            ...session.user,
+            autoRenew: res.data.autoRenew,
+            cancelAtPeriodEnd: res.data.cancelAtPeriodEnd,
+          };
+          saveAuthSession(token, updatedUser);
+        }
+      } else {
+        toast.error(res.message || "Failed to update auto-renewal");
+      }
+    } catch {
+      toast.error("Network error while updating auto-renewal");
+    } finally {
+      setIsTogglingAutoRenew(false);
+    }
+  };
+
+  const handleChangePlan = async (planKey: string) => {
+    const session = getAuthSession();
+    const token = session?.token;
+    if (!token) {
+      toast.error("Please login to change plan");
+      return;
+    }
+
+    setIsChangingPlan(true);
+    try {
+      const res = await changeMembershipPlanApi(token, planKey, "monthly");
+      if (res.success && res.data?.user) {
+        const u = res.data.user;
+        setCurrentPlan(u.plan);
+        setAutoRenew(u.autoRenew);
+        setCancelAtPeriodEnd(u.cancelAtPeriodEnd);
+        setExpiryDate(u.subscriptionExpiryDate || "");
+        toast.success(res.message || "Plan updated successfully!");
+        setPlanModalOpen(false);
+
+        if (session && session.user) {
+          const updatedUser = {
+            ...session.user,
+            plan: u.plan,
+            role: u.role,
+            autoRenew: u.autoRenew,
+            cancelAtPeriodEnd: u.cancelAtPeriodEnd,
+            subscriptionExpiryDate: u.subscriptionExpiryDate,
+            membershipExpiresAt: u.membershipExpiresAt,
+          };
+          saveAuthSession(u.token || token, updatedUser);
+        }
+      } else {
+        toast.error(res.message || "Failed to update membership plan");
+      }
+    } catch {
+      toast.error("Network error while changing plan");
+    } finally {
+      setIsChangingPlan(false);
+    }
+  };
+
   const openInvoice = (payment: Payment) => {
     setSelectedPayment(payment);
     setModalOpen(true);
@@ -104,14 +208,12 @@ export default function BillingSection() {
 
   const closeInvoice = () => {
     setModalOpen(false);
-    // Small delay prevents the fade-out from showing stale content.
     setTimeout(() => setSelectedPayment(null), 150);
   };
 
   const handlePrint = (payment: Payment) => {
     setSelectedPayment(payment);
     setModalOpen(true);
-    // Wait a frame for the modal to render, then trigger print.
     setTimeout(() => {
       if (typeof window !== "undefined") {
         window.print();
@@ -119,8 +221,196 @@ export default function BillingSection() {
     }, 300);
   };
 
+  const isPaidPlan = currentPlan !== "Free Pass" && currentPlan !== "";
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* ── Active Subscription Management Card ── */}
+      <div className="rounded-2xl border border-white/20 bg-neutral-950 p-5 sm:p-6 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-black text-[11px] font-black uppercase tracking-wider">
+                <Sparkles className="w-3 h-3" />
+                {currentPlan}
+              </span>
+
+              {isPaidPlan && (
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${
+                    cancelAtPeriodEnd
+                      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                      : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      cancelAtPeriodEnd
+                        ? "bg-amber-400"
+                        : "bg-emerald-400 animate-pulse"
+                    }`}
+                  />
+                  {cancelAtPeriodEnd
+                    ? "Canceling at Period End"
+                    : "Auto-Renew Active"}
+                </span>
+              )}
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-black uppercase text-white tracking-tight">
+              Membership &amp; Subscription Control
+            </h3>
+
+            <p className="text-xs text-white/60 max-w-xl">
+              {isPaidPlan
+                ? cancelAtPeriodEnd
+                  ? `Your subscription is scheduled to end on ${formatDate(expiryDate)}. Your VIP and Pro perks remain 100% active until then.`
+                  : `Your plan will automatically renew on ${formatDate(expiryDate)}. You can switch tiers or cancel renewal at any time with zero penalty.`
+                : "You are currently on the Free Pass. Upgrade to a paid plan to unlock AI Coach Studio, custom rest presets, and advanced workout programs."}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setPlanModalOpen(true)}
+              className="px-4 py-2.5 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-neutral-200 transition-all cursor-pointer shadow-md inline-flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Change Plan</span>
+            </button>
+
+            {isPaidPlan && (
+              <button
+                type="button"
+                onClick={handleToggleAutoRenew}
+                disabled={isTogglingAutoRenew}
+                className="px-4 py-2.5 rounded-full border border-white/20 bg-neutral-900 text-white text-xs font-bold uppercase tracking-wider hover:border-white/40 hover:bg-neutral-800 transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isTogglingAutoRenew ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : cancelAtPeriodEnd ? (
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                )}
+                <span>
+                  {cancelAtPeriodEnd
+                    ? "Resume Auto-Renew"
+                    : "Cancel Auto-Renew"}
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Plan Switcher Modal ── */}
+      {planModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setPlanModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-2xl bg-neutral-950 border border-white/20 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div>
+                <h4 className="text-xl sm:text-2xl font-black uppercase text-white tracking-tight">
+                  Switch Membership Plan
+                </h4>
+                <p className="text-xs text-white/50 mt-1">
+                  Choose a new tier. Your benefits will be updated immediately.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPlanModalOpen(false)}
+                className="text-white/40 hover:text-white text-sm font-bold px-2 py-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                {
+                  id: "basic_pass",
+                  name: "Basic Pass",
+                  price: "৳2,500/mo",
+                  desc: "Essential gym access & casual workouts.",
+                },
+                {
+                  id: "pro_athlete",
+                  name: "Pro Athlete",
+                  price: "৳4,900/mo",
+                  desc: "AI coach studio, presets & full access.",
+                },
+                {
+                  id: "vip_ultimate",
+                  name: "VIP Ultimate",
+                  price: "৳9,900/mo",
+                  desc: "1-on-1 coaching & VIP master privileges.",
+                },
+              ].map((p) => {
+                const isCurrent = currentPlan
+                  .toLowerCase()
+                  .includes(p.name.toLowerCase());
+                return (
+                  <div
+                    key={p.id}
+                    className={`rounded-2xl border p-4 flex flex-col justify-between space-y-3 transition-all ${
+                      isCurrent
+                        ? "border-white bg-white/5"
+                        : "border-white/15 bg-neutral-900/60 hover:border-white/30"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <h5 className="text-sm font-black uppercase text-white">
+                          {p.name}
+                        </h5>
+                        {isCurrent && (
+                          <span className="text-[10px] font-bold uppercase bg-white text-black px-2 py-0.5 rounded-full">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-base font-black text-white mt-1">
+                        {p.price}
+                      </p>
+                      <p className="text-[11px] text-white/50 mt-2 leading-relaxed">
+                        {p.desc}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isCurrent || isChangingPlan}
+                      onClick={() => handleChangePlan(p.id)}
+                      className={`w-full py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all cursor-pointer inline-flex items-center justify-center gap-1.5 ${
+                        isCurrent
+                          ? "bg-white/10 text-white/40 cursor-not-allowed"
+                          : "bg-white text-black hover:bg-neutral-200"
+                      }`}
+                    >
+                      {isChangingPlan ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : isCurrent ? (
+                        <span>Active Tier</span>
+                      ) : (
+                        <span>Select Plan</span>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Section title ── */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2.5">
@@ -189,7 +479,9 @@ export default function BillingSection() {
               <tbody>
                 {payments.map((payment, idx) => {
                   const statusKey =
-                    typeof payment.status === "string" ? payment.status : "Paid";
+                    typeof payment.status === "string"
+                      ? payment.status
+                      : "Paid";
                   const badgeCls =
                     STATUS_BADGE[statusKey] ||
                     "bg-neutral-900 text-white/70 border-white/20";
@@ -238,7 +530,9 @@ export default function BillingSection() {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 text-white hover:bg-white/10 hover:border-white/40 transition-all text-[10px] sm:text-xs font-bold cursor-pointer"
                           >
                             <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                            <span className="hidden md:inline">View Invoice</span>
+                            <span className="hidden md:inline">
+                              View Invoice
+                            </span>
                             <span className="md:hidden">Invoice</span>
                           </button>
                           <button

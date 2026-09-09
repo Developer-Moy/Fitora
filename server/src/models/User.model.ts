@@ -49,6 +49,8 @@ export interface IUser extends Document {
   bmr?: number;
   tdee?: number;
   subscriptionExpiryDate?: Date;
+  autoRenew?: boolean;
+  cancelAtPeriodEnd?: boolean;
 
   // QR & Security
   qrCodeId: string;
@@ -156,6 +158,14 @@ const userSchema = new Schema<IUser>(
     subscriptionExpiryDate: {
       type: Date,
       required: false,
+    },
+    autoRenew: {
+      type: Boolean,
+      default: true,
+    },
+    cancelAtPeriodEnd: {
+      type: Boolean,
+      default: false,
     },
 
     // QR & Security
