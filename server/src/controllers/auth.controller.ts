@@ -443,7 +443,9 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
       user = await User.findById(targetUserId).select("-passwordHash");
     }
     if (!user && targetEmail) {
-      user = await User.findOne({ email: targetEmail.trim().toLowerCase() }).select("-passwordHash");
+      user = await User.findOne({
+        email: targetEmail.trim().toLowerCase(),
+      }).select("-passwordHash");
     }
 
     if (!user) {
@@ -453,7 +455,8 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
     }
 
     // Authoritative expiration lookup from DB: User.membershipExpiresAt or fallback to UserTier
-    let membershipExpiresAt = user.membershipExpiresAt || user.subscriptionExpiryDate;
+    let membershipExpiresAt =
+      user.membershipExpiresAt || user.subscriptionExpiryDate;
     if (!membershipExpiresAt) {
       const userTier = await UserTier.findOne({ userId: user._id });
       if (userTier?.expiryDate || userTier?.validUntil) {

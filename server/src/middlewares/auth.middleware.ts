@@ -165,9 +165,7 @@ export const requireRoles = (allowedRoles: UserRole[]) => {
 
     // Superuser bypass: master admin, moloy, or master_admin/admin role
     const isMaster =
-      role === "master_admin" ||
-      role === "admin" ||
-      isMasterEmail(email);
+      role === "master_admin" || role === "admin" || isMasterEmail(email);
 
     if (isMaster) {
       return next();
@@ -220,24 +218,25 @@ export const requirePremium = (
   next: NextFunction,
 ) => {
   if (!req.user) {
-    return res.status(401).json(
-      errorResponse("Authentication required", "Unauthorized", 401)
-    );
+    return res
+      .status(401)
+      .json(errorResponse("Authentication required", "Unauthorized", 401));
   }
 
   const tier = (req.user.tier || "").trim();
   const isPremium = tier !== "" && tier !== "Free Pass";
 
   if (!isPremium) {
-    return res.status(403).json(
-      errorResponse(
-        "Premium subscription required to access this feature",
-        "FORBIDDEN",
-        403
-      )
-    );
+    return res
+      .status(403)
+      .json(
+        errorResponse(
+          "Premium subscription required to access this feature",
+          "FORBIDDEN",
+          403,
+        ),
+      );
   }
 
   next();
 };
-
