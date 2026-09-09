@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import BmiCalculator from "@/components/BmiCalculator";
 import { calculateBmr } from "@/utils/calculateBmr";
 import { calculateTdee } from "@/utils/calculateTdee";
+import { calculateTimeline } from "@/utils/calculateTimeline";
 import { calculateNutritionApi } from "@/services/nutritionService";
 import MacroAdjuster from "@/components/calculator/MacroAdjuster";
 import AthleteHealthAssessmentCard from "@/components/calculator/AthleteHealthAssessmentCard";
@@ -30,31 +31,32 @@ const goalOptions: {
   calories: string;
   icon: string;
 }[] = [
-  {
-    value: "bulking",
-    label: "Bulking",
-    calories: "+500 kcal",
-    icon: "↑",
-  },
-  {
-    value: "cutting",
-    label: "Cutting",
-    calories: "-500 kcal",
-    icon: "↓",
-  },
-  {
-    value: "maintenance",
-    label: "Maintenance",
-    calories: "TDEE",
-    icon: "↔",
-  },
-];
+    {
+      value: "bulking",
+      label: "Bulking",
+      calories: "+500 kcal",
+      icon: "↑",
+    },
+    {
+      value: "cutting",
+      label: "Cutting",
+      calories: "-500 kcal",
+      icon: "↓",
+    },
+    {
+      value: "maintenance",
+      label: "Maintenance",
+      calories: "TDEE",
+      icon: "↔",
+    },
+  ];
 
 export default function CalculatorPage() {
   const [age, setAge] = useState(25);
   const [gender, setGender] = useState<Gender>("male");
   const [height, setHeight] = useState(170);
   const [weight, setWeight] = useState(65);
+  const [targetWeight, setTargetWeight] = useState(60);
   const [activityLevel, setActivityLevel] = useState(1.55);
   const [goal, setGoal] = useState<Goal>("maintenance");
   const [activeTab, setActiveTab] = useState<CalculatorTab>("bmi");
@@ -96,6 +98,19 @@ export default function CalculatorPage() {
   const tdee = useMemo(() => {
     return calculateTdee(bmr, activityLevel);
   }, [bmr, activityLevel]);
+
+  const timeline = useMemo(() => {
+    if (!targetWeight || targetWeight === weight) {
+      return null;
+    }
+
+    return calculateTimeline({
+      currentWeight: weight,
+      targetWeight,
+      dailyCalorieChange:
+        goal === "bulking" ? 500 : goal === "cutting" ? -500 : 0,
+    });
+  }, [weight, targetWeight, goal]);
 
   const syncHealthMetrics = async () => {
     try {
@@ -233,10 +248,10 @@ export default function CalculatorPage() {
 
       const plan = String(
         user?.plan ||
-          user?.tier ||
-          user?.subscription?.plan ||
-          user?.subscription?.tier ||
-          "",
+        user?.tier ||
+        user?.subscription?.plan ||
+        user?.subscription?.tier ||
+        "",
       ).toLowerCase();
 
       const premiumPlans = ["premium", "pro", "athlete", "paid"];
@@ -388,7 +403,7 @@ export default function CalculatorPage() {
             const u = JSON.parse(userStr);
             if (u.id || u._id) userId = u.id || u._id;
           }
-        } catch {}
+        } catch { }
       }
 
       const calculatedBmi =
@@ -479,11 +494,10 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
           <button
             type="button"
             onClick={() => setActiveTab("bmi")}
-            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${
-              activeTab === "bmi"
-                ? "bg-white text-black shadow-lg"
-                : "text-white/60 hover:bg-white/10 hover:text-white"
-            }`}
+            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${activeTab === "bmi"
+              ? "bg-white text-black shadow-lg"
+              : "text-white/60 hover:bg-white/10 hover:text-white"
+              }`}
           >
             BMI Calculator
           </button>
@@ -491,11 +505,10 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
           <button
             type="button"
             onClick={() => setActiveTab("nutrition")}
-            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${
-              activeTab === "nutrition"
-                ? "bg-white text-black shadow-lg"
-                : "text-white/60 hover:bg-white/10 hover:text-white"
-            }`}
+            className={`flex-1 rounded-full px-5 py-3 text-sm font-semibold transition-all duration-300 ${activeTab === "nutrition"
+              ? "bg-white text-black shadow-lg"
+              : "text-white/60 hover:bg-white/10 hover:text-white"
+              }`}
           >
             BMR & Daily Calorie
           </button>
@@ -752,6 +765,29 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       />
                     </div>
 
+                    {/* Target Weight */}
+                    <div className="space-y-1">
+                      <label
+                        htmlFor="targetWeight"
+                        className="block text-[9px] font-black uppercase tracking-widest text-gray-300"
+                      >
+                        Target Weight (KG)
+                      </label>
+
+                      <input
+                        id="targetWeight"
+                        type="number"
+                        min="20"
+                        max="300"
+                        value={targetWeight}
+                        onChange={(event) => {
+                          setTargetWeight(Number(event.target.value));
+                          setError(null);
+                        }}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-bold outline-none focus:border-white transition-colors"
+                      />
+                    </div>
+
                     {/* Activity */}
                     <div className="space-y-1">
                       <label
@@ -818,19 +854,17 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                             key={item.value}
                             type="button"
                             onClick={() => setGoal(item.value)}
-                            className={`flex w-full items-center justify-between p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${
-                              isActive
-                                ? "border-white bg-white text-black shadow-lg"
-                                : "border-white/15 bg-neutral-900 text-white hover:border-white/30 hover:bg-neutral-800"
-                            }`}
+                            className={`flex w-full items-center justify-between p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${isActive
+                              ? "border-white bg-white text-black shadow-lg"
+                              : "border-white/15 bg-neutral-900 text-white hover:border-white/30 hover:bg-neutral-800"
+                              }`}
                           >
                             <div className="flex items-center gap-2.5">
                               <span
-                                className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black transition-colors ${
-                                  isActive
-                                    ? "bg-black text-white"
-                                    : "bg-neutral-800 text-white"
-                                }`}
+                                className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-black transition-colors ${isActive
+                                  ? "bg-black text-white"
+                                  : "bg-neutral-800 text-white"
+                                  }`}
                               >
                                 {item.icon}
                               </span>
@@ -841,11 +875,10 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                             </div>
 
                             <span
-                              className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
-                                isActive
-                                  ? "bg-black text-white font-black"
-                                  : "bg-neutral-800 text-gray-300"
-                              }`}
+                              className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${isActive
+                                ? "bg-black text-white font-black"
+                                : "bg-neutral-800 text-gray-300"
+                                }`}
                             >
                               {item.calories}
                             </span>
@@ -1001,6 +1034,130 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </div>
                   </div>
                 </motion.div>
+
+                {/* Target Weight Timeline Projection */}
+                {timeline && timeline.weeks > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35 }}
+                    className="rounded-3xl border border-white/10 bg-neutral-950 p-5 sm:p-6 text-white shadow-xl"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/10 pb-4">
+                      <div>
+                        <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
+                          04 / TARGET PROJECTION
+                        </span>
+
+                        <h3 className="mt-1 text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                          Target Weight{" "}
+                          <span className="font-normal text-gray-400">
+                            Timeline.
+                          </span>
+                        </h3>
+                      </div>
+
+                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-gray-400">
+                        500 KCAL {goal === "cutting" ? "DEFICIT" : "SURPLUS"}
+                      </span>
+                    </div>
+
+                    <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                      {/* Current Weight */}
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                          Current Weight
+                        </p>
+
+                        <p className="mt-1 text-2xl font-black text-white">
+                          {weight}
+                          <span className="ml-1 text-xs text-gray-500">
+                            kg
+                          </span>
+                        </p>
+                      </div>
+
+                      {/* Target Weight */}
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                          Target Weight
+                        </p>
+
+                        <p className="mt-1 text-2xl font-black text-white">
+                          {targetWeight}
+                          <span className="ml-1 text-xs text-gray-500">
+                            kg
+                          </span>
+                        </p>
+                      </div>
+
+                      {/* Estimated Weeks */}
+                      <div className="rounded-2xl border border-white/20 bg-white p-4 text-black">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                          Estimated Timeline
+                        </p>
+
+                        <p className="mt-1 text-2xl font-black">
+                          {timeline.weeks}
+                          <span className="ml-1 text-xs">
+                            weeks
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Timeline Progress */}
+                    <div className="mt-5">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                          Progress Projection
+                        </span>
+
+                        <span className="text-[9px] font-bold text-gray-400">
+                          {Math.abs(weight - targetWeight).toFixed(1)} kg change
+                        </span>
+                      </div>
+
+                      <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          transition={{ duration: 1 }}
+                          className="h-full rounded-full bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Projection Message */}
+                    <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-black">
+                          <CheckCircle className="h-4 w-4" />
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-wide text-white">
+                            Estimated Timeline: {timeline.weeks} Weeks
+                          </p>
+
+                          <p className="mt-1 text-[11px] leading-relaxed text-gray-400">
+                            Based on a 500 kcal daily{" "}
+                            {goal === "cutting" ? "deficit" : "surplus"},
+                            this projection estimates when you may reach{" "}
+                            <span className="font-bold text-white">
+                              {targetWeight} kg
+                            </span>
+                            .
+                          </p>
+
+                          <p className="mt-2 text-[9px] font-black uppercase tracking-widest text-gray-500">
+                            Safe & Sustainable Projection
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Macro Distribution Box */}
                 <div className="rounded-3xl border border-white/10 bg-neutral-950 p-5 sm:p-6 text-white shadow-xl space-y-4">
