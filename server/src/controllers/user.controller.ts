@@ -267,6 +267,20 @@ export const getAllUsers = async (req: AuthRequest, res: Response) => {
       ];
     }
 
+    // Auto-seed initial users into MongoDB if user collection is completely empty
+    const totalUsersInDb = await User.countDocuments();
+    if (totalUsersInDb === 0) {
+      try {
+        const usersJsonModule = await import("../data/users.json");
+        const usersData = usersJsonModule.default || usersJsonModule;
+        if (Array.isArray(usersData) && usersData.length > 0) {
+          await User.insertMany(usersData);
+        }
+      } catch (seedErr) {
+        console.warn("User auto-seed non-fatal error:", seedErr);
+      }
+    }
+
     const skip = (Number(page) - 1) * Number(limit);
     const users = await User.find(filter)
       .sort({ createdAt: -1 })

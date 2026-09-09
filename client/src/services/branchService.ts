@@ -41,15 +41,33 @@ export type BranchAttendance = {
 };
 
 function authHeaders(): HeadersInit {
-  const token =
+  let token =
     typeof window !== "undefined"
       ? localStorage.getItem("fitora_token") ||
         localStorage.getItem("fitora_auth_token")
       : null;
 
+  if (!token && typeof window !== "undefined") {
+    const session = localStorage.getItem("fitora_auth_session");
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        token = parsed?.token || parsed?.access_token || null;
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  const userEmail =
+    typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_email")
+      : null;
+
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(userEmail ? { "x-user-email": userEmail } : {}),
   };
 }
 
