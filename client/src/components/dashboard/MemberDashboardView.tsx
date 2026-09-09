@@ -5,9 +5,13 @@ import { useSearchParams } from "next/navigation";
 import {
   fetchPublicBranches,
   fetchMemberStats,
+  updateUserProfileApi,
+  updateUserHydrationTargetApi,
   type BranchInfo as APIBranchInfo,
   type MemberStatsResponse,
 } from "@/services/dashboardService";
+import { getWorkoutLogs } from "@/services/workoutService";
+import type { WorkoutLog } from "@/types/workout";
 import { sendAiChatApi } from "@/services/aiService";
 import {
   Crown,
@@ -77,13 +81,19 @@ export default function MemberDashboardView({
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileName, setProfileName] = useState(userName);
   const [profileEmail, setProfileEmail] = useState(userEmail);
-  const [profilePhone, setProfilePhone] = useState("+880 1712-889900");
-  const [profileBranch, setProfileBranch] = useState(assignedBranch);
+  const [profilePhone, setProfilePhone] = useState("");
+  const [profileBranch, setProfileBranch] = useState(
+    assignedBranch || "Gulshan Premium Branch",
+  );
   const [profileGoal, setProfileGoal] = useState(
     "Muscle Hypertrophy & Strength",
   );
-  const [profileWeight, setProfileWeight] = useState("74.5");
-  const [profileTargetWeight, setProfileTargetWeight] = useState("78.0");
+  const [profileWeight, setProfileWeight] = useState("");
+  const [profileTargetWeight, setProfileTargetWeight] = useState("");
+  const [profileQrCode, setProfileQrCode] = useState("FIT-VIP-PASS-ACTIVE");
+  const [workoutLogsList, setWorkoutLogsList] = useState<WorkoutLog[]>([]);
+  const [workoutLogsLoading, setWorkoutLogsLoading] = useState(false);
+  const [userActiveGoals, setUserActiveGoals] = useState<any[]>([]);
   const [profileToast, setProfileToast] = useState<string | null>(null);
   const [branches, setBranches] = useState<APIBranchInfo[]>([]);
   const [memberStats, setMemberStats] = useState<MemberStatsResponse | null>(
@@ -187,12 +197,51 @@ export default function MemberDashboardView({
     else setActiveFeatureModal(null);
   }, [currentTab]);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfileToast("Athlete profile updated successfully!");
-    toast.success("Athlete profile & preferences updated successfully!");
-    setIsProfileModalOpen(false);
-    setTimeout(() => setProfileToast(null), 3500);
+    try {
+      const ok = await updateUserProfileApi({
+        name: profileName,
+        phone: profilePhone,
+        assignedBranch: profileBranch,
+        fitnessGoal: profileGoal,
+        weight: profileWeight ? Number(profileWeight) : undefined,
+        targetWeight: profileTargetWeight
+          ? Number(profileTargetWeight)
+          : undefined,
+      });
+      if (ok) {
+        const session = getAuthSession();
+        if (session?.user) {
+          session.user.name = profileName;
+          session.user.phone = profilePhone;
+          session.user.assignedBranch = profileBranch;
+          session.user.fitnessGoal = profileGoal;
+          session.user.weight = profileWeight;
+          session.user.targetWeight = profileTargetWeight;
+          localStorage.setItem("fitora_auth_session", JSON.stringify(session));
+        }
+        setProfileToast("Athlete profile updated in database successfully!");
+        toast.success("Athlete profile & preferences updated successfully!");
+        setIsProfileModalOpen(false);
+        setTimeout(() => setProfileToast(null), 3500);
+      } else {
+        toast.error("Could not update profile in database.");
+      }
+    } catch {
+      toast.error("Network error while updating profile.");
+    }
+  };
+
+  const handleSaveHydration = async () => {
+    try {
+      const liters = Math.round(((waterGlasses * 250) / 1000) * 100) / 100;
+      await updateUserHydrationTargetApi(liters);
+      toast.success(`Hydration target saved (${liters}L)`);
+    } catch {
+      toast.success("Hydration target updated!");
+    }
+    setActiveFeatureModal(null);
   };
 
   const handlePayment = async (e: React.FormEvent) => {
@@ -340,7 +389,7 @@ export default function MemberDashboardView({
   useEffect(() => {
     let cancelled = false;
 
-    const loadHealthMetrics = async () => {
+    const loadUserData = async () => {
       try {
         const { token, user } = getAuthSession();
 
@@ -353,11 +402,27 @@ export default function MemberDashboardView({
           email: user?.email,
         });
 
-        console.log("HEALTH METRICS API RESULT:", result);
-        console.log("HEALTH METRICS USER:", result.user);
-
         if (cancelled || !result.success || !result.user) {
           return;
+        }
+
+        const u = result.user;
+        if (u.name) setProfileName(u.name);
+        if (u.email) setProfileEmail(u.email);
+        if (u.phone) setProfilePhone(u.phone);
+        if (u.assignedBranch) setProfileBranch(u.assignedBranch);
+        if (u.fitnessGoal) setProfileGoal(u.fitnessGoal);
+        if (u.weight) setProfileWeight(String(u.weight));
+        if (u.targetWeight) setProfileTargetWeight(String(u.targetWeight));
+        if (u.qrCodeId) setProfileQrCode(u.qrCodeId);
+
+        if (
+          typeof (u as any).hydrationTargetLiters === "number" &&
+          (u as any).hydrationTargetLiters > 0
+        ) {
+          setWaterGlasses(
+            Math.round(((u as any).hydrationTargetLiters * 1000) / 250),
+          );
         }
 
         setHealthMetrics({
@@ -365,23 +430,80 @@ export default function MemberDashboardView({
             typeof result.user.bmr === "number" && result.user.bmr > 0
               ? result.user.bmr
               : null,
-
           tdee:
             typeof result.user.tdee === "number" && result.user.tdee > 0
               ? result.user.tdee
               : null,
         });
       } catch (error) {
-        console.error("Failed to load health metrics:", error);
+        console.error("Failed to load user data:", error);
       }
     };
 
-    loadHealthMetrics();
+    loadUserData();
 
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // ── Dynamic Goal Fetch from MongoDB ──
+  useEffect(() => {
+    let cancelled = false;
+    const loadGoal = async () => {
+      try {
+        const rawApiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const apiBase = rawApiUrl.endsWith("/api")
+          ? rawApiUrl
+          : `${rawApiUrl}/api`;
+        const targetUserId = userId || userEmail;
+        if (!targetUserId) return;
+
+        const res = await fetch(
+          `${apiBase}/goals/${encodeURIComponent(targetUserId)}`,
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled || !data.success || !data.data) return;
+
+        const g = data.data;
+        if (g._id) setGoalId(g._id);
+        if (g.targetWeight) {
+          setGoalTargetWeight(String(g.targetWeight));
+          setProfileTargetWeight(String(g.targetWeight));
+        }
+        if (g.weeklyWorkoutFrequency) {
+          setWeeklyWorkoutFrequency(String(g.weeklyWorkoutFrequency));
+        }
+        if (g.goalType) {
+          setProfileGoal(g.goalType);
+        }
+        setUserActiveGoals([g]);
+      } catch (err) {
+        console.error("Goal fetch error:", err);
+      }
+    };
+
+    loadGoal();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, userEmail]);
+
+  // ── Dynamic Workout Logs Fetch from MongoDB when modal opens ──
+  useEffect(() => {
+    if (activeFeatureModal === "workout") {
+      setWorkoutLogsLoading(true);
+      const targetUserId = userId || userEmail;
+      getWorkoutLogs(targetUserId, 20)
+        .then((res) => {
+          setWorkoutLogsList(res.logs || []);
+        })
+        .catch(() => setWorkoutLogsList([]))
+        .finally(() => setWorkoutLogsLoading(false));
+    }
+  }, [activeFeatureModal, userId, userEmail]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -486,7 +608,7 @@ export default function MemberDashboardView({
                     <QrCode className="w-32 h-32 text-white" />
                   </div>
                   <div className="text-[10px] font-black text-black tracking-widest uppercase">
-                    FIT-VIP-PASS-ACTIVE
+                    {profileQrCode || "FIT-VIP-PASS-ACTIVE"}
                   </div>
                 </div>
               ) : (
@@ -534,10 +656,10 @@ export default function MemberDashboardView({
                   ? "..."
                   : ((memberStats as any)?.workoutCount ??
                     memberStats?.workoutsThisMonth ??
-                    18)}
+                    0)}
               </span>
               <span className="text-xs font-bold text-emerald-400 uppercase">
-                +3 vs last month
+                Active Streak
               </span>
             </div>
             <p className="text-xs text-white/40 mt-1">
@@ -554,10 +676,11 @@ export default function MemberDashboardView({
               <span className="text-3xl font-black text-white tracking-tight">
                 {statsLoading
                   ? "..."
-                  : ((
+                  : (
                       (memberStats as any)?.burnedCalories ??
-                      memberStats?.caloriesBurned
-                    )?.toLocaleString() ?? "11,400")}
+                      memberStats?.caloriesBurned ??
+                      0
+                    ).toLocaleString()}
               </span>
               <span className="text-xs font-bold text-white/50 uppercase">
                 kcal
@@ -568,7 +691,7 @@ export default function MemberDashboardView({
               {Math.round(
                 ((memberStats as any)?.burnedCalories ??
                   memberStats?.caloriesBurned ??
-                  11400) / 4,
+                  0) / 4,
               ).toLocaleString()}{" "}
               kcal
             </p>
@@ -581,16 +704,14 @@ export default function MemberDashboardView({
             </div>
             <div className="pt-2 flex items-baseline gap-2">
               <span className="text-3xl font-black text-emerald-400 tracking-tight">
-                {statsLoading
-                  ? "..."
-                  : (memberStats?.streakDays ?? (isPremium ? "14" : "3"))}
+                {statsLoading ? "..." : (memberStats?.streakDays ?? 0)}
               </span>
               <span className="text-xs font-bold text-emerald-400 uppercase">
                 Days Streak
               </span>
             </div>
             <p className="text-xs text-white/40 mt-1">
-              Consistency score: {memberStats?.consistencyScore ?? 92}%
+              Consistency score: {memberStats?.consistencyScore ?? 0}%
             </p>
           </div>
 
@@ -942,29 +1063,43 @@ export default function MemberDashboardView({
                 ✕
               </button>
             </div>
-            <div className="space-y-3 text-xs uppercase font-bold tracking-wider">
-              <div className="p-4 rounded-2xl bg-neutral-900 border border-white/5 flex justify-between items-center">
-                <span>Barbell Bench Press</span>
-                <span className="text-emerald-400 font-black">
-                  4 sets x 100kg
-                </span>
-              </div>
-              <div className="p-4 rounded-2xl bg-neutral-900 border border-white/5 flex justify-between items-center">
-                <span>Incline Dumbbell Press</span>
-                <span className="text-emerald-400 font-black">
-                  3 sets x 32kg
-                </span>
-              </div>
-              <div className="p-4 rounded-2xl bg-neutral-900 border border-white/5 flex justify-between items-center">
-                <span>Tricep Rope Pushdown</span>
-                <span className="text-emerald-400 font-black">
-                  4 sets x 35kg
-                </span>
-              </div>
+            <div className="space-y-3 text-xs uppercase font-bold tracking-wider max-h-60 overflow-y-auto pr-1">
+              {workoutLogsLoading ? (
+                <div className="py-6 text-center text-white/40 font-bold uppercase animate-pulse">
+                  Loading workouts from MongoDB...
+                </div>
+              ) : workoutLogsList.length > 0 ? (
+                workoutLogsList.map((log, idx) => (
+                  <div
+                    key={log._id || idx}
+                    className="p-4 rounded-2xl bg-neutral-900 border border-white/5 flex justify-between items-center"
+                  >
+                    <div>
+                      <span className="text-white font-black block">
+                        {log.exerciseName}
+                      </span>
+                      <span className="text-[10px] text-white/40 font-medium">
+                        {log.caloriesBurned
+                          ? `${log.caloriesBurned} kcal burned`
+                          : "Logged session"}
+                      </span>
+                    </div>
+                    <span className="text-emerald-400 font-black">
+                      {log.setsCount} sets x{" "}
+                      {log.weight ? `${log.weight}kg` : `${log.repsCount} reps`}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="py-8 text-center text-white/40 font-bold uppercase">
+                  No workouts logged yet. Start recording your sets in the
+                  Exercise Tracker!
+                </div>
+              )}
             </div>
             <button
               onClick={() => setActiveFeatureModal(null)}
-              className="w-full py-3 rounded-full bg-white text-black font-black uppercase text-xs"
+              className="w-full py-3 rounded-full bg-white text-black font-black uppercase text-xs cursor-pointer"
             >
               Done
             </button>
@@ -993,26 +1128,26 @@ export default function MemberDashboardView({
                 {waterGlasses}
               </span>
               <span className="text-xs font-bold text-white/50 block mt-1 uppercase">
-                / 8 Glasses (2.0L Target)
+                / 8 Glasses ({((waterGlasses * 250) / 1000).toFixed(1)}L Target)
               </span>
             </div>
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={() => setWaterGlasses((prev) => Math.max(0, prev - 1))}
-                className="w-12 h-12 rounded-full bg-neutral-900 text-xl font-black border border-white/15 hover:bg-white hover:text-black transition"
+                className="w-12 h-12 rounded-full bg-neutral-900 text-xl font-black border border-white/15 hover:bg-white hover:text-black transition cursor-pointer"
               >
                 -
               </button>
               <button
                 onClick={() => setWaterGlasses((prev) => prev + 1)}
-                className="px-6 py-3 rounded-full bg-white text-black font-black uppercase text-xs hover:bg-gray-100 transition shadow-lg"
+                className="px-6 py-3 rounded-full bg-white text-black font-black uppercase text-xs hover:bg-gray-100 transition shadow-lg cursor-pointer"
               >
                 + Add Glass (250ml)
               </button>
             </div>
             <button
-              onClick={() => setActiveFeatureModal(null)}
-              className="w-full py-3 rounded-full bg-neutral-900 border border-white/15 text-white font-black uppercase text-xs hover:bg-neutral-800"
+              onClick={handleSaveHydration}
+              className="w-full py-3 rounded-full bg-neutral-900 border border-white/15 text-white font-black uppercase text-xs hover:bg-neutral-800 cursor-pointer"
             >
               Save Hydration Target
             </button>
@@ -1076,7 +1211,7 @@ export default function MemberDashboardView({
             <div className="flex items-center justify-between">
               <h3 className="text-base font-black uppercase text-white flex items-center gap-2">
                 <Target className="w-5 h-5" />
-                Strength PR Milestones
+                Fitness Goals & Milestones
               </h3>
               <button
                 onClick={() => setActiveFeatureModal(null)}
@@ -1086,29 +1221,63 @@ export default function MemberDashboardView({
               </button>
             </div>
             <div className="space-y-3 text-xs uppercase font-bold">
-              <div className="p-4 rounded-2xl bg-neutral-900 border border-white/5 space-y-1.5">
-                <div className="flex justify-between font-black">
-                  <span>Bench Press PR</span>
-                  <span className="text-emerald-400">105kg / 110kg Target</span>
+              {userActiveGoals.length > 0 ? (
+                userActiveGoals.map((g, idx) => {
+                  const curr = Number(profileWeight) || 0;
+                  const tgt = Number(g.targetWeight) || 0;
+                  const prog =
+                    curr > 0 && tgt > 0
+                      ? Math.min(
+                          100,
+                          Math.round(
+                            (Math.min(curr, tgt) / Math.max(curr, tgt)) * 100,
+                          ),
+                        )
+                      : Math.round(weightProgress);
+                  return (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-2xl bg-neutral-900 border border-white/5 space-y-1.5"
+                    >
+                      <div className="flex justify-between font-black">
+                        <span>{g.goalType || "Target Weight"}</span>
+                        <span className="text-emerald-400">
+                          {curr > 0 ? `${curr}kg` : "Current"} /{" "}
+                          {tgt > 0 ? `${tgt}kg Target` : "Set Goal"}
+                        </span>
+                      </div>
+                      <div className="w-full h-2 rounded-full bg-neutral-950 overflow-hidden border border-white/5">
+                        <div
+                          className="h-full bg-white rounded-full"
+                          style={{ width: `${prog}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-4 rounded-2xl bg-neutral-900 border border-white/5 space-y-1.5">
+                  <div className="flex justify-between font-black">
+                    <span>Target Weight Progress</span>
+                    <span className="text-emerald-400">
+                      {profileWeight ? `${profileWeight}kg` : "0kg"} /{" "}
+                      {goalTargetWeight
+                        ? `${goalTargetWeight}kg Target`
+                        : "Not set"}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-neutral-950 overflow-hidden border border-white/5">
+                    <div
+                      className="h-full bg-white rounded-full"
+                      style={{ width: `${weightProgress}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full h-2 rounded-full bg-neutral-950 overflow-hidden border border-white/5">
-                  <div className="h-full bg-white rounded-full w-[95%]" />
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-neutral-900 border border-white/5 space-y-1.5">
-                <div className="flex justify-between font-black">
-                  <span>Deadlift PR</span>
-                  <span className="text-emerald-400">160kg / 180kg Target</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-neutral-950 overflow-hidden border border-white/5">
-                  <div className="h-full bg-white rounded-full w-[88%]" />
-                </div>
-              </div>
+              )}
             </div>
             <button
               onClick={() => setActiveFeatureModal(null)}
-              className="w-full py-3 rounded-full bg-white text-black font-black uppercase text-xs"
+              className="w-full py-3 rounded-full bg-white text-black font-black uppercase text-xs cursor-pointer"
             >
               Done
             </button>

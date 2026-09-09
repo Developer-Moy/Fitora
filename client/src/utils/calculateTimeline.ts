@@ -1,8 +1,16 @@
 export interface TimelineResult {
   weightDifference: number;
   estimatedWeeks: number;
+  weeks: number;
   estimatedDays: number;
   dailyCalorieAdjustment: number;
+}
+
+export interface CalculateTimelineOptions {
+  currentWeight: number;
+  targetWeight: number;
+  dailyCalorieChange?: number;
+  dailyCalorieAdjustment?: number;
 }
 
 /**
@@ -15,16 +23,40 @@ export interface TimelineResult {
  * @param currentWeight Current weight in kg
  * @param targetWeight Target weight in kg
  * @param dailyCalorieAdjustment Daily calorie deficit/surplus
+ * Supports both object options and positional arguments:
+ * - calculateTimeline({ currentWeight, targetWeight, dailyCalorieChange })
+ * - calculateTimeline(currentWeight, targetWeight, dailyCalorieAdjustment)
  */
 export function calculateTimeline(
   currentWeight: number,
   targetWeight: number,
   dailyCalorieAdjustment: number = 500
+  arg1: number | CalculateTimelineOptions,
+  arg2?: number,
+  arg3?: number,
 ): TimelineResult {
+  let currentWeight = 0;
+  let targetWeight = 0;
+  let dailyCalorieAdjustment = 500;
+
+  if (typeof arg1 === "object" && arg1 !== null) {
+    currentWeight = Number(arg1.currentWeight) || 0;
+    targetWeight = Number(arg1.targetWeight) || 0;
+    dailyCalorieAdjustment =
+      arg1.dailyCalorieChange !== undefined
+        ? Math.abs(arg1.dailyCalorieChange) || 500
+        : Math.abs(arg1.dailyCalorieAdjustment || 500);
+  } else {
+    currentWeight = Number(arg1) || 0;
+    targetWeight = Number(arg2) || 0;
+    dailyCalorieAdjustment = Math.abs(arg3 || 500);
+  }
+
   if (currentWeight <= 0 || targetWeight <= 0) {
     return {
       weightDifference: 0,
       estimatedWeeks: 0,
+      weeks: 0,
       estimatedDays: 0,
       dailyCalorieAdjustment: 0,
     };
@@ -34,6 +66,7 @@ export function calculateTimeline(
     return {
       weightDifference: 0,
       estimatedWeeks: 0,
+      weeks: 0,
       estimatedDays: 0,
       dailyCalorieAdjustment,
     };
@@ -47,10 +80,12 @@ export function calculateTimeline(
   // Convert daily calorie deficit/surplus into weekly calorie change.
   const weeklyCalorieAdjustment =
     Math.abs(dailyCalorieAdjustment) * 7;
+  const weeklyCalorieAdjustment = Math.max(1, dailyCalorieAdjustment * 7);
 
   // Estimated number of weeks.
   const estimatedWeeks = Math.ceil(
     totalCaloriesNeeded / weeklyCalorieAdjustment
+    totalCaloriesNeeded / weeklyCalorieAdjustment,
   );
 
   const estimatedDays = estimatedWeeks * 7;
@@ -58,6 +93,7 @@ export function calculateTimeline(
   return {
     weightDifference: Number(weightDifference.toFixed(1)),
     estimatedWeeks,
+    weeks: estimatedWeeks,
     estimatedDays,
     dailyCalorieAdjustment,
   };

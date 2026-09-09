@@ -11,6 +11,7 @@ import {
   getUserMembershipAudit,
   updateHealthMetrics,
   updateHydrationTarget,
+  updateOwnProfile,
 } from "../controllers/user.controller";
 import {
   authMiddleware,
@@ -78,5 +79,8 @@ router.patch(
   authMiddleware,
   updateHydrationTarget,
 );
+
+// Update authenticated user's profile (name, phone, branch, goal, weight, targetWeight)
+router.patch("/profile", authMiddleware, updateOwnProfile);
 
 export default router;

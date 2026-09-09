@@ -27,6 +27,7 @@ export interface AuthUser {
   phone?: string;
   gender?: string;
   weight?: string;
+  targetWeight?: string;
   height?: string;
   bio?: string;
   fitnessGoal?: string;

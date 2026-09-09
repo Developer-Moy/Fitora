@@ -3,9 +3,6 @@
 import BranchManagementView from "@/components/dashboard/BranchManagementView";
 import MemberDashboardView from "@/components/dashboard/MemberDashboardView";
 import UserManagementTable from "@/components/dashboard/UserManagementTable";
-import {
-  INITIAL_CHECKINS
-} from "@/data/dashboardData";
 import { useDashboardRole } from "@/hooks/useDashboardRole";
 import {
   fetchBranchCheckins,
@@ -37,7 +34,7 @@ import {
   QrCode,
   TrendingUp,
   Users,
-  Zap
+  Zap,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -60,14 +57,22 @@ export default function MasterDashboardPage() {
   const [activeTab, setActiveTab] = useState<string>("overview");
 
   // ── Dynamic Platform Stats ───────────────────────────────────────────────
-  const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
-  const [checkIns, setCheckIns] = useState<CheckInRecord[]>(INITIAL_CHECKINS);
-  const [gatewayBreakdown, setGatewayBreakdown] = useState<PaymentGatewayBreakdown[]>([]);
-  const [packageBreakdown, setPackageBreakdown] = useState<PackageSalesBreakdown[]>([]);
+  const [platformStats, setPlatformStats] = useState<PlatformStats | null>(
+    null,
+  );
+  const [checkIns, setCheckIns] = useState<CheckInRecord[]>([]);
+  const [gatewayBreakdown, setGatewayBreakdown] = useState<
+    PaymentGatewayBreakdown[]
+  >([]);
+  const [packageBreakdown, setPackageBreakdown] = useState<
+    PackageSalesBreakdown[]
+  >([]);
   const [statsLoading, setStatsLoading] = useState(true);
 
   // ── Live Master Revenue Aggregation Dashboard (master_admin only) ────────
-  const [masterRevenue, setMasterRevenue] = useState<MasterRevenue | null>(null);
+  const [masterRevenue, setMasterRevenue] = useState<MasterRevenue | null>(
+    null,
+  );
   const [revenueLoading, setRevenueLoading] = useState(false);
   const [revenueError, setRevenueError] = useState("");
 
@@ -79,7 +84,7 @@ export default function MasterDashboardPage() {
     setRevenueLoading(true);
     setRevenueError("");
     const data = await fetchMasterRevenue();
-    console.log(data, 'data');
+    console.log(data, "data");
     if (data) {
       setMasterRevenue(data);
     } else {
@@ -98,8 +103,10 @@ export default function MasterDashboardPage() {
     if (data) {
       setPlatformStats(data.platformStats);
       if (data.recentCheckIns?.length > 0) setCheckIns(data.recentCheckIns);
-      if (data.paymentGatewayBreakdown?.length > 0) setGatewayBreakdown(data.paymentGatewayBreakdown);
-      if (data.packageSalesBreakdown?.length > 0) setPackageBreakdown(data.packageSalesBreakdown);
+      if (data.paymentGatewayBreakdown?.length > 0)
+        setGatewayBreakdown(data.paymentGatewayBreakdown);
+      if (data.packageSalesBreakdown?.length > 0)
+        setPackageBreakdown(data.packageSalesBreakdown);
     }
     setStatsLoading(false);
   }, [role]);
@@ -113,19 +120,18 @@ export default function MasterDashboardPage() {
   const [selectedBranchName, setSelectedBranchName] = useState(
     assignedBranch || "",
   );
-  const [occupancyData, setOccupancyData] = useState<
-    Awaited<ReturnType<typeof fetchBranchOccupancy>> | null
-  >(null);
-  const [attendanceData, setAttendanceData] = useState<
-    Awaited<ReturnType<typeof fetchBranchCheckins>> | null
-  >(null);
+  const [occupancyData, setOccupancyData] = useState<Awaited<
+    ReturnType<typeof fetchBranchOccupancy>
+  > | null>(null);
+  const [attendanceData, setAttendanceData] = useState<Awaited<
+    ReturnType<typeof fetchBranchCheckins>
+  > | null>(null);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [attendanceError, setAttendanceError] = useState("");
   const checkinsPerPage = 4;
   const displayCheckins = attendanceData?.checkins ?? [];
   const totalTrackedToday = displayCheckins.length;
-  const totalCheckinPages =
-    Math.ceil(totalTrackedToday / checkinsPerPage) || 1;
+  const totalCheckinPages = Math.ceil(totalTrackedToday / checkinsPerPage) || 1;
   const paginatedCheckins = displayCheckins.slice(
     (checkinPage - 1) * checkinsPerPage,
     checkinPage * checkinsPerPage,
@@ -136,9 +142,7 @@ export default function MasterDashboardPage() {
     const escapeCSV = (value: unknown): string => {
       if (value === null || value === undefined) return '""';
       const str = String(value);
-      return /[",\n\r]/.test(str)
-        ? `"${str.replace(/"/g, '""')}"`
-        : str;
+      return /[",\n\r]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
     };
 
     const rows = displayCheckins.map((checkin) => {
@@ -146,9 +150,7 @@ export default function MasterDashboardPage() {
         ? new Date(checkin.checkInTime)
         : null;
       const validDate =
-        parsedDate && !Number.isNaN(parsedDate.getTime())
-          ? parsedDate
-          : null;
+        parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
 
       return [
         checkin.memberName,
@@ -210,7 +212,8 @@ export default function MasterDashboardPage() {
   const revenueByMonth: Record<string, number> = {};
   const apiMonthly: MonthlyRevenue[] = masterRevenue?.monthlyRevenue ?? [];
   for (const item of apiMonthly) {
-    revenueByMonth[item.month] = (revenueByMonth[item.month] ?? 0) + item.revenueBDT;
+    revenueByMonth[item.month] =
+      (revenueByMonth[item.month] ?? 0) + item.revenueBDT;
   }
   const MONTHS_IN_ORDER = [
     "Jan",
@@ -229,8 +232,7 @@ export default function MasterDashboardPage() {
   const monthlyRevenueChart = MONTHS_IN_ORDER.map((month) => ({
     month,
     revenue: revenueByMonth[month] ?? 0,
-    payments:
-      apiMonthly.find((item) => item.month === month)?.payments ?? 0,
+    payments: apiMonthly.find((item) => item.month === month)?.payments ?? 0,
     netProfit: 0, // single-series chart: keep revenue bars only
   }));
 
@@ -268,18 +270,19 @@ export default function MasterDashboardPage() {
         setCheckinPage(1);
 
         const branches = await fetchBranchOverview();
-        const branch = branches.find((item) => {
-          if (!assignedBranch) return false;
+        const branch =
+          branches.find((item) => {
+            if (!assignedBranch) return false;
 
-          const branchName = item.name.toLowerCase();
-          const assignedName = assignedBranch.toLowerCase();
+            const branchName = item.name.toLowerCase();
+            const assignedName = assignedBranch.toLowerCase();
 
-          return (
-            branchName === assignedName ||
-            branchName.includes(assignedName) ||
-            assignedName.includes(branchName)
-          );
-        }) ?? branches[0];
+            return (
+              branchName === assignedName ||
+              branchName.includes(assignedName) ||
+              assignedName.includes(branchName)
+            );
+          }) ?? branches[0];
 
         if (!branch) {
           throw new Error("No branch is available for attendance tracking");
@@ -324,7 +327,8 @@ export default function MasterDashboardPage() {
           {activeTab === "branches" ? (
             <BranchManagementView />
           ) : (
-            <MemberDashboardView userId={userEmail}
+            <MemberDashboardView
+              userId={userEmail}
               isPremium={isPremium}
               userName={userName}
               userEmail={userEmail}
@@ -370,20 +374,26 @@ export default function MasterDashboardPage() {
                   </div>
                   <div className="pt-2">
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                      ৳{isMasterAdmin && masterRevenue
+                      ৳
+                      {isMasterAdmin && masterRevenue
                         ? revenueSummary.totalRevenueBDT.toLocaleString("en-IN")
                         : platformStats
                           ? (isMasterAdmin
-                            ? platformStats.totalRevenueBDT
-                            : platformStats.mrrBDT
-                          ).toLocaleString("en-IN")
-                          : isMasterAdmin ? "84,50,000" : "6,80,000"}
+                              ? platformStats.totalRevenueBDT
+                              : platformStats.mrrBDT
+                            ).toLocaleString("en-IN")
+                          : isMasterAdmin
+                            ? "84,50,000"
+                            : "6,80,000"}
                     </span>
                   </div>
                   {/* Growth delta: ONLY Green or Red for numbers */}
                   <div className="pt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
                     <TrendingUp className="w-4 h-4 stroke-[2.5]" />
-                    <span>+{platformStats?.revenueGrowthPercent ?? 18.5}% Growth (Quarterly)</span>
+                    <span>
+                      +{platformStats?.revenueGrowthPercent ?? 18.5}% Growth
+                      (Quarterly)
+                    </span>
                   </div>
                 </div>
 
@@ -400,9 +410,13 @@ export default function MasterDashboardPage() {
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                       {isMasterAdmin && masterRevenue
                         ? revenueSummary.successfulPayments.toLocaleString()
-                        : `৳${platformStats
-                          ? platformStats.mrrBDT.toLocaleString("en-IN")
-                          : isMasterAdmin ? "14,20,000" : "1,95,000"}`}
+                        : `৳${
+                            platformStats
+                              ? platformStats.mrrBDT.toLocaleString("en-IN")
+                              : isMasterAdmin
+                                ? "14,20,000"
+                                : "1,95,000"
+                          }`}
                       {isMasterAdmin && masterRevenue && (
                         <span className="text-xs font-black text-white/40 ml-2 uppercase">
                           Completed
@@ -419,9 +433,7 @@ export default function MasterDashboardPage() {
                 <div className="p-6 rounded-3xl bg-neutral-950 border border-white/10 shadow-xl space-y-2">
                   <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-white/50">
                     <span>
-                      {isMasterAdmin
-                        ? "Average Payment"
-                        : "Branch Members"}
+                      {isMasterAdmin ? "Average Payment" : "Branch Members"}
                     </span>
                     <Users className="w-4 h-4 text-white" />
                   </div>
@@ -429,22 +441,32 @@ export default function MasterDashboardPage() {
                     <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                       {isMasterAdmin && masterRevenue ? (
                         <>
-                          ৳{revenueSummary.averagePaymentBDT.toLocaleString("en-IN")}
+                          ৳
+                          {revenueSummary.averagePaymentBDT.toLocaleString(
+                            "en-IN",
+                          )}
                           <span className="text-xs font-black text-white/40 ml-2 uppercase">
                             / Payment
                           </span>
                         </>
-                      ) : platformStats
-                        ? (isMasterAdmin
+                      ) : platformStats ? (
+                        (isMasterAdmin
                           ? platformStats.totalMembers
                           : platformStats.activeMembersToday
                         ).toLocaleString()
-                        : isMasterAdmin ? "4,850" : "480"}
+                      ) : isMasterAdmin ? (
+                        "4,850"
+                      ) : (
+                        "480"
+                      )}
                     </span>
                   </div>
                   <div className="pt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
                     <TrendingUp className="w-4 h-4 stroke-[2.5]" />
-                    <span>+{platformStats?.membersGrowthPercent ?? 12.3}% New Signups</span>
+                    <span>
+                      +{platformStats?.membersGrowthPercent ?? 12.3}% New
+                      Signups
+                    </span>
                   </div>
                 </div>
 
@@ -510,7 +532,9 @@ export default function MasterDashboardPage() {
                           <div
                             className={`w-full rounded-xl transition-all duration-500 ${hasData ? "bg-white" : "bg-neutral-700/30"}`}
                             style={{
-                              height: hasData ? `${Math.max(heightPercent, 4)}%` : "8%",
+                              height: hasData
+                                ? `${Math.max(heightPercent, 4)}%`
+                                : "8%",
                             }}
                             title={
                               hasData
@@ -552,7 +576,8 @@ export default function MasterDashboardPage() {
                     Member Check-in & Attendance
                   </h3>
                   <p className="text-xs text-white/50 mt-0.5">
-                    {selectedBranchName || assignedBranch || "Assigned branch"} live attendance.
+                    {selectedBranchName || assignedBranch || "Assigned branch"}{" "}
+                    live attendance.
                   </p>
                 </div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
@@ -599,7 +624,9 @@ export default function MasterDashboardPage() {
                       <div className="h-2.5 overflow-hidden rounded-full border border-white/10 bg-neutral-950">
                         <div
                           className={`h-full rounded-full ${occupancyData.isAtCapacity ? "bg-rose-500" : "bg-emerald-400"}`}
-                          style={{ width: `${Math.min(occupancyData.occupancyPercent, 100)}%` }}
+                          style={{
+                            width: `${Math.min(occupancyData.occupancyPercent, 100)}%`,
+                          }}
                         />
                       </div>
                     </div>
@@ -693,20 +720,24 @@ export default function MasterDashboardPage() {
                         </div>
                         <div className="space-y-1 text-right">
                           <span
-                            className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${checkin.status === "checked_in"
-                              ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-                              : "border border-white/20 bg-white/10 text-white"
-                              }`}
+                            className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
+                              checkin.status === "checked_in"
+                                ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                                : "border border-white/20 bg-white/10 text-white"
+                            }`}
                           >
                             {checkin.status === "checked_in"
                               ? "Checked In"
                               : "Checked Out"}
                           </span>
                           <span className="block text-[10px] font-semibold text-white/40">
-                            {new Date(checkin.checkInTime).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {new Date(checkin.checkInTime).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
                           </span>
                         </div>
                       </div>
@@ -716,9 +747,12 @@ export default function MasterDashboardPage() {
                 {paginatedCheckins.length > 0 && (
                   <div className="flex items-center justify-between border-t border-white/10 pt-4 text-xs">
                     <span className="text-neutral-400">
-                      Showing {((checkinPage - 1) * checkinsPerPage) + 1} to{" "}
-                      {Math.min(checkinPage * checkinsPerPage, totalTrackedToday)} of{" "}
-                      {totalTrackedToday}
+                      Showing {(checkinPage - 1) * checkinsPerPage + 1} to{" "}
+                      {Math.min(
+                        checkinPage * checkinsPerPage,
+                        totalTrackedToday,
+                      )}{" "}
+                      of {totalTrackedToday}
                     </span>
                     <div className="flex items-center gap-1.5">
                       <button
@@ -774,10 +808,25 @@ export default function MasterDashboardPage() {
                   : gatewayBreakdown.length > 0
                     ? gatewayBreakdown
                     : [
-                      { name: "bKash Direct", percentage: 62, amountBDT: 5239000, color: "#E2136E" },
-                      { name: "Nagad Gateway", percentage: 26, amountBDT: 2197000, color: "#F7941D" },
-                      { name: "Visa / Mastercard", percentage: 12, amountBDT: 1014000, color: "#00579F" },
-                    ]
+                        {
+                          name: "bKash Direct",
+                          percentage: 62,
+                          amountBDT: 5239000,
+                          color: "#E2136E",
+                        },
+                        {
+                          name: "Nagad Gateway",
+                          percentage: 26,
+                          amountBDT: 2197000,
+                          color: "#F7941D",
+                        },
+                        {
+                          name: "Visa / Mastercard",
+                          percentage: 12,
+                          amountBDT: 1014000,
+                          color: "#00579F",
+                        },
+                      ]
                 ).map((gw, idx) => (
                   <div
                     key={idx}
@@ -798,11 +847,13 @@ export default function MasterDashboardPage() {
                     </div>
                   </div>
                 ))}
-                {isMasterAdmin && gatewayList.length === 0 && !revenueLoading && (
-                  <div className="p-5 rounded-2xl bg-neutral-900 border border-white/5 text-xs text-white/50">
-                    No completed payments recorded yet for gateway breakdown.
-                  </div>
-                )}
+                {isMasterAdmin &&
+                  gatewayList.length === 0 &&
+                  !revenueLoading && (
+                    <div className="p-5 rounded-2xl bg-neutral-900 border border-white/5 text-xs text-white/50">
+                      No completed payments recorded yet for gateway breakdown.
+                    </div>
+                  )}
               </div>
             </div>
           )}
@@ -824,31 +875,52 @@ export default function MasterDashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {(isMasterAdmin && masterRevenue
                   ? planRevenueList.map((plan) => ({
-                    name: plan.planName,
-                    members: plan.subscriptions,
-                    priceBDT: plan.totalRevenueBDT,
-                    share: planRevenueList.reduce(
-                      (total, p) => total + p.totalRevenueBDT,
-                      0,
-                    ) > 0
-                      ? `${Math.round(
-                        (plan.totalRevenueBDT /
-                          planRevenueList.reduce(
-                            (total, p) => total + p.totalRevenueBDT,
-                            0,
-                          )) *
-                          100,
-                      )}%`
-                      : "0%",
-                  }))
+                      name: plan.planName,
+                      members: plan.subscriptions,
+                      priceBDT: plan.totalRevenueBDT,
+                      share:
+                        planRevenueList.reduce(
+                          (total, p) => total + p.totalRevenueBDT,
+                          0,
+                        ) > 0
+                          ? `${Math.round(
+                              (plan.totalRevenueBDT /
+                                planRevenueList.reduce(
+                                  (total, p) => total + p.totalRevenueBDT,
+                                  0,
+                                )) *
+                                100,
+                            )}%`
+                          : "0%",
+                    }))
                   : packageBreakdown.length > 0
                     ? packageBreakdown
                     : [
-                      { name: "Free Tier (Trial)", members: 3200, priceBDT: 0, share: "66%" },
-                      { name: "Basic Pass", members: 680, priceBDT: 2500, share: "14%" },
-                      { name: "Pro Athlete (AI Suite)", members: 820, priceBDT: 4900, share: "17%" },
-                      { name: "VIP Ultimate (All-Branch)", members: 150, priceBDT: 9900, share: "3%" },
-                    ]
+                        {
+                          name: "Free Pass",
+                          members: 0,
+                          priceBDT: 0,
+                          share: "0%",
+                        },
+                        {
+                          name: "Basic Pass",
+                          members: 0,
+                          priceBDT: 2500,
+                          share: "0%",
+                        },
+                        {
+                          name: "Pro Athlete",
+                          members: 0,
+                          priceBDT: 4900,
+                          share: "0%",
+                        },
+                        {
+                          name: "VIP Ultimate",
+                          members: 0,
+                          priceBDT: 9900,
+                          share: "0%",
+                        },
+                      ]
                 ).map((pkg, idx) => (
                   <div
                     key={idx}
@@ -869,7 +941,10 @@ export default function MasterDashboardPage() {
                       </span>
                     </div>
                     <div className="text-xs font-black uppercase text-emerald-400">
-                      {pkg.members} {isMasterAdmin && masterRevenue ? "Subscriptions" : "Active Subscribers"}
+                      {pkg.members}{" "}
+                      {isMasterAdmin && masterRevenue
+                        ? "Subscriptions"
+                        : "Active Subscribers"}
                     </div>
                   </div>
                 ))}

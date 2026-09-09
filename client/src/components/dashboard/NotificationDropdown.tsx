@@ -11,10 +11,16 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import {
+  fetchNotificationsApi,
+  markNotificationAsReadApi,
+  markAllNotificationsAsReadApi,
+  type AppNotification,
+} from "@/services/notificationService";
 import toast from "react-hot-toast";
 
 export type NotificationItem = {
-  id: number;
+  id: string;
   title: string;
   description: string;
   time: string;
@@ -22,49 +28,50 @@ export type NotificationItem = {
   type: "workout" | "goal" | "ai" | "system";
 };
 
-const initialNotifications: NotificationItem[] = [
-  {
-    id: 1,
-    title: "WORKOUT SESSION LOGGED",
-    description:
-      "Chest & Triceps Hypertrophy routine completed (450 kcal burned).",
-    time: "10 MIN AGO",
-    read: false,
-    type: "workout",
-  },
-  {
-    id: 2,
-    title: "FITORA AI TELEMETRY UPDATE",
-    description:
-      "Daily target hydration recommendation updated to 3.5L based on climate.",
-    time: "1 HOUR AGO",
-    read: false,
-    type: "ai",
-  },
-  {
-    id: 3,
-    title: "STRENGTH MILESTONE REACHED",
-    description: "You hit 90% of your Bench Press 110kg PR goal!",
-    time: "3 HOURS AGO",
-    read: false,
-    type: "goal",
-  },
-  {
-    id: 4,
-    title: "NATIONAL NETWORK COVERAGE",
-    description: "Branch network expanded to all 64 districts nationwide.",
-    time: "YESTERDAY",
-    read: true,
-    type: "system",
-  },
-];
-
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] =
-    useState<NotificationItem[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [activeFilter, setActiveFilter] = useState<"all" | "unread">("all");
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("fitora_token") ||
+          localStorage.getItem("fitora_auth_token")
+        : null;
+
+    if (!token) return;
+
+    fetchNotificationsApi(token).then((res) => {
+      if (
+        res.success &&
+        Array.isArray(res.notifications) &&
+        res.notifications.length > 0
+      ) {
+        setNotifications(
+          res.notifications.map((n: AppNotification) => ({
+            id: n._id,
+            title: n.title,
+            description: n.message,
+            time: new Date(n.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            read: n.isRead,
+            type:
+              n.type === "payment" ||
+              n.type === "renewal" ||
+              n.type === "invoice"
+                ? "system"
+                : (n.type as any),
+          })),
+        );
+      } else {
+        setNotifications([]);
+      }
+    });
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -73,7 +80,15 @@ export default function NotificationDropdown() {
     return true;
   });
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("fitora_token") ||
+          localStorage.getItem("fitora_auth_token")
+        : null;
+    if (token) {
+      await markAllNotificationsAsReadApi(token);
+    }
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     toast.success("All notifications marked as read", { id: "notif-read" });
   };
@@ -83,7 +98,15 @@ export default function NotificationDropdown() {
     toast("All notifications cleared", { icon: "🗑️", id: "notif-clear" });
   };
 
-  const toggleReadStatus = (id: number) => {
+  const toggleReadStatus = async (id: string) => {
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("fitora_token") ||
+          localStorage.getItem("fitora_auth_token")
+        : null;
+    if (token) {
+      await markNotificationAsReadApi(id, token);
+    }
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)),
     );
