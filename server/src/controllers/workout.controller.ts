@@ -570,3 +570,173 @@ export const deleteWorkoutLog = async (
       );
   }
 };
+
+
+/**
+ * GET /api/workouts/pr-history/:exerciseId
+ * Retrieve user's estimated 1RM progression history for an exercise
+ *
+ * Brzycki Formula:
+ * 1RM = weight * (36 / (37 - reps))
+ */
+export const getPRHistory = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<Response> => {
+  try {
+    const { exerciseId } = req.params;
+
+    if (!exerciseId || exerciseId.trim() === "") {
+      return res.status(400).json(
+        errorResponse(
+          "exerciseId is required",
+          "VALIDATION_ERROR",
+          400,
+        ),
+      );
+    }
+
+    // Get authenticated user ID from JWT
+    const authUser = (req as any).user;
+    const userId =
+      authUser?.userId ||
+      authUser?.id ||
+      authUser?._id;
+
+    if (!userId) {
+      return res.status(401).json(
+        errorResponse(
+          "Authentication required",
+          "UNAUTHORIZED",
+          401,
+        ),
+      );
+    }
+
+    // Find exercise from local workout catalog
+    const exercise = LOCAL_WORKOUTS_DATABASE.find(
+      (workout) =>
+        String(workout.id) === String(exerciseId) ||
+        workout.name.toLowerCase() === exerciseId.toLowerCase(),
+    );
+
+    if (!exercise) {
+      return res.status(404).json(
+        errorResponse(
+          `Exercise with ID '${exerciseId}' not found`,
+          "EXERCISE_NOT_FOUND",
+          404,
+        ),
+      );
+    }
+
+    const exerciseName = exercise.name.trim();
+
+    let logs: any[] = [];
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    if (isDbConnected) {
+      try {
+        const userConditions: any[] = [
+          { userId: String(userId) },
+        ];
+
+        // Support MongoDB ObjectId userId
+        if (mongoose.Types.ObjectId.isValid(String(userId))) {
+          userConditions.push({
+            userId: new mongoose.Types.ObjectId(String(userId)),
+          });
+        }
+
+        logs = await WorkoutLog.find({
+          $and: [
+            {
+              $or: userConditions,
+            },
+            {
+              exerciseName: {
+                $regex: `^${exerciseName.replace(
+                  /[.*+?^${}()|[\]\\]/g,
+                  "\\$&",
+                )}$`,
+                $options: "i",
+              },
+            },
+          ],
+        }).sort({ date: 1, createdAt: 1 });
+      } catch (dbErr) {
+        console.warn(
+          "[Workout Controller] PR history DB query failed:",
+          dbErr,
+        );
+      }
+    }
+
+    // If MongoDB is unavailable, use in-memory logs
+    if (!logs || logs.length === 0) {
+      logs = inMemoryWorkoutLogs
+        .filter(
+          (log) =>
+            String(log.userId) === String(userId) &&
+            log.exerciseName.toLowerCase() ===
+              exerciseName.toLowerCase(),
+        )
+        .sort(
+          (a, b) =>
+            new Date(a.date).getTime() -
+            new Date(b.date).getTime(),
+        );
+    }
+
+    // Calculate Brzycki estimated 1RM
+    const history = logs
+      .map((log) => {
+        const weight = Number(log.weight) || 0;
+        const reps = Number(log.repsCount) || 0;
+
+        // Brzycki formula becomes invalid at 37+ reps
+        if (weight <= 0 || reps <= 0 || reps >= 37) {
+          return null;
+        }
+
+        const estimated1RM =
+          weight * (36 / (37 - reps));
+
+        return {
+          date: log.date || log.createdAt,
+          weight,
+          reps,
+          estimated1RM: Number(estimated1RM.toFixed(2)),
+        };
+      })
+      .filter(Boolean);
+
+    return res.status(200).json(
+      successResponse(
+        "1RM progression history retrieved successfully",
+        {
+          exerciseId: exercise.id,
+          exerciseName: exercise.name,
+          formula: "Brzycki",
+          history,
+          count: history.length,
+        },
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "[Workout Controller] getPRHistory Error:",
+      error,
+    );
+
+    return res.status(500).json(
+      errorResponse(
+        "Failed to retrieve 1RM progression history",
+        error instanceof Error
+          ? error.message
+          : "Internal Server Error",
+        500,
+      ),
+    );
+  }
+};
