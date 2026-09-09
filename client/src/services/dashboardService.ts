@@ -457,6 +457,11 @@ export async function updateUserProfileApi(payload: {
   fitnessGoal?: string;
   weight?: number;
   targetWeight?: number;
+  height?: number;
+  gender?: string;
+  bio?: string;
+  avatarUrl?: string;
+  image?: string;
 }): Promise<boolean> {
   try {
     const res = await fetch(`${API_URL}/dashboard/profile`, {

@@ -19,18 +19,15 @@ export interface CalculateTimelineOptions {
  * Assumption:
  * - 1 kg body weight ≈ 7,700 kcal
  * - 500 kcal daily deficit/surplus ≈ 0.45 kg/week
- *
+ *dashboard e master admin, branch admin, free user, primium user sob kisu backend e connect koro and sob data dynamic koro kono kisu jeno local e na thake sob mongodb theke asadashboard e master admin, branch admin, free user, primium user sob kisu backend e connect koro and sob data dynamic koro kono kisu jeno local e na thake sob mongodb theke asa
  * @param currentWeight Current weight in kg
  * @param targetWeight Target weight in kg
  * @param dailyCalorieAdjustment Daily calorie deficit/surplus
  * Supports both object options and positional arguments:
  * - calculateTimeline({ currentWeight, targetWeight, dailyCalorieChange })
- * - calculateTimeline(currentWeight, targetWeight, dailyCalorieAdjustment)
+ * - calculateTimeline(currentWeight, targetWeight, dailyCalorieAdjustment)dashboard e master admin, branch admin, free user, primium user sob kisu backend e connect koro and sob data dynamic koro kono kisu jeno local e na thake sob mongodb theke asa
  */
 export function calculateTimeline(
-  currentWeight: number,
-  targetWeight: number,
-  dailyCalorieAdjustment: number = 500
   arg1: number | CalculateTimelineOptions,
   arg2?: number,
   arg3?: number,
@@ -78,13 +75,13 @@ export function calculateTimeline(
   const totalCaloriesNeeded = weightDifference * 7700;
 
   // Convert daily calorie deficit/surplus into weekly calorie change.
-  const weeklyCalorieAdjustment =
-    Math.abs(dailyCalorieAdjustment) * 7;
-  const weeklyCalorieAdjustment = Math.max(1, dailyCalorieAdjustment * 7);
+  const weeklyCalorieAdjustment = Math.max(
+    1,
+    Math.abs(dailyCalorieAdjustment) * 7,
+  );
 
   // Estimated number of weeks.
   const estimatedWeeks = Math.ceil(
-    totalCaloriesNeeded / weeklyCalorieAdjustment
     totalCaloriesNeeded / weeklyCalorieAdjustment,
   );
 

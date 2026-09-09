@@ -348,6 +348,21 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Integrated automated notification hooks inside payment checkout, plan changing, and auto-renew toggling.
   - Built luxury Pure B&W `NotificationBell.tsx` component in `client/src/components/notifications/` with unread count badge, animated indicator, relative timestamps, type-specific icons, and click-through routing to `/profile`.
   - Integrated `NotificationBell` into both desktop and mobile navigation bars in `client/src/components/Navbar.tsx`.
-- **Full-Stack Verification**:
+- **Full-Stack Verification & Team Integration**:
+  - Dynamically connected all 4 dashboard views (Master Admin, Branch Admin, Free User, Premium User) with zero static mock data.
+  - Completed dynamic MongoDB integration for Gym Stopwatch & Rest Timers (Puskor Roy task): live daily gym time calculation, real-time sync with MongoDB `StopwatchSession`, and reset synchronization.
   - Tested live endpoints against MongoDB Atlas database.
   - Verified 100% clean builds across client and server with 0 TypeScript/compilation errors.
+- **Comprehensive Full-Project Code Audit & 100% MongoDB Dynamism**:
+  - Audited full codebase across all pages (`/meals`, `/profile`, `/profile/edit`, `/calculator`, `/exercises`, `/stopwatch`, `/dashboard`) and server routes.
+  - **Connected Profile Edit to MongoDB**: Updated `handleSaveProfile` in `client/src/app/profile/edit/page.tsx` and `updateUserProfileApi` in `client/src/services/dashboardService.ts` to persist `name`, `phone`, `assignedBranch`, `fitnessGoal`, `weight`, `height`, `gender`, `bio`, `avatarUrl`, and `image` to MongoDB `User` model via `PATCH /api/users/profile`.
+  - **Fixed BMI History Validation Bug**: Updated `createBMIHistory` in `server/src/controllers/bmi.controller.ts` to normalize `heightCm`/`height`, `weightKg`/`weight`, `bmiScore`/`bmi`, auto-calculate fallback BMR/TDEE using Mifflin-St Jeor formula, and resolve authenticated `userId` from session tokens, eliminating 400 Bad Request errors.
+  - **Dynamic Healthy Meals Catalog via MongoDB**:
+    - Created `server/src/models/Meal.model.ts` (Mongoose schema for healthy meals).
+    - Created `server/src/controllers/meal.controller.ts` (supports keyword search, category filters, and auto-seeding).
+    - Created `server/src/routes/meal.routes.ts` mounted at `/api/meals`.
+    - Created `client/src/services/mealService.ts` (`fetchMealsApi`).
+    - Updated `client/src/app/meals/page.tsx` to fetch dynamically from MongoDB with clean loading state and zero static data dependency.
+    - Updated `server/src/data/seed.ts` with `Meal` collection seeding.
+  - **Dynamic Daily Calorie Target**: Replaced hardcoded `TARGET_CALORIES = 2950` in `client/src/components/profile/SavedMealPlan.tsx` with dynamic `targetCalories` prop populated from user's BMI/TDEE and goal in `profile/page.tsx`.
+  - **100% Type-Safe & Clean Builds**: Verified `npx tsc --noEmit` and `npm run build` on both client and server with 0 errors.

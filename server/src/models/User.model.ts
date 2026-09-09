@@ -49,6 +49,11 @@ export interface IUser extends Document {
   bmr?: number;
   tdee?: number;
   weight?: number;
+  height?: number;
+  gender?: string;
+  bio?: string;
+  avatarUrl?: string;
+  image?: string;
   targetWeight?: number;
   fitnessGoal?: string;
   subscriptionExpiryDate?: Date;
@@ -181,6 +186,29 @@ const userSchema = new Schema<IUser>(
     cancelAtPeriodEnd: {
       type: Boolean,
       default: false,
+    },
+    height: {
+      type: Number,
+      required: false,
+    },
+    gender: {
+      type: String,
+      required: false,
+    },
+    bio: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    avatarUrl: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+    image: {
+      type: String,
+      required: false,
+      trim: true,
     },
 
     // QR & Security

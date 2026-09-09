@@ -7,6 +7,8 @@ import {
   getUserPresets,
   markSessionComplete,
   getRecentSessions,
+  syncGymTime,
+  resetTodayGymTime,
   createRestPreset,
   getRestPresets,
   deleteRestPreset,
@@ -19,6 +21,8 @@ router.post("/custom-preset", authMiddleware, createCustomPreset);
 router.get("/user-presets", authMiddleware, getUserPresets);
 router.post("/session-complete", authMiddleware, markSessionComplete);
 router.get("/recent-sessions", authMiddleware, getRecentSessions);
+router.post("/sync-time", authMiddleware, syncGymTime);
+router.post("/reset-today", authMiddleware, resetTodayGymTime);
 
 // Custom rest presets - premium authenticated endpoints
 router.post("/rest-preset", authMiddleware, requirePremium, createRestPreset);
