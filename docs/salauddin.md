@@ -231,3 +231,9 @@ Monthly / Yearly billing toggle switch.
 * `server/src/controllers/payment.controller.ts`
 * `server/src/routes/payment.routes.ts`
 * Created invoice generation and expiry server endpoint.
+
+### 08-Sep-26
+* VIP Workout Encyclopedia Gating & Dynamic Goal Progress Sync
+
+### 09-Sep-26
+* 1RM PR Calculator & Interactive Workout Set Logging
