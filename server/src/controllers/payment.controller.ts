@@ -12,6 +12,7 @@ import User, { UserPlan } from "../models/User.model.js";
 import UserTier from "../models/UserTier.model.js";
 import PaymentTransaction from "../models/PaymentTransaction.model.js";
 import Payment from "../models/Payment.model.js";
+import { createNotificationHelper } from "./notification.controller.js";
 
 /**
  * Server-authoritative Membership Plan Definitions
@@ -1918,6 +1919,221 @@ export async function getInvoiceById(
       .json(
         errorResponse(
           "Failed to retrieve invoice",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+}
+
+/**
+ * POST /api/payments/toggle-auto-renew
+ * Toggles auto-renewal status for the authenticated user without premature lockout.
+ */
+export async function toggleAutoRenew(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.user?.userId || (req as any).user?.id;
+    if (!userId) {
+      return res
+        .status(401)
+        .json(errorResponse("Authentication required", "Unauthorized", 401));
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json(errorResponse("User account not found", "NOT_FOUND", 404));
+    }
+
+    // Toggle current state
+    const currentCancel = user.cancelAtPeriodEnd ?? false;
+    const newCancel = !currentCancel;
+    user.cancelAtPeriodEnd = newCancel;
+    user.autoRenew = !newCancel;
+
+    await user.save();
+
+    const expiryDate = user.subscriptionExpiryDate || user.membershipExpiresAt;
+    const message = newCancel
+      ? `Auto-renewal canceled. Your membership benefits remain fully active until ${expiryDate ? new Date(expiryDate).toLocaleDateString() : "the end of the billing period"}.`
+      : "Auto-renewal has been re-enabled. Your subscription will renew automatically at the end of the billing period.";
+
+    await createNotificationHelper(
+      user._id.toString(),
+      newCancel ? "Auto-Renewal Canceled" : "Auto-Renewal Re-Enabled",
+      message,
+      "renewal",
+      "/profile",
+    );
+
+    return res.status(200).json(
+      successResponse(message, {
+        autoRenew: user.autoRenew,
+        cancelAtPeriodEnd: user.cancelAtPeriodEnd,
+        plan: user.plan,
+        subscriptionExpiryDate: expiryDate
+          ? new Date(expiryDate).toISOString()
+          : null,
+      }),
+    );
+  } catch (error) {
+    console.error("[Payment Controller] toggleAutoRenew Error:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to update auto-renewal preferences",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+}
+
+/**
+ * POST /api/payments/change-plan
+ * Upgrades or modifies the active membership plan for the authenticated user.
+ */
+export async function changeMembershipPlan(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.user?.userId || (req as any).user?.id;
+    if (!userId) {
+      return res
+        .status(401)
+        .json(errorResponse("Authentication required", "Unauthorized", 401));
+    }
+
+    const { newPlanId, billingCycle = "monthly" } = req.body;
+    if (!newPlanId) {
+      return res
+        .status(400)
+        .json(
+          errorResponse("New plan identifier is required", "MISSING_PLAN", 400),
+        );
+    }
+
+    const planDetails = resolvePlan(newPlanId);
+    if (!planDetails) {
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Invalid or unsupported membership plan selected",
+            "INVALID_PLAN",
+            400,
+          ),
+        );
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json(errorResponse("User account not found", "NOT_FOUND", 404));
+    }
+
+    const oldPlan = user.plan;
+    user.plan = planDetails.name as UserPlan;
+    user.status = "active";
+    if (user.role === "free_user" || user.role === "user") {
+      user.role = "premium_user";
+    }
+
+    // If no existing expiry or expired, set fresh duration
+    const now = new Date();
+    const currentExpiry = user.subscriptionExpiryDate
+      ? new Date(user.subscriptionExpiryDate)
+      : null;
+    if (!currentExpiry || currentExpiry <= now) {
+      const addedDays = billingCycle === "annual" ? 365 : 30;
+      const newExpiry = new Date(
+        now.getTime() + addedDays * 24 * 60 * 60 * 1000,
+      );
+      user.subscriptionExpiryDate = newExpiry;
+      user.membershipExpiresAt = newExpiry;
+    }
+
+    await user.save();
+
+    // Sync UserTier model
+    const tierMapping =
+      planDetails.id === "vip_ultimate"
+        ? "vip"
+        : planDetails.id === "pro_athlete"
+          ? "pro"
+          : "basic";
+    try {
+      await UserTier.findOneAndUpdate(
+        { userId: user._id },
+        {
+          tier: tierMapping,
+          isActive: true,
+          expiryDate: user.subscriptionExpiryDate,
+          validUntil: user.subscriptionExpiryDate,
+        },
+        { upsert: true, new: true },
+      );
+    } catch (tierErr) {
+      console.warn(
+        "[Payment Controller] UserTier sync non-fatal error:",
+        tierErr,
+      );
+    }
+
+    // Generate fresh updated JWT token
+    const jwtSecret =
+      process.env.JWT_SECRET || "fitora_secure_jwt_secret_key_2026";
+    const updatedToken = jwt.sign(
+      {
+        userId: user._id.toString(),
+        email: user.email,
+        role: user.role,
+        assignedBranch: user.assignedBranch,
+        tier: planDetails.name,
+      },
+      jwtSecret,
+      { expiresIn: "7d" },
+    );
+
+    await createNotificationHelper(
+      user._id.toString(),
+      "Membership Plan Changed",
+      `Your membership plan was successfully updated to ${planDetails.name}.`,
+      "upgrade",
+      "/profile",
+    );
+
+    return res.status(200).json(
+      successResponse(
+        `Membership plan successfully changed from ${oldPlan} to ${planDetails.name}`,
+        {
+          user: {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            plan: user.plan,
+            status: user.status,
+            autoRenew: user.autoRenew ?? true,
+            cancelAtPeriodEnd: user.cancelAtPeriodEnd ?? false,
+            subscriptionExpiryDate:
+              user.subscriptionExpiryDate?.toISOString() || null,
+            membershipExpiresAt:
+              user.membershipExpiresAt?.toISOString() || null,
+            token: updatedToken,
+          },
+          newPlan: planDetails,
+        },
+      ),
+    );
+  } catch (error) {
+    console.error("[Payment Controller] changeMembershipPlan Error:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to change membership plan",
           error instanceof Error ? error.message : "Internal Server Error",
           500,
         ),

@@ -28,6 +28,7 @@ import {
   AUTH_SESSION_UPDATED,
   getCurrentUserApi,
 } from "@/services/authService";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 /* ── Desktop Horizontal Navigation Links ── */
 const NAV_LINKS = [
@@ -296,106 +297,112 @@ export default function Navbar() {
               </span>
             </Link>
           ) : (
-            <div ref={profileDropdownRef} className="relative hidden lg:block">
-              <button
-                type="button"
-                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                className="group flex items-center gap-2 bg-white text-black border border-white font-bold text-xs pl-1 pr-3 py-1 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-md"
-              >
-                <div className="w-8 h-8 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-black/10">
-                  {userAvatar ? (
-                    <img
-                      src={userAvatar}
-                      alt={userName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span>{userInitial}</span>
-                  )}
-                </div>
-                <span className="w-auto whitespace-nowrap font-extrabold text-xs text-black">
-                  {userFirstName}
-                </span>
-                <FiChevronDown
-                  className={`w-3.5 h-3.5 text-black stroke-[2.5] transition-transform duration-200 ${
-                    profileDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              {/* Profile Dropdown Popup Card */}
-              {profileDropdownOpen && (
-                <div
-                  className="absolute right-0 mt-2.5 w-64 bg-black border border-white/15 rounded-2xl p-3 shadow-2xl space-y-2 z-50 backdrop-blur-xl"
-                  onClick={(e) => e.stopPropagation()}
+            <div className="hidden lg:flex items-center gap-3">
+              <NotificationBell />
+              <div ref={profileDropdownRef} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="group flex items-center gap-2 bg-white text-black border border-white font-bold text-xs pl-1 pr-3 py-1 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-md"
                 >
-                  <div className="px-3 py-2 bg-black rounded-xl border border-white/10 flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md overflow-hidden">
-                      {userAvatar ? (
-                        <img
-                          src={userAvatar}
-                          alt={userName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span>{userInitial}</span>
-                      )}
+                  <div className="w-8 h-8 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-black/10">
+                    {userAvatar ? (
+                      <img
+                        src={userAvatar}
+                        alt={userName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span>{userInitial}</span>
+                    )}
+                  </div>
+                  <span className="w-auto whitespace-nowrap font-extrabold text-xs text-black">
+                    {userFirstName}
+                  </span>
+                  <FiChevronDown
+                    className={`w-3.5 h-3.5 text-black stroke-[2.5] transition-transform duration-200 ${
+                      profileDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Profile Dropdown Popup Card */}
+                {profileDropdownOpen && (
+                  <div
+                    className="absolute right-0 mt-2.5 w-64 bg-black border border-white/15 rounded-2xl p-3 shadow-2xl space-y-2 z-50 backdrop-blur-xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="px-3 py-2 bg-black rounded-xl border border-white/10 flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-white text-black font-black text-xs flex items-center justify-center shrink-0 shadow-md overflow-hidden">
+                        {userAvatar ? (
+                          <img
+                            src={userAvatar}
+                            alt={userName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span>{userInitial}</span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-white font-bold text-xs leading-tight truncate">
+                          {userName}
+                        </p>
+                        <p className="text-[10px] text-white/60 leading-tight truncate">
+                          {userEmail}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-white font-bold text-xs leading-tight truncate">
-                        {userName}
-                      </p>
-                      <p className="text-[10px] text-white/60 leading-tight truncate">
-                        {userEmail}
-                      </p>
+
+                    <div className="space-y-0.5 pt-1">
+                      <Link
+                        href="/profile"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <FiUser className="w-4 h-4 text-white/60" />
+                        <span>My Athlete Profile</span>
+                      </Link>
+
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <FiSettings className="w-4 h-4 text-white/60" />
+                        <span>Dashboard</span>
+                      </Link>
+
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors cursor-pointer text-left"
+                      >
+                        <FiLogOut className="w-4 h-4" />
+                        <span>Sign Out</span>
+                      </button>
                     </div>
                   </div>
-
-                  <div className="space-y-0.5 pt-1">
-                    <Link
-                      href="/profile"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
-                    >
-                      <FiUser className="w-4 h-4 text-white/60" />
-                      <span>My Athlete Profile</span>
-                    </Link>
-
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setProfileDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-200 hover:text-white hover:bg-white/10 transition-colors"
-                    >
-                      <FiSettings className="w-4 h-4 text-white/60" />
-                      <span>Dashboard</span>
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors cursor-pointer text-left"
-                    >
-                      <FiLogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 
-          {/* Mobile & Tablet Toggle (< 1024px) — White Background & Black Icon */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden cursor-pointer shrink-0 p-2 rounded-xl bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center"
-            aria-label="Toggle Navigation Menu"
-          >
-            {mobileMenuOpen ? (
-              <FiClose className="w-5 h-5 text-black stroke-[2.5]" />
-            ) : (
-              <FiSidebar className="w-5 h-5 text-black stroke-[2.5]" />
-            )}
-          </button>
+          {/* Mobile & Tablet Actions (< 1024px) */}
+          <div className="flex items-center gap-2.5 lg:hidden">
+            {isMounted && userEmail && <NotificationBell />}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="cursor-pointer shrink-0 p-2 rounded-xl bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center"
+              aria-label="Toggle Navigation Menu"
+            >
+              {mobileMenuOpen ? (
+                <FiClose className="w-5 h-5 text-black stroke-[2.5]" />
+              ) : (
+                <FiSidebar className="w-5 h-5 text-black stroke-[2.5]" />
+              )}
+            </button>
+          </div>
         </div>
       </nav>
 
