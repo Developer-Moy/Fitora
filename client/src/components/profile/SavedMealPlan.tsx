@@ -9,6 +9,7 @@ import {
   Utensils,
   Copy,
   Check,
+  Flame,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import MealCard from "@/components/meals/MealCard";
@@ -21,6 +22,8 @@ export interface SavedMealPlanProps {
   isLoading?: boolean;
 }
 
+const TARGET_CALORIES = 2950; // it will dynamically change in the future based on user profile settings, but for now it's hardcoded to 2950 kcal
+
 export default function SavedMealPlan({
   dailyPlanMeals,
   isLoadingDailyPlan,
@@ -30,6 +33,23 @@ export default function SavedMealPlan({
   const items = dailyPlanMeals ?? meals ?? [];
   const loading = isLoadingDailyPlan ?? isLoading ?? false;
   const [isCopied, setIsCopied] = useState(false);
+
+  // ── Calorie Progress Calculations (Target: 2950 kcal) ──
+  const totalCalories = Math.round(
+    items.reduce((sum, meal) => sum + (Number(meal.calories) || 0), 0)
+  );
+  const percentage = Math.round((totalCalories / TARGET_CALORIES) * 100);
+  const progressWidth = Math.min(
+    Math.max((totalCalories / TARGET_CALORIES) * 100, 0),
+    100
+  );
+
+  const calorieStatusText =
+    totalCalories < TARGET_CALORIES
+      ? `${TARGET_CALORIES - totalCalories} kcal remaining`
+      : totalCalories === TARGET_CALORIES
+      ? "Goal reached"
+      : `${totalCalories - TARGET_CALORIES} kcal over target`;
 
   const handleCopyGroceryList = async () => {
     // 1. Collect all ingredients from the saved meals and remove duplicates
@@ -177,6 +197,44 @@ export default function SavedMealPlan({
             )}
             <span>{isCopied ? "Grocery List Copied!" : "Copy Grocery List"}</span>
           </button>
+        </div>
+      )}
+
+      {/* ── 2950 kcal Daily Calorie Progress Bar ── */}
+      {!loading && (
+        <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <Flame className="w-4 h-4 text-white" />
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                Daily Calorie Progress
+              </span>
+            </div>
+            <div className="flex items-center gap-2 font-mono">
+              <span className="text-xs sm:text-sm font-black text-white">
+                {totalCalories} / {TARGET_CALORIES} kcal
+              </span>
+              <span className="text-xs font-bold text-white/50">
+                ({percentage}%)
+              </span>
+            </div>
+          </div>
+
+          <div className="h-3 w-full overflow-hidden rounded-full border border-white/10 bg-neutral-900">
+            <div
+              className="h-full rounded-full bg-white transition-all duration-700 ease-out"
+              style={{ width: `${progressWidth}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-white/60">
+            <span className="font-semibold text-white/80">
+              {calorieStatusText}
+            </span>
+            <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+              Target: 2950 kcal
+            </span>
+          </div>
         </div>
       )}
     </div>
