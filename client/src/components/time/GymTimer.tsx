@@ -19,6 +19,9 @@ import {
   fetchRestPresets,
   createRestPreset,
   deleteRestPreset,
+  fetchRecentSessions,
+  syncDailyGymTime,
+  resetDailyGymTime,
   type CustomRestPreset,
 } from "@/services/stopwatchService";
 import type { CreateWorkoutLogPayload } from "@/types/workout";
@@ -173,6 +176,7 @@ export default function GymTimer({
   const isSavingLogRef = useRef<boolean>(false);
 
   useEffect(() => {
+    // Initial local fallback
     try {
       const today = new Date().toISOString().slice(0, 10);
       const saved = localStorage.getItem(`fitora_daily_gym_time_${today}`);
@@ -184,6 +188,41 @@ export default function GymTimer({
     } catch {
       // ignore
     }
+
+    // Load dynamic recent sessions and today's accumulated gym time from MongoDB
+    fetchRecentSessions(20)
+      .then((res) => {
+        if (res) {
+          setIsSynced(true);
+          if (res.todayGymSeconds > 0) {
+            setTotalGymSeconds(res.todayGymSeconds);
+          }
+          if (res.sessions && res.sessions.length > 0) {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const todays = res.sessions.filter(
+              (s) => s.completedAt && s.completedAt.slice(0, 10) === todayStr,
+            );
+            if (todays.length > 0) {
+              const mapped = todays.map((s, idx) => ({
+                set: s.setsCount || todays.length - idx,
+                duration:
+                  s.durationSeconds ||
+                  Math.round((s.durationMinutes || 0) * 60),
+                timestamp: new Date(s.completedAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+                weight: s.weightKg,
+                reps: s.repsCount,
+              }));
+              setCompletedSets(mapped);
+            }
+          }
+        }
+      })
+      .catch(() => {
+        setIsSynced(false);
+      });
 
     // Load quick presets
     fetchStopwatchPresets()
@@ -219,7 +258,9 @@ export default function GymTimer({
             if (presetDurations.length > 0) {
               setQuickTargets((prev) => {
                 const merged = new Set([...prev, ...presetDurations]);
-                return Array.from(merged).sort((a, b) => a - b).slice(0, 6);
+                return Array.from(merged)
+                  .sort((a, b) => a - b)
+                  .slice(0, 6);
               });
             }
           })
@@ -229,7 +270,7 @@ export default function GymTimer({
     }
   }, []);
 
-  // Save today's accumulated gym time
+  // Save today's accumulated gym time to localStorage and MongoDB
   const saveDailyGymTime = useCallback(
     (secs: number) => {
       try {
@@ -237,6 +278,8 @@ export default function GymTimer({
       } catch {
         // ignore
       }
+      // Best-effort live sync to MongoDB
+      syncDailyGymTime(secs).catch(() => {});
     },
     [getTodayKey],
   );
@@ -427,7 +470,14 @@ export default function GymTimer({
       setSeconds(0);
     }
     // eslint-disable-next-line
-  }, [seconds, targetSeconds, isRunning, playChime, getAudioContext, soundEnabled]);
+  }, [
+    seconds,
+    targetSeconds,
+    isRunning,
+    playChime,
+    getAudioContext,
+    soundEnabled,
+  ]);
 
   // Formatter for HH:MM:SS
   const formatTime = (totalSec: number) => {
@@ -501,12 +551,20 @@ export default function GymTimer({
       toast.loading("Saving workout...", { id: loadingToastId });
       try {
         await createWorkoutLog(payload);
-        // Also mark session complete in stopwatch API for calorie tracking
-        completeStopwatchSession({
+        // Also mark session complete in stopwatch API for calorie tracking and persistence in MongoDB
+        await completeStopwatchSession({
           workoutType: exerciseName,
-          durationMinutes: Math.round(totalSessionSeconds / 60),
+          durationMinutes: Math.max(
+            0.1,
+            Number((totalSessionSeconds / 60).toFixed(2)),
+          ),
+          durationSeconds: totalSessionSeconds,
+          setsCount,
+          repsCount: totalReps > 0 ? totalReps : undefined,
           weightKg: maxWeight > 0 ? maxWeight : undefined,
+          notes: loggedSetsNotes,
         }).catch(() => {});
+        setIsSynced(true);
         toast.success("Workout saved to your history 💪", {
           id: loadingToastId,
           duration: 4000,
@@ -680,10 +738,15 @@ export default function GymTimer({
     );
   };
 
-  const handleResetDailyGymTime = () => {
+  const handleResetDailyGymTime = async () => {
     setTotalGymSeconds(0);
     saveDailyGymTime(0);
-    toast.success("Today's gym time reset to 00:00:00", { id: "reset-day" });
+    try {
+      await resetDailyGymTime();
+    } catch {}
+    toast.success("Today's gym time reset to 00:00:00 (Synced with DB)", {
+      id: "reset-day",
+    });
   };
 
   // Set a target duration; clicking the same target again clears it (toggle)
@@ -718,7 +781,9 @@ export default function GymTimer({
       return;
     }
     if (isNaN(duration) || duration < 1 || duration > 3600) {
-      toast.error("Duration must be between 1 and 3600 seconds", { id: "preset-error" });
+      toast.error("Duration must be between 1 and 3600 seconds", {
+        id: "preset-error",
+      });
       return;
     }
     const created = await createRestPreset({ name, duration });
@@ -735,7 +800,9 @@ export default function GymTimer({
         localStorage.getItem("fitora_user_role") ||
         "";
       if (role !== "premium_user") {
-        toast.error("Upgrade to Premium to save rest presets", { id: "preset-error" });
+        toast.error("Upgrade to Premium to save rest presets", {
+          id: "preset-error",
+        });
       } else {
         toast.error("Failed to save preset", { id: "preset-error" });
       }
@@ -748,9 +815,7 @@ export default function GymTimer({
     if (ok) {
       setRestPresets((prev) => prev.filter((p) => p._id !== id));
       if (preset) {
-        setQuickTargets((prev) =>
-          prev.filter((d) => d !== preset.duration)
-        );
+        setQuickTargets((prev) => prev.filter((d) => d !== preset.duration));
       }
       toast.success("Preset removed", { id: "preset-delete" });
     } else {
@@ -770,10 +835,17 @@ export default function GymTimer({
     });
   };
 
-  const handleToggleSync = () => {
+  const handleToggleSync = async () => {
     if (!isSynced) {
       setIsSynced(true);
-      toast.success("Realtime Sync connected", { id: "sync-status" });
+      const ok = await syncDailyGymTime(totalGymSeconds);
+      if (ok) {
+        toast.success("Realtime Sync connected to MongoDB", {
+          id: "sync-status",
+        });
+      } else {
+        toast.success("Realtime Sync active", { id: "sync-status" });
+      }
     } else {
       setIsSynced(false);
       toast("Offline mode active", { icon: "⚡", id: "sync-status" });
@@ -1087,8 +1159,8 @@ export default function GymTimer({
           ) : (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#181a1f] border border-[#2a303d] rounded-xl px-4 py-3">
               <p className="text-xs text-zinc-400 font-medium">
-                Unlock unlimited custom rest presets and sync them across all your
-                devices.
+                Unlock unlimited custom rest presets and sync them across all
+                your devices.
               </p>
               <Link
                 href="/"

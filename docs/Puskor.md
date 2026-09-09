@@ -200,4 +200,37 @@ Profile workout history table
 
 ---
 
-<p align="right">Updated: 2026-09-08</p>
+## 8. Dynamic MongoDB Stopwatch Session Persistence & Realtime Daily Gym Time (2026-09-09)
+
+Completed full dynamic MongoDB integration for the Gym Stopwatch experience, eliminating static and memory-only storage:
+
+### Backend Enhancements
+- **Enhanced Model** (`server/src/models/StopwatchSession.model.ts`):
+  - Added `durationSeconds`, `setsCount`, `repsCount`, and `notes` to the schema with proper defaults and validation.
+- **Enhanced Controller** (`server/src/controllers/stopwatch.controller.ts`):
+  - `markSessionComplete`: Accepts sub-minute sessions (`durationSeconds`), dynamic sets, reps, weight, and notes. Accurately estimates calories and saves directly to MongoDB `StopwatchSession`.
+  - `getRecentSessions`: Computes today's accumulated metrics (`todayGymSeconds`, `todayCaloriesBurned`, `todaySessionsCount`, `todaySetsCount`) directly from MongoDB records starting from 00:00:00 today.
+  - `syncGymTime` (`POST /api/stopwatch/sync-time`): Allows live athlete sync of daily gym time into MongoDB.
+  - `resetTodayGymTime` (`POST /api/stopwatch/reset-today`): Resets today's accumulated gym time directly in MongoDB when an athlete resets the counter.
+- **Routes** (`server/src/routes/stopwatch.routes.ts`):
+  - Mounted `/api/stopwatch/sync-time` and `/api/stopwatch/reset-today` with JWT authentication.
+
+### Frontend Enhancements
+- **Service Layer** (`client/src/services/stopwatchService.ts`):
+  - Added `StopwatchSessionRecord` and `RecentSessionsData` interfaces.
+  - Added `syncDailyGymTime(totalSeconds)` and `resetDailyGymTime()` client API functions.
+  - Enhanced `completeStopwatchSession` to transmit `durationSeconds`, `setsCount`, `repsCount`, and `notes`.
+- **GymTimer Component** (`client/src/components/time/GymTimer.tsx`):
+  - On mount, automatically loads `todayGymSeconds` and mapped sets from MongoDB via `fetchRecentSessions(20)`.
+  - Daily gym time changes automatically sync to MongoDB in the background.
+  - Reset button connects directly to `resetDailyGymTime()` in MongoDB.
+  - Realtime Sync badge connects to MongoDB sync verification.
+  - Sets logged via QuickSetLogger and completed intervals persist seamlessly into MongoDB `WorkoutLog` and `StopwatchSession`.
+
+### Verification
+- `npm run build` in `server/` passed with 0 errors.
+- `npm run build` in `client/` passed with 0 errors (all 14 routes statically/dynamically generated).
+
+---
+
+<p align="right">Updated: 2026-09-09</p>
