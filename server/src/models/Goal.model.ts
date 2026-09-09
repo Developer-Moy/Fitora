@@ -12,6 +12,13 @@ export interface IGoal extends Document {
   targetWeight: number;
   weeklyWorkoutFrequency: number;
 
+   // Goal progress
+  currentValue: number;
+  targetValue: number;
+
+  status: "active" | "completed";
+  archivedAt?: Date;
+
   bmr: number;
   tdee: number;
   targetCalories: number;
@@ -54,6 +61,33 @@ const goalSchema = new Schema<IGoal>(
       type: Number,
       required: true,
       default: 4,
+    },
+
+     // Current goal progress
+    currentValue: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+
+    // Goal completion target
+    targetValue: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+
+    // Goal lifecycle
+    status: {
+      type: String,
+      enum: ["active", "completed"],
+      default: "active",
+      index: true,
+    },
+
+    archivedAt: {
+      type: Date,
+      default: null,
     },
 
     bmr: {
