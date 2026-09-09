@@ -3,17 +3,97 @@ import Goal from "../models/Goal.model";
 import WorkoutLog from "../models/WorkoutLog.model";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
+/**
+ * Automatically completes a goal when progress reaches target.
+ */
+const applyGoalCompletion = (goal: any) => {
+  const currentValue = Number(goal.currentValue) || 0;
+  const targetValue = Number(goal.targetValue) || 0;
+
+  if (
+    targetValue > 0 &&
+    currentValue >= targetValue &&
+    goal.status !== "completed"
+  ) {
+    goal.status = "completed";
+    goal.archivedAt = new Date();
+  }
+
+  return goal;
+};
+
 export const createOrUpdateGoal = async (req: Request, res: Response) => {
   try {
-    const { userId, targetWeight, weeklyWorkoutFrequency } = req.body;
+    const { userId, targetWeight, weeklyWorkoutFrequency, currentValue,
+      targetValue,
+      goalType,
+      bmr,
+      tdee,
+      targetCalories,
+      macros, } = req.body;
+
+      if (!userId) {
+      return res.status(400).json(
+        errorResponse(
+          "userId is required",
+          "VALIDATION_ERROR",
+          400,
+        ),
+      );
+    }
+
+    const existingGoal = await Goal.findOne({ userId });
+
+    const goalData: any = {
+      userId,
+      targetWeight,
+      weeklyWorkoutFrequency,
+      currentValue:
+        currentValue !== undefined
+          ? Number(currentValue)
+          : existingGoal?.currentValue ?? 0,
+      targetValue:
+        targetValue !== undefined
+          ? Number(targetValue)
+          : existingGoal?.targetValue ?? targetWeight ?? 0,
+      goalType:
+        goalType !== undefined
+          ? goalType
+          : existingGoal?.goalType,
+      bmr:
+        bmr !== undefined
+          ? Number(bmr)
+          : existingGoal?.bmr,
+      tdee:
+        tdee !== undefined
+          ? Number(tdee)
+          : existingGoal?.tdee,
+      targetCalories:
+        targetCalories !== undefined
+          ? Number(targetCalories)
+          : existingGoal?.targetCalories,
+      macros:
+        macros !== undefined
+          ? macros
+          : existingGoal?.macros,
+    };
+
+    // Auto-complete when target is reached
+    if (
+      goalData.targetValue > 0 &&
+      goalData.currentValue >= goalData.targetValue
+    ) {
+      goalData.status = "completed";
+      goalData.archivedAt =
+        existingGoal?.archivedAt || new Date();
+    } else {
+      goalData.status = "active";
+      goalData.archivedAt = null;
+    }
 
     const goal = await Goal.findOneAndUpdate(
       { userId },
-      {
-        userId,
-        targetWeight,
-        weeklyWorkoutFrequency,
-      },
+      goalData,
       {
         new: true,
         upsert: true,
@@ -22,15 +102,20 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
     );
 
     return res.status(200).json(
-      successResponse("Goal created or updated successfully", goal)
+      successResponse(
+        goal?.status === "completed"
+          ? "Goal completed and archived automatically"
+          : "Goal created or updated successfully",
+        goal,
+      ),
     );
   } catch (error) {
     return res.status(500).json(
       errorResponse(
         "Failed to create/update goal",
         error instanceof Error ? error.message : "Internal Server Error",
-        500
-      )
+        500,
+      ),
     );
   }
 };
@@ -43,8 +128,15 @@ export const getGoal = async (req: Request, res: Response) => {
 
     if (!goal) {
       return res.status(404).json(
-        errorResponse("Goal not found", "GOAL_NOT_FOUND", 404)
+        errorResponse("Goal not found", "GOAL_NOT_FOUND", 404),
       );
+    }
+
+    // Check completion whenever goal is retrieved
+    applyGoalCompletion(goal);
+
+    if (goal.isModified()) {
+      await goal.save();
     }
 
     const workouts = await WorkoutLog.find({ userId })
@@ -136,9 +228,34 @@ export const updateGoal = async (req: Request, res: Response) => {
       );
     }
 
+    // Update only supplied fields
+    Object.assign(goal, req.body);
+
+    // Normalize numeric values
+    if (req.body.currentValue !== undefined) {
+      goal.currentValue =
+        Number(req.body.currentValue);
+    }
+
+    if (req.body.targetValue !== undefined) {
+      goal.targetValue =
+        Number(req.body.targetValue);
+    }
+
+    // Auto-complete / archive
+    applyGoalCompletion(goal);
+
+    await goal.save();
+
     return res.status(200).json(
-      successResponse("Goal updated successfully", goal)
+      successResponse(
+        goal.status === "completed"
+          ? "Goal completed and archived automatically"
+          : "Goal updated successfully",
+        goal,
+      ),
     );
+
   } catch (error) {
     return res.status(500).json(
       errorResponse(
@@ -172,6 +289,83 @@ export const deleteGoal = async (req: Request, res: Response) => {
         error instanceof Error ? error.message : "Internal Server Error",
         500
       )
+    );
+  }
+};
+
+// Active Goals
+export const getActiveGoals = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req.params;
+
+    const goals = await Goal.find({
+      userId,
+      status: "active",
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json(
+      successResponse(
+        "Active goals retrieved successfully",
+        {
+          goals,
+          count: goals.length,
+        },
+      ),
+    );
+  } catch (error) {
+    console.error("[Goal Controller] getActiveGoals Error:", error);
+
+    return res.status(500).json(
+      errorResponse(
+        "Failed to get active goals",
+        error instanceof Error
+          ? error.message
+          : "Internal Server Error",
+        500,
+      ),
+    );
+  }
+};
+
+// Completed / Archived Goals
+export const getArchivedGoals = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { userId } = req.params;
+
+    const goals = await Goal.find({
+      userId,
+      status: "completed",
+    }).sort({ archivedAt: -1 });
+
+    return res.status(200).json(
+      successResponse(
+        "Archived goals retrieved successfully",
+        {
+          goals,
+          count: goals.length,
+        },
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "[Goal Controller] getArchivedGoals Error:",
+      error,
+    );
+
+    return res.status(500).json(
+      errorResponse(
+        "Failed to get archived goals",
+        error instanceof Error
+          ? error.message
+          : "Internal Server Error",
+        500,
+      ),
     );
   }
 };
