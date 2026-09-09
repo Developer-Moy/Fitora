@@ -469,6 +469,13 @@ https://github.com/Developer-Moy/Fitora/tree/simanto-paul
 * Added Athlete Health Assessment Card with BMI, BMR, TDEE, target calories, and macro summary.
 * Added copy-to-clipboard and print/PDF export functionality.
 
+### 09-Sep-26
+
+Fixed invoice PDF export dependency/build issue by resolving the missing jspdf module.
+Fixed hydration target save flow and login validation for authenticated users.
+Updated hydration target persistence so users can save their calculated target to their profile.
+Verified Team Leader access and permissions for the related user/profile management functionality.
+Performed integration testing and bug verification across the updated features.
 
 ---
 
