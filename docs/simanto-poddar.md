@@ -172,3 +172,19 @@ We built a feature that lets users save their favorite food items to a custom "D
 
 - Extracted the Personalized Nutrition Plan section from the profile page into a standalone, reusable `PersonalizedNutritionPlan` component.
 - Implemented role and membership tier gating (`isFreePlan`): guest visitors see a locked sign-in banner, free users see an upgrade banner, and paid athletes access the full nutrition plan with 1-click recipe copy.
+
+## 09-Sep-26
+
+Implement copy grocery list and refactor saved meal plan
+
+- Extract SavedMealPlan section from profile page into dedicated component
+- Resolve hydration/refresh state persistence for saved meals
+- Add Copy Grocery List button with whitespace normalization and case-insensitive deduplication
+- Add clipboard copy handler with toast notifications and visual feedback
+
+Add daily calorie progress bar
+
+- Calculate total daily calories by summing calories across saved meals
+- Compute visual progress bar based on fixed 2950 kcal target [It will dynamically change in the future based on user profile settings, but for now it's hardcoded to 2950 kcal]
+- Display contextual calorie feedback (remaining, goal reached, or over target)
+- Match monochrome design aesthetic and place below grocery list action
