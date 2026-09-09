@@ -29,7 +29,7 @@ export default function TrainerCalloutBanner({
   return (
     <section
       aria-label="Fitness Trainer Callout"
-      className={`relative w-full overflow-hidden bg-black text-white min-h-[300px] sm:min-h-[360px] md:min-h-[400px] flex items-center border-y border-white/10 ${className}`}
+      className={`relative w-full overflow-hidden bg-black text-white min-h-[380px] sm:min-h-[440px] md:min-h-[480px] flex items-center border-y border-white/10 ${className}`}
     >
       {/* Background Image Container */}
       <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[70%] md:w-[60%] lg:w-[50%] h-full flex justify-end pointer-events-none z-0">
@@ -39,8 +39,8 @@ export default function TrainerCalloutBanner({
           className="h-full w-full object-cover sm:object-cover object-right"
         />
         {/* Smooth Dark Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 sm:via-black/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/80 sm:hidden" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 sm:via-black/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/80 sm:hidden" />
       </div>
 
       {/* Subtle Ambient Glow */}
@@ -52,26 +52,49 @@ export default function TrainerCalloutBanner({
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="max-w-xl flex flex-col items-start text-left space-y-5"
+          className="max-w-2xl flex flex-col items-start text-left space-y-6"
         >
-          <h2 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
-            {title}
-          </h2>
-
-          <div className="flex items-center gap-3 text-xl sm:text-2xl md:text-3xl font-black tracking-tight">
-            <span className="text-white/40 uppercase font-bold">
-              {phoneLabel}
-            </span>
-            <a
-              href={phoneLink}
-              className="text-white hover:text-white/80 transition-colors inline-flex items-center gap-2 group"
-            >
-              <span>{phoneNumber}</span>
-              <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white transition-transform group-hover:scale-110" />
-            </a>
+          <div className="space-y-3">
+            <h2 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
+              {title}
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-300 font-medium max-w-lg leading-relaxed">
+              Accelerate your transformation with dedicated personal trainers.
+              Get custom hypertrophy routines, strict form correction, and
+              tailored nutrition plans across all 64 branches.
+            </p>
           </div>
 
-          <div className="pt-2">
+          {/* Trainer Key Metrics Strip */}
+          <div className="flex flex-wrap items-center gap-6 sm:gap-10 text-white">
+            <div>
+              <span className="text-xl sm:text-2xl font-black tracking-tight block leading-none">
+                105+
+              </span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                Expert Coaches
+              </span>
+            </div>
+            <div>
+              <span className="text-xl sm:text-2xl font-black tracking-tight block leading-none">
+                98.6%
+              </span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                Success Rate
+              </span>
+            </div>
+            <div>
+              <span className="text-xl sm:text-2xl font-black tracking-tight block leading-none">
+                4.9 / 5.0
+              </span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                Athlete Rating
+              </span>
+            </div>
+          </div>
+
+          {/* Action Row: Book Session Button + Call Number */}
+          <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-2">
             <Link
               href={buttonHref}
               className="group inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm uppercase tracking-wider px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
@@ -81,6 +104,19 @@ export default function TrainerCalloutBanner({
                 <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
               </span>
             </Link>
+
+            <div className="flex items-center gap-2 text-base sm:text-lg font-black tracking-tight">
+              <span className="text-white/40 uppercase font-bold text-xs sm:text-sm">
+                {phoneLabel}
+              </span>
+              <a
+                href={phoneLink}
+                className="text-white hover:text-gray-300 transition-colors inline-flex items-center gap-2 group"
+              >
+                <span>{phoneNumber}</span>
+                <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-white transition-transform group-hover:scale-110" />
+              </a>
+            </div>
           </div>
         </motion.div>
       </div>

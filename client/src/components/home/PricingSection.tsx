@@ -188,14 +188,14 @@ export default function PricingSection() {
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`relative flex flex-col justify-between p-8 rounded-2xl border transition-all duration-300 ${
+              className={`relative flex flex-col justify-between p-8 rounded-3xl transition-all duration-300 ease-out ${
                 plan.isPopular
-                  ? "bg-black text-white border-black shadow-2xl scale-105 z-10"
-                  : "bg-gray-50 text-black border-gray-200 hover:border-gray-400"
+                  ? "bg-black text-white scale-105 z-10 shadow-[0_25px_60px_rgba(0,0,0,0.55),0_10px_25px_rgba(0,0,0,0.35)] hover:-translate-y-2 hover:shadow-[0_35px_80px_rgba(0,0,0,0.7),0_15px_35px_rgba(0,0,0,0.45)]"
+                  : "bg-white text-black shadow-[0_20px_45px_rgba(0,0,0,0.22),0_8px_18px_rgba(0,0,0,0.14)] hover:-translate-y-2 hover:shadow-[0_28px_60px_rgba(0,0,0,0.32),0_10px_25px_rgba(0,0,0,0.2)]"
               }`}
             >
               {plan.isPopular && (
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full border border-gray-300 shadow-sm">
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full shadow-md">
                   MOST POPULAR
                 </span>
               )}
@@ -220,7 +220,11 @@ export default function PricingSection() {
 
                 <div className="space-y-1">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl sm:text-5xl font-black tracking-tight">
+                    <span
+                      className={`text-4xl sm:text-5xl font-black tracking-tight ${
+                        plan.isPopular ? "text-white" : "text-black"
+                      }`}
+                    >
                       ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
                     </span>
                     <span
@@ -245,7 +249,7 @@ export default function PricingSection() {
 
                 <div
                   className={`w-full h-[1px] ${
-                    plan.isPopular ? "bg-white/20" : "bg-gray-200"
+                    plan.isPopular ? "bg-white/20" : "bg-gray-100"
                   }`}
                 />
 
@@ -277,15 +281,15 @@ export default function PricingSection() {
                 <button
                   type="button"
                   onClick={() => handlePlanSelect(plan)}
-                  className={`group inline-flex items-center justify-between w-full gap-2 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-300 shadow-xl cursor-pointer ${
+                  className={`group/btn inline-flex items-center justify-between w-full gap-2 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-300 shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
                     plan.isPopular
-                      ? "bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.02] active:scale-[0.98]"
-                      : "bg-black text-white border border-white/25 hover:bg-black hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+                      ? "bg-white text-black hover:bg-neutral-100"
+                      : "bg-black text-white hover:bg-neutral-900"
                   }`}
                 >
                   <span>{plan.buttonText}</span>
                   <span
-                    className={`w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md ${
+                    className={`w-6 h-6 rounded-full flex items-center justify-center group-hover/btn:rotate-45 group-hover/btn:scale-110 transition-all duration-300 shadow-sm ${
                       plan.isPopular
                         ? "bg-black text-white"
                         : "bg-white text-black"
