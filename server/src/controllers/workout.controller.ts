@@ -20,18 +20,17 @@ export const getWorkouts = async (
   try {
     const { category, difficulty, equipment, search, limit, page } = req.query;
 
-    if (
-  difficulty &&
-  String(difficulty).toLowerCase() === "advanced"
-) {
-  return res.status(403).json(
-    errorResponse(
-      "Advanced workouts require premium access. Use /api/workouts/advanced.",
-      "Premium Required",
-      403,
-    ),
-  );
-}
+    if (difficulty && String(difficulty).toLowerCase() === "advanced") {
+      return res
+        .status(403)
+        .json(
+          errorResponse(
+            "Advanced workouts require premium access. Use /api/workouts/advanced.",
+            "Premium Required",
+            403,
+          ),
+        );
+    }
 
     let results: WorkoutExercise[] = [...LOCAL_WORKOUTS_DATABASE];
 
@@ -97,8 +96,6 @@ export const getWorkouts = async (
   }
 };
 
-
-
 /**
  * GET /api/workouts/advanced
  * Retrieve advanced workouts for premium users only
@@ -130,8 +127,7 @@ export const getAdvancedWorkouts = async (
       const equipmentLower = equipment.toLowerCase();
 
       results = results.filter(
-        (workout) =>
-          workout.equipment.toLowerCase() === equipmentLower,
+        (workout) => workout.equipment.toLowerCase() === equipmentLower,
       );
     }
 
@@ -156,10 +152,7 @@ export const getAdvancedWorkouts = async (
 
     const startIndex = (pageNum - 1) * limitNum;
 
-    const paginatedResults = results.slice(
-      startIndex,
-      startIndex + limitNum,
-    );
+    const paginatedResults = results.slice(startIndex, startIndex + limitNum);
 
     return res.status(200).json(
       successResponse("Advanced workouts retrieved successfully", {
@@ -171,24 +164,19 @@ export const getAdvancedWorkouts = async (
       }),
     );
   } catch (error) {
-    console.error(
-      "[Workout Controller] getAdvancedWorkouts Error:",
-      error,
-    );
+    console.error("[Workout Controller] getAdvancedWorkouts Error:", error);
 
-    return res.status(500).json(
-      errorResponse(
-        "Failed to fetch advanced workouts",
-        error instanceof Error
-          ? error.message
-          : "Internal Server Error",
-        500,
-      ),
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to fetch advanced workouts",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
-
-
 
 /**
  * GET /api/workouts/:id
@@ -267,17 +255,16 @@ export const getWorkoutLogs = async (
           .sort({ createdAt: -1 })
           .limit(parseInt(limit as string, 10) || 100);
       } catch (dbErr) {
-        console.error(
-          "[Workout Controller] MongoDB query failed:",
-          dbErr,
-        );
-        return res.status(500).json(
-          errorResponse(
-            "Failed to retrieve workout logs",
-            dbErr instanceof Error ? dbErr.message : "Internal Server Error",
-            500,
-          ),
-        );
+        console.error("[Workout Controller] MongoDB query failed:", dbErr);
+        return res
+          .status(500)
+          .json(
+            errorResponse(
+              "Failed to retrieve workout logs",
+              dbErr instanceof Error ? dbErr.message : "Internal Server Error",
+              500,
+            ),
+          );
       }
     }
 
@@ -427,9 +414,15 @@ export const createWorkoutLog = async (
     const isDbConnected = mongoose.connection.readyState === 1;
 
     if (!isDbConnected) {
-      return res.status(503).json(
-        errorResponse("Database unavailable — please try again later", "SERVICE_UNAVAILABLE", 503)
-      );
+      return res
+        .status(503)
+        .json(
+          errorResponse(
+            "Database unavailable — please try again later",
+            "SERVICE_UNAVAILABLE",
+            503,
+          ),
+        );
     }
 
     let createdLog: any = null;
@@ -437,16 +430,20 @@ export const createWorkoutLog = async (
       createdLog = await WorkoutLog.create(logPayload);
     } catch (dbErr) {
       console.error("[Workout Controller] DB save failed:", dbErr);
-      return res.status(500).json(
-        errorResponse("Failed to save workout log", dbErr instanceof Error ? dbErr.message : "Internal Server Error", 500)
-      );
+      return res
+        .status(500)
+        .json(
+          errorResponse(
+            "Failed to save workout log",
+            dbErr instanceof Error ? dbErr.message : "Internal Server Error",
+            500,
+          ),
+        );
     }
 
     return res
       .status(201)
-      .json(
-        successResponse("Workout logged successfully", createdLog),
-      );
+      .json(successResponse("Workout logged successfully", createdLog));
   } catch (error) {
     console.error("[Workout Controller] createWorkoutLog Error:", error);
     return res
@@ -473,25 +470,31 @@ export const deleteWorkoutLog = async (
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json(
-        errorResponse("Invalid workout log ID", "VALIDATION_ERROR", 400)
-      );
+      return res
+        .status(400)
+        .json(errorResponse("Invalid workout log ID", "VALIDATION_ERROR", 400));
     }
 
     const isDbConnected = mongoose.connection.readyState === 1;
 
     if (!isDbConnected) {
-      return res.status(503).json(
-        errorResponse("Database unavailable — please try again later", "SERVICE_UNAVAILABLE", 503)
-      );
+      return res
+        .status(503)
+        .json(
+          errorResponse(
+            "Database unavailable — please try again later",
+            "SERVICE_UNAVAILABLE",
+            503,
+          ),
+        );
     }
 
     const deleted = await WorkoutLog.findByIdAndDelete(id);
 
     if (!deleted) {
-      return res.status(404).json(
-        errorResponse("Workout log not found", "NOT_FOUND", 404)
-      );
+      return res
+        .status(404)
+        .json(errorResponse("Workout log not found", "NOT_FOUND", 404));
     }
 
     return res
@@ -511,7 +514,6 @@ export const deleteWorkoutLog = async (
   }
 };
 
-
 /**
  * GET /api/workouts/pr-history/:exerciseId
  * Retrieve user's estimated 1RM progression history for an exercise
@@ -527,30 +529,19 @@ export const getPRHistory = async (
     const { exerciseId } = req.params;
 
     if (!exerciseId || exerciseId.trim() === "") {
-      return res.status(400).json(
-        errorResponse(
-          "exerciseId is required",
-          "VALIDATION_ERROR",
-          400,
-        ),
-      );
+      return res
+        .status(400)
+        .json(errorResponse("exerciseId is required", "VALIDATION_ERROR", 400));
     }
 
     // Get authenticated user ID from JWT
     const authUser = (req as any).user;
-    const userId =
-      authUser?.userId ||
-      authUser?.id ||
-      authUser?._id;
+    const userId = authUser?.userId || authUser?.id || authUser?._id;
 
     if (!userId) {
-      return res.status(401).json(
-        errorResponse(
-          "Authentication required",
-          "UNAUTHORIZED",
-          401,
-        ),
-      );
+      return res
+        .status(401)
+        .json(errorResponse("Authentication required", "UNAUTHORIZED", 401));
     }
 
     // Find exercise from local workout catalog
@@ -561,13 +552,15 @@ export const getPRHistory = async (
     );
 
     if (!exercise) {
-      return res.status(404).json(
-        errorResponse(
-          `Exercise with ID '${exerciseId}' not found`,
-          "EXERCISE_NOT_FOUND",
-          404,
-        ),
-      );
+      return res
+        .status(404)
+        .json(
+          errorResponse(
+            `Exercise with ID '${exerciseId}' not found`,
+            "EXERCISE_NOT_FOUND",
+            404,
+          ),
+        );
     }
 
     const exerciseName = exercise.name.trim();
@@ -577,9 +570,7 @@ export const getPRHistory = async (
 
     if (isDbConnected) {
       try {
-        const userConditions: any[] = [
-          { userId: String(userId) },
-        ];
+        const userConditions: any[] = [{ userId: String(userId) }];
 
         // Support MongoDB ObjectId userId
         if (mongoose.Types.ObjectId.isValid(String(userId))) {
@@ -605,27 +596,13 @@ export const getPRHistory = async (
           ],
         }).sort({ date: 1, createdAt: 1 });
       } catch (dbErr) {
-        console.warn(
-          "[Workout Controller] PR history DB query failed:",
-          dbErr,
-        );
+        console.warn("[Workout Controller] PR history DB query failed:", dbErr);
       }
     }
 
-    // If MongoDB is unavailable, use in-memory logs
-    if (!logs || logs.length === 0) {
-      logs = inMemoryWorkoutLogs
-        .filter(
-          (log) =>
-            String(log.userId) === String(userId) &&
-            log.exerciseName.toLowerCase() ===
-              exerciseName.toLowerCase(),
-        )
-        .sort(
-          (a, b) =>
-            new Date(a.date).getTime() -
-            new Date(b.date).getTime(),
-        );
+    // If no logs found, fallback to empty array
+    if (!logs) {
+      logs = [];
     }
 
     // Calculate Brzycki estimated 1RM
@@ -639,8 +616,7 @@ export const getPRHistory = async (
           return null;
         }
 
-        const estimated1RM =
-          weight * (36 / (37 - reps));
+        const estimated1RM = weight * (36 / (37 - reps));
 
         return {
           date: log.date || log.createdAt,
@@ -652,31 +628,25 @@ export const getPRHistory = async (
       .filter(Boolean);
 
     return res.status(200).json(
-      successResponse(
-        "1RM progression history retrieved successfully",
-        {
-          exerciseId: exercise.id,
-          exerciseName: exercise.name,
-          formula: "Brzycki",
-          history,
-          count: history.length,
-        },
-      ),
+      successResponse("1RM progression history retrieved successfully", {
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        formula: "Brzycki",
+        history,
+        count: history.length,
+      }),
     );
   } catch (error) {
-    console.error(
-      "[Workout Controller] getPRHistory Error:",
-      error,
-    );
+    console.error("[Workout Controller] getPRHistory Error:", error);
 
-    return res.status(500).json(
-      errorResponse(
-        "Failed to retrieve 1RM progression history",
-        error instanceof Error
-          ? error.message
-          : "Internal Server Error",
-        500,
-      ),
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve 1RM progression history",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 };

@@ -11,30 +11,83 @@ import { errorResponse, successResponse } from "../utils/apiResponse";
  */
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
+    const authUser = (req as any).user;
     const userId =
-      (req as any).user?.id || (req.query.userId as string) || "guest_user";
+      authUser?.userId ||
+      authUser?.id ||
+      authUser?._id ||
+      (req.query.userId as string) ||
+      "guest_user";
 
-    const workouts = await WorkoutLog.find({ userId });
+    const userConditions: any[] = [{ userId: String(userId) }];
+    if (mongoose.Types.ObjectId.isValid(String(userId))) {
+      userConditions.push({
+        userId: new mongoose.Types.ObjectId(String(userId)),
+      });
+    }
+    if (authUser?.email && authUser.email !== userId) {
+      userConditions.push({ userId: authUser.email });
+    }
+
+    const workouts = await WorkoutLog.find({ $or: userConditions });
     const workoutCount = workouts.length;
+
+    // Monthly workouts calculation
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const workoutsThisMonth = workouts.filter((w: any) => {
+      const d = w.date || w.createdAt;
+      return d && new Date(d) >= startOfMonth;
+    }).length;
+
     const burnedCalories = workouts.reduce(
       (total: number, workout: any) => total + (workout.caloriesBurned || 0),
       0,
     );
 
+    const totalHours =
+      Math.round(
+        (workouts.reduce(
+          (total: number, workout: any) =>
+            total + (workout.durationMinutes || 0),
+          0,
+        ) /
+          60) *
+          10,
+      ) / 10;
+
+    // Retrieve user for streak and membership info
+    const userDoc = await User.findOne({
+      $or: [
+        ...(mongoose.Types.ObjectId.isValid(String(userId))
+          ? [{ _id: userId }]
+          : []),
+        { email: String(userId) },
+        ...(authUser?.email ? [{ email: authUser.email }] : []),
+      ],
+    });
+
+    const streakDays =
+      userDoc?.attendanceStreakDays ||
+      (workouts.length > 0 ? Math.min(workouts.length, 7) : 0);
+    const targetWorkouts = 20;
+    const consistencyScore =
+      Math.min(
+        100,
+        Math.round(
+          ((workoutsThisMonth || workoutCount) / targetWorkouts) * 100,
+        ),
+      ) || (workoutCount > 0 ? 80 : 0);
+
     return res.status(200).json(
       successResponse("Dashboard statistics retrieved successfully", {
         workoutCount,
+        workoutsThisMonth: workoutsThisMonth || workoutCount,
         burnedCalories,
-        totalHours:
-          Math.round(
-            (workouts.reduce(
-              (total: number, workout: any) =>
-                total + (workout.durationMinutes || 0),
-              0,
-            ) /
-              60) *
-              10,
-          ) / 10,
+        totalHours,
+        streakDays,
+        targetWorkouts,
+        consistencyScore,
       }),
     );
   } catch (error: any) {
@@ -154,19 +207,28 @@ export const getPlatformStats = async (req: AuthRequest, res: Response) => {
             color: "#00579F",
           },
         ],
-        packageSalesBreakdown: planBreakdown.map((p) => ({
-          name: p._id,
-          members: p.count,
-          priceBDT:
-            p._id === "Free Pass"
-              ? 0
-              : p._id === "Basic Pass"
-                ? 2500
-                : p._id === "Pro Athlete"
-                  ? 4900
-                  : 9900,
-          share: `${Math.round((p.count / (totalMembers || 1)) * 100)}%`,
-        })),
+        packageSalesBreakdown: [
+          "Free Pass",
+          "Basic Pass",
+          "Pro Athlete",
+          "VIP Ultimate",
+        ].map((tierName) => {
+          const found = planBreakdown.find((p: any) => p._id === tierName);
+          const count = found?.count || 0;
+          return {
+            name: tierName,
+            members: count,
+            priceBDT:
+              tierName === "Free Pass"
+                ? 0
+                : tierName === "Basic Pass"
+                  ? 2500
+                  : tierName === "Pro Athlete"
+                    ? 4900
+                    : 9900,
+            share: `${Math.round((count / (totalMembers || 1)) * 100)}%`,
+          };
+        }),
         recentCheckIns: checkIns,
       }),
     );
@@ -528,17 +590,15 @@ export const extendUserMembership = async (req: AuthRequest, res: Response) => {
     }
     await target.save();
 
-    return res
-      .status(200)
-      .json(
-        successResponse(
-          `Membership extended by ${daysToAdd} day(s) for "${target.name}"`,
-          {
-            name: target.name,
-            subscriptionExpiryDate: newExpiry.toISOString(),
-          },
-        ),
-      );
+    return res.status(200).json(
+      successResponse(
+        `Membership extended by ${daysToAdd} day(s) for "${target.name}"`,
+        {
+          name: target.name,
+          subscriptionExpiryDate: newExpiry.toISOString(),
+        },
+      ),
+    );
   } catch (error: any) {
     console.error("Error in extendUserMembership:", error);
     return res
@@ -799,8 +859,7 @@ export const updateHydrationTarget = async (
       userId,
       {
         $set: {
-          hydrationTargetLiters:
-            Math.round(hydrationTargetLiters * 100) / 100,
+          hydrationTargetLiters: Math.round(hydrationTargetLiters * 100) / 100,
         },
       },
       {
@@ -833,6 +892,96 @@ export const updateHydrationTarget = async (
   }
 };
 
+/**
+ * PATCH /api/users/profile or PATCH /api/dashboard/profile
+ * Update authenticated user's own profile (name, phone, assignedBranch, fitnessGoal, weight, targetWeight)
+ */
+export const updateOwnProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const authUser = req.user || (req as any).user;
+    const userId = authUser?.userId || authUser?.id || authUser?._id;
+
+    if (!userId) {
+      return res.status(401).json(errorResponse("Unauthorized", "", 401));
+    }
+
+    const { name, phone, assignedBranch, fitnessGoal, weight, targetWeight } =
+      req.body;
+
+    const updateFields: Record<string, any> = {};
+    if (typeof name === "string" && name.trim()) {
+      updateFields.name = name.trim();
+    }
+    if (typeof phone === "string" && phone.trim()) {
+      updateFields.phone = phone.trim();
+    }
+    if (typeof assignedBranch === "string" && assignedBranch.trim()) {
+      updateFields.assignedBranch = assignedBranch.trim();
+      updateFields.assignedBranchSlug = assignedBranch
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-");
+    }
+    if (typeof fitnessGoal === "string" && fitnessGoal.trim()) {
+      updateFields.fitnessGoal = fitnessGoal.trim();
+    }
+    if (
+      typeof weight === "number" ||
+      (typeof weight === "string" &&
+        !isNaN(Number(weight)) &&
+        Number(weight) > 0)
+    ) {
+      updateFields.weight = Number(weight);
+    }
+    if (
+      typeof targetWeight === "number" ||
+      (typeof targetWeight === "string" &&
+        !isNaN(Number(targetWeight)) &&
+        Number(targetWeight) > 0)
+    ) {
+      updateFields.targetWeight = Number(targetWeight);
+    }
+
+    let updatedUser = null;
+    if (mongoose.Types.ObjectId.isValid(String(userId))) {
+      updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: updateFields },
+        { new: true, runValidators: true },
+      ).select("-passwordHash");
+    }
+
+    if (!updatedUser && authUser?.email) {
+      updatedUser = await User.findOneAndUpdate(
+        { email: authUser.email },
+        { $set: updateFields },
+        { new: true, runValidators: true },
+      ).select("-passwordHash");
+    }
+
+    if (!updatedUser) {
+      return res.status(404).json(errorResponse("User not found", "", 404));
+    }
+
+    return res.status(200).json(
+      successResponse("Profile updated successfully", {
+        user: updatedUser,
+      }),
+    );
+  } catch (error: any) {
+    console.error("Error in updateOwnProfile:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to update profile",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
+  }
+};
+
 export default {
   getDashboardStats,
   getPlatformStats,
@@ -845,4 +994,5 @@ export default {
   getUserMembershipAudit,
   updateHealthMetrics,
   updateHydrationTarget,
+  updateOwnProfile,
 };

@@ -2,10 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  UserRecord,
-  INITIAL_BRANCHES,
-} from "@/data/dashboardData";
-import {
   STATUS_CONFIG,
   getPlanBadgeColor,
   toDate,
@@ -22,6 +18,7 @@ import {
   type BranchInfo,
   type PaidPlanName,
   type UserMembership,
+  type UserRecord,
 } from "@/services/dashboardService";
 import {
   Search,
@@ -73,7 +70,7 @@ export default function UserManagementTable({
   assignedBranch,
 }: UserManagementTableProps) {
   const [users, setUsers] = useState<UserRecord[]>([]);
-  const [branches, setBranches] = useState<BranchInfo[]>(INITIAL_BRANCHES);
+  const [branches, setBranches] = useState<BranchInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -201,7 +198,7 @@ export default function UserManagementTable({
     setPlanValue(
       PAID_PLANS.includes(user.plan as PaidPlanName)
         ? (user.plan as PaidPlanName)
-        : "Basic Pass"
+        : "Basic Pass",
     );
     setPlanTarget(user);
   };
@@ -233,11 +230,9 @@ export default function UserManagementTable({
     }
   };
 
-
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, roleFilter, statusFilter, branchFilter]);
-
 
   // Filter Users
   const filteredUsers = users.filter((user) => {
@@ -350,7 +345,10 @@ export default function UserManagementTable({
       email: newUser.email!,
       phone: newUser.phone!,
       role: (newUser.role as any) || "free_user",
-      assignedBranch: newUser.assignedBranch || branches[0]?.name || "Dhaka - Gulshan-2 Branch (Flagship)",
+      assignedBranch:
+        newUser.assignedBranch ||
+        branches[0]?.name ||
+        "Dhaka - Gulshan-2 Branch (Flagship)",
       plan: (newUser.role === "premium_user"
         ? "Pro Athlete"
         : newUser.plan || "Free Pass") as any,
@@ -374,7 +372,8 @@ export default function UserManagementTable({
       email: "",
       phone: "",
       role: "free_user",
-      assignedBranch: branches[0]?.name || "Dhaka - Gulshan-2 Branch (Flagship)",
+      assignedBranch:
+        branches[0]?.name || "Dhaka - Gulshan-2 Branch (Flagship)",
       plan: "Free Pass",
       status: "active",
     });
@@ -416,11 +415,13 @@ export default function UserManagementTable({
   };
 
   const formatSubscriptionDate = (expiry: Date | null): string =>
-    expiry ? expiry.toLocaleDateString("en-BD", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-    }) : "—";
+    expiry
+      ? expiry.toLocaleDateString("en-BD", {
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+        })
+      : "—";
 
   const getSubscriptionBadge = (user: UserRecord) => {
     const status = getSubscriptionStatus(getSubscriptionExpiry(user));
@@ -594,13 +595,18 @@ export default function UserManagementTable({
                 <td colSpan={10} className="py-12 text-center">
                   <div className="flex flex-col items-center gap-3 text-white/40">
                     <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Loading members from backend...</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">
+                      Loading members from backend...
+                    </span>
                   </div>
                 </td>
               </tr>
             ) : fetchError ? (
               <tr>
-                <td colSpan={10} className="py-8 text-center text-rose-400 text-xs font-bold uppercase">
+                <td
+                  colSpan={10}
+                  className="py-8 text-center text-rose-400 text-xs font-bold uppercase"
+                >
                   {fetchError}
                 </td>
               </tr>
@@ -682,9 +688,7 @@ export default function UserManagementTable({
                   </td>
 
                   {/* Subscription Status */}
-                  <td className="py-4 px-5">
-                    {getSubscriptionBadge(user)}
-                  </td>
+                  <td className="py-4 px-5">{getSubscriptionBadge(user)}</td>
 
                   {/* Attendance */}
                   <td className="py-4 px-5">
@@ -870,7 +874,6 @@ export default function UserManagementTable({
         )}
       </div>
 
-      
       {/* ── DELETE CONFIRMATION MODAL ── */}
       {userToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
@@ -887,7 +890,9 @@ export default function UserManagementTable({
               </button>
             </div>
             <p className="text-sm text-gray-300">
-              Are you sure you want to completely remove <strong>{userToDelete.name}</strong> from the platform? This action cannot be undone.
+              Are you sure you want to completely remove{" "}
+              <strong>{userToDelete.name}</strong> from the platform? This
+              action cannot be undone.
             </p>
             <div className="flex gap-3 pt-4">
               <button
@@ -1022,7 +1027,7 @@ export default function UserManagementTable({
                     }
                     className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer truncate uppercase font-bold"
                   >
-                    {INITIAL_BRANCHES.map((b) => (
+                    {branches.map((b) => (
                       <option key={b.id} value={b.name}>
                         {b.name}
                       </option>
@@ -1241,7 +1246,7 @@ export default function UserManagementTable({
                     }
                     className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer truncate uppercase font-bold"
                   >
-                    {INITIAL_BRANCHES.map((b) => (
+                    {branches.map((b) => (
                       <option key={b.id} value={b.name}>
                         {b.name}
                       </option>
@@ -1298,7 +1303,8 @@ export default function UserManagementTable({
                 {extendTarget.plan}
               </span>
               <span className="text-xs font-bold text-white/60">
-                Expires: {formatSubscriptionDate(getSubscriptionExpiry(extendTarget))}
+                Expires:{" "}
+                {formatSubscriptionDate(getSubscriptionExpiry(extendTarget))}
               </span>
             </div>
 
@@ -1491,13 +1497,13 @@ export default function UserManagementTable({
                   {
                     label: "Start Date",
                     value: formatSubscriptionDate(
-                      toDate(auditData.subscriptionStartDate)
+                      toDate(auditData.subscriptionStartDate),
                     ),
                   },
                   {
                     label: "Expiry Date",
                     value: formatSubscriptionDate(
-                      toDate(auditData.subscriptionExpiryDate)
+                      toDate(auditData.subscriptionExpiryDate),
                     ),
                   },
                   {

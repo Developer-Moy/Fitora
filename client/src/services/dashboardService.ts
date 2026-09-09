@@ -162,7 +162,7 @@ export interface UserMembership {
 
 /** Latest completed payment + membership snapshot for audit modal. */
 export async function fetchUserMembership(
-  id: string
+  id: string,
 ): Promise<UserMembership | null> {
   try {
     const res = await fetch(`${API_URL}/dashboard/users/${id}/membership`, {
@@ -183,7 +183,7 @@ export async function fetchUserMembership(
 /** Extend a user's subscription expiry by N days. */
 export async function extendUserMembership(
   id: string,
-  days: number
+  days: number,
 ): Promise<boolean> {
   try {
     const res = await fetch(
@@ -195,7 +195,7 @@ export async function extendUserMembership(
           ...getAuthHeader(),
         },
         body: JSON.stringify({ days }),
-      }
+      },
     );
     return res.ok;
   } catch {
@@ -206,7 +206,7 @@ export async function extendUserMembership(
 /** Change a user's subscription plan among the three paid tiers. */
 export async function updateUserMembershipPlan(
   id: string,
-  planName: PaidPlanName
+  planName: PaidPlanName,
 ): Promise<boolean> {
   try {
     const res = await fetch(
@@ -218,7 +218,7 @@ export async function updateUserMembershipPlan(
           ...getAuthHeader(),
         },
         body: JSON.stringify({ planName }),
-      }
+      },
     );
     return res.ok;
   } catch {
@@ -447,5 +447,46 @@ export async function fetchMemberStats(): Promise<MemberStatsResponse | null> {
     return data.data;
   } catch {
     return null;
+  }
+}
+
+export async function updateUserProfileApi(payload: {
+  name?: string;
+  phone?: string;
+  assignedBranch?: string;
+  fitnessGoal?: string;
+  weight?: number;
+  targetWeight?: number;
+}): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/profile`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(payload),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function updateUserHydrationTargetApi(
+  hydrationTargetLiters: number,
+): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/profile/hydration-target`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({ hydrationTargetLiters }),
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
 }

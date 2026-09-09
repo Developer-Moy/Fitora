@@ -48,6 +48,9 @@ export interface IUser extends Document {
   paymentMethod: PaymentMethod;
   bmr?: number;
   tdee?: number;
+  weight?: number;
+  targetWeight?: number;
+  fitnessGoal?: string;
   subscriptionExpiryDate?: Date;
   autoRenew?: boolean;
   cancelAtPeriodEnd?: boolean;
@@ -132,6 +135,18 @@ const userSchema = new Schema<IUser>(
     },
     tdee: {
       type: Number,
+      default: null,
+    },
+    weight: {
+      type: Number,
+      default: null,
+    },
+    targetWeight: {
+      type: Number,
+      default: null,
+    },
+    fitnessGoal: {
+      type: String,
       default: null,
     },
     attendanceStreakDays: {

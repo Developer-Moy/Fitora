@@ -1,7 +1,20 @@
 "use client";
 
-import { BANGLADESH_DIVISIONS, BranchInfo } from "@/data/dashboardData";
-import { fetchPublicBranches } from "@/services/dashboardService";
+import {
+  fetchPublicBranches,
+  type BranchInfo,
+} from "@/services/dashboardService";
+
+const BANGLADESH_DIVISIONS = [
+  "Dhaka",
+  "Chittagong",
+  "Rajshahi",
+  "Khulna",
+  "Barisal",
+  "Sylhet",
+  "Rangpur",
+  "Mymensingh",
+];
 import {
   Activity,
   Building2,
@@ -12,7 +25,7 @@ import {
   CreditCard,
   Filter,
   MapPin,
-  Search
+  Search,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -52,7 +65,9 @@ export default function BranchManagementView() {
     const matchesSearch =
       branch.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       branch.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (branch.adminName || "").toLowerCase().includes(searchQuery.toLowerCase());
+      (branch.adminName || "")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
     return matchesDivision && matchesSearch;
   });
 
@@ -75,7 +90,9 @@ export default function BranchManagementView() {
         <div className="flex items-center justify-center py-16">
           <div className="flex flex-col items-center gap-3 text-white/40">
             <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-            <span className="text-xs font-bold uppercase tracking-wider">Loading branches from backend...</span>
+            <span className="text-xs font-bold uppercase tracking-wider">
+              Loading branches from backend...
+            </span>
           </div>
         </div>
       )}
@@ -90,7 +107,7 @@ export default function BranchManagementView() {
               </div>
               <div className="pt-2 flex items-baseline gap-2">
                 <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                  64
+                  {branches.length > 0 ? branches.length : 64}
                 </span>
                 <span className="text-xs font-bold text-white/50 uppercase">
                   Districts Covered
@@ -224,7 +241,9 @@ export default function BranchManagementView() {
                       <div className="w-full h-2 rounded-full bg-neutral-900 overflow-hidden border border-white/5">
                         <div
                           className="h-full rounded-full bg-white transition-all duration-500"
-                          style={{ width: `${Math.min(occupancyPercent, 100)}%` }}
+                          style={{
+                            width: `${Math.min(occupancyPercent, 100)}%`,
+                          }}
                         />
                       </div>
 
@@ -300,7 +319,10 @@ export default function BranchManagementView() {
                 </strong>{" "}
                 to{" "}
                 <strong className="text-white font-bold">
-                  {Math.min(currentPage * itemsPerPage, filteredBranches.length)}
+                  {Math.min(
+                    currentPage * itemsPerPage,
+                    filteredBranches.length,
+                  )}
                 </strong>{" "}
                 of{" "}
                 <strong className="text-white font-bold">
@@ -343,10 +365,11 @@ export default function BranchManagementView() {
                         key={pageNum}
                         type="button"
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`w-8 h-8 rounded-xl font-bold text-xs transition-colors cursor-pointer flex items-center justify-center ${currentPage === pageNum
-                          ? "bg-white text-black font-extrabold shadow-md"
-                          : "bg-neutral-900 border border-white/10 text-neutral-300 hover:text-white hover:bg-neutral-800"
-                          }`}
+                        className={`w-8 h-8 rounded-xl font-bold text-xs transition-colors cursor-pointer flex items-center justify-center ${
+                          currentPage === pageNum
+                            ? "bg-white text-black font-extrabold shadow-md"
+                            : "bg-neutral-900 border border-white/10 text-neutral-300 hover:text-white hover:bg-neutral-800"
+                        }`}
                       >
                         {pageNum}
                       </button>
@@ -356,7 +379,9 @@ export default function BranchManagementView() {
 
                 <button
                   type="button"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className="p-2 rounded-xl bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                   title="Next Page"
