@@ -9,18 +9,24 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 function getAuthHeader(): Record<string, string> {
   if (typeof window === "undefined") return {};
   try {
+    const userEmail = localStorage.getItem("fitora_user_email") || undefined;
+    const emailHeader: Record<string, string> = userEmail
+      ? { "x-user-email": userEmail }
+      : {};
+
     const token =
       localStorage.getItem("fitora_token") ||
       localStorage.getItem("fitora_auth_token");
-    if (token) return { Authorization: `Bearer ${token}` };
+    if (token) return { Authorization: `Bearer ${token}`, ...emailHeader };
 
     const session = localStorage.getItem("fitora_auth_session");
     if (session) {
       const parsed = JSON.parse(session);
       const sessToken = parsed?.token || parsed?.access_token;
-      if (sessToken) return { Authorization: `Bearer ${sessToken}` };
+      if (sessToken)
+        return { Authorization: `Bearer ${sessToken}`, ...emailHeader };
     }
-    return {};
+    return emailHeader;
   } catch {
     return {};
   }

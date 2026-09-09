@@ -250,10 +250,16 @@ export function saveAuthSession(token: string, user?: AuthUser) {
   localStorage.setItem("fitora_auth_token", token);
   if (user) {
     localStorage.setItem("fitora_user", JSON.stringify(user));
-    if (user.role) localStorage.setItem("fitora_user_role", user.role);
+    if (user.role) {
+      localStorage.setItem("fitora_user_role", user.role);
+      // Also set fitora_active_role — this is what useDashboardRole reads
+      localStorage.setItem("fitora_active_role", user.role);
+    }
     if (user.email) localStorage.setItem("fitora_user_email", user.email);
     if (user.name) localStorage.setItem("fitora_user_name", user.name);
     if (user.plan) localStorage.setItem("fitora_user_plan", user.plan);
+    if (user.assignedBranch)
+      localStorage.setItem("fitora_active_branch", user.assignedBranch);
   }
   dispatchAuthSessionUpdated(user);
 }

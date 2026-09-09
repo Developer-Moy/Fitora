@@ -7,6 +7,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { FaGlassWaterDroplet } from "react-icons/fa6";
 import toast from "react-hot-toast";
+import { getCurrentUserApi } from "@/services/authService";
 
 /** Utility for clean tailwind class merging */
 function cn(...inputs: ClassValue[]) {
@@ -97,7 +98,7 @@ export default function HydrationTracker() {
     setTimeout(() => setShowConfetti(false), 3000);
   }, []);
 
-  // Initialization & Validation
+  // Initialization & Validation — Load from localStorage first, then sync hydration goal from MongoDB
   useEffect(() => {
     let isMounted = true;
 
@@ -144,6 +145,33 @@ export default function HydrationTracker() {
       setGoal(initialGoal);
       setHasCelebrated(initialCelebrated);
       setIsLoaded(true);
+
+      // Sync hydration goal from MongoDB profile (non-blocking)
+      try {
+        const profileResult = await getCurrentUserApi();
+        if (
+          isMounted &&
+          profileResult.success &&
+          profileResult.user
+        ) {
+          const dbGoalLiters = (profileResult.user as any).hydrationTargetLiters;
+          if (dbGoalLiters && dbGoalLiters > 0) {
+            const dbGoalMl = Math.round(dbGoalLiters * 1000);
+            setGoal(dbGoalMl);
+            // Update localStorage with the MongoDB goal
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+              try {
+                const parsed = JSON.parse(stored) as HydrationData;
+                localStorage.setItem(
+                  STORAGE_KEY,
+                  JSON.stringify({ ...parsed, goal: dbGoalMl }),
+                );
+              } catch { /* ignore */ }
+            }
+          }
+        }
+      } catch { /* silently ignore — localStorage goal stays as fallback */ }
     };
 
     loadData();
@@ -152,6 +180,8 @@ export default function HydrationTracker() {
       isMounted = false;
     };
   }, []);
+
+
 
   const handleAddWater = useCallback(() => {
     if (!isLoaded || isCompleted) return;
