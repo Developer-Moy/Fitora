@@ -459,6 +459,37 @@ These contributions cover both the **frontend UI** and **backend API** developme
 
 ---
 
+## 08-Sep-26
+
+### Master Admin Revenue Analytics (Live API + Dashboard)
+
+* Added `GET /api/dashboard/master/revenue` endpoint (master_admin only) in the new `master.controller.ts`, registered through `server/src/routes/master.routes.ts`.
+* Aggregated only `completed` payments in a single Mongo `$facet` pipeline returning:
+  - **summary** — total revenue BDT, successful payment count, and average payment BDT;
+  - **planRevenue** — per-tier breakdown (Basic Pass / Pro Athlete / VIP Ultimate) with zero rows always present;
+  - **monthlyRevenue** — month-by-month revenue distribution with human-readable month labels;
+  - **gatewayRevenue** — revenue and payment count grouped by payment gateway.
+* Connected the master dashboard to the live endpoint: added `fetchMasterRevenue()` plus typed models (`MasterRevenue`, `RevenueSummary`, `PlanRevenue`, `MonthlyRevenue`, `GatewayRevenue`) to `dashboardService.ts`.
+* Replaced hardcoded package/membership figures on `client/src/app/dashboard/page.tsx` with live revenue/summary data, showing a graceful fallback message when the endpoint cannot be reached.
+
+### Live Subscription Plans, Expiry Dates & Status in Users Table
+
+* Extended the users management table with **Subscription Plan**, **Expiry Date**, and **Sub Status** columns.
+* Resolved the subscription status from the live expiry date: `active`, `expiring-soon` (within 7 days), `expired`, or `Free / No Plan` when no expiry exists.
+* Surfaced `subscriptionExpiryDate` / `membershipExpiresAt` (from the latest completed payment) in the `getAllUsers` API response and in both client type definitions (`dashboardData.ts` and `dashboardService.ts`).
+
+### Membership Management Actions with Root Account Protection
+
+* Added three membership-management APIs (master admin only):
+  - `GET /api/dashboard/users/:id/membership` — read-only membership & payment audit (plan, billing cycle, transaction id, gateway, amount BDT, subscription start/expiry, invoice number, status).
+  - `POST /api/dashboard/users/:id/membership/extend` — extend membership expiry by N days (validated 1–3650).
+  - `PUT /api/dashboard/users/:id/membership/plan` — change the subscription plan among the three paid tiers.
+* Enforced **root account immutability** (`master@fitora.com` / `isMasterProtected`) across membership extend, plan change, user update, and user delete — all blocked with `403 Forbidden`.
+* Built the matching UI in `UserManagementTable.tsx`: per-row **Membership Audit**, **Extend Membership**, and **Modify Plan** actions with client-side root-account guards (toast error), and table refresh after successful operations.
+* Added `fetchUserMembership()`, `extendUserMembership()`, and `updateUserMembershipPlan()` service functions to `dashboardService.ts`.
+
+---
+
 ## Summary of My Contributions
 
 ### Frontend
@@ -474,6 +505,9 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Payment history service integration.
 - Billing & Transactions section on the Profile page.
 - Invoice modal with View Invoice / Print integration.
+- Live master revenue analytics dashboard (wired to the revenue aggregation API).
+- Subscription plan / expiry date / status columns in the users management table.
+- Membership management modals — extend membership, modify plan, and membership audit.
 
 ### Backend
 - Dashboard Statistics Controller.
@@ -481,6 +515,8 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - `GET /api/dashboard/stats` API implementation.
 - Master admin overview and revenue aggregations.
 - User management CRUD and RBAC controls.
+- `GET /api/dashboard/master/revenue` aggregation endpoint (summary, plan/month/gateway breakdown).
+- Membership management APIs — audit, extend expiry, and change plan — with immutable `master@fitora.com` root-account protection.
 - Branch admin portal and lead management endpoints.
 - Live check-in and checkout APIs.
 - Branch occupancy and capacity API integration.
@@ -501,6 +537,7 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Branch and user seed-data dashboard directory views.
 - `BillingSection.tsx` — profile billing history table with invoice actions.
 - `InvoiceModal.tsx` — reusable invoice modal with print support.
+- `UserManagementTable.tsx` — live subscription status/expiry columns and membership extend/plan/audit action modals.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.

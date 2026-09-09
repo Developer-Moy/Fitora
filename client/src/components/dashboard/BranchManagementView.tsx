@@ -8,12 +8,16 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  CircleAlert,
   CreditCard,
   Filter,
   MapPin,
   Search
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+
+// Fixed capacity (in people) for every gym branch.
+const TOTAL_CAPACITY = 400;
 
 export default function BranchManagementView() {
   const [branches, setBranches] = useState<BranchInfo[]>([]);
@@ -172,6 +176,12 @@ export default function BranchManagementView() {
                 (branch.totalMembers / branch.maxCapacity) * 100,
               );
 
+              // Occupancy warning based on the branch's fixed capacity (400 people).
+              const currentOccupancy = branch.totalMembers || 0;
+              const occupancyPercentage =
+                (currentOccupancy / TOTAL_CAPACITY) * 100;
+              const isNearCapacity = occupancyPercentage >= 90;
+
               return (
                 <div
                   key={branch.id}
@@ -217,6 +227,13 @@ export default function BranchManagementView() {
                           style={{ width: `${Math.min(occupancyPercent, 100)}%` }}
                         />
                       </div>
+
+                      {isNearCapacity && (
+                        <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-rose-400">
+                          <CircleAlert className="w-3 h-3" />
+                          Near Capacity (&gt;90%)
+                        </div>
+                      )}
                     </div>
 
                     {/* Metrics Row */}

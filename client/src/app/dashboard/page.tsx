@@ -33,6 +33,7 @@ import {
   CircleAlert,
   CreditCard,
   DollarSign,
+  Download,
   QrCode,
   TrendingUp,
   Users,
@@ -129,6 +130,60 @@ export default function MasterDashboardPage() {
     (checkinPage - 1) * checkinsPerPage,
     checkinPage * checkinsPerPage,
   );
+
+  // ── Export Today's check-ins as CSV ───────────────────────────────────────
+  const exportCheckInsCSV = () => {
+    const escapeCSV = (value: unknown): string => {
+      if (value === null || value === undefined) return '""';
+      const str = String(value);
+      return /[",\n\r]/.test(str)
+        ? `"${str.replace(/"/g, '""')}"`
+        : str;
+    };
+
+    const rows = displayCheckins.map((checkin) => {
+      const parsedDate = checkin.checkInTime
+        ? new Date(checkin.checkInTime)
+        : null;
+      const validDate =
+        parsedDate && !Number.isNaN(parsedDate.getTime())
+          ? parsedDate
+          : null;
+
+      return [
+        checkin.memberName,
+        validDate
+          ? validDate.toLocaleDateString()
+          : (attendanceData?.date ?? ""),
+        checkin.branchName,
+        validDate
+          ? validDate.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : (checkin.checkInTime ?? ""),
+      ]
+        .map(escapeCSV)
+        .join(",");
+    });
+
+    const csvContent = [
+      ["Member Name", "Date", "Branch", "Check-in Time"]
+        .map(escapeCSV)
+        .join(","),
+      ...rows,
+    ].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "fitora-check-in-report.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   // ── Live Master Revenue derived values (master_admin) ─────────────────────
   const revenueSummary: RevenueSummary = masterRevenue?.summary ?? {
@@ -598,9 +653,19 @@ export default function MasterDashboardPage() {
                   <h4 className="font-black text-sm uppercase tracking-tight text-white">
                     Today&apos;s Check-ins
                   </h4>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
-                    {totalTrackedToday} tracked
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={exportCheckInsCSV}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-neutral-900 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Export CSV
+                    </button>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+                      {totalTrackedToday} tracked
+                    </span>
+                  </div>
                 </div>
                 {paginatedCheckins.length === 0 ? (
                   <div className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-6 text-sm text-white/60">
