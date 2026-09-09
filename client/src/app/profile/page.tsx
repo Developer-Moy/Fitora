@@ -1,32 +1,27 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
   Mail,
-  Phone,
   MapPin,
   Calendar,
   Dumbbell,
   Clock,
   Utensils,
-  Activity,
   ArrowUpRight,
   LogOut,
   Edit3,
-  Camera,
-  Upload,
-  CheckCircle2,
   ShieldCheck,
-  Flame,
-  Droplets,
-  Award,
   Loader2,
   Trash2,
-  ChevronRight,
   History,
   TrendingUp,
   Sparkles,
@@ -35,16 +30,11 @@ import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
 import {
   getAuthSession,
-  clearAuthSession,
   logoutUser,
   getCurrentUserApi,
   AuthUser,
   AUTH_SESSION_UPDATED,
 } from "@/services/authService";
-import {
-  uploadToImgBB,
-  readFileAsDataURL,
-} from "@/services/imageUploadService";
 import { getWorkoutLogs } from "@/services/workoutService";
 import type { WorkoutLog } from "@/types/workout";
 import MealCard from "@/components/meals/MealCard";
@@ -82,10 +72,13 @@ export default function ProfilePage() {
   const router = useRouter();
   const { data: authSession } = useSession();
   const [localUser, setLocalUser] = useState<AuthUser | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>([]);
   const [isLoadingDailyPlan, setIsLoadingDailyPlan] = useState<boolean>(true);
-
 
   const [fitnessGoalData, setFitnessGoalData] = useState<{
     goal: {
@@ -121,8 +114,6 @@ export default function ProfilePage() {
   // Edit Modal State
 
   useEffect(() => {
-    setIsMounted(true);
-
     const syncLocalUser = () => {
       const session = getAuthSession();
       if (session.user) {
@@ -315,11 +306,12 @@ export default function ProfilePage() {
   const userName = activeUser?.name || "Athlete Member";
   const userEmail = activeUser?.email || "athlete@fitora.com";
   const userInitial = userName.charAt(0).toUpperCase() || "A";
-  const userRole = (activeUser as any)?.role || "athlete";
+  const userRole =
+    ((activeUser as Record<string, unknown>)?.role as string) || "athlete";
   const userAvatar =
     localUser?.avatarUrl ||
-    (activeUser as any)?.image ||
-    (activeUser as any)?.avatarUrl ||
+    ((activeUser as Record<string, unknown>)?.image as string) ||
+    ((activeUser as Record<string, unknown>)?.avatarUrl as string) ||
     "";
   const isMasterAdmin =
     userRole === "master_admin" ||
@@ -338,9 +330,12 @@ export default function ProfilePage() {
 
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [activeSubscriptionData, setActiveSubscriptionData] =
-    useState<any>(null);
+  const [activeSubscriptionData, setActiveSubscriptionData] = useState<{
+    planName?: string;
+    startDate?: string | Date;
+    expiryDate?: string | Date;
+    [key: string]: unknown;
+  } | null>(null);
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [renewPlan, setRenewPlan] = useState<PlanItem | null>(null);
 
@@ -399,7 +394,7 @@ export default function ProfilePage() {
         const token =
           typeof window !== "undefined"
             ? localStorage.getItem("fitora_token") ||
-            localStorage.getItem("fitora_auth_token")
+              localStorage.getItem("fitora_auth_token")
             : null;
         const apiUrl =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -428,9 +423,6 @@ export default function ProfilePage() {
         if (mealChartsRes && mealChartsRes.length > 0) {
           setMealChart(mealChartsRes[0]);
         }
-        if (paymentsRes?.data?.payments) {
-          setTransactions(paymentsRes.data.payments);
-        }
         if (paymentsRes?.data?.activeSubscription) {
           setActiveSubscriptionData(paymentsRes.data.activeSubscription);
         }
@@ -445,12 +437,10 @@ export default function ProfilePage() {
     fetchData();
   }, [resolvedUserId, userEmail]);
 
-
-
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch { }
+    } catch {}
     toast.success("Logged out successfully. See you soon, Champion!");
     setTimeout(() => {
       window.location.href = "/";
@@ -486,18 +476,12 @@ export default function ProfilePage() {
     }
   };
 
-  if (!isMounted) return null;
-
-
-
   useEffect(() => {
     let cancelled = false;
 
     const fetchFitnessGoal = async () => {
       const targetUserId =
-        authSession?.user?.id ||
-        localUser?.id ||
-        localUser?._id;
+        authSession?.user?.id || localUser?.id || localUser?._id;
 
       if (!targetUserId) {
         setFitnessGoalLoading(false);
@@ -508,8 +492,7 @@ export default function ProfilePage() {
         setFitnessGoalLoading(true);
 
         const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL ||
-          "http://localhost:5000/api";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
         const response = await fetch(
           `${apiUrl}/goals/${encodeURIComponent(targetUserId)}`,
@@ -519,7 +502,7 @@ export default function ProfilePage() {
               "Content-Type": "application/json",
             },
             cache: "no-store",
-          }
+          },
         );
 
         const result = await response.json();
@@ -532,9 +515,7 @@ export default function ProfilePage() {
         }
 
         if (!response.ok || !result.success) {
-          throw new Error(
-            result.message || "Failed to load fitness goal"
-          );
+          throw new Error(result.message || "Failed to load fitness goal");
         }
 
         setFitnessGoalData(result.data);
@@ -556,61 +537,44 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [
-    authSession?.user?.id,
-    localUser?.id,
-    localUser?._id,
-  ]);
-
-
+  }, [authSession?.user?.id, localUser?.id, localUser?._id]);
 
   // Dynamic progress calculation
 
   const currentWeight = Number(localUser?.weight || 0);
-  const targetWeight = Number(
-    fitnessGoalData?.goal?.targetWeight || 0
-  );
+  const targetWeight = Number(fitnessGoalData?.goal?.targetWeight || 0);
 
-  const activeStreak = Number(
-    fitnessGoalData?.activeStreak || 0
-  );
+  const activeStreak = Number(fitnessGoalData?.activeStreak || 0);
 
   const weeklyWorkoutFrequency = Number(
-    fitnessGoalData?.goal?.weeklyWorkoutFrequency || 0
+    fitnessGoalData?.goal?.weeklyWorkoutFrequency || 0,
   );
 
   const goalType =
-    fitnessGoalData?.goal?.goalType ||
-    localUser?.fitnessGoal ||
-    "Fitness Goal";
+    fitnessGoalData?.goal?.goalType || localUser?.fitnessGoal || "Fitness Goal";
 
-  const weightDifference = Math.abs(
-    currentWeight - targetWeight
-  );
+  const weightDifference = Math.abs(currentWeight - targetWeight);
 
   // Progress toward target weight.
   // This keeps the existing UI behavior but makes it API-driven.
   const weightProgress =
     currentWeight > 0 && targetWeight > 0
       ? Math.min(
-        100,
-        Math.max(
-          0,
-          100 -
-          (weightDifference /
-            Math.max(currentWeight, targetWeight)) *
-          100
+          100,
+          Math.max(
+            0,
+            100 -
+              (weightDifference / Math.max(currentWeight, targetWeight)) * 100,
+          ),
         )
-      )
       : 0;
 
   const isGoalReached =
-    currentWeight > 0 &&
-    targetWeight > 0 &&
-    currentWeight === targetWeight;
+    currentWeight > 0 && targetWeight > 0 && currentWeight === targetWeight;
 
   const isWeightLoss = currentWeight > targetWeight;
 
+  if (!isMounted) return null;
 
   return (
     <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-12 sm:py-16 px-6 sm:px-10 lg:px-16 select-none">
@@ -863,9 +827,9 @@ export default function ProfilePage() {
                 workouts...
               </div>
             ) : workoutLogs && workoutLogs.length > 0 ? (
-              workoutLogs.map((log) => (
+              workoutLogs.map((log, idx) => (
                 <div
-                  key={log._id || Math.random().toString()}
+                  key={log._id || `workout-log-${idx}`}
                   className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-5 sm:p-6 transition-all space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/20 pb-3">
@@ -878,11 +842,11 @@ export default function ProfilePage() {
                       <p className="text-xs text-white/60 mt-0.5">
                         {log.date
                           ? new Date(log.date).toLocaleDateString("en-US", {
-                            weekday: "short",
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
                           : "Recently"}
                       </p>
                     </div>
@@ -1051,9 +1015,7 @@ export default function ProfilePage() {
             </span>
 
             <span className="text-xs font-black text-white">
-              {fitnessGoalLoading
-                ? "..."
-                : `${Math.round(weightProgress)}%`}
+              {fitnessGoalLoading ? "..." : `${Math.round(weightProgress)}%`}
             </span>
           </div>
 
@@ -1176,8 +1138,8 @@ export default function ProfilePage() {
                   No Meals Saved Yet
                 </h3>
                 <p className="text-xs text-white/60 max-w-sm mx-auto">
-                  Your daily meal plan is empty. Browse recipes and click "Add
-                  to Daily Plan" to save meals here!
+                  Your daily meal plan is empty. Browse recipes and click
+                  &quot;Add to Daily Plan&quot; to save meals here!
                 </p>
               </div>
               <Link
