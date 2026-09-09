@@ -12,10 +12,8 @@ import {
   User,
   Mail,
   MapPin,
-  Calendar,
   Dumbbell,
   Clock,
-  Utensils,
   ArrowUpRight,
   LogOut,
   Edit3,
@@ -37,7 +35,7 @@ import {
 } from "@/services/authService";
 import { getWorkoutLogs } from "@/services/workoutService";
 import type { WorkoutLog } from "@/types/workout";
-import MealCard from "@/components/meals/MealCard";
+import SavedMealPlan from "@/components/profile/SavedMealPlan";
 import {
   getDailyMealPlan,
   SavedMealPlanItem,
@@ -71,13 +69,37 @@ interface BMIHistory {
 export default function ProfilePage() {
   const router = useRouter();
   const { data: authSession } = useSession();
-  const [localUser, setLocalUser] = useState<AuthUser | null>(null);
+  const [localUser, setLocalUser] = useState<AuthUser | null>(() => {
+    if (typeof window !== "undefined") {
+      return getAuthSession().user;
+    }
+    return null;
+  });
   const isMounted = useSyncExternalStore(
     () => () => {},
     () => true,
     () => false,
   );
-  const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>([]);
+  const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const u = getAuthSession().user;
+        const uid =
+          u?.id ||
+          u?._id ||
+          localStorage.getItem("fitora_user_email") ||
+          "";
+        if (uid) {
+          const cached = localStorage.getItem(`fitora_daily_meals_${uid}`);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed)) return parsed;
+          }
+        }
+      } catch {}
+    }
+    return [];
+  });
   const [isLoadingDailyPlan, setIsLoadingDailyPlan] = useState<boolean>(true);
 
   const [fitnessGoalData, setFitnessGoalData] = useState<{
@@ -320,10 +342,14 @@ export default function ProfilePage() {
     userRole === "branch_admin" ||
     userEmail.toLowerCase().includes("admin@fitora");
 
+  const storedAuthUser =
+    typeof window !== "undefined" ? getAuthSession().user : null;
   const resolvedUserId =
     authSession?.user?.id ||
     localUser?.id ||
     localUser?._id ||
+    storedAuthUser?.id ||
+    storedAuthUser?._id ||
     (typeof window !== "undefined"
       ? (localStorage.getItem("fitora_user_email") ?? undefined)
       : undefined);
@@ -385,6 +411,7 @@ export default function ProfilePage() {
     MEAL_SUGGESTIONS_BY_GOAL["Bulking & Muscle Gain"];
 
   useEffect(() => {
+    let isCancelled = false;
     const targetId = resolvedUserId || "guest_user";
 
     const fetchData = async () => {
@@ -403,7 +430,7 @@ export default function ProfilePage() {
 
         const [dailyPlanRes, workoutsRes, mealChartsRes, paymentsRes] =
           await Promise.all([
-            getDailyMealPlan(targetId),
+            getDailyMealPlan(targetId).catch(() => ({ success: false, data: [] })),
             getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
             fetchMealCharts(targetId).catch(() => []),
             fetch(
@@ -414,9 +441,53 @@ export default function ProfilePage() {
               .catch(() => ({ data: { payments: [] } })),
           ]);
 
-        if (dailyPlanRes.success && dailyPlanRes.data) {
-          setDailyPlanMeals(dailyPlanRes.data);
+        if (isCancelled) return;
+
+        let fetchedMeals: SavedMealPlanItem[] = [];
+        if (dailyPlanRes.success && Array.isArray(dailyPlanRes.data)) {
+          fetchedMeals = dailyPlanRes.data;
         }
+
+        // Dual fallback: If targetId was user ID and returned empty, but userEmail exists, check if meals were saved under userEmail
+        if (
+          fetchedMeals.length === 0 &&
+          userEmail &&
+          userEmail !== targetId &&
+          userEmail !== "athlete@fitora.com"
+        ) {
+          try {
+            const emailRes = await getDailyMealPlan(userEmail);
+            if (
+              emailRes.success &&
+              Array.isArray(emailRes.data) &&
+              emailRes.data.length > 0
+            ) {
+              fetchedMeals = emailRes.data;
+            }
+          } catch {}
+        }
+
+        if (isCancelled) return;
+
+        if (fetchedMeals.length > 0) {
+          setDailyPlanMeals(fetchedMeals);
+          if (typeof window !== "undefined" && targetId && targetId !== "guest_user") {
+            try {
+              localStorage.setItem(
+                `fitora_daily_meals_${targetId}`,
+                JSON.stringify(fetchedMeals),
+              );
+            } catch {}
+          }
+        } else if (dailyPlanRes.success) {
+          setDailyPlanMeals([]);
+          if (typeof window !== "undefined" && targetId && targetId !== "guest_user") {
+            try {
+              localStorage.removeItem(`fitora_daily_meals_${targetId}`);
+            } catch {}
+          }
+        }
+
         if (workoutsRes && workoutsRes.logs) {
           setWorkoutLogs(workoutsRes.logs);
         }
@@ -429,12 +500,18 @@ export default function ProfilePage() {
       } catch (err) {
         console.error("Failed to fetch profile data:", err);
       } finally {
-        setIsLoadingDailyPlan(false);
-        setIsLoadingWorkouts(false);
+        if (!isCancelled) {
+          setIsLoadingDailyPlan(false);
+          setIsLoadingWorkouts(false);
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [resolvedUserId, userEmail]);
 
   const handleLogout = async () => {
@@ -1086,72 +1163,10 @@ export default function ProfilePage() {
         />
 
         {/* ── 4.5. My Saved Daily Meal Plan Section ── */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2.5">
-              <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
-                  Saved Daily Meal Plan
-                </h2>
-                <p className="text-xs text-white/60">
-                  Meals saved directly to your account
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href="/meals"
-              className="inline-flex items-center gap-1 text-xs font-bold text-white/80 hover:text-white transition-colors"
-            >
-              <span>Add More Meals</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          {isLoadingDailyPlan ? (
-            <div className="bg-black border border-white/20 rounded-2xl p-8 flex items-center justify-center text-white/60">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              <span className="text-xs font-bold uppercase tracking-wider">
-                Loading Daily Meal Plan...
-              </span>
-            </div>
-          ) : dailyPlanMeals.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {dailyPlanMeals.map((item) => (
-                <MealCard
-                  key={item._id}
-                  id={item.mealId || item._id}
-                  name={item.name}
-                  ingredients={item.ingredients}
-                  calories={item.calories}
-                  description={item.description}
-                  img={item.img}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
-              <Utensils className="w-10 h-10 text-white/20" />
-              <div className="space-y-1">
-                <h3 className="text-base sm:text-lg font-black uppercase text-white">
-                  No Meals Saved Yet
-                </h3>
-                <p className="text-xs text-white/60 max-w-sm mx-auto">
-                  Your daily meal plan is empty. Browse recipes and click
-                  &quot;Add to Daily Plan&quot; to save meals here!
-                </p>
-              </div>
-              <Link
-                href="/meals"
-                className="mt-2 inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-xl"
-              >
-                <Utensils className="w-4 h-4" />
-                <span>Explore Recipes</span>
-              </Link>
-            </div>
-          )}
-        </div>
+        <SavedMealPlan
+          dailyPlanMeals={dailyPlanMeals}
+          isLoadingDailyPlan={isLoadingDailyPlan}
+        />
 
         {/* ── Membership Renewal / Upgrade Modal ── */}
         {renewPlan && (

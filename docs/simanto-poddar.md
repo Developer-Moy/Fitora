@@ -172,3 +172,12 @@ We built a feature that lets users save their favorite food items to a custom "D
 
 - Extracted the Personalized Nutrition Plan section from the profile page into a standalone, reusable `PersonalizedNutritionPlan` component.
 - Implemented role and membership tier gating (`isFreePlan`): guest visitors see a locked sign-in banner, free users see an upgrade banner, and paid athletes access the full nutrition plan with 1-click recipe copy.
+
+## 09-Sep-26
+
+implement copy grocery list and refactor saved meal plan
+
+- Extract SavedMealPlan section from profile page into dedicated component
+- Resolve hydration/refresh state persistence for saved meals
+- Add Copy Grocery List button with whitespace normalization and case-insensitive deduplication
+- Add clipboard copy handler with toast notifications and visual feedback
