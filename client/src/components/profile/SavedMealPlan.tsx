@@ -20,36 +20,37 @@ export interface SavedMealPlanProps {
   isLoadingDailyPlan?: boolean;
   meals?: SavedMealPlanItem[];
   isLoading?: boolean;
+  targetCalories?: number;
 }
-
-const TARGET_CALORIES = 2950; // it will dynamically change in the future based on user profile settings, but for now it's hardcoded to 2950 kcal
 
 export default function SavedMealPlan({
   dailyPlanMeals,
   isLoadingDailyPlan,
   meals,
   isLoading,
+  targetCalories,
 }: SavedMealPlanProps) {
   const items = dailyPlanMeals ?? meals ?? [];
   const loading = isLoadingDailyPlan ?? isLoading ?? false;
   const [isCopied, setIsCopied] = useState(false);
 
-  // ── Calorie Progress Calculations (Target: 2950 kcal) ──
+  // ── Dynamic Calorie Progress Calculations ──
+  const target = targetCalories && targetCalories > 0 ? targetCalories : 2500;
   const totalCalories = Math.round(
-    items.reduce((sum, meal) => sum + (Number(meal.calories) || 0), 0)
+    items.reduce((sum, meal) => sum + (Number(meal.calories) || 0), 0),
   );
-  const percentage = Math.round((totalCalories / TARGET_CALORIES) * 100);
+  const percentage = Math.round((totalCalories / target) * 100);
   const progressWidth = Math.min(
-    Math.max((totalCalories / TARGET_CALORIES) * 100, 0),
-    100
+    Math.max((totalCalories / target) * 100, 0),
+    100,
   );
 
   const calorieStatusText =
-    totalCalories < TARGET_CALORIES
-      ? `${TARGET_CALORIES - totalCalories} kcal remaining`
-      : totalCalories === TARGET_CALORIES
-      ? "Goal reached"
-      : `${totalCalories - TARGET_CALORIES} kcal over target`;
+    totalCalories < target
+      ? `${target - totalCalories} kcal remaining`
+      : totalCalories === target
+        ? "Exact target reached!"
+        : `${totalCalories - target} kcal over target`;
 
   const handleCopyGroceryList = async () => {
     // 1. Collect all ingredients from the saved meals and remove duplicates
@@ -168,8 +169,8 @@ export default function SavedMealPlan({
               No Meals Saved Yet
             </h3>
             <p className="text-xs text-white/60 max-w-sm mx-auto">
-              Your daily meal plan is empty. Browse recipes and click
-              &quot;Add to Daily Plan&quot; to save meals here!
+              Your daily meal plan is empty. Browse recipes and click &quot;Add
+              to Daily Plan&quot; to save meals here!
             </p>
           </div>
           <Link
@@ -195,7 +196,9 @@ export default function SavedMealPlan({
             ) : (
               <Copy className="w-4 h-4" />
             )}
-            <span>{isCopied ? "Grocery List Copied!" : "Copy Grocery List"}</span>
+            <span>
+              {isCopied ? "Grocery List Copied!" : "Copy Grocery List"}
+            </span>
           </button>
         </div>
       )}
@@ -212,7 +215,7 @@ export default function SavedMealPlan({
             </div>
             <div className="flex items-center gap-2 font-mono">
               <span className="text-xs sm:text-sm font-black text-white">
-                {totalCalories} / {TARGET_CALORIES} kcal
+                {totalCalories} / {target} kcal
               </span>
               <span className="text-xs font-bold text-white/50">
                 ({percentage}%)

@@ -80,26 +80,25 @@ export default function ProfilePage() {
     () => true,
     () => false,
   );
-  const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const u = getAuthSession().user;
-        const uid =
-          u?.id ||
-          u?._id ||
-          localStorage.getItem("fitora_user_email") ||
-          "";
-        if (uid) {
-          const cached = localStorage.getItem(`fitora_daily_meals_${uid}`);
-          if (cached) {
-            const parsed = JSON.parse(cached);
-            if (Array.isArray(parsed)) return parsed;
+  const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>(
+    () => {
+      if (typeof window !== "undefined") {
+        try {
+          const u = getAuthSession().user;
+          const uid =
+            u?.id || u?._id || localStorage.getItem("fitora_user_email") || "";
+          if (uid) {
+            const cached = localStorage.getItem(`fitora_daily_meals_${uid}`);
+            if (cached) {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed)) return parsed;
+            }
           }
-        }
-      } catch {}
-    }
-    return [];
-  });
+        } catch {}
+      }
+      return [];
+    },
+  );
   const [isLoadingDailyPlan, setIsLoadingDailyPlan] = useState<boolean>(true);
 
   const [fitnessGoalData, setFitnessGoalData] = useState<{
@@ -430,7 +429,10 @@ export default function ProfilePage() {
 
         const [dailyPlanRes, workoutsRes, mealChartsRes, paymentsRes] =
           await Promise.all([
-            getDailyMealPlan(targetId).catch(() => ({ success: false, data: [] })),
+            getDailyMealPlan(targetId).catch(() => ({
+              success: false,
+              data: [],
+            })),
             getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
             fetchMealCharts(targetId).catch(() => []),
             fetch(
@@ -471,7 +473,11 @@ export default function ProfilePage() {
 
         if (fetchedMeals.length > 0) {
           setDailyPlanMeals(fetchedMeals);
-          if (typeof window !== "undefined" && targetId && targetId !== "guest_user") {
+          if (
+            typeof window !== "undefined" &&
+            targetId &&
+            targetId !== "guest_user"
+          ) {
             try {
               localStorage.setItem(
                 `fitora_daily_meals_${targetId}`,
@@ -481,7 +487,11 @@ export default function ProfilePage() {
           }
         } else if (dailyPlanRes.success) {
           setDailyPlanMeals([]);
-          if (typeof window !== "undefined" && targetId && targetId !== "guest_user") {
+          if (
+            typeof window !== "undefined" &&
+            targetId &&
+            targetId !== "guest_user"
+          ) {
             try {
               localStorage.removeItem(`fitora_daily_meals_${targetId}`);
             } catch {}
@@ -1166,6 +1176,9 @@ export default function ProfilePage() {
         <SavedMealPlan
           dailyPlanMeals={dailyPlanMeals}
           isLoadingDailyPlan={isLoadingDailyPlan}
+          targetCalories={
+            history?.[0]?.tdee || (localUser as any)?.tdee || 2400
+          }
         />
 
         {/* ── Membership Renewal / Upgrade Modal ── */}

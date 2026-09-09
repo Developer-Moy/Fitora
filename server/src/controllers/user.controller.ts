@@ -905,8 +905,19 @@ export const updateOwnProfile = async (req: AuthRequest, res: Response) => {
       return res.status(401).json(errorResponse("Unauthorized", "", 401));
     }
 
-    const { name, phone, assignedBranch, fitnessGoal, weight, targetWeight } =
-      req.body;
+    const {
+      name,
+      phone,
+      assignedBranch,
+      fitnessGoal,
+      weight,
+      targetWeight,
+      height,
+      gender,
+      bio,
+      avatarUrl,
+      image,
+    } = req.body;
 
     const updateFields: Record<string, any> = {};
     if (typeof name === "string" && name.trim()) {
@@ -940,6 +951,27 @@ export const updateOwnProfile = async (req: AuthRequest, res: Response) => {
         Number(targetWeight) > 0)
     ) {
       updateFields.targetWeight = Number(targetWeight);
+    }
+    if (
+      typeof height === "number" ||
+      (typeof height === "string" &&
+        !isNaN(Number(height)) &&
+        Number(height) > 0)
+    ) {
+      updateFields.height = Number(height);
+    }
+    if (typeof gender === "string" && gender.trim()) {
+      updateFields.gender = gender.trim();
+    }
+    if (typeof bio === "string") {
+      updateFields.bio = bio.trim();
+    }
+    if (typeof avatarUrl === "string" && avatarUrl.trim()) {
+      updateFields.avatarUrl = avatarUrl.trim();
+      updateFields.image = avatarUrl.trim();
+    } else if (typeof image === "string" && image.trim()) {
+      updateFields.avatarUrl = image.trim();
+      updateFields.image = image.trim();
     }
 
     let updatedUser = null;

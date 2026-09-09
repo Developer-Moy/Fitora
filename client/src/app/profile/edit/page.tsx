@@ -11,7 +11,10 @@ import {
   uploadToImgBB,
   readFileAsDataURL,
 } from "@/services/imageUploadService";
-import { fetchPublicBranches } from "@/services/dashboardService";
+import {
+  fetchPublicBranches,
+  updateUserProfileApi,
+} from "@/services/dashboardService";
 import { ArrowLeft, Upload, Loader2, Trash2 } from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
 import { useSession, authClient } from "@/lib/auth-client";
@@ -108,6 +111,20 @@ export default function EditProfilePage() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!localUser) return;
+
+    // Persist to backend MongoDB
+    await updateUserProfileApi({
+      name: editName,
+      phone: editPhone,
+      assignedBranch: editBranch,
+      fitnessGoal: editGoal,
+      weight: editWeight ? Number(editWeight) : undefined,
+      height: editHeight ? Number(editHeight) : undefined,
+      gender: editGender,
+      bio: editBio,
+      avatarUrl: editAvatarUrl,
+      image: editAvatarUrl,
+    }).catch(() => null);
 
     const updatedUser: AuthUser = {
       ...localUser,
@@ -266,13 +283,21 @@ export default function EditProfilePage() {
                 >
                   {branches.length > 0 ? (
                     branches.map((branch) => (
-                      <option key={branch} value={branch}>{branch}</option>
+                      <option key={branch} value={branch}>
+                        {branch}
+                      </option>
                     ))
                   ) : (
                     <>
-                      <option value="Gulshan-2 Flagship Branch">Gulshan-2 Flagship</option>
-                      <option value="Banani Platinum Lounge">Banani Platinum</option>
-                      <option value="Dhanmondi Athletic Center">Dhanmondi Athletic</option>
+                      <option value="Gulshan-2 Flagship Branch">
+                        Gulshan-2 Flagship
+                      </option>
+                      <option value="Banani Platinum Lounge">
+                        Banani Platinum
+                      </option>
+                      <option value="Dhanmondi Athletic Center">
+                        Dhanmondi Athletic
+                      </option>
                     </>
                   )}
                 </select>

@@ -7,6 +7,8 @@ import { EXERCISE_DATABASE } from "./exercise.data";
 
 import BMIHistory from "../models/BMIHistory.model";
 import Goal from "../models/Goal.model";
+import Meal from "../models/Meal.model";
+import { DEFAULT_MEALS } from "./meals.data";
 
 // Alfaaz Ahmed Task Imports
 import Branch from "../models/Branch.model";
@@ -638,6 +640,10 @@ const seedDatabase = async (): Promise<void> => {
     await User.deleteMany({});
     await Exercise.deleteMany({});
     await WorkoutLog.deleteMany({});
+    await Meal.deleteMany({});
+
+    const insertedMeals = await Meal.insertMany(DEFAULT_MEALS);
+    console.log(`Inserted ${insertedMeals.length} healthy meals.`);
 
     const insertedBranches = await Branch.insertMany(branches);
     console.log(`Inserted ${insertedBranches.length} branches.`);
