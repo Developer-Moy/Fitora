@@ -143,16 +143,16 @@ export default function NotificationBell() {
 
   return (
     <div className="relative inline-block" ref={containerRef}>
-      {/* ── Bell Trigger Button ── */}
+      {/* ── Bell Trigger Button (White theme matching navbar buttons) ── */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Open notifications"
-        className="relative w-10 h-10 rounded-full border border-white/20 bg-neutral-900/90 hover:bg-neutral-800 hover:border-white/40 flex items-center justify-center transition-all cursor-pointer select-none"
+        className="relative w-10 h-10 rounded-full bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] flex items-center justify-center transition-all duration-200 cursor-pointer select-none shadow-md"
       >
-        <Bell className="w-4 h-4 text-white" />
+        <Bell className="w-4 h-4 text-black stroke-[2.5]" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-white text-black text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border border-black animate-pulse">
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-black text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border border-white animate-pulse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}

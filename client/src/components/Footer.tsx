@@ -134,7 +134,87 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Middle Row: Unique Non-Navbar Links Grid */}
+          {/* Row 2: Social Media Icons + E-Newsletter Bar (Swapped from Bottom Row) */}
+          <div className="pt-6 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Social Media Icons */}
+            <div className="flex items-center gap-5">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/90 hover:text-white transition-colors"
+                aria-label="Instagram"
+              >
+                <FaInstagram size={18} />
+              </a>
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/90 hover:text-white transition-colors"
+                aria-label="Facebook"
+              >
+                <FaFacebookF size={16} />
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/90 hover:text-white transition-colors"
+                aria-label="LinkedIn"
+              >
+                <FaLinkedinIn size={17} />
+              </a>
+              <a
+                href="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/90 hover:text-white transition-colors"
+                aria-label="YouTube"
+              >
+                <FaYoutube size={19} />
+              </a>
+            </div>
+
+            {/* Newsletter Subscription Bar */}
+            <form
+              onSubmit={handleNewsletterSubmit}
+              className="flex items-center gap-3 w-full md:w-auto max-w-md border-b-2 border-white/40 pb-1.5 focus-within:border-white transition-colors"
+            >
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={
+                  subscribed
+                    ? "✓ Subscribed to Fitora VIP Updates!"
+                    : "Enter your email address..."
+                }
+                disabled={isSubscribing || subscribed}
+                className="bg-transparent text-xs text-white placeholder-gray-300 outline-none w-full font-semibold disabled:opacity-80"
+              />
+              <button
+                type="submit"
+                disabled={isSubscribing || subscribed}
+                className="flex items-center gap-1.5 text-[11px] font-black uppercase text-white hover:text-gray-200 transition-colors shrink-0 cursor-pointer disabled:opacity-60"
+              >
+                <span>
+                  {isSubscribing
+                    ? "Subscribing..."
+                    : subscribed
+                      ? "Subscribed"
+                      : "Subscribe"}
+                </span>
+                {subscribed ? (
+                  <FiCheckCircle className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
+                ) : (
+                  <FiArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Row 3: Unique Non-Navbar Links Grid (Swapped from Middle Row) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-white/20 text-xs text-gray-200">
             <div>
               <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
@@ -213,86 +293,6 @@ export default function Footer() {
                 </Link>
               </div>
             </div>
-          </div>
-
-          {/* Bottom Row: Social Media Icons + E-Newsletter Bar */}
-          <div className="pt-6 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Social Media Icons */}
-            <div className="flex items-center gap-5">
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/90 hover:text-white transition-colors"
-                aria-label="Instagram"
-              >
-                <FaInstagram size={18} />
-              </a>
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/90 hover:text-white transition-colors"
-                aria-label="Facebook"
-              >
-                <FaFacebookF size={16} />
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/90 hover:text-white transition-colors"
-                aria-label="LinkedIn"
-              >
-                <FaLinkedinIn size={17} />
-              </a>
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/90 hover:text-white transition-colors"
-                aria-label="YouTube"
-              >
-                <FaYoutube size={19} />
-              </a>
-            </div>
-
-            {/* Newsletter Subscription Bar */}
-            <form
-              onSubmit={handleNewsletterSubmit}
-              className="flex items-center gap-3 w-full md:w-auto max-w-md border-b-2 border-white/40 pb-1.5 focus-within:border-white transition-colors"
-            >
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={
-                  subscribed
-                    ? "✓ Subscribed to Fitora VIP Updates!"
-                    : "Enter your email address..."
-                }
-                disabled={isSubscribing || subscribed}
-                className="bg-transparent text-xs text-white placeholder-gray-300 outline-none w-full font-semibold disabled:opacity-80"
-              />
-              <button
-                type="submit"
-                disabled={isSubscribing || subscribed}
-                className="flex items-center gap-1.5 text-[11px] font-black uppercase text-white hover:text-gray-200 transition-colors shrink-0 cursor-pointer disabled:opacity-60"
-              >
-                <span>
-                  {isSubscribing
-                    ? "Subscribing..."
-                    : subscribed
-                      ? "Subscribed"
-                      : "Subscribe"}
-                </span>
-                {subscribed ? (
-                  <FiCheckCircle className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
-                ) : (
-                  <FiArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                )}
-              </button>
-            </form>
           </div>
         </div>
       </div>
