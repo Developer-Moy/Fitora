@@ -10,6 +10,7 @@ import {
   updateUserMembershipPlan,
   getUserMembershipAudit,
   updateHealthMetrics,
+  updateHydrationTarget,
 } from "../controllers/user.controller";
 import {
   authMiddleware,
@@ -70,5 +71,12 @@ router.put(
 
 // Update authenticated user's BMR and TDEE
 router.patch("/profile/health-metrics", authMiddleware, updateHealthMetrics);
+
+// Update authenticated user's hydration target
+router.patch(
+  "/profile/hydration-target",
+  authMiddleware,
+  updateHydrationTarget,
+);
 
 export default router;

@@ -62,6 +62,8 @@ export default function CalculatorPage() {
   const [activeTab, setActiveTab] = useState<CalculatorTab>("bmi");
   const [bmi, setBmi] = useState(0);
   const [isSavingHistory, setIsSavingHistory] = useState(false);
+  const [isSavingHydration, setIsSavingHydration] = useState(false);
+  const [hydrationSaved, setHydrationSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [serverMacros, setServerMacros] = useState<{
     tdee: number;
@@ -111,6 +113,20 @@ export default function CalculatorPage() {
         goal === "bulking" ? 500 : goal === "cutting" ? -500 : 0,
     });
   }, [weight, targetWeight, goal]);
+
+  const hydrationTargetLiters = useMemo(() => {
+    const baseHydration = weight * 0.033;
+
+    let activityBonus = 0.5;
+
+    if (activityLevel >= 1.725) {
+      activityBonus = 1.0;
+    } else if (activityLevel >= 1.55) {
+      activityBonus = 0.75;
+    }
+
+    return Number((baseHydration + activityBonus).toFixed(2));
+  }, [weight, activityLevel]);
 
   const syncHealthMetrics = async () => {
     try {
@@ -167,6 +183,82 @@ export default function CalculatorPage() {
       return result;
     } catch (error) {
       console.error("Health metrics sync failed:", error);
+    }
+  };
+
+  const handleSaveHydration = async () => {
+    try {
+      if (typeof window === "undefined") return;
+
+      const token =
+        localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token");
+
+      if (!token) {
+        toast.error("Please login to save your hydration target.");
+        return;
+      }
+
+      setIsSavingHydration(true);
+      setHydrationSaved(false);
+
+      const rawApiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+      const apiBase = rawApiUrl.endsWith("/api")
+        ? rawApiUrl
+        : `${rawApiUrl}/api`;
+
+      const response = await fetch(
+        `${apiBase}/users/profile/hydration-target`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            hydrationTargetLiters,
+          }),
+        },
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || !data?.success) {
+        throw new Error(
+          data?.message || "Failed to save hydration target.",
+        );
+      }
+
+      // Keep local user data in sync
+      const storedUser = localStorage.getItem("fitora_user");
+
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+
+        localStorage.setItem(
+          "fitora_user",
+          JSON.stringify({
+            ...user,
+            hydrationTargetLiters,
+          }),
+        );
+      }
+
+      setHydrationSaved(true);
+
+      toast.success("Hydration target saved to your profile!");
+    } catch (error) {
+      console.error("Hydration target save failed:", error);
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to save hydration target.",
+      );
+    } finally {
+      setIsSavingHydration(false);
     }
   };
 
@@ -1158,6 +1250,74 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </div>
                   </motion.div>
                 )}
+
+                {/* Automated Hydration Target */}
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35 }}
+                  className="rounded-3xl border border-white/10 bg-neutral-950 p-5 sm:p-6 text-white shadow-xl"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/10 pb-4">
+                    <div>
+                      <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
+                        05 / HYDRATION TARGET
+                      </span>
+
+                      <h3 className="mt-1 text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                        Daily Water{" "}
+                        <span className="font-normal text-gray-400">
+                          Recommendation.
+                        </span>
+                      </h3>
+                    </div>
+
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-gray-400">
+                      AUTO CALCULATED
+                    </span>
+                  </div>
+
+                  <div className="mt-5 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                        Daily Recommended Water
+                      </p>
+
+                      <motion.p
+                        key={hydrationTargetLiters}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-1 text-4xl sm:text-5xl font-black tracking-tight text-white"
+                      >
+                        {hydrationTargetLiters.toFixed(1)}
+                        <span className="ml-2 text-sm font-bold text-gray-400">
+                          Liters / Day
+                        </span>
+                      </motion.p>
+
+                      <p className="mt-2 text-[10px] leading-relaxed text-gray-500">
+                        Calculated from your body weight and activity level.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSaveHydration}
+                      disabled={isSavingHydration}
+                      className="inline-flex items-center justify-between gap-4 rounded-full bg-white px-5 py-3 text-xs font-extrabold text-black transition-all duration-300 hover:bg-neutral-100 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <span>
+                        {isSavingHydration
+                          ? "SAVING..."
+                          : hydrationSaved
+                            ? "✓ SAVED TO PROFILE"
+                            : "SAVE TO PROFILE"}
+                      </span>
+
+                      <ArrowUpRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </motion.div>
 
                 {/* Macro Distribution Box */}
                 <div className="rounded-3xl border border-white/10 bg-neutral-950 p-5 sm:p-6 text-white shadow-xl space-y-4">

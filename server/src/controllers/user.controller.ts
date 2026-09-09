@@ -761,6 +761,78 @@ export const updateHealthMetrics = async (req: AuthRequest, res: Response) => {
   }
 };
 
+/**
+ * PATCH /api/users/profile/hydration-target
+ * Sync calculated hydration target to the authenticated user's profile
+ */
+export const updateHydrationTarget = async (
+  req: AuthRequest,
+  res: Response,
+) => {
+  try {
+    const userId = req.user?.userId || (req as any).user?.id;
+
+    if (!userId) {
+      return res.status(401).json(errorResponse("Unauthorized", "", 401));
+    }
+
+    const { hydrationTargetLiters } = req.body;
+
+    if (
+      typeof hydrationTargetLiters !== "number" ||
+      !Number.isFinite(hydrationTargetLiters) ||
+      hydrationTargetLiters <= 0 ||
+      hydrationTargetLiters > 15
+    ) {
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Valid hydration target between 0 and 15 liters is required",
+            "",
+            400,
+          ),
+        );
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          hydrationTargetLiters:
+            Math.round(hydrationTargetLiters * 100) / 100,
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).select("-passwordHash");
+
+    if (!updatedUser) {
+      return res.status(404).json(errorResponse("User not found", "", 404));
+    }
+
+    return res.status(200).json(
+      successResponse("Hydration target updated successfully", {
+        hydrationTargetLiters: updatedUser.hydrationTargetLiters,
+      }),
+    );
+  } catch (error: any) {
+    console.error("Error in updateHydrationTarget:", error);
+
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to update hydration target",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
+  }
+};
+
 export default {
   getDashboardStats,
   getPlatformStats,
@@ -772,4 +844,5 @@ export default {
   updateUserMembershipPlan,
   getUserMembershipAudit,
   updateHealthMetrics,
+  updateHydrationTarget,
 };
