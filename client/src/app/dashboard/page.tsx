@@ -228,6 +228,28 @@ export default function MasterDashboardPage() {
     exportToCSV(attendanceRows, filename);
   };
 
+  // ── Export Monthly Revenue as CSV (reusable utility) ──────────────────────
+  const exportMonthlyRevenueCSV = () => {
+    if (monthlyRevenueChart.length === 0) return;
+
+    const revenueRows = monthlyRevenueChart.map((item) => ({
+      Month: item.month,
+      "Revenue (BDT)": item.revenue,
+      Payments: item.payments,
+    }));
+
+    const today = new Date();
+    const datePart =
+      today.getFullYear() +
+      "-" +
+      String(today.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(today.getDate()).padStart(2, "0");
+    const filename = `fitora-monthly-revenue-${datePart}.csv`;
+
+    exportToCSV(revenueRows, filename);
+  };
+
   // ── Live Master Revenue derived values (master_admin) ─────────────────────
   const revenueSummary: RevenueSummary = masterRevenue?.summary ?? {
     totalRevenueBDT: 0,
@@ -545,6 +567,14 @@ export default function MasterDashboardPage() {
                       <span className="w-3 h-3 rounded-full bg-white" />
                       <span className="text-white">Revenue (BDT)</span>
                     </div>
+                    <button
+                      type="button"
+                      onClick={exportMonthlyRevenueCSV}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-neutral-900 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Export Monthly Revenue (CSV)
+                    </button>
                   </div>
                 </div>
 
