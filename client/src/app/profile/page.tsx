@@ -48,6 +48,7 @@ import PersonalizedNutritionPlan, {
 } from "@/components/profile/PersonalizedNutritionPlan";
 import SubscriptionModal from "@/components/home/SubscriptionModal";
 import MembershipStatusCard from "@/components/subscription/MembershipStatusCard";
+import ActivityHeatmap from "@/components/profile/ActivityHeatmap";
 import { FITORA_PLANS, PlanItem } from "@/components/home/PricingSection";
 import { type MembershipData, isFreePlan } from "@/lib/membershipUtils";
 import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
@@ -1045,6 +1046,9 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* ── Activity Heatmap: 12-Month Training Consistency & Streaks ── */}
+        <ActivityHeatmap userId={resolvedUserId || "guest_user"} />
 
         {/* ── Row 3: Gym & Workout History (3-Column Grid) ── */}
         <div className="space-y-4">
