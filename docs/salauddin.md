@@ -237,3 +237,6 @@ Monthly / Yearly billing toggle switch.
 
 ### 09-Sep-26
 * 1RM PR Calculator & Interactive Workout Set Logging
+
+### 10-Sep-26
+* create attendance and revenew backend response data.
