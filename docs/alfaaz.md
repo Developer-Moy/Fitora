@@ -490,6 +490,45 @@ These contributions cover both the **frontend UI** and **backend API** developme
 
 ---
 
+## 09-Sep-26
+
+### Admin Dashboard: CSV Export for Check-in Reports
+
+Added a one-click **CSV Export** feature to the master/branch-admin dashboard so administrators can download today's check-in records for offline reporting and auditing.
+
+#### Key Implementation:
+* Wired an **"Export CSV"** button into the **Today's Check-ins** panel in `client/src/app/dashboard/page.tsx`.
+* Built `exportCheckInsCSV()` which maps the current day's check-in records into CSV rows with `Member Name`, `Date`, `Branch`, and `Check-in Time` columns.
+* Applied proper **CSV escaping** (`escapeCSV`) so values containing quotes, commas, or newlines are wrapped and safely encoded.
+* Parsed `checkInTime` into a human-friendly date and local time string (falling back to the attendance date / raw timestamp when parsing fails).
+* Generated the file as a UTF-8 `text/csv` Blob, triggered the download as `fitora-check-in-report.csv`, and cleaned up the object URL afterward.
+* Styled the button with a lucide `Download` icon, hover-to-invert effect, and a live **"N tracked"** counter next to it.
+
+### Admin Dashboard: Branch Occupancy Warning
+
+Enhanced the **branch management** view to surface occupancy load and warn administrators when a gym branch is approaching its capacity.
+
+#### Key Implementation:
+* Added a fixed `TOTAL_CAPACITY = 400` (people per branch) constant in `client/src/components/dashboard/BranchManagementView.tsx`.
+* Calculated `occupancyPercentage = (currentOccupancy / TOTAL_CAPACITY) * 100` for each branch card.
+* Flagged branches as **"Near Capacity"** whenever occupancy reaches **≥ 90%** via `isNearCapacity`.
+* Rendered a rose-colored `CircleAlert`-icon warning banner — **"Near Capacity (>90%)"** — on branch cards that hit the threshold.
+* Kept the existing per-branch **Capacity Load** meter (the progress bar using `totalMembers / maxCapacity`) and added the warning label directly beneath it using the fixed 400-person figure.
+
+### Branch Admin: Live Attendance & Occupancy Dashboard UI
+
+Built the **brand-new branch-admin attendance dashboard** on the dashboard page, replacing static/dummy attendance data with live API records.
+
+#### Key Implementation:
+* Added `BranchManagementView`, `MemberDashboardView`, and attendance/occupancy/check-in service functions to the dashboard page.
+* Consumed `fetchBranchCheckins()`, `fetchBranchOccupancy()`, and `fetchBranchOverview()` from the typed `branchService`.
+* Displayed a **Current Occupancy** card with live occupancy count, member capacity, occupancy percentage, an animated capacity meter (turning rose-red when `isAtCapacity`), plus **Available** and **Active now** quick stats.
+* Added a **Branch Summary** card showing the branch name, capacity, and open/full status.
+* Rendered paginated **Today's Check-ins** (4 per page) with member avatar initials, member name, branch, and check-in source, plus Prev/Next pagination controls.
+* Handled loading, error, and empty states so the dashboard only ever shows real API records (no dummy fallbacks).
+
+---
+
 ## Summary of My Contributions
 
 ### Frontend
@@ -508,6 +547,9 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Live master revenue analytics dashboard (wired to the revenue aggregation API).
 - Subscription plan / expiry date / status columns in the users management table.
 - Membership management modals — extend membership, modify plan, and membership audit.
+- CSV export for today's check-in reports (`fitora-check-in-report.csv`).
+- Branch occupancy warning banner ("Near Capacity >90%") in the branch management view.
+- Branch-admin live attendance & occupancy dashboard (live check-ins, occupancy meter, pagination).
 
 ### Backend
 - Dashboard Statistics Controller.
@@ -538,6 +580,7 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - `BillingSection.tsx` — profile billing history table with invoice actions.
 - `InvoiceModal.tsx` — reusable invoice modal with print support.
 - `UserManagementTable.tsx` — live subscription status/expiry columns and membership extend/plan/audit action modals.
+- Dashboard **Export CSV** check-in report generator.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.

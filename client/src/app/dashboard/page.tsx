@@ -9,6 +9,7 @@ import {
   fetchBranchOccupancy,
   fetchBranchOverview,
 } from "@/services/branchService";
+import { exportToCSV } from "@/utils/csvExporter";
 import {
   fetchMasterRevenue,
   fetchPlatformStats,
@@ -185,6 +186,68 @@ export default function MasterDashboardPage() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  // ── Export Attendance as CSV (reusable utility) ───────────────────────────
+  const exportAttendanceCSV = () => {
+    if (displayCheckins.length === 0) return;
+
+    const attendanceRows = displayCheckins.map((checkin) => {
+      const parsedDate = checkin.checkInTime
+        ? new Date(checkin.checkInTime)
+        : null;
+      const validDate =
+        parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
+
+      return {
+        "Member Name": checkin.memberName,
+        Date: validDate
+          ? validDate.toLocaleDateString()
+          : (attendanceData?.date ?? ""),
+        Branch: checkin.branchName,
+        Status: checkin.status === "checked_in" ? "Checked In" : "Checked Out",
+        Source: checkin.source,
+        "Check-in Time": validDate
+          ? validDate.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : (checkin.checkInTime ?? ""),
+      };
+    });
+
+    const today = new Date();
+    const datePart =
+      today.getFullYear() +
+      "-" +
+      String(today.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(today.getDate()).padStart(2, "0");
+    const filename = `fitora-attendance-${datePart}.csv`;
+
+    exportToCSV(attendanceRows, filename);
+  };
+
+  // ── Export Monthly Revenue as CSV (reusable utility) ──────────────────────
+  const exportMonthlyRevenueCSV = () => {
+    if (monthlyRevenueChart.length === 0) return;
+
+    const revenueRows = monthlyRevenueChart.map((item) => ({
+      Month: item.month,
+      "Revenue (BDT)": item.revenue,
+      Payments: item.payments,
+    }));
+
+    const today = new Date();
+    const datePart =
+      today.getFullYear() +
+      "-" +
+      String(today.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(today.getDate()).padStart(2, "0");
+    const filename = `fitora-monthly-revenue-${datePart}.csv`;
+
+    exportToCSV(revenueRows, filename);
   };
 
   // ── Live Master Revenue derived values (master_admin) ─────────────────────
@@ -504,6 +567,14 @@ export default function MasterDashboardPage() {
                       <span className="w-3 h-3 rounded-full bg-white" />
                       <span className="text-white">Revenue (BDT)</span>
                     </div>
+                    <button
+                      type="button"
+                      onClick={exportMonthlyRevenueCSV}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-neutral-900 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Export Monthly Revenue (CSV)
+                    </button>
                   </div>
                 </div>
 
@@ -681,6 +752,14 @@ export default function MasterDashboardPage() {
                     Today&apos;s Check-ins
                   </h4>
                   <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={exportAttendanceCSV}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-neutral-900 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      Export Attendance (CSV)
+                    </button>
                     <button
                       type="button"
                       onClick={exportCheckInsCSV}
