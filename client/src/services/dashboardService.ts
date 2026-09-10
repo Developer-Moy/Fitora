@@ -401,7 +401,7 @@ export async function fetchPublicBranches(params?: {
 }): Promise<BranchInfo[] | null> {
   try {
     const query = new URLSearchParams();
-    if (params?.division && params.division !== "All")
+    if (params?.division && params.division.toLowerCase() !== "all")
       query.append("division", params.division);
     if (params?.search) query.append("search", params.search);
 

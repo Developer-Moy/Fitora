@@ -73,10 +73,118 @@ export default function UserManagementTable({
   const [branches, setBranches] = useState<BranchInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [branchFilter, setBranchFilter] = useState<string>("all");
+
+  const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [serverTotalPages, setServerTotalPages] = useState<number>(1);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(5);
+
+  // ── Fetch users from API ──────────────────────────────────────────────────
+  const loadUsers = useCallback(
+    async (overrides?: {
+      search?: string;
+      role?: string;
+      status?: string;
+      branch?: string;
+      page?: number;
+      limit?: number;
+    }) => {
+      setIsLoading(true);
+      setFetchError(null);
+      const searchVal =
+        overrides?.search !== undefined ? overrides.search : searchQuery;
+      const roleVal =
+        overrides?.role !== undefined ? overrides.role : roleFilter;
+      const statusVal =
+        overrides?.status !== undefined ? overrides.status : statusFilter;
+      const branchVal =
+        overrides?.branch !== undefined ? overrides.branch : branchFilter;
+      const pageVal =
+        overrides?.page !== undefined ? overrides.page : currentPage;
+      const limitVal =
+        overrides?.limit !== undefined ? overrides.limit : itemsPerPage;
+
+      const result = await fetchAllUsers({
+        search: searchVal ? searchVal.trim() : undefined,
+        role: roleVal !== "all" ? roleVal : undefined,
+        status: statusVal !== "all" ? statusVal : undefined,
+        branch: branchVal !== "all" ? branchVal : undefined,
+        page: pageVal,
+        limit: limitVal,
+      });
+
+      if (result) {
+        setUsers(result.users);
+        setTotalUsers(result.total);
+        setServerTotalPages(result.totalPages || 1);
+      } else {
+        setFetchError("Could not connect to backend.");
+      }
+      setIsLoading(false);
+    },
+    [
+      searchQuery,
+      roleFilter,
+      statusFilter,
+      branchFilter,
+      currentPage,
+      itemsPerPage,
+    ],
+  );
+
+  // ── Fetch branches from API ───────────────────────────────────────────────
+  const loadBranches = useCallback(async () => {
+    const result = await fetchPublicBranches();
+    if (result && result.length > 0) {
+      setBranches(result as any);
+      setNewUser((prev) => ({ ...prev, assignedBranch: result[0].name }));
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUsers();
+    loadBranches();
+  }, [loadUsers, loadBranches]);
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = searchInput.trim();
+    setSearchQuery(trimmed);
+    setCurrentPage(1);
+    loadUsers({ search: trimmed, page: 1 });
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchQuery("");
+    setCurrentPage(1);
+    loadUsers({ search: "", page: 1 });
+  };
+
+  const handleRoleChange = (role: string) => {
+    setRoleFilter(role);
+    setCurrentPage(1);
+    loadUsers({ role, page: 1 });
+  };
+
+  const handleStatusChange = (status: string) => {
+    setStatusFilter(status);
+    setCurrentPage(1);
+    loadUsers({ status, page: 1 });
+  };
+
+  const handleBranchChange = (branch: string) => {
+    setBranchFilter(branch);
+    setCurrentPage(1);
+    loadUsers({ branch, page: 1 });
+  };
 
   // Edit Modal State
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
@@ -103,39 +211,6 @@ export default function UserManagementTable({
     setNotification(msg);
     setTimeout(() => setNotification(null), 3500);
   };
-
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [itemsPerPage, setItemsPerPage] = useState<number>(5);
-
-  // ── Fetch users from API ──────────────────────────────────────────────────
-  const loadUsers = useCallback(async () => {
-    setIsLoading(true);
-    setFetchError(null);
-    const result = await fetchAllUsers({ limit: 200 });
-    if (result) {
-      setUsers(result.users);
-    } else {
-      setFetchError("Could not connect to backend. Showing cached data.");
-      // Fallback: leave empty array, UX shows empty state
-    }
-    setIsLoading(false);
-  }, []);
-
-  // ── Fetch branches from API ───────────────────────────────────────────────
-  const loadBranches = useCallback(async () => {
-    const result = await fetchPublicBranches();
-    if (result && result.length > 0) {
-      setBranches(result as any);
-      setNewUser((prev) => ({ ...prev, assignedBranch: result[0].name }));
-    }
-    // fallback: keep INITIAL_BRANCHES already set
-  }, []);
-
-  useEffect(() => {
-    loadUsers();
-    loadBranches();
-  }, [loadUsers, loadBranches]);
 
   // ── Membership Management State (master admin only) ───────────────────────
   const [extendTarget, setExtendTarget] = useState<UserRecord | null>(null);
@@ -230,32 +305,7 @@ export default function UserManagementTable({
     }
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, roleFilter, statusFilter, branchFilter]);
-
-  // Filter Users
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.phone.includes(searchQuery) ||
-      user.assignedBranch.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
-    const matchesStatus =
-      statusFilter === "all" || user.status === statusFilter;
-    const matchesBranch =
-      branchFilter === "all" || user.assignedBranch === branchFilter;
-
-    return matchesSearch && matchesRole && matchesStatus && matchesBranch;
-  });
-
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  const totalPages = serverTotalPages;
 
   const handleEditClick = (user: UserRecord) => {
     if (
@@ -427,7 +477,7 @@ export default function UserManagementTable({
     const status = getSubscriptionStatus(getSubscriptionExpiry(user));
     if (!status) {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-neutral-900 text-white/50 border border-white/10">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-white/5 text-white/50 border border-white/15">
           Free / No Plan
         </span>
       );
@@ -453,14 +503,14 @@ export default function UserManagementTable({
         );
       case "branch_admin":
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-neutral-900 text-white border border-white/20">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/5 text-white border border-white/20">
             <Building2 className="w-3 h-3 text-white" />
             Branch Admin
           </span>
         );
       case "premium_user":
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-neutral-900 text-white border border-white/30">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white border border-white/30">
             <Crown className="w-3 h-3 text-white" />
             Pro Athlete
           </span>
@@ -468,7 +518,7 @@ export default function UserManagementTable({
       case "free_user":
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider bg-neutral-950 text-white/50 border border-white/10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider bg-white/5 text-white/50 border border-white/15">
             <User className="w-3 h-3" />
             Free Member
           </span>
@@ -477,10 +527,10 @@ export default function UserManagementTable({
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-3 animate-in fade-in duration-200">
       {/* Toast Notification */}
       {notification && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2.5 px-5 py-3 rounded-full bg-white text-black shadow-2xl border border-white animate-in slide-in-from-top-4 duration-300">
+        <div className="fixed top-20 right-6 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full bg-white text-black shadow-2xl border border-white animate-in slide-in-from-top-4 duration-300">
           <CheckCircle2 className="w-4 h-4 text-black" />
           <span className="text-xs font-black uppercase tracking-wider">
             {notification}
@@ -489,13 +539,13 @@ export default function UserManagementTable({
       )}
 
       {/* Control Header & Filters Bar (Homepage Luxury Monochrome) */}
-      <div className="p-6 rounded-3xl bg-neutral-950 border border-white/10 shadow-xl space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-black border border-white/15 shadow-xl space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-white">
+            <h3 className="text-sm sm:text-base font-black uppercase tracking-tight text-white">
               User & Member Directory
             </h3>
-            <p className="text-xs text-white/50 mt-0.5">
+            <p className="text-[11px] text-white/50 mt-0.5">
               Manage accounts, edit roles, and assign nationwide branches across{" "}
               {users.length} registered members.
             </p>
@@ -503,35 +553,55 @@ export default function UserManagementTable({
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="group inline-flex items-center gap-2.5 px-5 py-3 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-gray-100 transition shadow-xl cursor-pointer"
+            className="group inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-gray-100 transition shadow-xl cursor-pointer"
           >
             <span>Add Member</span>
-            <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 transition-transform">
-              <Plus className="w-3.5 h-3.5" />
+            <span className="w-4 h-4 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 transition-transform">
+              <Plus className="w-3 h-3" />
             </span>
           </button>
         </div>
 
         {/* Search & Filter Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-          {/* Search Box */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+          {/* Search Box with Search & Clear Buttons */}
+          <form
+            onSubmit={handleSearchSubmit}
+            className="relative flex items-center"
+          >
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
             <input
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search name, email, phone..."
-              className="w-full pl-10 pr-4 py-2.5 bg-neutral-900 border border-white/15 rounded-full text-xs font-medium text-white placeholder:text-white/40 outline-none focus:border-white"
+              className={`w-full pl-8 ${searchInput || searchQuery ? "pr-32" : "pr-20"} py-1.5 bg-black border border-white/15 rounded-full text-xs font-medium text-white placeholder:text-white/40 outline-none focus:border-white transition-all`}
             />
-          </div>
+            <div className="absolute right-1 flex items-center gap-1">
+              {(searchInput || searchQuery) && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="px-2.5 py-0.5 rounded-full bg-white/10 text-white/70 hover:text-white hover:bg-white/20 font-black text-[10px] uppercase transition cursor-pointer border border-white/10"
+                >
+                  Clear
+                </button>
+              )}
+              <button
+                type="submit"
+                className="px-3 py-0.5 rounded-full bg-white text-black font-black text-[10px] uppercase hover:bg-gray-200 transition cursor-pointer shadow"
+              >
+                Search
+              </button>
+            </div>
+          </form>
 
           {/* Role Filter */}
           <div>
             <select
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full px-4 py-2.5 bg-neutral-900 border border-white/15 rounded-full text-xs font-bold text-white outline-none focus:border-white cursor-pointer uppercase"
+              onChange={(e) => handleRoleChange(e.target.value)}
+              className="w-full px-3 py-1.5 bg-black border border-white/15 rounded-full text-xs font-bold text-white outline-none focus:border-white cursor-pointer uppercase"
             >
               <option value="all">All Roles</option>
               <option value="master_admin">Master Admin</option>
@@ -545,8 +615,8 @@ export default function UserManagementTable({
           <div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-2.5 bg-neutral-900 border border-white/15 rounded-full text-xs font-bold text-white outline-none focus:border-white cursor-pointer uppercase"
+              onChange={(e) => handleStatusChange(e.target.value)}
+              className="w-full px-3 py-1.5 bg-black border border-white/15 rounded-full text-xs font-bold text-white outline-none focus:border-white cursor-pointer uppercase"
             >
               <option value="all">All Statuses</option>
               <option value="active">Active Members</option>
@@ -558,8 +628,8 @@ export default function UserManagementTable({
           <div>
             <select
               value={branchFilter}
-              onChange={(e) => setBranchFilter(e.target.value)}
-              className="w-full px-4 py-2.5 bg-neutral-900 border border-white/15 rounded-full text-xs font-bold text-white outline-none focus:border-white cursor-pointer truncate uppercase"
+              onChange={(e) => handleBranchChange(e.target.value)}
+              className="w-full px-3 py-1.5 bg-black border border-white/15 rounded-full text-xs font-bold text-white outline-none focus:border-white cursor-pointer truncate uppercase"
             >
               <option value="all">All 64 Branches</option>
               {branches.map((b) => (
@@ -573,20 +643,20 @@ export default function UserManagementTable({
       </div>
 
       {/* Users Data Table */}
-      <div className="overflow-x-auto rounded-3xl border border-white/10 bg-neutral-950 shadow-xl">
+      <div className="overflow-x-auto rounded-2xl border border-white/15 bg-black shadow-xl">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-white/10 bg-neutral-900/60 text-white/50 font-black uppercase tracking-widest text-[11px]">
-              <th className="py-4 px-5">Member</th>
-              <th className="py-4 px-5">Role & Tier</th>
-              <th className="py-4 px-5">Assigned Branch</th>
-              <th className="py-4 px-5">Payment & Plan</th>
-              <th className="py-4 px-5">Subscription Plan</th>
-              <th className="py-4 px-5">Expiry Date</th>
-              <th className="py-4 px-5">Sub Status</th>
-              <th className="py-4 px-5">Attendance</th>
-              <th className="py-4 px-5">Status</th>
-              <th className="py-4 px-5 text-right">Action</th>
+            <tr className="border-b border-white/10 bg-white/[0.02] text-white/50 font-black uppercase tracking-widest text-[10px]">
+              <th className="py-2.5 px-3.5">Member</th>
+              <th className="py-2.5 px-3.5">Role & Tier</th>
+              <th className="py-2.5 px-3.5">Assigned Branch</th>
+              <th className="py-2.5 px-3.5">Payment & Plan</th>
+              <th className="py-2.5 px-3.5">Subscription Plan</th>
+              <th className="py-2.5 px-3.5">Expiry Date</th>
+              <th className="py-2.5 px-3.5">Sub Status</th>
+              <th className="py-2.5 px-3.5">Attendance</th>
+              <th className="py-2.5 px-3.5">Status</th>
+              <th className="py-2.5 px-3.5 text-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -610,7 +680,7 @@ export default function UserManagementTable({
                   {fetchError}
                 </td>
               </tr>
-            ) : filteredUsers.length === 0 ? (
+            ) : users.length === 0 ? (
               <tr>
                 <td
                   colSpan={10}
@@ -620,22 +690,22 @@ export default function UserManagementTable({
                 </td>
               </tr>
             ) : (
-              paginatedUsers.map((user) => (
+              users.map((user) => (
                 <tr
                   key={user.id}
-                  className="hover:bg-neutral-900/40 transition-colors"
+                  className="hover:bg-white/[0.03] transition-colors"
                 >
                   {/* User Profile */}
-                  <td className="py-4 px-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center font-black text-xs shrink-0">
+                  <td className="py-2 px-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-white text-black flex items-center justify-center font-black text-[11px] shrink-0">
                         {user.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-bold text-white text-sm">
+                        <div className="font-bold text-white text-xs">
                           {user.name}
                         </div>
-                        <div className="text-[11px] text-white/50">
+                        <div className="text-[10px] text-white/50">
                           {user.email} &bull; {user.phone}
                         </div>
                       </div>
@@ -643,20 +713,24 @@ export default function UserManagementTable({
                   </td>
 
                   {/* Role */}
-                  <td className="py-4 px-5">{getRoleBadge(user.role)}</td>
+                  <td className="py-2 px-3.5">{getRoleBadge(user.role)}</td>
 
                   {/* Branch */}
-                  <td className="py-4 px-5">
-                    <div className="flex items-center gap-1.5 font-medium text-white max-w-[200px] truncate">
-                      <Building2 className="w-3.5 h-3.5 text-white/40 shrink-0" />
-                      <span className="truncate">{user.assignedBranch}</span>
+                  <td className="py-2 px-3.5">
+                    <div className="flex items-center gap-1 font-medium text-white max-w-[180px] truncate">
+                      <Building2 className="w-3 h-3 text-white/40 shrink-0" />
+                      <span className="truncate text-xs">
+                        {user.assignedBranch}
+                      </span>
                     </div>
                   </td>
 
                   {/* Plan & Payment */}
-                  <td className="py-4 px-5">
-                    <div className="font-bold text-white">{user.plan}</div>
-                    <div className="text-[11px] text-white/50">
+                  <td className="py-2 px-3.5">
+                    <div className="font-bold text-white text-xs">
+                      {user.plan}
+                    </div>
+                    <div className="text-[10px] text-white/50">
                       {user.paymentMethod !== "None" ? (
                         <span>
                           ৳{user.totalPaidBDT.toLocaleString()} via{" "}
@@ -671,117 +745,117 @@ export default function UserManagementTable({
                   </td>
 
                   {/* Subscription Plan */}
-                  <td className="py-4 px-5">
+                  <td className="py-2 px-3.5">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getPlanBadgeColor(user.plan)}`}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${getPlanBadgeColor(user.plan)}`}
                     >
                       {user.plan}
                     </span>
                   </td>
 
                   {/* Expiry Date */}
-                  <td className="py-4 px-5">
-                    <div className="flex items-center gap-1.5 font-bold text-white">
-                      <Calendar className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                  <td className="py-2 px-3.5">
+                    <div className="flex items-center gap-1 font-bold text-white text-xs">
+                      <Calendar className="w-3 h-3 text-white/40 shrink-0" />
                       {formatSubscriptionDate(getSubscriptionExpiry(user))}
                     </div>
                   </td>
 
                   {/* Subscription Status */}
-                  <td className="py-4 px-5">{getSubscriptionBadge(user)}</td>
+                  <td className="py-2 px-3.5">{getSubscriptionBadge(user)}</td>
 
                   {/* Attendance */}
-                  <td className="py-4 px-5">
-                    <div className="flex items-center gap-1 font-bold text-white">
+                  <td className="py-2 px-3.5">
+                    <div className="flex items-center gap-1 font-bold text-white text-xs">
                       {/* Green number for positive streak */}
                       <span className="text-emerald-400">&#9679;</span>
                       <span className="text-emerald-400 font-black">
-                        {user.attendanceStreakDays} Days Streak
+                        {user.attendanceStreakDays}d Streak
                       </span>
                     </div>
-                    <div className="text-[10px] text-white/40 font-semibold">
+                    <div className="text-[9px] text-white/40 font-semibold">
                       Last: {user.lastCheckIn}
                     </div>
                   </td>
 
                   {/* Status: Green or Red */}
-                  <td className="py-4 px-5">
+                  <td className="py-2 px-3.5">
                     <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
                         user.status === "active"
                           ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
                           : "bg-rose-500/10 text-rose-400 border border-rose-500/30"
                       }`}
                     >
                       {user.status === "active" ? (
-                        <UserCheck className="w-3 h-3" />
+                        <UserCheck className="w-2.5 h-2.5" />
                       ) : (
-                        <UserX className="w-3 h-3" />
+                        <UserX className="w-2.5 h-2.5" />
                       )}
                       {user.status.toUpperCase()}
                     </span>
                   </td>
 
                   {/* Actions */}
-                  <td className="py-4 px-5 text-right">
+                  <td className="py-2 px-3.5 text-right">
                     {user.role === "master_admin" ||
                     user.email === "master@fitora.com" ? (
                       <div className="flex items-center justify-end">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase bg-neutral-900 border border-white/20 text-white shadow-sm">
-                          <ShieldAlert className="w-3 h-3 text-amber-400" />
-                          Immutable &middot; Root
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-white/5 border border-white/20 text-white shadow-sm">
+                          <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
+                          Root
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         {currentRole === "master_admin" && (
                           <>
                             {/* Extend Membership */}
                             <button
                               onClick={() => handleOpenExtend(user)}
                               disabled={isImmutableRoot(user)}
-                              className="p-2 rounded-full bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+                              className="p-1.5 rounded-lg bg-white/5 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
                               title="Extend Membership"
                             >
-                              <CalendarPlus className="w-3.5 h-3.5" />
+                              <CalendarPlus className="w-3 h-3" />
                             </button>
 
                             {/* Modify Membership Plan */}
                             <button
                               onClick={() => handleOpenPlanModal(user)}
                               disabled={isImmutableRoot(user)}
-                              className="p-2 rounded-full bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+                              className="p-1.5 rounded-lg bg-white/5 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
                               title="Modify Membership Plan"
                             >
-                              <Repeat className="w-3.5 h-3.5" />
+                              <Repeat className="w-3 h-3" />
                             </button>
 
                             {/* Audit Membership */}
                             <button
                               onClick={() => handleOpenAudit(user)}
-                              className="p-2 rounded-full bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+                              className="p-1.5 rounded-lg bg-white/5 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
                               title="Audit Membership"
                             >
-                              <ScrollText className="w-3.5 h-3.5" />
+                              <ScrollText className="w-3 h-3" />
                             </button>
                           </>
                         )}
 
                         <button
                           onClick={() => handleEditClick(user)}
-                          className="p-2 rounded-full bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-white/5 border border-white/15 text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
                           title="Edit User Details & Role"
                         >
-                          <Edit3 className="w-3.5 h-3.5" />
+                          <Edit3 className="w-3 h-3" />
                         </button>
 
                         {currentRole === "master_admin" && (
                           <button
                             onClick={() => handleDeleteUserClick(user)}
-                            className="p-2 rounded-full bg-neutral-900 border border-white/15 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-white/5 border border-white/15 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors cursor-pointer"
                             title="Remove User"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3 h-3" />
                           </button>
                         )}
                       </div>
@@ -794,34 +868,33 @@ export default function UserManagementTable({
         </table>
 
         {/* Pagination Footer Controls */}
-        {filteredUsers.length > 0 && (
-          <div className="p-4 sm:p-5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs select-none">
-            <div className="text-neutral-400 font-medium">
+        {totalUsers > 0 && (
+          <div className="py-2.5 px-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs select-none">
+            <div className="text-neutral-400 font-medium text-[11px]">
               Showing{" "}
               <strong className="text-white font-bold">
                 {(currentPage - 1) * itemsPerPage + 1}
               </strong>{" "}
               to{" "}
               <strong className="text-white font-bold">
-                {Math.min(currentPage * itemsPerPage, filteredUsers.length)}
+                {Math.min(currentPage * itemsPerPage, totalUsers)}
               </strong>{" "}
-              of{" "}
-              <strong className="text-white font-bold">
-                {filteredUsers.length}
-              </strong>{" "}
+              of <strong className="text-white font-bold">{totalUsers}</strong>{" "}
               members
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 mr-2 text-neutral-400">
-                <span className="text-[11px] font-semibold">Per page:</span>
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 mr-1 text-neutral-400">
+                <span className="text-[10px] font-semibold">Per page:</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
+                    const newLimit = Number(e.target.value);
+                    setItemsPerPage(newLimit);
                     setCurrentPage(1);
+                    loadUsers({ limit: newLimit, page: 1 });
                   }}
-                  className="bg-neutral-900 border border-white/15 rounded-lg px-2 py-1 text-xs text-white outline-none cursor-pointer focus:border-white"
+                  className="bg-black border border-white/15 rounded px-1.5 py-0.5 text-xs text-white outline-none cursor-pointer focus:border-white"
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -831,12 +904,16 @@ export default function UserManagementTable({
 
               <button
                 type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                onClick={() => {
+                  const newPage = Math.max(1, currentPage - 1);
+                  setCurrentPage(newPage);
+                  loadUsers({ page: newPage });
+                }}
                 disabled={currentPage === 1}
-                className="p-2 rounded-xl bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                className="p-1 rounded-lg bg-black border border-white/15 text-white hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                 title="Previous Page"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3.5 h-3.5" />
               </button>
 
               <div className="flex items-center gap-1">
@@ -845,11 +922,14 @@ export default function UserManagementTable({
                     <button
                       key={pageNum}
                       type="button"
-                      onClick={() => setCurrentPage(pageNum)}
+                      onClick={() => {
+                        setCurrentPage(pageNum);
+                        loadUsers({ page: pageNum });
+                      }}
                       className={`w-8 h-8 rounded-xl font-bold text-xs transition-colors cursor-pointer flex items-center justify-center ${
                         currentPage === pageNum
                           ? "bg-white text-black font-extrabold shadow-md"
-                          : "bg-neutral-900 border border-white/10 text-neutral-300 hover:text-white hover:bg-neutral-800"
+                          : "bg-black border border-white/10 text-white/70 hover:text-white hover:border-white/30"
                       }`}
                     >
                       {pageNum}
@@ -860,11 +940,13 @@ export default function UserManagementTable({
 
               <button
                 type="button"
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
+                onClick={() => {
+                  const newPage = Math.min(totalPages, currentPage + 1);
+                  setCurrentPage(newPage);
+                  loadUsers({ page: newPage });
+                }}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-xl bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                className="p-2 rounded-xl bg-black border border-white/15 text-white hover:bg-white hover:text-black transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                 title="Next Page"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -877,14 +959,14 @@ export default function UserManagementTable({
       {/* ── DELETE CONFIRMATION MODAL ── */}
       {userToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="w-full max-w-md bg-black border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <h3 className="text-lg font-black text-rose-500 uppercase tracking-tight">
                 Remove User
               </h3>
               <button
                 onClick={() => setUserToDelete(null)}
-                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white cursor-pointer"
+                className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -897,7 +979,7 @@ export default function UserManagementTable({
             <div className="flex gap-3 pt-4">
               <button
                 onClick={() => setUserToDelete(null)}
-                className="flex-1 py-3 bg-neutral-900 border border-white/15 text-white font-bold rounded-xl hover:bg-neutral-800 transition-colors cursor-pointer text-xs uppercase"
+                className="flex-1 py-3 bg-white/5 border border-white/15 text-white font-bold rounded-xl hover:bg-white/10 transition-colors cursor-pointer text-xs uppercase"
               >
                 Cancel
               </button>
@@ -915,7 +997,7 @@ export default function UserManagementTable({
       {/* ── LIVE EDIT USER MODAL (HOMEPAGE LUXURY DARK) ── */}
       {isEditModalOpen && editingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-xl bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-xl bg-black border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div>
@@ -928,7 +1010,7 @@ export default function UserManagementTable({
               </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white"
+                className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -950,7 +1032,7 @@ export default function UserManagementTable({
                   onChange={(e) =>
                     setEditingUser({ ...editingUser, name: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white"
+                  className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white"
                 />
               </div>
 
@@ -967,7 +1049,7 @@ export default function UserManagementTable({
                     onChange={(e) =>
                       setEditingUser({ ...editingUser, email: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white"
                   />
                 </div>
                 <div>
@@ -981,7 +1063,7 @@ export default function UserManagementTable({
                     onChange={(e) =>
                       setEditingUser({ ...editingUser, phone: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white"
                   />
                 </div>
               </div>
@@ -1000,16 +1082,13 @@ export default function UserManagementTable({
                         role: e.target.value as any,
                       })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
                   >
                     <option value="free_user">Free Member (Basic)</option>
                     <option value="premium_user">Premium Athlete (Paid)</option>
                     <option value="branch_admin">
                       Branch Admin (1 Branch)
                     </option>
-                    {currentRole === "master_admin" && (
-                      <option value="master_admin">Master Admin (Full)</option>
-                    )}
                   </select>
                 </div>
 
@@ -1025,7 +1104,7 @@ export default function UserManagementTable({
                         assignedBranch: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer truncate uppercase font-bold"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer truncate uppercase font-bold"
                   >
                     {branches.map((b) => (
                       <option key={b.id} value={b.name}>
@@ -1050,7 +1129,7 @@ export default function UserManagementTable({
                         plan: e.target.value as any,
                       })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
                   >
                     <option value="Free Pass">Free Pass (৳0)</option>
                     <option value="Basic Pass">Basic Pass (৳2,500/mo)</option>
@@ -1074,7 +1153,7 @@ export default function UserManagementTable({
                         expiryDate: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white font-bold"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white font-bold"
                   />
                 </div>
               </div>
@@ -1093,7 +1172,7 @@ export default function UserManagementTable({
                         status: e.target.value as any,
                       })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
                   >
                     <option value="active">Active (Access Granted)</option>
                     <option value="suspended">Suspended / Banned</option>
@@ -1112,7 +1191,7 @@ export default function UserManagementTable({
                         paymentMethod: e.target.value as any,
                       })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
                   >
                     <option value="bKash">bKash</option>
                     <option value="Nagad">Nagad</option>
@@ -1127,7 +1206,7 @@ export default function UserManagementTable({
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase"
+                  className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1146,7 +1225,7 @@ export default function UserManagementTable({
       {/* ── ADD NEW MEMBER MODAL ── */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="w-full max-w-lg bg-black border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div>
                 <h3 className="text-lg font-black text-white uppercase tracking-tight">
@@ -1159,7 +1238,7 @@ export default function UserManagementTable({
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white"
+                className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white cursor-pointer transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1181,7 +1260,7 @@ export default function UserManagementTable({
                   onChange={(e) =>
                     setNewUser({ ...newUser, name: e.target.value })
                   }
-                  className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white"
+                  className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white"
                 />
               </div>
 
@@ -1196,7 +1275,7 @@ export default function UserManagementTable({
                     onChange={(e) =>
                       setNewUser({ ...newUser, email: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white"
                   />
                 </div>
                 <div>
@@ -1211,7 +1290,7 @@ export default function UserManagementTable({
                     onChange={(e) =>
                       setNewUser({ ...newUser, phone: e.target.value })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white"
                   />
                 </div>
               </div>
@@ -1224,7 +1303,7 @@ export default function UserManagementTable({
                     onChange={(e) =>
                       setNewUser({ ...newUser, role: e.target.value as any })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
                   >
                     <option value="free_user">Free Member</option>
                     <option value="premium_user">Premium Athlete</option>
@@ -1244,7 +1323,7 @@ export default function UserManagementTable({
                         assignedBranch: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer truncate uppercase font-bold"
+                    className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer truncate uppercase font-bold"
                   >
                     {branches.map((b) => (
                       <option key={b.id} value={b.name}>
@@ -1259,7 +1338,7 @@ export default function UserManagementTable({
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase"
+                  className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1278,7 +1357,7 @@ export default function UserManagementTable({
       {/* ── Extend Membership Modal ─────────────────────────────────────────── */}
       {extendTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+          <div className="w-full max-w-md bg-black border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div>
                 <h3 className="text-lg font-black text-white uppercase tracking-tight">
@@ -1290,13 +1369,13 @@ export default function UserManagementTable({
               </div>
               <button
                 onClick={() => setExtendTarget(null)}
-                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white"
+                className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white cursor-pointer transition"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-neutral-900 border border-white/10">
+            <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/10">
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getPlanBadgeColor(extendTarget.plan)}`}
               >
@@ -1318,7 +1397,7 @@ export default function UserManagementTable({
                 max={3650}
                 value={extendDays}
                 onChange={(e) => setExtendDays(e.target.value)}
-                className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white font-bold"
+                className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white font-bold"
               />
               <div className="flex items-center gap-2 mt-3">
                 {[7, 30, 90, 365].map((days) => (
@@ -1329,7 +1408,7 @@ export default function UserManagementTable({
                     className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase border transition cursor-pointer ${
                       extendDays === String(days)
                         ? "bg-white text-black border-white"
-                        : "bg-neutral-900 text-white/60 border-white/15 hover:text-white"
+                        : "bg-black text-white/60 border-white/15 hover:text-white hover:border-white/30"
                     }`}
                   >
                     +{days}d
@@ -1342,7 +1421,7 @@ export default function UserManagementTable({
               <button
                 type="button"
                 onClick={() => setExtendTarget(null)}
-                className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase"
+                className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase cursor-pointer"
               >
                 Cancel
               </button>
@@ -1363,7 +1442,7 @@ export default function UserManagementTable({
       {/* ── Modify Membership Plan Modal ────────────────────────────────────── */}
       {planTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+          <div className="w-full max-w-md bg-black border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div>
                 <h3 className="text-lg font-black text-white uppercase tracking-tight">
@@ -1375,7 +1454,7 @@ export default function UserManagementTable({
               </div>
               <button
                 onClick={() => setPlanTarget(null)}
-                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white"
+                className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white cursor-pointer transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1388,7 +1467,7 @@ export default function UserManagementTable({
               <select
                 value={planValue}
                 onChange={(e) => setPlanValue(e.target.value as PaidPlanName)}
-                className="w-full px-4 py-3 bg-neutral-900 border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
+                className="w-full px-4 py-3 bg-black border border-white/15 rounded-full text-white outline-none focus:border-white cursor-pointer uppercase font-bold"
               >
                 {PAID_PLANS.map((plan) => (
                   <option key={plan} value={plan}>
@@ -1412,7 +1491,7 @@ export default function UserManagementTable({
               <button
                 type="button"
                 onClick={() => setPlanTarget(null)}
-                className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase"
+                className="px-5 py-2.5 rounded-full border border-white/20 text-white/60 hover:text-white font-bold transition uppercase cursor-pointer"
               >
                 Cancel
               </button>
@@ -1433,7 +1512,7 @@ export default function UserManagementTable({
       {/* ── Audit Membership Modal ──────────────────────────────────────────── */}
       {auditTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-neutral-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+          <div className="w-full max-w-lg bg-black border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div>
                 <h3 className="text-lg font-black text-white uppercase tracking-tight">
@@ -1445,7 +1524,7 @@ export default function UserManagementTable({
               </div>
               <button
                 onClick={() => setAuditTarget(null)}
-                className="p-2 rounded-full bg-neutral-900 text-white/60 hover:text-white"
+                className="p-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white cursor-pointer transition"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1460,7 +1539,7 @@ export default function UserManagementTable({
               </div>
             ) : auditData ? (
               <div className="space-y-2.5">
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-900 border border-white/10">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
                     Current Plan
                   </span>
@@ -1471,7 +1550,7 @@ export default function UserManagementTable({
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-900 border border-white/10">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
                     Subscription Status
                   </span>
@@ -1513,7 +1592,7 @@ export default function UserManagementTable({
                 ].map((row) => (
                   <div
                     key={row.label}
-                    className="flex items-center justify-between gap-4 p-3.5 rounded-2xl bg-neutral-900 border border-white/10"
+                    className="flex items-center justify-between gap-4 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10"
                   >
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40 shrink-0">
                       {row.label}

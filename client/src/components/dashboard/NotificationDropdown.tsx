@@ -150,7 +150,7 @@ export default function NotificationDropdown() {
         className={`relative flex h-10 w-10 items-center justify-center rounded-full border transition-all cursor-pointer ${
           isOpen
             ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-            : "border-white/15 bg-neutral-900 text-white hover:bg-neutral-800 hover:border-white/30"
+            : "border-white/15 bg-black text-white hover:bg-white/10 hover:border-white/30"
         }`}
         aria-label="Notifications"
       >
@@ -171,7 +171,7 @@ export default function NotificationDropdown() {
 
       {/* Dropdown Overlay Menu */}
       {isOpen && (
-        <div className="fixed inset-x-3 top-18 z-50 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-sm sm:max-w-md mx-auto sm:mx-0 rounded-2xl border border-white/15 bg-neutral-950/95 backdrop-blur-xl p-4 shadow-[0_10px_50px_rgba(0,0,0,0.9)] space-y-4">
+        <div className="fixed inset-x-3 top-18 z-50 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-sm sm:max-w-md mx-auto sm:mx-0 rounded-2xl border border-white/15 bg-black/95 backdrop-blur-xl p-4 shadow-[0_10px_50px_rgba(0,0,0,0.9)] space-y-4">
           {/* Header Bar */}
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export default function NotificationDropdown() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="w-6 h-6 rounded-full bg-neutral-900 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition cursor-pointer"
+                className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -214,7 +214,7 @@ export default function NotificationDropdown() {
               className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase transition cursor-pointer ${
                 activeFilter === "all"
                   ? "bg-white text-black"
-                  : "bg-neutral-900 text-white/50 border border-white/10 hover:text-white"
+                  : "bg-white/5 text-white/50 border border-white/10 hover:text-white"
               }`}
             >
               All ({notifications.length})
@@ -225,7 +225,7 @@ export default function NotificationDropdown() {
               className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase transition cursor-pointer ${
                 activeFilter === "unread"
                   ? "bg-white text-black"
-                  : "bg-neutral-900 text-white/50 border border-white/10 hover:text-white"
+                  : "bg-white/5 text-white/50 border border-white/10 hover:text-white"
               }`}
             >
               Unread ({unreadCount})
@@ -241,11 +241,11 @@ export default function NotificationDropdown() {
                   onClick={() => toggleReadStatus(item.id)}
                   className={`group relative p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
                     item.read
-                      ? "bg-neutral-950 border-white/5 opacity-60 hover:opacity-100"
-                      : "bg-neutral-900 border-white/15 hover:border-white/30"
+                      ? "bg-black border-white/5 opacity-60 hover:opacity-100"
+                      : "bg-white/[0.04] border-white/15 hover:border-white/30"
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-xl bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
                     {getIcon(item.type)}
                   </div>
 

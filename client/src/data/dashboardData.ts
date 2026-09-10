@@ -51,7 +51,7 @@ export interface UserRecord {
 export interface CheckInRecord {
   id: string;
   userName: string;
-  userRole: "premium_user" | "free_user" | "branch_admin";
+  userRole: "premium_user" | "free_user" | "branch_admin" | "master_admin";
   branchName: string;
   time: string;
   status: "Verified Entry" | "Denied (Expired)" | "Day Pass Logged";
@@ -305,7 +305,7 @@ export const INITIAL_BRANCHES: BranchInfo[] = [
 export const INITIAL_USERS: UserRecord[] = [
   {
     id: "USR-1001",
-    name: "Master",
+    name: "Master Admin",
     email: "master@fitora.com",
     phone: "+880 1700-000000",
     role: "master_admin",
@@ -487,8 +487,8 @@ export const INITIAL_CHECKINS: CheckInRecord[] = [
   },
   {
     id: "CHK-902",
-    userName: "Master (Master Admin)",
-    userRole: "branch_admin",
+    userName: "Master Admin",
+    userRole: "master_admin",
     branchName: "Dhaka - Gulshan-2 Branch (Flagship)",
     time: "15 mins ago",
     status: "Verified Entry",
