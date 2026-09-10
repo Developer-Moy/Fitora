@@ -29,6 +29,7 @@ interface DayData {
 interface WeekData {
   days: DayData[];
   firstDayDate: Date;
+  isNewMonth?: boolean;
 }
 
 interface TooltipState {
@@ -273,9 +274,12 @@ export default function ActivityHeatmap({
           cursor.setDate(cursor.getDate() + 1);
         }
 
+        const isNewMonth = w > 0 && weekDays.some((d) => d.dayOfMonth === 1);
+
         generatedWeeks.push({
           days: weekDays,
           firstDayDate: weekFirstDate,
+          isNewMonth,
         });
       }
 
@@ -489,7 +493,9 @@ export default function ActivityHeatmap({
                   return (
                     <div
                       key={`month-label-${wIdx}`}
-                      className="w-3.5 mr-1 text-left relative"
+                      className={`w-3.5 mr-1 text-left relative ${
+                        week.isNewMonth ? "ml-2.5" : ""
+                      }`}
                     >
                       {labelObj && (
                         <span className="absolute left-0 top-0 whitespace-nowrap">
@@ -518,7 +524,9 @@ export default function ActivityHeatmap({
                 {weeks.map((week, wIdx) => (
                   <div
                     key={`week-${wIdx}`}
-                    className="flex flex-col gap-1"
+                    className={`flex flex-col gap-1 ${
+                      week.isNewMonth ? "ml-2.5" : ""
+                    }`}
                   >
                     {week.days.map((day) => {
                       const intensityClass = getMonochromeIntensityClasses(
