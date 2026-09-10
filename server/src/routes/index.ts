@@ -20,6 +20,7 @@ import searchRoutes from "./search.routes";
 import paymentRoutes from "./payment.routes.js";
 import masterRoutes from "./master.routes.js";
 import notificationRoutes from "./notification.routes.js";
+import adminRoutes from "./admin.routes";
 import heatmapRoutes from "./heatmap.routes";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
@@ -77,6 +78,7 @@ apiRouter.use("/newsletter", newsletterRoutes);
 apiRouter.use("/daily-plan", dailyMealPlanRoutes);
 apiRouter.use("/search", searchRoutes);
 apiRouter.use("/payments", paymentRoutes);
+apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/notifications", notificationRoutes);
 apiRouter.use("/heatmap", heatmapRoutes);
 
