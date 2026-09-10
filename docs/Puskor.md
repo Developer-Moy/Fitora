@@ -227,10 +227,36 @@ Completed full dynamic MongoDB integration for the Gym Stopwatch experience, eli
   - Realtime Sync badge connects to MongoDB sync verification.
   - Sets logged via QuickSetLogger and completed intervals persist seamlessly into MongoDB `WorkoutLog` and `StopwatchSession`.
 
+---
+
+## 9. GitHub-Style ActivityHeatmap & Profile Integration (2026-09-10)
+
+Implemented a GitHub-style monochrome activity heatmap component representing training consistency, integrated directly into the athlete profile:
+
+### Frontend Implementation
+- **New Component** (`client/src/components/profile/ActivityHeatmap.tsx`):
+  - **Data Integration**: Reuses real workout data via `getWorkoutLogs(effectiveUserId, 500)` from `@/services/workoutService.ts` with user authentication headers. Zero mock data.
+  - **Dynamic Calendar Generation**: Generates 52–53 week columns (Monday through Sunday rows) aligned to exact calendar boundaries and leap years.
+  - **Monochrome Hierarchy**: Strictly monochrome grayscale/light palette (0 = subtle dark, 1 = light gray, 2 = brighter gray, 3 = near-white, 4+ = glowing white with drop shadow; today highlighted with a white ring).
+  - **Dynamic Streak Calculation**: Real consecutive active days calculation ending today or yesterday, with contextual motivation badges.
+  - **Visual Month Gaps**: Added distinct spacing (`ml-2.5`) between month boundaries so each month is visually separated into clean clusters, with synchronized month labels.
+  - **GitHub Right-Side Year Selector**: Added desktop/tablet vertical year navigation (e.g. `2026`, `2025`) with active pills, dynamically populated from real workout history.
+  - **Stable Portal Tooltip**: Tooltip is rendered into `document.body` via React `createPortal` with `useSyncExternalStore` for hydration safety, preventing section height expansion or layout shifts on hover.
+  - **Empty & Error States**: Graceful non-breaking error banner with retry button, and empty state with quick link to `/stopwatch`.
+
+- **Profile Page Integration** (`client/src/app/profile/page.tsx`):
+  - Integrated `<ActivityHeatmap userId={resolvedUserId || "guest_user"} />` directly above Row 3 (*Gym & Workout History*).
+  - Preserved all existing cards: `MembershipStatusCard`, `Personal Details`, `Weight Progress`, `BMI Calculation Log`, and `Gym & Workout History`.
+
+- **Dependency & Build Fixes**:
+  - Installed missing `jspdf` dependency in `client/` to resolve `InvoiceModal.tsx` compilation error.
+  - Cleared stale background processes on port 3000.
+
 ### Verification
-- `npm run build` in `server/` passed with 0 errors.
-- `npm run build` in `client/` passed with 0 errors (all 14 routes statically/dynamically generated).
+- `npx eslint src/components/profile/ActivityHeatmap.tsx` — passed with 0 errors and 0 warnings.
+- `npx tsc --noEmit` in `client/` — passed with 0 errors.
+- `npx next build` — compiled all 14 routes cleanly with Turbopack.
 
 ---
 
-<p align="right">Updated: 2026-09-09</p>
+<p align="right">Updated: 2026-09-10</p>
