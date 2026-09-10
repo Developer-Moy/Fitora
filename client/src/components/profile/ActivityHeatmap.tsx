@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Flame, Calendar, Dumbbell, Clock, AlertCircle, RefreshCw } from "lucide-react";
 import { getWorkoutLogs } from "@/services/workoutService";
@@ -115,6 +122,11 @@ export default function ActivityHeatmap({
     y: 0,
     workouts: [],
   });
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const logs = initialLogs ?? fetchedLogs;
 
@@ -628,51 +640,47 @@ export default function ActivityHeatmap({
         </div>
       </div>
 
-      {/* ── Floating Hover Tooltip ── */}
-      {tooltip.visible && (
-        <div
-          style={{
-            position: "fixed",
-            left: `${tooltip.x}px`,
-            top: `${tooltip.y}px`,
-            transform: "translate(-50%, -100%)",
-          }}
-          className="pointer-events-none z-[9999] transition-all duration-75"
-        >
-          <div className="bg-neutral-900/95 backdrop-blur-md border border-white/20 text-white rounded-xl px-3 py-2 shadow-2xl space-y-1 min-w-[140px] text-center">
-            <p className="text-[11px] font-bold text-white/70 tracking-tight">
-              {tooltip.dateStr}
-            </p>
-            <p className="text-xs font-extrabold text-white">
-              {tooltip.count === 0
-                ? "No workouts"
-                : tooltip.count === 1
-                  ? "1 workout"
-                  : `${tooltip.count} workouts`}
-            </p>
-            {tooltip.workouts.length > 0 && (
-              <div className="pt-1 border-t border-white/10 space-y-0.5 max-w-[200px] text-left">
-                {tooltip.workouts.slice(0, 3).map((w, idx) => (
-                  <p
-                    key={w._id || idx}
-                    className="text-[10px] text-white/80 truncate"
-                  >
-                    &bull; {w.exerciseName || "Workout"}
-                    {w.durationMinutes ? ` (${w.durationMinutes}m)` : ""}
-                  </p>
-                ))}
-                {tooltip.workouts.length > 3 && (
-                  <p className="text-[9px] text-white/40">
-                    +{tooltip.workouts.length - 3} more
-                  </p>
-                )}
-              </div>
-            )}
-            {/* Subtle Downward Pointer Arrow */}
-            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-white/20" />
-          </div>
-        </div>
-      )}
+      {/* ── Floating Hover Tooltip (Rendered via Portal to prevent section height shifts) ── */}
+      {isMounted &&
+        tooltip.visible &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              left: `${tooltip.x}px`,
+              top: `${tooltip.y}px`,
+              transform: "translate(-50%, -100%)",
+            }}
+            className="pointer-events-none z-[99999] transition-all duration-75"
+          >
+            <div className="bg-neutral-900/95 backdrop-blur-md border border-white/20 text-white rounded-xl px-3 py-1.5 shadow-2xl space-y-0.5 min-w-[120px] text-center">
+              <p className="text-[10px] font-medium text-white/60 tracking-tight">
+                {tooltip.dateStr}
+              </p>
+              <p className="text-xs font-black text-white">
+                {tooltip.count === 0
+                  ? "No workouts"
+                  : tooltip.count === 1
+                    ? "1 workout"
+                    : `${tooltip.count} workouts`}
+              </p>
+              {tooltip.workouts.length > 0 && (
+                <p className="text-[10px] text-white/80 truncate max-w-[190px] pt-0.5 border-t border-white/10">
+                  {tooltip.workouts
+                    .map((w) => w.exerciseName || "Workout")
+                    .slice(0, 2)
+                    .join(", ")}
+                  {tooltip.workouts.length > 2
+                    ? ` +${tooltip.workouts.length - 2}`
+                    : ""}
+                </p>
+              )}
+              {/* Subtle Downward Pointer Arrow */}
+              <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-white/20" />
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
