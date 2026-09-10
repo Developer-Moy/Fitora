@@ -529,6 +529,44 @@ Built the **brand-new branch-admin attendance dashboard** on the dashboard page,
 
 ---
 
+## 10-Sep-26
+
+### Reusable CSV Export Utility
+
+Created a shared, reusable client-side utility for converting an array of JavaScript objects into a downloadable CSV file, used by the admin dashboard's export actions.
+
+#### Key Implementation:
+* New file `client/src/utils/csvExporter.ts` exporting a single **`exportToCSV(rows, filename)`** function (plus private helpers).
+* `escapeCSV(value)` safely serializes cells: wraps a value in quotes when it contains a comma, quote, or newline, and converts `null`/`undefined` into an empty string.
+* `buildCsv(rows)` auto-derives the header row from the first object's keys (preserving key order) and maps each object into a data row, joined with `\r\n`; returns an empty string when the array is empty.
+* `triggerDownload(csv, filename)` creates a UTF-8 `text/csv` `Blob`, uses `URL.createObjectURL()`, triggers the download via a temporary `<a>` element, cleans up the node, and revokes the object URL.
+* `exportToCSV()` guards against an empty/invalid array (no-op) and simply builds + downloads the CSV.
+
+### Admin Dashboard: Attendance CSV Export Action
+
+Added an **"Export Attendance (CSV)"** action to the admin dashboard that exports the **live attendance data** already shown on the page.
+
+#### Key Implementation:
+* Imported `exportToCSV` from the new utility into `client/src/app/dashboard/page.tsx`.
+* Added `exportAttendanceCSV()` which no-ops when there are no records, maps the existing `displayCheckins` (the real `BranchCheckin` data) into rows with columns **Member Name**, **Date**, **Branch**, **Status** (Checked In / Checked Out), **Source**, and **Check-in Time**.
+* Parses `checkInTime` into a locale date and time (falling back to the attendance date / raw timestamp when parsing fails).
+* Builds a **dynamic filename** `fitora-attendance-YYYY-MM-DD.csv` from the current date (zero-padded, not hardcoded).
+* Passed the rows + filename to `exportToCSV()` to trigger the browser download.
+* Added the button with a lucide `Download` icon to the **Today's Check-ins** action area, styled to match the existing Fitora admin UI (no mock data, no new API, no backend changes).
+
+### Admin Dashboard: Monthly Revenue CSV Export Action
+
+Added an **"Export Monthly Revenue (CSV)"** action that exports the **real monthly revenue data** already rendered in the revenue chart.
+
+#### Key Implementation:
+* Added `exportMonthlyRevenueCSV()` in `client/src/app/dashboard/page.tsx`.
+* No-ops when `monthlyRevenueChart` is empty, otherwise maps the existing chart data into rows with columns **Month**, **Revenue (BDT)**, and **Payments** — preserving the existing data fields (no recalculation).
+* Builds a **dynamic filename** `fitora-monthly-revenue-YYYY-MM-DD.csv` from the current date.
+* Passed the rows + filename to `exportToCSV()` to trigger the download.
+* Added the button with a `Download` icon to the **Monthly Revenue Progression** chart header, matched to the existing Fitora admin styling.
+
+---
+
 ## Summary of My Contributions
 
 ### Frontend
@@ -550,6 +588,9 @@ Built the **brand-new branch-admin attendance dashboard** on the dashboard page,
 - CSV export for today's check-in reports (`fitora-check-in-report.csv`).
 - Branch occupancy warning banner ("Near Capacity >90%") in the branch management view.
 - Branch-admin live attendance & occupancy dashboard (live check-ins, occupancy meter, pagination).
+- Reusable client-side CSV exporter utility (`client/src/utils/csvExporter.ts`).
+- **Export Attendance (CSV)** action (`fitora-attendance-YYYY-MM-DD.csv`).
+- **Export Monthly Revenue (CSV)** action (`fitora-monthly-revenue-YYYY-MM-DD.csv`).
 
 ### Backend
 - Dashboard Statistics Controller.
@@ -581,6 +622,7 @@ Built the **brand-new branch-admin attendance dashboard** on the dashboard page,
 - `InvoiceModal.tsx` — reusable invoice modal with print support.
 - `UserManagementTable.tsx` — live subscription status/expiry columns and membership extend/plan/audit action modals.
 - Dashboard **Export CSV** check-in report generator.
+- `csvExporter.ts` — reusable object-array → downloadable CSV utility powering the admin export actions.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.
