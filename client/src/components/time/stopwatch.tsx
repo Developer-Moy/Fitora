@@ -119,9 +119,9 @@ export default function StopwatchPage({
 
   return (
     <div className="w-full bg-black text-white flex flex-col overflow-x-hidden selection:bg-white selection:text-black">
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      <div className="flex-1 w-11/12 max-w-7xl mx-auto pt-1 sm:pt-2 pb-8 space-y-4">
         {/* Page Top Heading */}
-        <div className="text-center space-y-3 max-w-3xl mx-auto pt-2 pb-2">
+        <div className="text-center space-y-2 max-w-3xl mx-auto pb-1">
           <h1 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
             HUD Workout Stopwatch
           </h1>
@@ -135,7 +135,7 @@ export default function StopwatchPage({
         </div>
 
         {/* Exercise Switcher Header */}
-        <section className="w-full max-w-4xl mx-auto space-y-4">
+        <section className="w-full space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-white/10">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-white shrink-0" />
@@ -187,10 +187,10 @@ export default function StopwatchPage({
             >
               <input
                 type="text"
-                placeholder="Enter custom exercise name..."
+                placeholder="e.g. Incline Bench Press, Barbell Squats..."
                 value={customExercise}
                 onChange={(e) => setCustomExercise(e.target.value)}
-                className="w-full min-w-0 bg-neutral-900 border border-white/20 rounded-full px-4 py-2.5 text-xs text-white placeholder-gray-400 outline-none focus:border-white font-medium"
+                className="w-full min-w-0 bg-white border-2 border-neutral-300 rounded-xl px-4 py-2.5 text-xs text-black placeholder:text-neutral-500 placeholder:font-medium outline-none focus:border-black focus:ring-2 focus:ring-black/10 font-bold transition-all shadow-sm"
                 autoFocus
               />
 
@@ -209,7 +209,7 @@ export default function StopwatchPage({
             <button
               type="button"
               onClick={scrollLeft}
-              className="shrink-0 w-8 h-8 rounded-full bg-neutral-900 border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition shadow-lg cursor-pointer z-10"
+              className="shrink-0 w-8 h-8 rounded-full bg-black border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition shadow-lg cursor-pointer z-10"
               aria-label="Scroll exercises left"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -228,7 +228,7 @@ export default function StopwatchPage({
                   className={`shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-xs font-bold transition-all border cursor-pointer ${
                     selectedExercise === ex
                       ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-[1.02]"
-                      : "bg-neutral-900 hover:bg-neutral-800 text-gray-300 border-white/10 hover:border-white/30"
+                      : "bg-black hover:bg-white/10 text-white/70 hover:text-white border-white/20 hover:border-white/40"
                   }`}
                 >
                   {ex}
@@ -240,7 +240,7 @@ export default function StopwatchPage({
             <button
               type="button"
               onClick={scrollRight}
-              className="shrink-0 w-8 h-8 rounded-full bg-neutral-900 border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition shadow-lg cursor-pointer z-10"
+              className="shrink-0 w-8 h-8 rounded-full bg-black border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition shadow-lg cursor-pointer z-10"
               aria-label="Scroll exercises right"
             >
               <ChevronRight className="w-4 h-4" />
@@ -257,7 +257,7 @@ export default function StopwatchPage({
             showSetHistory={showSetHistory}
           />
         </section>
-      </main>
+      </div>
     </div>
   );
 }

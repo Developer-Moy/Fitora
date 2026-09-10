@@ -54,29 +54,27 @@ export default function AthleteHealthAssessmentCard({
   return (
     <div
       id="athlete-health-assessment-card"
-      className="mx-auto w-full overflow-hidden rounded-3xl border border-white/10 bg-neutral-950 text-white shadow-2xl"
+      className="mx-auto w-full overflow-hidden rounded-2xl border border-white/15 bg-black text-white shadow-2xl"
     >
       {/* Header */}
-      <div className="border-b border-white/10 bg-white/[0.03] p-5 sm:p-6">
+      <div className="border-b border-white/10 bg-white/[0.02] p-4 sm:p-5">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-500">
               Fitora Performance Report
             </p>
 
-            <h2 className="mt-2 text-xl font-black uppercase tracking-tight sm:text-2xl">
+            <h2 className="mt-1 text-lg font-black uppercase tracking-tight sm:text-xl">
               Athlete Health{" "}
-              <span className="font-normal text-gray-400">
-                Assessment Card
-              </span>
+              <span className="font-normal text-gray-400">Assessment Card</span>
             </h2>
 
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-0.5 text-[11px] text-gray-500">
               Personalized metabolic & nutrition summary
             </p>
           </div>
 
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white text-sm font-black text-black">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white text-xs font-black text-black">
             F
           </div>
         </div>
@@ -84,54 +82,56 @@ export default function AthleteHealthAssessmentCard({
 
       {/* Profile - Horizontal */}
       <div className="grid grid-cols-2 border-b border-white/10 bg-white/10 sm:grid-cols-4">
-        <div className="bg-neutral-950 p-4 sm:p-5">
+        <div className="bg-black p-3 sm:p-3.5">
           <p className="text-[8px] font-black uppercase tracking-wider text-gray-500">
             Age
           </p>
 
-          <p className="mt-1 text-lg font-black">{age}</p>
+          <p className="mt-0.5 text-base sm:text-lg font-black">{age}</p>
         </div>
 
-        <div className="bg-neutral-950 p-4 sm:p-5">
+        <div className="bg-black p-3 sm:p-3.5">
           <p className="text-[8px] font-black uppercase tracking-wider text-gray-500">
             Gender
           </p>
 
-          <p className="mt-1 text-lg font-black capitalize">{gender}</p>
+          <p className="mt-0.5 text-base sm:text-lg font-black capitalize">
+            {gender}
+          </p>
         </div>
 
-        <div className="bg-neutral-950 p-4 sm:p-5">
+        <div className="bg-black p-3 sm:p-3.5">
           <p className="text-[8px] font-black uppercase tracking-wider text-gray-500">
             Height
           </p>
 
-          <p className="mt-1 text-lg font-black">
+          <p className="mt-0.5 text-base sm:text-lg font-black">
             {height}
-            <span className="ml-1 text-xs text-gray-500">cm</span>
+            <span className="ml-1 text-[11px] text-gray-500">cm</span>
           </p>
         </div>
 
-        <div className="bg-neutral-950 p-4 sm:p-5">
+        <div className="bg-black p-3 sm:p-3.5">
           <p className="text-[8px] font-black uppercase tracking-wider text-gray-500">
             Weight
           </p>
 
-          <p className="mt-1 text-lg font-black">
+          <p className="mt-0.5 text-base sm:text-lg font-black">
             {weight}
-            <span className="ml-1 text-xs text-gray-500">kg</span>
+            <span className="ml-1 text-[11px] text-gray-500">kg</span>
           </p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="p-5 sm:p-6">
+      <div className="p-4 sm:p-5">
         {/* Metabolic Overview */}
         <div>
-          <p className="mb-4 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">
+          <p className="mb-2.5 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">
             Metabolic Overview
           </p>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             <MetricCard
               label="BMI"
               value={bmi.toFixed(1)}
@@ -153,14 +153,14 @@ export default function AthleteHealthAssessmentCard({
         </div>
 
         {/* Target + Goal - Horizontal */}
-        <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-3.5 rounded-xl border border-white/10 bg-white/[0.04] p-3 sm:p-3.5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">
                 Daily Target
               </p>
 
-              <p className="mt-1 text-2xl font-black">
+              <p className="mt-0.5 text-xl sm:text-2xl font-black">
                 {targetCalories.toLocaleString()}
                 <span className="ml-1 text-xs font-bold text-gray-500">
                   kcal
@@ -173,7 +173,7 @@ export default function AthleteHealthAssessmentCard({
                 Goal
               </span>
 
-              <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2">
+              <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1">
                 <span className="text-[9px] font-black uppercase tracking-wider text-gray-300">
                   {goalLabel}
                 </span>
@@ -183,18 +183,18 @@ export default function AthleteHealthAssessmentCard({
         </div>
 
         {/* Macro Distribution */}
-        <div className="mt-6">
-          <div className="mb-4">
+        <div className="mt-4">
+          <div className="mb-2.5">
             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">
               Macro Distribution
             </p>
 
-            <p className="mt-1 text-xs text-gray-600">
+            <p className="mt-0.5 text-[11px] text-gray-500">
               Daily nutrition targets
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             <MacroCard
               label="Protein"
               grams={macros.protein}
@@ -216,7 +216,7 @@ export default function AthleteHealthAssessmentCard({
         </div>
 
         {/* Footer */}
-        <div className="mt-6 border-t border-white/10 pt-4">
+        <div className="mt-4 border-t border-white/10 pt-3">
           <div className="flex items-center justify-between gap-3">
             <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-gray-600">
               Fitora • Athlete Health Assessment
@@ -242,18 +242,18 @@ function MetricCard({
   subLabel: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[8px] font-black uppercase tracking-wider text-gray-500">
           {label}
         </p>
 
-        <span className="text-[8px] font-bold uppercase text-gray-600">
+        <span className="text-[8px] font-bold uppercase text-gray-500">
           {subLabel}
         </span>
       </div>
 
-      <p className="mt-2 text-xl font-black">{value}</p>
+      <p className="mt-1 text-lg sm:text-xl font-black">{value}</p>
     </div>
   );
 }
@@ -268,18 +268,16 @@ function MacroCard({
   percentage: number;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[8px] font-black uppercase tracking-wider text-gray-500">
           {label}
         </p>
 
-        <p className="text-[9px] font-bold text-gray-500">
-          {percentage}%
-        </p>
+        <p className="text-[9px] font-bold text-gray-400">{percentage}%</p>
       </div>
 
-      <p className="mt-2 text-xl font-black">
+      <p className="mt-1 text-lg sm:text-xl font-black">
         {grams}
         <span className="ml-1 text-[9px] text-gray-500">g</span>
       </p>

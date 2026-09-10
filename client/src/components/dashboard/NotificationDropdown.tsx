@@ -160,9 +160,18 @@ export default function NotificationDropdown() {
         )}
       </button>
 
+      {/* ── Mobile/Tablet Backdrop (tap anywhere outside to dismiss) ── */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 sm:hidden"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Dropdown Overlay Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl border border-white/15 bg-neutral-950/95 backdrop-blur-xl p-4 shadow-[0_10px_40px_rgba(0,0,0,0.9)] z-50 space-y-4">
+        <div className="fixed inset-x-3 top-18 z-50 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-sm sm:max-w-md mx-auto sm:mx-0 rounded-2xl border border-white/15 bg-neutral-950/95 backdrop-blur-xl p-4 shadow-[0_10px_50px_rgba(0,0,0,0.9)] space-y-4">
           {/* Header Bar */}
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">

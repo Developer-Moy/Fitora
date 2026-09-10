@@ -2,14 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  Utensils,
-  ArrowUpRight,
-  Lock,
-  Crown,
-  Copy,
-  Check,
-} from "lucide-react";
+import { Utensils, ArrowUpRight, Lock, Crown, Copy, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -341,7 +334,13 @@ export default function PersonalizedNutritionPlan({
 
   // Determine active session & claims
   const authSessionUser = authSession?.user as
-    | { id?: string; email?: string; role?: string; plan?: string; fitnessGoal?: string }
+    | {
+        id?: string;
+        email?: string;
+        role?: string;
+        plan?: string;
+        fitnessGoal?: string;
+      }
     | undefined;
 
   const sessionToken =
@@ -352,14 +351,14 @@ export default function PersonalizedNutritionPlan({
 
   const isAuthenticated = Boolean(
     propUser?.id ||
-      propUser?._id ||
-      propUser?.email ||
-      localUser?.id ||
-      localUser?._id ||
-      localUser?.email ||
-      authSessionUser?.id ||
-      authSessionUser?.email ||
-      sessionToken
+    propUser?._id ||
+    propUser?.email ||
+    localUser?.id ||
+    localUser?._id ||
+    localUser?.email ||
+    authSessionUser?.id ||
+    authSessionUser?.email ||
+    sessionToken,
   );
 
   const userRole = (
@@ -467,7 +466,9 @@ export default function PersonalizedNutritionPlan({
                   Personalized Nutrition Plan Locked
                 </h3>
                 <p className="text-xs sm:text-sm text-white/60 max-w-xl">
-                  Sign in to your FITORA account and select a membership plan to unlock custom daily calorie targets, precision macro breakdowns, and curated athletic meal plans.
+                  Sign in to your FITORA account and select a membership plan to
+                  unlock custom daily calorie targets, precision macro
+                  breakdowns, and curated athletic meal plans.
                 </p>
               </div>
             </div>
@@ -525,7 +526,16 @@ export default function PersonalizedNutritionPlan({
                   Upgrade to Access Custom Nutrition
                 </h3>
                 <p className="text-xs sm:text-sm text-white/60 max-w-xl">
-                  You are currently on the <strong className="text-white font-bold">Standard Free Pass</strong>. Upgrade to <strong className="text-white font-bold">Pro Athlete</strong> or <strong className="text-white font-bold">VIP Ultimate</strong> to unlock automated macro targets, goal-tailored nutrition recommendations, and 1-click recipe exports.
+                  You are currently on the{" "}
+                  <strong className="text-white font-bold">
+                    Standard Free Pass
+                  </strong>
+                  . Upgrade to{" "}
+                  <strong className="text-white font-bold">Pro Athlete</strong>{" "}
+                  or{" "}
+                  <strong className="text-white font-bold">VIP Ultimate</strong>{" "}
+                  to unlock automated macro targets, goal-tailored nutrition
+                  recommendations, and 1-click recipe exports.
                 </p>
               </div>
             </div>
@@ -534,18 +544,22 @@ export default function PersonalizedNutritionPlan({
               <button
                 type="button"
                 onClick={onUpgradeClick}
-                className="inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-200 transition-all shadow-xl shrink-0 cursor-pointer"
+                className="group inline-flex items-center gap-2.5 bg-white text-black font-extrabold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all shadow-xl shrink-0 cursor-pointer"
               >
                 <span>Upgrade Plan</span>
-                <ArrowUpRight className="w-4 h-4" />
+                <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-sm">
+                  <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+                </span>
               </button>
             ) : (
               <Link
                 href="/#pricing"
-                className="inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-200 transition-all shadow-xl shrink-0 cursor-pointer"
+                className="group inline-flex items-center gap-2.5 bg-white text-black font-extrabold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all shadow-xl shrink-0 cursor-pointer"
               >
                 <span>Upgrade Plan</span>
-                <ArrowUpRight className="w-4 h-4" />
+                <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-sm">
+                  <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+                </span>
               </Link>
             )}
           </div>

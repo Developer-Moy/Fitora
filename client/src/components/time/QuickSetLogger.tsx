@@ -64,7 +64,11 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
     else if (parsedWeight > 1000) newErrors.weight = "Max is 1000 kg";
 
     if (!reps.trim()) newErrors.reps = "Reps are required";
-    else if (isNaN(parsedReps) || !Number.isInteger(parsedReps) || parsedReps < 1)
+    else if (
+      isNaN(parsedReps) ||
+      !Number.isInteger(parsedReps) ||
+      parsedReps < 1
+    )
       newErrors.reps = "Enter a valid rep count";
     else if (parsedReps > 1000) newErrors.reps = "Max is 1000 reps";
 
@@ -98,7 +102,7 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="Quick set logger"
-        className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[#232836] bg-[#12141a] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.8)] sm:p-6"
+        className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/20 bg-black p-5 shadow-[0_20px_60px_rgba(0,0,0,0.95)] sm:p-6"
       >
         {/* Header */}
         <div className="mb-4 flex items-start justify-between gap-3">
@@ -111,7 +115,9 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
                 Log Set {currentSet}
                 <span className="text-zinc-500 font-medium">/{totalSets}</span>
               </p>
-              <p className="text-[11px] text-zinc-400 truncate">{exerciseName}</p>
+              <p className="text-[11px] text-zinc-400 truncate">
+                {exerciseName}
+              </p>
             </div>
           </div>
           <button
@@ -119,7 +125,7 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
             onClick={handleClose}
             title="Close"
             aria-label="Close quick set logger"
-            className="shrink-0 w-8 h-8 rounded-lg bg-[#181a1f] hover:bg-[#22262e] border border-[#2b313d] text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer active:scale-95"
+            className="shrink-0 w-8 h-8 rounded-lg bg-black hover:bg-white/10 border border-white/20 text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer active:scale-95"
           >
             <X className="w-4 h-4" />
           </button>
@@ -143,15 +149,15 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
                 inputMode="decimal"
                 step="any"
                 min="0"
-                placeholder="e.g. 40"
+                placeholder="e.g. 60 kg"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                className={`w-full rounded-lg border bg-[#111214] px-3 py-2.5 text-sm font-mono text-white outline-none transition focus:border-white ${
-                  errors.weight ? "border-white/70" : "border-[#303136]"
+                className={`w-full rounded-xl border-2 bg-white px-3 py-2 text-sm font-mono text-black font-bold placeholder:text-neutral-500 placeholder:font-medium outline-none transition-all focus:border-black focus:ring-2 focus:ring-black/10 shadow-sm ${
+                  errors.weight ? "border-red-500" : "border-neutral-300"
                 }`}
               />
               {errors.weight && (
-                <p className="text-xs text-white pl-1">{errors.weight}</p>
+                <p className="text-xs text-red-400 pl-1">{errors.weight}</p>
               )}
             </div>
 
@@ -169,15 +175,15 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
                 inputMode="numeric"
                 step="1"
                 min="0"
-                placeholder="e.g. 12"
+                placeholder="e.g. 10 reps"
                 value={reps}
                 onChange={(e) => setReps(e.target.value)}
-                className={`w-full rounded-lg border bg-[#111214] px-3 py-2.5 text-sm font-mono text-white outline-none transition focus:border-white ${
-                  errors.reps ? "border-white/70" : "border-[#303136]"
+                className={`w-full rounded-xl border-2 bg-white px-3 py-2 text-sm font-mono text-black font-bold placeholder:text-neutral-500 placeholder:font-medium outline-none transition-all focus:border-black focus:ring-2 focus:ring-black/10 shadow-sm ${
+                  errors.reps ? "border-red-500" : "border-neutral-300"
                 }`}
               />
               {errors.reps && (
-                <p className="text-xs text-white pl-1">{errors.reps}</p>
+                <p className="text-xs text-red-400 pl-1">{errors.reps}</p>
               )}
             </div>
           </div>
@@ -187,7 +193,7 @@ const QuickSetLogger: React.FC<QuickSetLoggerProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="rounded-xl border border-[#2b313d] bg-[#181a1f] px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-[#22262e] hover:text-white transition-all duration-200 active:scale-95 cursor-pointer"
+              className="rounded-xl border border-white/20 bg-black px-4 py-2.5 text-sm font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition-all duration-200 active:scale-95 cursor-pointer"
             >
               Cancel
             </button>

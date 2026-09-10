@@ -88,10 +88,10 @@ export default function MealsPage() {
   }, [filteredMeals, currentPage]);
 
   return (
-    <main className="w-full min-h-screen bg-black text-white pt-24 sm:pt-28 lg:pt-32 pb-20 px-6 sm:px-10 lg:px-16 select-none font-sans border-t border-white/10">
-      <div className="max-w-7xl mx-auto space-y-12">
+    <div className="w-full min-h-screen bg-black text-white pt-2 sm:pt-4 pb-20 px-4 sm:px-8 lg:px-12 select-none font-sans">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Section */}
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
+        <div className="text-center space-y-3 max-w-3xl mx-auto">
           <h1 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
             Healthy Meals Catalog
           </h1>
@@ -253,6 +253,6 @@ export default function MealsPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

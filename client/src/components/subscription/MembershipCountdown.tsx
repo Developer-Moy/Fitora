@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   RefreshCw,
   Zap,
+  ArrowUpRight,
 } from "lucide-react";
 
 interface MembershipCountdownProps {
@@ -120,8 +121,7 @@ export default function MembershipCountdown({
       };
     }
 
-    const totalDuration =
-      startTime !== null ? expiryTime - startTime : 0;
+    const totalDuration = startTime !== null ? expiryTime - startTime : 0;
 
     const isExpiringSoon = diff < 3 * 24 * 60 * 60 * 1000;
 
@@ -133,8 +133,7 @@ export default function MembershipCountdown({
         : totalDuration > 0
           ? Math.min(
               Math.max(
-                ((now - (resolvedStart?.getTime() ?? now)) /
-                  totalDuration) *
+                ((now - (resolvedStart?.getTime() ?? now)) / totalDuration) *
                   100,
                 0,
               ),
@@ -142,23 +141,13 @@ export default function MembershipCountdown({
             )
           : 0;
 
-    const days = Math.floor(
-      diff / (1000 * 60 * 60 * 24),
-    );
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    const hours = Math.floor(
-      (diff % (1000 * 60 * 60 * 24)) /
-        (1000 * 60 * 60),
-    );
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
-    const minutes = Math.floor(
-      (diff % (1000 * 60 * 60)) /
-        (1000 * 60),
-    );
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-    const seconds = Math.floor(
-      (diff % (1000 * 60)) / 1000,
-    );
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
     return {
       days,
@@ -173,8 +162,7 @@ export default function MembershipCountdown({
   }, [resolvedExpiry, resolvedStart, now]);
 
   // Format Helper
-  const pad = (num: number) =>
-    String(num).padStart(2, "0");
+  const pad = (num: number) => String(num).padStart(2, "0");
 
   if (isFreePlan) {
     return (
@@ -200,19 +188,20 @@ export default function MembershipCountdown({
             </h3>
 
             <p className="text-xs text-white/60 max-w-md">
-              Unlock unlimited AI gym routines, all-branch
-              turnstile access, and automated nutrition macro
-              tracking by upgrading to Pro.
+              Unlock unlimited AI gym routines, all-branch turnstile access, and
+              automated nutrition macro tracking by upgrading to Pro.
             </p>
           </div>
 
           {onRenewClick && (
             <button
               onClick={onRenewClick}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] shrink-0 cursor-pointer"
+              className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] shrink-0 cursor-pointer"
             >
-              <Zap className="w-3.5 h-3.5 fill-black" />
               <span>Upgrade To Pro</span>
+              <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-sm">
+                <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+              </span>
             </button>
           )}
         </div>
@@ -252,9 +241,8 @@ export default function MembershipCountdown({
             </div>
 
             <p className="text-xs text-white/50 max-w-md">
-              Your membership expiry date could not be verified.
-              Please refresh your membership data or contact
-              support.
+              Your membership expiry date could not be verified. Please refresh
+              your membership data or contact support.
             </p>
           </div>
 
@@ -275,24 +263,10 @@ export default function MembershipCountdown({
   // Active / Expiring / Expired Pro/VIP plan
   return (
     <div
-      className={`bg-black/90 border rounded-2xl p-6 relative overflow-hidden backdrop-blur-md transition-all duration-300 ${
-        timeRemaining.isExpired
-          ? "border-rose-500/40 shadow-[0_0_30px_rgba(244,63,94,0.15)]"
-          : timeRemaining.isExpiringSoon
-            ? "border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.15)]"
-            : "border-white/15 shadow-[0_0_30px_rgba(0,0,0,0.4)]"
-      } ${className}`}
+      className={`bg-black/90 border border-white/15 rounded-2xl p-6 relative overflow-hidden backdrop-blur-md shadow-[0_0_30px_rgba(0,0,0,0.4)] ${className}`}
     >
       {/* Background Ambience Glow */}
-      <div
-        className={`absolute -top-12 -right-12 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-20 ${
-          timeRemaining.isExpired
-            ? "bg-rose-500"
-            : timeRemaining.isExpiringSoon
-              ? "bg-amber-500"
-              : "bg-emerald-500"
-        }`}
-      />
+      <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full blur-3xl pointer-events-none opacity-10 bg-white" />
 
       {/* Header Bar */}
       <div className="flex items-center justify-between flex-wrap gap-3 pb-5 border-b border-white/10 relative z-10">
@@ -304,23 +278,20 @@ export default function MembershipCountdown({
           </h4>
         </div>
 
-        {/* Status Pill Badge */}
+        {/* Status Pill Badge: ONLY Active is green, all others monochrome */}
         {timeRemaining.isExpired ? (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-500/15 text-rose-400 border border-rose-500/30">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/5 text-white/50 border border-white/10">
             <ShieldAlert className="w-3 h-3" />
             Expired
           </span>
         ) : timeRemaining.isExpiringSoon ? (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/10 text-white border border-white/20">
             <AlertTriangle className="w-3 h-3" />
-
-            Expiring Soon ({timeRemaining.days}d{" "}
-            {timeRemaining.hours}h left)
+            Expiring Soon ({timeRemaining.days}d {timeRemaining.hours}h left)
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.2)]">
             <ShieldCheck className="w-3 h-3" />
-
             Active Member ({timeRemaining.days} Days Left)
           </span>
         )}
@@ -331,9 +302,7 @@ export default function MembershipCountdown({
         {/* Days */}
         <div className="bg-neutral-900/90 border border-white/10 rounded-xl p-3 sm:p-4 text-center">
           <span className="block text-xl sm:text-3xl font-black font-mono tracking-tight text-white">
-            {timeRemaining.isExpired
-              ? "00"
-              : pad(timeRemaining.days)}
+            {timeRemaining.isExpired ? "00" : pad(timeRemaining.days)}
           </span>
 
           <span className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/50 mt-1">
@@ -344,9 +313,7 @@ export default function MembershipCountdown({
         {/* Hours */}
         <div className="bg-neutral-900/90 border border-white/10 rounded-xl p-3 sm:p-4 text-center">
           <span className="block text-xl sm:text-3xl font-black font-mono tracking-tight text-white">
-            {timeRemaining.isExpired
-              ? "00"
-              : pad(timeRemaining.hours)}
+            {timeRemaining.isExpired ? "00" : pad(timeRemaining.hours)}
           </span>
 
           <span className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/50 mt-1">
@@ -357,9 +324,7 @@ export default function MembershipCountdown({
         {/* Minutes */}
         <div className="bg-neutral-900/90 border border-white/10 rounded-xl p-3 sm:p-4 text-center">
           <span className="block text-xl sm:text-3xl font-black font-mono tracking-tight text-white">
-            {timeRemaining.isExpired
-              ? "00"
-              : pad(timeRemaining.minutes)}
+            {timeRemaining.isExpired ? "00" : pad(timeRemaining.minutes)}
           </span>
 
           <span className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/50 mt-1">
@@ -369,18 +334,8 @@ export default function MembershipCountdown({
 
         {/* Seconds */}
         <div className="bg-neutral-900/90 border border-white/10 rounded-xl p-3 sm:p-4 text-center">
-          <span
-            className={`block text-xl sm:text-3xl font-black font-mono tracking-tight ${
-              timeRemaining.isExpired
-                ? "text-white/40"
-                : timeRemaining.isExpiringSoon
-                  ? "text-amber-400 animate-pulse"
-                  : "text-emerald-400"
-            }`}
-          >
-            {timeRemaining.isExpired
-              ? "00"
-              : pad(timeRemaining.seconds)}
+          <span className="block text-xl sm:text-3xl font-black font-mono tracking-tight text-white">
+            {timeRemaining.isExpired ? "00" : pad(timeRemaining.seconds)}
           </span>
 
           <span className="block text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-white/50 mt-1">
@@ -393,13 +348,7 @@ export default function MembershipCountdown({
       <div className="space-y-3 relative z-10">
         <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
           <div
-            className={`h-full transition-all duration-1000 ease-out rounded-full ${
-              timeRemaining.isExpired
-                ? "bg-rose-500"
-                : timeRemaining.isExpiringSoon
-                  ? "bg-amber-400"
-                  : "bg-gradient-to-r from-emerald-500 to-emerald-300"
-            }`}
+            className="h-full transition-all duration-1000 ease-out rounded-full bg-white"
             style={{
               width: `${timeRemaining.progressPercent}%`,
             }}
@@ -410,24 +359,21 @@ export default function MembershipCountdown({
           <span>
             Expires:{" "}
             <strong className="text-white font-medium">
-              {resolvedExpiry.toLocaleDateString(
-                "en-US",
-                {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                },
-              )}
+              {resolvedExpiry.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
             </strong>
           </span>
 
           <div className="flex items-center gap-3">
             {timeRemaining.isExpired ? (
-              <span className="text-rose-400 font-semibold">
+              <span className="text-white/60 font-semibold">
                 Your pass has expired.
               </span>
             ) : timeRemaining.isExpiringSoon ? (
-              <span className="text-amber-400 font-semibold">
+              <span className="text-white font-semibold">
                 Renew now to maintain streak & QR access!
               </span>
             ) : (
@@ -442,18 +388,12 @@ export default function MembershipCountdown({
               onRenewClick && (
                 <button
                   onClick={onRenewClick}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider cursor-pointer transition-all ${
-                    timeRemaining.isExpired
-                      ? "bg-rose-500 text-white hover:bg-rose-600 shadow-[0_0_15px_rgba(244,63,94,0.4)]"
-                      : "bg-white text-black hover:bg-neutral-200 shadow-md"
-                  }`}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider cursor-pointer transition-all bg-white text-black hover:bg-neutral-200 shadow-md"
                 >
                   <RefreshCw className="w-3 h-3" />
 
                   <span>
-                    {timeRemaining.isExpired
-                      ? "Renew Now"
-                      : "Extend Pass"}
+                    {timeRemaining.isExpired ? "Renew Now" : "Extend Pass"}
                   </span>
                 </button>
               )}

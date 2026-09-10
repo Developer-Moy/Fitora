@@ -37,7 +37,7 @@ const MealCard = (meal: MealProps) => {
       localUser?.id ||
       localUser?._id ||
       (typeof window !== "undefined"
-        ? localStorage.getItem("fitora_user_email") ?? undefined
+        ? (localStorage.getItem("fitora_user_email") ?? undefined)
         : undefined);
 
     if (!userId) {
@@ -56,7 +56,7 @@ const MealCard = (meal: MealProps) => {
           ingredients: meal.ingredients,
           img: meal.img,
         },
-        userId
+        userId,
       );
       if (result.success) {
         toast.success(`${meal.name} added to your daily plan!`);
@@ -100,7 +100,7 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
           {/* Top Calorie Badge */}
           <div className="absolute top-3 left-3 z-10">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/15 text-[11px] font-black text-white shadow-lg">
-              <Flame className="w-3 h-3 text-white" />
+              <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
               <span>{meal.calories} kcal</span>
             </span>
           </div>
@@ -194,7 +194,12 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
 
             {/* Mobile Top Image */}
             <div className="relative w-full h-44 sm:h-52 shrink-0 overflow-hidden bg-neutral-900">
-              <Image src={displayImage} alt={meal.name} fill className="w-full h-full object-cover brightness-95 contrast-105" />
+              <Image
+                src={displayImage}
+                alt={meal.name}
+                fill
+                className="w-full h-full object-cover brightness-95 contrast-105"
+              />
               <div className="absolute top-3 left-3 z-10">
                 <span className="inline-flex items-center gap-1 bg-black/80 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full text-[11px] font-black text-white shadow-lg">
                   🔥 {meal.calories} kcal
@@ -278,7 +283,12 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
             <div className="grid grid-cols-12 items-stretch min-h-95 lg:min-h-105">
               {/* Left Column: Full-Height Image (5/12 Width) */}
               <div className="relative col-span-5 h-full overflow-hidden bg-neutral-900">
-                <Image src={displayImage} alt={meal.name} fill className="w-full h-full object-cover brightness-95 contrast-105" />
+                <Image
+                  src={displayImage}
+                  alt={meal.name}
+                  fill
+                  className="w-full h-full object-cover brightness-95 contrast-105"
+                />
                 <div className="absolute top-4 left-4 z-10">
                   <span className="inline-flex items-center gap-1.5 bg-black/80 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-black text-white shadow-lg">
                     🔥 {meal.calories} kcal
@@ -336,7 +346,6 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
                     <FaPlus className="w-3.5 h-3.5" />
                     <span>Add to Daily Plan</span>
                   </button>
-
                 </div>
               </div>
             </div>

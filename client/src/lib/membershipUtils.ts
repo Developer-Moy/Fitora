@@ -183,36 +183,28 @@ export const formatRemainingTime = (time: RemainingTime): string => {
 };
 
 /** Status → (label, badge style, icon name) mapping for the status badge. */
-export const STATUS_CONFIG: Record<MembershipStatus, {
-  label: string;
-  colorClass: string;
-}> = {
+export const STATUS_CONFIG: Record<
+  MembershipStatus,
+  {
+    label: string;
+    colorClass: string;
+  }
+> = {
   active: {
     label: "Active",
-    colorClass:
-      "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+    colorClass: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
   },
   "expiring-soon": {
     label: "Expiring Soon",
-    colorClass:
-      "bg-amber-500/15 text-amber-400 border-amber-500/30 animate-pulse",
+    colorClass: "bg-white/10 text-white border-white/20",
   },
   expired: {
     label: "Expired",
-    colorClass: "bg-rose-500/15 text-rose-400 border-rose-500/30",
+    colorClass: "bg-white/5 text-white/50 border-white/10",
   },
 };
 
-/** Color mapping for the per-plan name badge (mirrors BillingPaymentHistory). */
+/** Color mapping for the per-plan name badge (pure monochrome black & white). */
 export const getPlanBadgeColor = (plan: string): string => {
-  const p = plan.toLowerCase();
-  if (p.includes("vip"))
-    return "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]";
-  if (p.includes("pro"))
-    return "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]";
-  if (p.includes("basic"))
-    return "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]";
-  if (p.includes("premium"))
-    return "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-[0_0_15px_rgba(168,82,247,0.3)]";
-  return "bg-white/10 text-white/80";
+  return "bg-white text-black font-black border border-white shadow-md";
 };

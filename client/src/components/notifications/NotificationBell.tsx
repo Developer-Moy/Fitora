@@ -11,6 +11,7 @@ import {
   RefreshCw,
   AlertCircle,
   ExternalLink,
+  X,
 } from "lucide-react";
 import {
   fetchNotificationsApi,
@@ -158,11 +159,20 @@ export default function NotificationBell() {
         )}
       </button>
 
+      {/* ── Mobile/Tablet Backdrop (tap anywhere outside to dismiss) ── */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[92] sm:hidden"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* ── Dropdown Panel ── */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-neutral-950 border border-white/20 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-x-3 top-18 z-[95] sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-sm sm:max-w-md mx-auto sm:mx-0 rounded-2xl bg-neutral-950/95 backdrop-blur-xl border border-white/20 shadow-[0_15px_50px_rgba(0,0,0,0.9)] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/60">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/70">
             <div className="flex items-center gap-2">
               <span className="text-xs font-black uppercase tracking-wider text-white">
                 Notifications
@@ -174,21 +184,32 @@ export default function NotificationBell() {
               )}
             </div>
 
-            {unreadCount > 0 && (
+            <div className="flex items-center gap-2.5">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllAsRead}
+                  disabled={loading}
+                  className="text-[11px] font-bold text-white/60 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <CheckCheck className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">Mark all read</span>
+                </button>
+              )}
+              {/* Close button for mobile */}
               <button
                 type="button"
-                onClick={handleMarkAllAsRead}
-                disabled={loading}
-                className="text-[11px] font-bold text-white/60 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                onClick={() => setIsOpen(false)}
+                className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer sm:hidden"
+                aria-label="Close notifications"
               >
-                <CheckCheck className="w-3.5 h-3.5" />
-                <span>Mark all read</span>
+                <X className="w-3.5 h-3.5" />
               </button>
-            )}
+            </div>
           </div>
 
           {/* Body List */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-white/5 scrollbar-thin">
+          <div className="max-h-[60vh] sm:max-h-80 overflow-y-auto divide-y divide-white/5 scrollbar-thin">
             {notifications.length === 0 ? (
               <div className="py-10 px-4 text-center text-white/40 space-y-2">
                 <Bell className="w-7 h-7 mx-auto opacity-30" />

@@ -31,32 +31,13 @@ import {
 } from "@/services/authService";
 import NotificationBell from "@/components/notifications/NotificationBell";
 
-/* ── Desktop Horizontal Navigation Links ── */
+/* ── Navigation Links (Exact Match Between PC & Mobile Hamburger) ── */
 const NAV_LINKS = [
-  { label: "Home", href: "/" },
-  { label: "BMI Calculator", href: "/calculator" },
-  { label: "Gym Stopwatch", href: "/stopwatch" },
-  { label: "Meal Plans", href: "/meals" },
-  { label: "Exercise Library", href: "/exercises" },
-];
-
-/* ── Mobile & Tablet Drawer Main Menu Items ── */
-const MENU_ITEMS = [
   { label: "Home", href: "/", icon: FiHome },
-  { label: "Exercise Library", href: "/exercises", icon: FiDumbbell },
-  { label: "Meal Plans", href: "/meals", icon: FiUtensils },
   { label: "BMI Calculator", href: "/calculator", icon: FiActivity },
   { label: "Gym Stopwatch", href: "/stopwatch", icon: FiClock },
-  { label: "My Profile", href: "/profile", icon: FiUser },
-  { label: "Dashboard", href: "/dashboard", icon: FiSettings },
-];
-
-/* ── Mobile Collapsible Quick Tools / AI Suite ── */
-const QUICK_TOOLS = [
-  { label: "Fitora AI Assistant", href: "/dashboard", icon: Sparkles },
-  { label: "Workout Stopwatch", href: "/stopwatch", icon: FiClock },
-  { label: "BMI Studio Calculator", href: "/calculator", icon: FiActivity },
-  { label: "Nutrition & Meals", href: "/meals", icon: FiUtensils },
+  { label: "Meal Plans", href: "/meals", icon: FiUtensils },
+  { label: "Exercise Library", href: "/exercises", icon: FiDumbbell },
 ];
 
 /* ── Symmetrical Vector Barbell Indicator Half ── */
@@ -81,8 +62,6 @@ const DumbbellHalf = ({ side }: { side: "left" | "right" }) => (
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [chatListOpen, setChatListOpen] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef<HTMLDivElement | null>(null);
 
@@ -239,13 +218,6 @@ export default function Navbar() {
   ) {
     return null;
   }
-
-  // Search filter for menu items
-  const filteredMenuItems = searchQuery.trim()
-    ? MENU_ITEMS.filter((item) =>
-        item.label.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-    : MENU_ITEMS;
 
   return (
     <>
@@ -457,27 +429,15 @@ export default function Navbar() {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[360px] h-full bg-black border-l border-white/10 flex flex-col shadow-2xl z-[100]"
+            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[320px] h-full bg-black border-l border-white/10 flex flex-col justify-between shadow-2xl z-[100]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ── 1. White Search Box at Top ── */}
-            <div className="px-4 pt-4 pb-2 shrink-0">
-              <div className="relative">
-                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search modules & pages..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white text-black text-xs font-semibold placeholder:text-white/60 outline-none border-0 shadow-md"
-                />
-              </div>
-            </div>
-
-            {/* ── 2. Scrollable Menu Content ── */}
-            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1">
-              {/* Main Menu Items */}
-              {filteredMenuItems.map(({ label, href, icon: Icon }) => {
+            {/* ── Main Navigation Links (Exact Match to PC Navbar) ── */}
+            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/40 px-3 pb-1">
+                Navigation
+              </p>
+              {NAV_LINKS.map(({ label, href, icon: Icon }) => {
                 const isActive =
                   pathname === href || (href === "/" && pathname === "/");
                 return (
@@ -485,97 +445,36 @@ export default function Navbar() {
                     key={label}
                     href={href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs sm:text-sm transition-all duration-150 ${
+                    className={`flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs sm:text-sm transition-all duration-150 ${
                       isActive
-                        ? "bg-white/15 text-white font-bold border border-white/20"
-                        : "text-white/60 hover:text-white hover:bg-white/5"
+                        ? "bg-white text-black font-extrabold shadow-lg"
+                        : "text-white/70 hover:text-white hover:bg-white/10 font-semibold"
                     }`}
                   >
-                    <Icon
-                      className={`w-[18px] h-[18px] ${isActive ? "text-white" : "text-white/60"}`}
-                    />
-                    <span>{label}</span>
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <Icon
+                        className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-black" : "text-white/60"}`}
+                      />
+                      <span className="truncate">{label}</span>
+                    </div>
+                    {isActive && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />
+                    )}
                   </Link>
                 );
               })}
-
-              {/* Divider */}
-              <div className="h-px bg-white/10 my-2.5" />
-
-              {/* Collapsible Quick Tools / AI Suite */}
-              <button
-                onClick={() => setChatListOpen(!chatListOpen)}
-                className="flex items-center justify-between text-xs font-bold text-white/60 hover:text-white px-3 py-2 w-full text-left transition-colors cursor-pointer rounded-xl hover:bg-white/5"
-              >
-                <div className="flex items-center gap-2">
-                  <FiChevronDown
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      chatListOpen ? "" : "-rotate-90"
-                    }`}
-                  />
-                  <span className="tracking-wide uppercase text-[10px] font-extrabold text-white/60">
-                    Quick AI & Tools
-                  </span>
-                </div>
-                <span className="text-[9px] bg-white/10 text-white/80 px-2 py-0.5 rounded-full font-bold">
-                  {QUICK_TOOLS.length}
-                </span>
-              </button>
-
-              {chatListOpen && (
-                <div className="space-y-1 pl-1">
-                  {QUICK_TOOLS.map(({ label, href, icon: ToolIcon }) => {
-                    const isActive = pathname === href;
-                    return (
-                      <Link
-                        key={label}
-                        href={href}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs transition-all duration-150 ${
-                          isActive
-                            ? "bg-white/15 text-white font-semibold"
-                            : "text-white/60 hover:text-white hover:bg-white/5"
-                        }`}
-                      >
-                        <ToolIcon
-                          className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-white/60"}`}
-                        />
-                        <span>{label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
             </div>
 
-            {/* ── 3. Bottom: User Profile Card (Logged-in Only) + Action Buttons ── */}
-            <div className="px-4 pb-5 pt-3 space-y-3 shrink-0 bg-black border-t border-white/10">
-              {/* User Profile Row (Only shown when logged in) */}
-              {isLoggedIn && (
+            {/* ── Bottom Actions (Exact Match to PC Navbar Actions) ── */}
+            <div className="px-4 pb-6 pt-4 space-y-3 shrink-0 bg-black border-t border-white/10">
+              {isMounted && !isPremium && (
                 <Link
-                  href="/profile"
+                  href="#pricing"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-2.5 bg-white text-black hover:bg-neutral-100 rounded-2xl border border-white transition-all cursor-pointer group shadow-lg"
+                  className="w-full flex items-center justify-center gap-2 bg-white text-black border border-white font-extrabold text-xs py-2.5 rounded-full shadow-lg hover:bg-neutral-100 transition-all cursor-pointer"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-7 h-7 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-sm border border-black/10">
-                      {userAvatar ? (
-                        <img
-                          src={userAvatar}
-                          alt={userName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span>{userInitial}</span>
-                      )}
-                    </div>
-                    <p className="text-black font-extrabold text-xs uppercase tracking-wider truncate">
-                      {userName}
-                    </p>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-black text-white shrink-0 shadow-sm">
-                    {isMasterAdmin ? "MASTER" : isBranchAdmin ? "ADMIN" : "PRO"}
-                  </span>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Upgrade to PRO</span>
                 </Link>
               )}
 
@@ -592,24 +491,54 @@ export default function Navbar() {
                   </span>
                 </Link>
               ) : (
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/profile"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex-1 flex items-center justify-center gap-1.5 bg-white text-black border border-white font-extrabold text-xs px-4 py-2.5 rounded-full shadow-xl hover:bg-neutral-100 transition-all active:scale-95 cursor-pointer"
-                  >
-                    <FiUser className="w-3.5 h-3.5" />
-                    <span>Profile</span>
-                  </Link>
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between px-3.5 py-2.5 bg-neutral-950 rounded-2xl border border-white/10">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-sm border border-white/20">
+                        {userAvatar ? (
+                          <img
+                            src={userAvatar}
+                            alt={userName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span>{userInitial}</span>
+                        )}
+                      </div>
+                      <p className="text-white font-extrabold text-xs uppercase tracking-wider truncate">
+                        {userName}
+                      </p>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-lg text-[9px] font-extrabold bg-white text-black shrink-0">
+                      {isMasterAdmin
+                        ? "MASTER"
+                        : isBranchAdmin
+                          ? "ADMIN"
+                          : isPremium
+                            ? "PRO"
+                            : "MEMBER"}
+                    </span>
+                  </div>
 
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="flex-1 flex items-center justify-center gap-1.5 bg-black text-red-400 border border-white/15 hover:border-red-500/40 hover:bg-red-500/10 font-bold text-xs px-4 py-2.5 rounded-full shadow-xl transition-all active:scale-95 cursor-pointer"
-                  >
-                    <FiLogOut className="w-3.5 h-3.5" />
-                    <span>Sign Out</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex-1 flex items-center justify-center gap-1.5 bg-white text-black border border-white font-extrabold text-xs px-3.5 py-2.5 rounded-full shadow-xl hover:bg-neutral-100 transition-all active:scale-95 cursor-pointer"
+                    >
+                      <FiUser className="w-3.5 h-3.5" />
+                      <span>My Profile</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex-1 flex items-center justify-center gap-1.5 bg-black text-red-400 border border-white/15 hover:border-red-500/40 hover:bg-red-500/10 font-bold text-xs px-3.5 py-2.5 rounded-full shadow-xl transition-all active:scale-95 cursor-pointer"
+                    >
+                      <FiLogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
