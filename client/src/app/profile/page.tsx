@@ -23,9 +23,17 @@ import {
   History,
   TrendingUp,
   Sparkles,
+  Flame,
+  Award,
+  Zap,
+  Calendar,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
+import {
+  fetchUserActivityStreakApi,
+  type UserActivityStreakData,
+} from "@/services/activityService";
 import {
   getAuthSession,
   logoutUser,
@@ -48,6 +56,7 @@ import PersonalizedNutritionPlan, {
 } from "@/components/profile/PersonalizedNutritionPlan";
 import SubscriptionModal from "@/components/home/SubscriptionModal";
 import MembershipStatusCard from "@/components/subscription/MembershipStatusCard";
+import ActivityHeatmap from "@/components/profile/ActivityHeatmap";
 import { FITORA_PLANS, PlanItem } from "@/components/home/PricingSection";
 import { type MembershipData, isFreePlan } from "@/lib/membershipUtils";
 import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
@@ -130,6 +139,12 @@ export default function ProfilePage() {
     expiryDate?: string;
   } | null>(null);
   const [isCheckingMembership, setIsCheckingMembership] =
+    useState<boolean>(true);
+
+  // User Activity & Consistency Streak State
+  const [activityStreak, setActivityStreak] =
+    useState<UserActivityStreakData | null>(null);
+  const [activityStreakLoading, setActivityStreakLoading] =
     useState<boolean>(true);
 
   // Edit Modal State
@@ -273,6 +288,46 @@ export default function ProfilePage() {
     };
 
     checkMembershipStatus();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    authSession?.user?.id,
+    authSession?.user?.email,
+    localUser?.id,
+    localUser?._id,
+    localUser?.email,
+  ]);
+
+  // ── Authoritative Backend Activity & Consistency Streak Fetch ──
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadActivityStreak = async () => {
+      const targetUserId =
+        authSession?.user?.id || localUser?.id || localUser?._id;
+      const targetEmail = authSession?.user?.email || localUser?.email;
+
+      try {
+        setActivityStreakLoading(true);
+        const data = await fetchUserActivityStreakApi(
+          targetUserId ? String(targetUserId) : undefined,
+          targetEmail ? String(targetEmail) : undefined,
+        );
+        if (!isCancelled) {
+          setActivityStreak(data);
+        }
+      } catch (err) {
+        console.error("Failed to load activity streak:", err);
+      } finally {
+        if (!isCancelled) {
+          setActivityStreakLoading(false);
+        }
+      }
+    };
+
+    loadActivityStreak();
 
     return () => {
       isCancelled = true;
@@ -523,6 +578,27 @@ export default function ProfilePage() {
       isCancelled = true;
     };
   }, [resolvedUserId, userEmail]);
+
+  // Keep Gym & Workout History stack in sync when new workouts are saved
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleWorkoutLogged = () => {
+      const targetId = resolvedUserId || "guest_user";
+      getWorkoutLogs(targetId, 20)
+        .then((res) => {
+          if (res && res.logs) {
+            setWorkoutLogs(res.logs);
+          }
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener("fitora-workout-logged", handleWorkoutLogged);
+    return () => {
+      window.removeEventListener("fitora-workout-logged", handleWorkoutLogged);
+    };
+  }, [resolvedUserId]);
 
   const handleLogout = async () => {
     try {
@@ -1046,7 +1122,130 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* ── Activity Heatmap: 12-Month Training Consistency & Streaks ── */}
+        <ActivityHeatmap userId={resolvedUserId || "guest_user"} />
+
         {/* ── Row 3: Gym & Workout History (3-Column Grid) ── */}
+        {/* ── Row 3: Live Workout Consistency Streak & Milestone Badges ── */}
+        <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] space-y-5">
+          <div className="flex items-center justify-between border-b border-white/15 pb-4 flex-wrap gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+                <Flame className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-extrabold uppercase text-white tracking-wide flex items-center gap-2">
+                  <span>Workout Consistency Streak</span>
+                  {activityStreak?.todayActive && (
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full lowercase">
+                      active today
+                    </span>
+                  )}
+                </h2>
+                <p className="text-xs text-white/60">
+                  Dynamic telemetry tracked across logged workouts, stopwatch sessions & check-ins
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 bg-white text-black font-black text-xs sm:text-sm px-3.5 py-1.5 rounded-full shadow-lg">
+                <Flame className="w-4 h-4 fill-black" />
+                <span>{activityStreak?.currentStreak ?? 0} Days Active Streak</span>
+              </span>
+            </div>
+          </div>
+
+          {/* KPI Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-xl border border-white/10 bg-neutral-950 space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">Current Streak</p>
+              <p className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1.5">
+                <span>{activityStreak?.currentStreak ?? 0}</span>
+                <span className="text-xs text-white/50 font-sans">days</span>
+              </p>
+              <p className="text-[10px] text-white/60">
+                {activityStreak?.todayActive ? "Streak extended today" : "Log today to maintain"}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-white/10 bg-neutral-950 space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">Best Record</p>
+              <p className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1.5">
+                <span>{activityStreak?.longestStreak ?? 0}</span>
+                <span className="text-xs text-white/50 font-sans">days</span>
+              </p>
+              <p className="text-[10px] text-white/60">Personal all-time best</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-white/10 bg-neutral-950 space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">Total Active Days</p>
+              <p className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1.5">
+                <span>{activityStreak?.totalActiveDays ?? 0}</span>
+                <span className="text-xs text-white/50 font-sans">days</span>
+              </p>
+              <p className="text-[10px] text-white/60">
+                {activityStreak?.totalWorkouts ?? 0} workouts logged
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-white/10 bg-neutral-950 space-y-1">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">30-Day Consistency</p>
+              <p className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1.5">
+                <span>{activityStreak?.consistencyScore ?? 0}%</span>
+              </p>
+              <div className="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden mt-1">
+                <div
+                  className="h-full bg-white rounded-full transition-all duration-500"
+                  style={{ width: `${activityStreak?.consistencyScore ?? 0}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Milestone Badges Strip */}
+          <div className="pt-2 border-t border-white/10 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-white/60 flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-white/60" />
+                <span>Consistency Milestones</span>
+              </span>
+              {activityStreak?.nextMilestone && (
+                <span className="text-xs text-white/60 font-medium">
+                  Next: <span className="text-white font-bold">{activityStreak.nextMilestone.name}</span> ({activityStreak.nextMilestone.daysLeft} days away)
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+              {activityStreak?.milestones?.map((milestone) => (
+                <div
+                  key={milestone.id}
+                  className={`shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-all ${
+                    milestone.achieved
+                      ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                      : "bg-neutral-950 text-white/40 border-white/10"
+                  }`}
+                  title={`${milestone.name}: ${milestone.targetDays} Days`}
+                >
+                  <span>{milestone.icon}</span>
+                  <span>{milestone.name}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                      milestone.achieved
+                        ? "bg-black/15 text-black font-black"
+                        : "bg-white/5 text-white/40"
+                    }`}
+                  >
+                    {milestone.targetDays}d
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Row 4: Gym & Workout History (3-Column Grid) ── */}
         <div className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">

@@ -4,6 +4,8 @@ import { AuthRequest } from "../middlewares/auth.middleware";
 import User from "../models/User.model";
 import WorkoutLog from "../models/WorkoutLog.model";
 import Payment from "../models/Payment.model";
+import BranchCheckin from "../models/BranchCheckin.model";
+import StopwatchSession from "../models/StopwatchSession.model";
 import { errorResponse, successResponse } from "../utils/apiResponse";
 
 /**
@@ -67,9 +69,49 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       ],
     });
 
-    const streakDays =
-      userDoc?.attendanceStreakDays ||
-      (workouts.length > 0 ? Math.min(workouts.length, 7) : 0);
+    let streakDays = userDoc?.attendanceStreakDays || 0;
+    if (streakDays === 0 && workouts.length > 0) {
+      const dates = workouts
+        .map((w: any) => w.date || w.createdAt)
+        .filter(Boolean)
+        .map((d: any) => {
+          try {
+            return new Date(d).toISOString().slice(0, 10);
+          } catch {
+            return "";
+          }
+        })
+        .filter(Boolean);
+      const uniqueDates = Array.from(new Set(dates));
+      const todayKey = new Date().toISOString().slice(0, 10);
+      const yesterdayKey = new Date(Date.now() - 86400000)
+        .toISOString()
+        .slice(0, 10);
+
+      if (
+        uniqueDates.includes(todayKey) ||
+        uniqueDates.includes(yesterdayKey)
+      ) {
+        let currentStreak = 0;
+        const anchor = new Date(
+          uniqueDates.includes(todayKey) ? Date.now() : Date.now() - 86400000,
+        );
+        while (true) {
+          const k = anchor.toISOString().slice(0, 10);
+          if (uniqueDates.includes(k)) {
+            currentStreak++;
+            anchor.setDate(anchor.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+        streakDays = currentStreak;
+        if (userDoc) {
+          userDoc.attendanceStreakDays = streakDays;
+          await userDoc.save({ validateModifiedOnly: true });
+        }
+      }
+    }
     const targetWorkouts = 20;
     const consistencyScore =
       Math.min(
@@ -1028,6 +1070,388 @@ export const updateOwnProfile = async (req: AuthRequest, res: Response) => {
   }
 };
 
+/**
+ * GET /api/users/activity/streak
+ * GET /api/dashboard/activity/streak
+ * Authoritative dynamic streak engine & activity heatmap data aggregator.
+ * Calculates consecutive active days, longest streak, total activity,
+ * and compiles daily activity history across WorkoutLog, BranchCheckin, and StopwatchSession.
+ */
+export const getUserActivityStreak = async (req: Request, res: Response) => {
+  try {
+    const authUser = (req as any).user;
+    const rawUserId =
+      authUser?.userId ||
+      authUser?.id ||
+      authUser?._id ||
+      (req.query.userId as string) ||
+      "guest_user";
+
+    const userEmail = authUser?.email || (req.query.email as string);
+
+    // 1. Resolve User Document from Database
+    const userQuery: any[] = [];
+    if (mongoose.Types.ObjectId.isValid(String(rawUserId))) {
+      userQuery.push({ _id: new mongoose.Types.ObjectId(String(rawUserId)) });
+    }
+    if (rawUserId && rawUserId !== "guest_user") {
+      userQuery.push({ email: String(rawUserId).toLowerCase() });
+    }
+    if (userEmail) {
+      userQuery.push({ email: String(userEmail).toLowerCase() });
+    }
+
+    let targetUser =
+      userQuery.length > 0 ? await User.findOne({ $or: userQuery }) : null;
+
+    // Build conditions to query all activity models
+    const userMatchConditions: any[] = [];
+    if (targetUser?._id) {
+      userMatchConditions.push({ userId: targetUser._id });
+      userMatchConditions.push({ userId: targetUser._id.toString() });
+    }
+    if (rawUserId && rawUserId !== "guest_user") {
+      userMatchConditions.push({ userId: String(rawUserId) });
+    }
+    if (targetUser?.email) {
+      userMatchConditions.push({ userId: targetUser.email.toLowerCase() });
+    }
+
+    // 2. Query Activities from all 3 dynamic collections
+    const [workouts, checkins, stopwatchSessions] = await Promise.all([
+      userMatchConditions.length > 0
+        ? WorkoutLog.find({ $or: userMatchConditions })
+            .sort({ date: -1, createdAt: -1 })
+            .lean()
+        : [],
+      targetUser
+        ? BranchCheckin.find({
+            $or: [
+              { userId: targetUser._id },
+              ...(targetUser.email
+                ? [{ memberEmail: targetUser.email.toLowerCase() }]
+                : []),
+            ],
+          })
+            .sort({ checkInTime: -1 })
+            .lean()
+        : [],
+      targetUser
+        ? StopwatchSession.find({ userId: targetUser._id })
+            .sort({ completedAt: -1, createdAt: -1 })
+            .lean()
+        : [],
+    ]);
+
+    // 3. Helper to format local YYYY-MM-DD
+    const toDateKey = (val: any): string => {
+      if (!val) return "";
+      try {
+        const d = new Date(val);
+        if (isNaN(d.getTime())) return "";
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      } catch {
+        return "";
+      }
+    };
+
+    // 4. Group all activities by date key
+    const activityMap: Record<
+      string,
+      {
+        date: string;
+        count: number;
+        workoutsCount: number;
+        checkinsCount: number;
+        stopwatchCount: number;
+        durationMinutes: number;
+        caloriesBurned: number;
+      }
+    > = {};
+
+    const recordActivity = (
+      rawDate: any,
+      type: "workout" | "checkin" | "stopwatch",
+      duration = 0,
+      calories = 0,
+    ) => {
+      const dateKey = toDateKey(rawDate);
+      if (!dateKey) return;
+
+      if (!activityMap[dateKey]) {
+        activityMap[dateKey] = {
+          date: dateKey,
+          count: 0,
+          workoutsCount: 0,
+          checkinsCount: 0,
+          stopwatchCount: 0,
+          durationMinutes: 0,
+          caloriesBurned: 0,
+        };
+      }
+
+      activityMap[dateKey].count += 1;
+      activityMap[dateKey].durationMinutes += Number(duration) || 0;
+      activityMap[dateKey].caloriesBurned += Number(calories) || 0;
+
+      if (type === "workout") activityMap[dateKey].workoutsCount += 1;
+      if (type === "checkin") activityMap[dateKey].checkinsCount += 1;
+      if (type === "stopwatch") activityMap[dateKey].stopwatchCount += 1;
+    };
+
+    workouts.forEach((w: any) => {
+      recordActivity(
+        w.date || w.createdAt,
+        "workout",
+        w.durationMinutes,
+        w.caloriesBurned,
+      );
+    });
+
+    checkins.forEach((c: any) => {
+      recordActivity(
+        c.date || c.checkInTime || c.createdAt,
+        "checkin",
+        c.durationMinutes,
+        0,
+      );
+    });
+
+    stopwatchSessions.forEach((s: any) => {
+      recordActivity(
+        s.completedAt || s.createdAt,
+        "stopwatch",
+        s.durationMinutes,
+        s.caloriesBurned,
+      );
+    });
+
+    // 5. Calculate Streaks accurately using Calendar Days
+    const sortedDates = Object.keys(activityMap).sort(); // ascending "YYYY-MM-DD"
+    const now = new Date();
+    const todayKey = toDateKey(now);
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayKey = toDateKey(yesterday);
+
+    let currentStreak = 0;
+    let longestStreak = 0;
+
+    if (sortedDates.length > 0) {
+      // Check if user was active either today or yesterday
+      const hasToday = !!activityMap[todayKey];
+      const hasYesterday = !!activityMap[yesterdayKey];
+
+      if (hasToday || hasYesterday) {
+        // Start counting backwards from the most recent anchor (today or yesterday)
+        let anchorDate = hasToday ? new Date(now) : new Date(yesterday);
+        while (true) {
+          const key = toDateKey(anchorDate);
+          if (activityMap[key]) {
+            currentStreak += 1;
+            anchorDate.setDate(anchorDate.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+      }
+
+      // Compute longest streak across all history
+      const epochDays = sortedDates.map((dk) => {
+        const [y, m, d] = dk.split("-").map(Number);
+        return Math.round(Date.UTC(y, m - 1, d) / (1000 * 60 * 60 * 24));
+      });
+
+      let tempStreak = 1;
+      longestStreak = 1;
+      for (let i = 1; i < epochDays.length; i++) {
+        if (epochDays[i] === epochDays[i - 1] + 1) {
+          tempStreak += 1;
+        } else if (epochDays[i] > epochDays[i - 1] + 1) {
+          tempStreak = 1;
+        }
+        if (tempStreak > longestStreak) {
+          longestStreak = tempStreak;
+        }
+      }
+      longestStreak = Math.max(longestStreak, currentStreak);
+    }
+
+    const totalActiveDays = sortedDates.length;
+    const totalWorkouts = workouts.length;
+    const totalCheckins = checkins.length;
+    const totalStopwatchSessions = stopwatchSessions.length;
+    const totalMinutes =
+      workouts.reduce(
+        (sum: number, w: any) => sum + (Number(w.durationMinutes) || 0),
+        0,
+      ) +
+      checkins.reduce(
+        (sum: number, c: any) => sum + (Number(c.durationMinutes) || 0),
+        0,
+      ) +
+      stopwatchSessions.reduce(
+        (sum: number, s: any) => sum + (Number(s.durationMinutes) || 0),
+        0,
+      );
+
+    const totalCaloriesBurned =
+      workouts.reduce(
+        (sum: number, w: any) => sum + (Number(w.caloriesBurned) || 0),
+        0,
+      ) +
+      stopwatchSessions.reduce(
+        (sum: number, s: any) => sum + (Number(s.caloriesBurned) || 0),
+        0,
+      );
+
+    // Consistency score (last 30 days)
+    let activeDaysLast30 = 0;
+    for (let i = 0; i < 30; i++) {
+      const pastD = new Date(now);
+      pastD.setDate(pastD.getDate() - i);
+      const pastKey = toDateKey(pastD);
+      if (activityMap[pastKey]) activeDaysLast30 += 1;
+    }
+    const consistencyScore = Math.round((activeDaysLast30 / 30) * 100);
+
+    // Milestone Badges
+    const milestones = [
+      {
+        id: "starter",
+        name: "First Step",
+        targetDays: 1,
+        achieved: totalActiveDays >= 1,
+        icon: "👟",
+      },
+      {
+        id: "streak_3",
+        name: "3-Day Fire",
+        targetDays: 3,
+        achieved: longestStreak >= 3 || currentStreak >= 3,
+        icon: "🔥",
+      },
+      {
+        id: "streak_7",
+        name: "Weekly Warrior",
+        targetDays: 7,
+        achieved: longestStreak >= 7 || currentStreak >= 7,
+        icon: "⚡",
+      },
+      {
+        id: "streak_14",
+        name: "Fortnight Beast",
+        targetDays: 14,
+        achieved: longestStreak >= 14 || currentStreak >= 14,
+        icon: "🏆",
+      },
+      {
+        id: "streak_30",
+        name: "Monthly Master",
+        targetDays: 30,
+        achieved: longestStreak >= 30 || currentStreak >= 30,
+        icon: "👑",
+      },
+      {
+        id: "streak_60",
+        name: "60-Day Titan",
+        targetDays: 60,
+        achieved: longestStreak >= 60 || currentStreak >= 60,
+        icon: "🛡️",
+      },
+      {
+        id: "streak_100",
+        name: "Century Legend",
+        targetDays: 100,
+        achieved: longestStreak >= 100 || currentStreak >= 100,
+        icon: "💎",
+      },
+    ];
+
+    const nextMilestone =
+      milestones.find((m) => !m.achieved) || milestones[milestones.length - 1];
+
+    // Build structured array for GitHub-style heatmap (past 180 days)
+    const heatmapDays: Array<{
+      date: string;
+      count: number;
+      level: 0 | 1 | 2 | 3;
+      workouts: number;
+      checkins: number;
+      stopwatch: number;
+      minutes: number;
+      calories: number;
+    }> = [];
+
+    const DAYS_TO_SHOW = 180; // ~6 months
+    for (let i = DAYS_TO_SHOW - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const k = toDateKey(d);
+      const rec = activityMap[k];
+      const count = rec?.count || 0;
+      let level: 0 | 1 | 2 | 3 = 0;
+      if (count === 1) level = 1;
+      else if (count >= 2 && count <= 3) level = 2;
+      else if (count >= 4) level = 3;
+
+      heatmapDays.push({
+        date: k,
+        count,
+        level,
+        workouts: rec?.workoutsCount || 0,
+        checkins: rec?.checkinsCount || 0,
+        stopwatch: rec?.stopwatchCount || 0,
+        minutes: rec?.durationMinutes || 0,
+        calories: rec?.caloriesBurned || 0,
+      });
+    }
+
+    // 6. Persist currentStreak in User Model to keep all views synchronized
+    if (targetUser && targetUser.attendanceStreakDays !== currentStreak) {
+      targetUser.attendanceStreakDays = currentStreak;
+      await targetUser.save({ validateModifiedOnly: true });
+    }
+
+    return res.status(200).json(
+      successResponse("User activity and streak calculated successfully", {
+        currentStreak,
+        longestStreak,
+        totalActiveDays,
+        totalWorkouts,
+        totalCheckins,
+        totalStopwatchSessions,
+        totalMinutes,
+        totalCaloriesBurned,
+        consistencyScore,
+        todayActive: !!activityMap[todayKey],
+        lastActiveDate: sortedDates[sortedDates.length - 1] || null,
+        milestones,
+        nextMilestone: {
+          name: nextMilestone.name,
+          targetDays: nextMilestone.targetDays,
+          daysLeft: Math.max(0, nextMilestone.targetDays - currentStreak),
+        },
+        heatmapDays,
+      }),
+    );
+  } catch (error: any) {
+    console.error("[getUserActivityStreak] Error:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to calculate user activity streak",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
+  }
+};
+
 export default {
   getDashboardStats,
   getPlatformStats,
@@ -1041,4 +1465,5 @@ export default {
   updateHealthMetrics,
   updateHydrationTarget,
   updateOwnProfile,
+  getUserActivityStreak,
 };

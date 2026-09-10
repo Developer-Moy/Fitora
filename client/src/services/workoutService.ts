@@ -111,3 +111,10 @@ export async function getWorkoutLogs(
   const summary = data?.summary || result.summary;
   return { logs, summary };
 }
+
+export {
+  getHeatmapData,
+  type HeatmapDaySummary,
+  type HeatmapDataResult,
+} from "./heatmapService";
+

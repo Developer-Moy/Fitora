@@ -21,6 +21,7 @@ import paymentRoutes from "./payment.routes.js";
 import masterRoutes from "./master.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import adminRoutes from "./admin.routes";
+import heatmapRoutes from "./heatmap.routes";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
 const apiRouter = Router();
@@ -79,5 +80,6 @@ apiRouter.use("/search", searchRoutes);
 apiRouter.use("/payments", paymentRoutes);
 apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/notifications", notificationRoutes);
+apiRouter.use("/heatmap", heatmapRoutes);
 
 export default apiRouter;

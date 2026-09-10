@@ -755,6 +755,23 @@ function ExerciseModal({
         `${exercise.name} logged: ${normalized.setsCount} × ${normalized.repsCount} @ ${normalized.weight}kg`,
         { duration: 3000 },
       );
+
+      // Notify active Heatmap and workout listeners of newly saved activity
+      if (typeof window !== "undefined") {
+        try {
+          window.dispatchEvent(
+            new CustomEvent("fitora-workout-logged", {
+              detail: {
+                userId,
+                exerciseName: exercise.name,
+                date: payload.date,
+              },
+            }),
+          );
+        } catch {
+          // Heatmap refresh failure must never cause workout save to fail
+        }
+      }
     } catch (submitError) {
       const message =
         submitError instanceof Error
