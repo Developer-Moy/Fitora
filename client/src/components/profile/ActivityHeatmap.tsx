@@ -128,7 +128,29 @@ export default function ActivityHeatmap({
     () => false,
   );
 
+  const [selectedYear, setSelectedYear] = useState<number>(() =>
+    new Date().getFullYear(),
+  );
+
   const logs = initialLogs ?? fetchedLogs;
+
+  // Extract available years from workout history + current year (like GitHub)
+  const availableYears = useMemo(() => {
+    const currentYr = new Date().getFullYear();
+    const set = new Set<number>();
+    set.add(currentYr);
+    set.add(currentYr - 1);
+    for (const log of logs) {
+      const raw = log.date || log.createdAt;
+      if (raw) {
+        const d = new Date(raw);
+        if (!isNaN(d.getTime())) {
+          set.add(d.getFullYear());
+        }
+      }
+    }
+    return Array.from(set).sort((a, b) => b - a);
+  }, [logs]);
 
   // Resolve target user ID
   const effectiveUserId = useMemo(() => {
@@ -213,24 +235,25 @@ export default function ActivityHeatmap({
     return map;
   }, [logs]);
 
-  // Generate GitHub-style 53 weeks (Mon -> Sun) leading up to today
+  // Generate GitHub-style 52-53 weeks for selectedYear
   const { weeks, monthLabels, totalWorkoutsInYear, activeDaysInYear } =
     useMemo(() => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const todayKey = formatDateKey(today);
 
-      // Current day of week: Mon = 0, ..., Sun = 6
-      const currentDayOfWeek = (today.getDay() + 6) % 7;
+      // Start date: Monday of the week containing Jan 1 of selectedYear
+      const jan1 = new Date(selectedYear, 0, 1);
+      const jan1Weekday = (jan1.getDay() + 6) % 7; // Mon = 0, Sun = 6
+      const startDate = new Date(selectedYear, 0, 1 - jan1Weekday);
 
-      // End on the Sunday of the current week to have clean 7-day columns
-      const endSunday = new Date(today);
-      endSunday.setDate(today.getDate() + (6 - currentDayOfWeek));
+      // End date: Sunday of the week containing Dec 31 of selectedYear
+      const dec31 = new Date(selectedYear, 11, 31);
+      const dec31Weekday = (dec31.getDay() + 6) % 7;
+      const endSunday = new Date(selectedYear, 11, 31 + (6 - dec31Weekday));
 
-      // 52 full weeks back from endSunday + the current week = 53 weeks total
-      const TOTAL_WEEKS = 53;
-      const startDate = new Date(endSunday);
-      startDate.setDate(endSunday.getDate() - TOTAL_WEEKS * 7 + 1);
+      const diffMs = endSunday.getTime() - startDate.getTime();
+      const totalWeeks = Math.max(52, Math.round(diffMs / (7 * 86400000)));
 
       const generatedWeeks: WeekData[] = [];
       const monthPositions: { label: string; weekIndex: number }[] = [];
@@ -241,7 +264,7 @@ export default function ActivityHeatmap({
 
       const cursor = new Date(startDate);
 
-      for (let w = 0; w < TOTAL_WEEKS; w++) {
+      for (let w = 0; w < totalWeeks; w++) {
         const weekDays: DayData[] = [];
         const weekFirstDate = new Date(cursor);
 
@@ -250,10 +273,12 @@ export default function ActivityHeatmap({
           const key = formatDateKey(dayDate);
           const isFuture = dayDate.getTime() > today.getTime();
           const isToday = key === todayKey;
+          const isSelectedYear = dayDate.getFullYear() === selectedYear;
+
           const dayWorkouts = workoutsByDate.get(key) || [];
           const count = dayWorkouts.length;
 
-          if (!isFuture && count > 0) {
+          if (!isFuture && isSelectedYear && count > 0) {
             workoutCountSum += count;
             activeDaysCount += 1;
           }
@@ -261,20 +286,21 @@ export default function ActivityHeatmap({
           weekDays.push({
             date: dayDate,
             dateKey: key,
-            count,
-            isFuture,
+            count: isSelectedYear ? count : 0,
+            isFuture: isFuture || !isSelectedYear,
             isToday,
             dayOfWeek: d,
             month: dayDate.getMonth(),
             dayOfMonth: dayDate.getDate(),
             year: dayDate.getFullYear(),
-            workouts: dayWorkouts,
+            workouts: isSelectedYear ? dayWorkouts : [],
           });
 
           // Check for month label placement on the 1st of a month or when month changes
           if (
+            isSelectedYear &&
             dayDate.getMonth() !== lastMonth &&
-            (w === 0 || dayDate.getDate() <= 7)
+            dayDate.getDate() <= 7
           ) {
             monthPositions.push({
               label: MONTH_NAMES[dayDate.getMonth()],
@@ -286,7 +312,11 @@ export default function ActivityHeatmap({
           cursor.setDate(cursor.getDate() + 1);
         }
 
-        const isNewMonth = w > 0 && weekDays.some((d) => d.dayOfMonth === 1);
+        const isNewMonth =
+          w > 0 &&
+          weekDays.some(
+            (d) => d.dayOfMonth === 1 && d.year === selectedYear,
+          );
 
         generatedWeeks.push({
           days: weekDays,
@@ -311,7 +341,7 @@ export default function ActivityHeatmap({
         totalWorkoutsInYear: workoutCountSum,
         activeDaysInYear: activeDaysCount,
       };
-    }, [workoutsByDate]);
+    }, [workoutsByDate, selectedYear]);
 
   // Calculate current consistency streak strictly from real data
   const consistencyStreak = useMemo(() => {
@@ -431,8 +461,8 @@ export default function ActivityHeatmap({
               <h2 className="text-base sm:text-lg font-black uppercase tracking-wide text-white font-sans">
                 Workout Activity
               </h2>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/80">
-                12 Months
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/80 font-mono">
+                {selectedYear}
               </span>
             </div>
             <p className="text-xs text-white/60">
@@ -479,7 +509,7 @@ export default function ActivityHeatmap({
         </div>
       )}
 
-      {/* ── Main Heatmap Grid Container ── */}
+      {/* ── Main Heatmap Grid with Right-Side Year List (GitHub Style) ── */}
       {isLoading ? (
         /* Loading Skeleton */
         <div className="space-y-2 py-6 animate-pulse">
@@ -492,12 +522,13 @@ export default function ActivityHeatmap({
           </div>
         </div>
       ) : (
-        <div className="relative">
-          {/* Scrollable Grid wrapper */}
-          <div className="overflow-x-auto pb-2 -mx-1 px-1">
-            <div className="inline-block min-w-max select-none">
-              {/* Month Labels Row */}
-              <div className="flex text-[11px] font-semibold text-white/50 mb-1.5 h-4 pl-7">
+        <div className="flex flex-col lg:flex-row items-start gap-4 lg:gap-6">
+          {/* Scrollable Heatmap Grid Area */}
+          <div className="flex-1 min-w-0 w-full overflow-hidden">
+            <div className="overflow-x-auto pb-2 -mx-1 px-1">
+              <div className="inline-block min-w-max select-none">
+                {/* Month Labels Row */}
+                <div className="flex text-[11px] font-semibold text-white/50 mb-1.5 h-4 pl-7">
                 {weeks.map((week, wIdx) => {
                   const labelObj = monthLabels.find(
                     (m) => m.weekIndex === wIdx,
@@ -588,6 +619,25 @@ export default function ActivityHeatmap({
               </Link>
             </div>
           )}
+          </div>
+
+          {/* Right-Side Year List (GitHub Style) */}
+          <div className="flex lg:flex-col gap-1 shrink-0 w-full lg:w-20 pt-1 lg:border-l lg:border-white/10 lg:pl-4 overflow-x-auto pb-1 lg:pb-0 select-none">
+            {availableYears.map((yr) => (
+              <button
+                key={yr}
+                type="button"
+                onClick={() => setSelectedYear(yr)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all text-center lg:text-left cursor-pointer ${
+                  selectedYear === yr
+                    ? "bg-white text-black font-extrabold shadow-md"
+                    : "text-white/50 hover:text-white hover:bg-white/10 font-semibold"
+                }`}
+              >
+                {yr}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -600,7 +650,7 @@ export default function ActivityHeatmap({
             <span className="font-semibold text-white">
               {totalWorkoutsInYear}
             </span>
-            <span>workouts in past year</span>
+            <span>workouts in {selectedYear}</span>
           </div>
           <span className="text-white/20 hidden sm:inline">&bull;</span>
           <div>
