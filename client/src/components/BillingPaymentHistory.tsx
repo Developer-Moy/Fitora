@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from "react";
@@ -20,22 +19,11 @@ export interface Transaction {
   date: string;
   transactionId: string;
 
-  paymentMethod:
-    | "bKash"
-    | "Nagad"
-    | "Card"
-    | "Bank Transfer"
-    | string;
+  paymentMethod: "bKash" | "Nagad" | "Card" | "Bank Transfer" | string;
 
   amount: number;
 
-  status:
-    | "Completed"
-    | "completed"
-    | "paid"
-    | "pending"
-    | "failed"
-    | string;
+  status: "Completed" | "completed" | "paid" | "pending" | "failed" | string;
 
   planName?: string;
 
@@ -79,20 +67,8 @@ export default function BillingPaymentHistory({
 }: BillingPaymentHistoryProps) {
   const [activeInvoice, setActiveInvoice] = useState<Transaction | null>(null);
 
-  const getPlanBadgeColor = (plan: string) => {
-    switch (plan) {
-      case "VIP Ultimate":
-        return "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]";
-
-      case "Pro Athlete":
-        return "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]";
-
-      case "Basic Pass":
-        return "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]";
-
-      default:
-        return "bg-white/10 text-white/80";
-    }
+  const getPlanBadgeColor = (_plan: string) => {
+    return "bg-white text-black font-black border border-white shadow-md";
   };
 
   // Payment status styles
@@ -119,18 +95,14 @@ export default function BillingPaymentHistory({
 
   // Support both "yearly" and "annual"
   const isAnnual =
-    latestTx?.billingCycle === "yearly" ||
-    latestTx?.billingCycle === "annual";
+    latestTx?.billingCycle === "yearly" || latestTx?.billingCycle === "annual";
 
   // Derive latest expiry date from transactions if not explicitly passed
   const effectiveExpiry =
     expiryDate || latestTx?.subscriptionExpiryDate || null;
 
   const effectiveStart =
-    startDate ||
-    latestTx?.subscriptionStartDate ||
-    latestTx?.date ||
-    null;
+    startDate || latestTx?.subscriptionStartDate || latestTx?.date || null;
 
   return (
     <div className="space-y-6">
@@ -207,9 +179,7 @@ export default function BillingPaymentHistory({
                 className="inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all cursor-pointer shadow-lg"
               >
                 <span>
-                  {userPlan === "Free Pass"
-                    ? "Upgrade Plan"
-                    : "Renew / Change"}
+                  {userPlan === "Free Pass" ? "Upgrade Plan" : "Renew / Change"}
                 </span>
 
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -220,9 +190,7 @@ export default function BillingPaymentHistory({
                 className="inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-200 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all cursor-pointer shadow-lg"
               >
                 <span>
-                  {userPlan === "Free Pass"
-                    ? "Upgrade Plan"
-                    : "Change Plan"}
+                  {userPlan === "Free Pass" ? "Upgrade Plan" : "Change Plan"}
                 </span>
 
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -268,11 +236,12 @@ export default function BillingPaymentHistory({
             {onRenewPlan && (
               <button
                 onClick={onRenewPlan}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-200 transition-all shadow-md cursor-pointer"
+                className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] transition-all shadow-md cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-
                 <span>Choose Membership Plan</span>
+                <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-sm">
+                  <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+                </span>
               </button>
             )}
           </div>
@@ -281,29 +250,19 @@ export default function BillingPaymentHistory({
             <table className="w-full min-w-[700px] text-left">
               <thead>
                 <tr className="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/50 bg-white/[0.02]">
-                  <th className="px-5 sm:px-6 py-4 font-bold">
-                    Date
-                  </th>
+                  <th className="px-5 sm:px-6 py-4 font-bold">Date</th>
 
-                  <th className="px-5 sm:px-6 py-4 font-bold">
-                    Plan
-                  </th>
+                  <th className="px-5 sm:px-6 py-4 font-bold">Plan</th>
 
                   <th className="px-5 sm:px-6 py-4 font-bold">
                     Transaction ID
                   </th>
 
-                  <th className="px-5 sm:px-6 py-4 font-bold">
-                    Method
-                  </th>
+                  <th className="px-5 sm:px-6 py-4 font-bold">Method</th>
 
-                  <th className="px-5 sm:px-6 py-4 font-bold">
-                    Amount
-                  </th>
+                  <th className="px-5 sm:px-6 py-4 font-bold">Amount</th>
 
-                  <th className="px-5 sm:px-6 py-4 font-bold">
-                    Status
-                  </th>
+                  <th className="px-5 sm:px-6 py-4 font-bold">Status</th>
 
                   <th className="px-5 sm:px-6 py-4 font-bold text-right">
                     Invoice
@@ -321,13 +280,14 @@ export default function BillingPaymentHistory({
                       <div className="flex items-center gap-2">
                         <Calendar className="w-3.5 h-3.5 text-white/40" />
 
-                        {new Date(
-                          transaction.date,
-                        ).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        {new Date(transaction.date).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          },
+                        )}
                       </div>
                     </td>
 

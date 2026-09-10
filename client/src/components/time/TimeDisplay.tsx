@@ -29,11 +29,14 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
   const radius = 110;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset =
-    circumference - (Math.min(100, Math.max(0, progressPercent)) / 100) * circumference;
+    circumference -
+    (Math.min(100, Math.max(0, progressPercent)) / 100) * circumference;
 
   // Countdown mode when a rest target is active
   const isCountdownMode = targetSeconds !== null && targetSeconds !== undefined;
-  const remaining = isCountdownMode ? Math.max(0, targetSeconds - seconds) : null;
+  const remaining = isCountdownMode
+    ? Math.max(0, targetSeconds - seconds)
+    : null;
   const isWarning = remaining !== null && remaining <= 10 && remaining > 0;
   const isDone = remaining === 0 && isCountdownMode;
 
@@ -50,25 +53,20 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
       ? "#ffffff"
       : "#d4d4d4"
     : isRunning
-    ? "#ffffff"
-    : "#52525b";
+      ? "#ffffff"
+      : "#52525b";
 
   const trackColor = "#262626";
 
   return (
-    <div className="relative flex items-center justify-center w-[240px] h-[240px] xs:w-[270px] xs:h-[270px] sm:w-[310px] sm:h-[310px] my-2">
+    <div className="relative flex items-center justify-center w-[190px] h-[190px] xs:w-[210px] xs:h-[210px] sm:w-[230px] sm:h-[230px] my-1">
       {/* Glowing Circular Progress Ring */}
       <svg
         className="absolute inset-0 w-full h-full -rotate-90"
         viewBox="0 0 250 250"
       >
         {/* Solid black interior */}
-        <circle
-          cx="125"
-          cy="125"
-          r={radius + 5}
-          fill="#000000"
-        />
+        <circle cx="125" cy="125" r={radius + 5} fill="#000000" />
         {/* Background track circle */}
         <circle
           cx="125"
@@ -95,12 +93,12 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
       </svg>
 
       {/* Center Digital Readout */}
-      <div className="relative z-10 flex flex-col items-center justify-center select-none px-6 sm:px-8 py-8">
+      <div className="relative z-10 flex flex-col items-center justify-center select-none px-4 py-3">
         {isCountdownMode ? (
           // ── REST COUNTDOWN DISPLAY ──
           <>
             <span
-              className={`text-[11px] font-bold uppercase tracking-widest mb-0.5 ${
+              className={`text-[10px] font-bold uppercase tracking-widest mb-0.5 ${
                 isWarning || isDone ? "text-white" : "text-zinc-300"
               }`}
             >
@@ -108,36 +106,40 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
             </span>
 
             <div
-              className={`text-4xl xs:text-5xl sm:text-6xl font-extrabold font-mono tracking-tight transition-colors ${
+              className={`text-3xl xs:text-4xl sm:text-4xl font-extrabold font-mono tracking-tight transition-colors ${
                 isWarning || isDone
-                  ? "text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.65)]"
-                  : "text-zinc-200 drop-shadow-[0_0_18px_rgba(255,255,255,0.4)]"
+                  ? "text-white drop-shadow-[0_0_14px_rgba(255,255,255,0.65)]"
+                  : "text-zinc-200 drop-shadow-[0_0_14px_rgba(255,255,255,0.4)]"
               } ${isWarning ? "animate-pulse" : ""}`}
             >
               {formatCountdown(remaining ?? 0)}
             </div>
 
             <span
-              className={`text-[11px] mt-1.5 font-mono ${
+              className={`text-[10px] mt-1 font-mono ${
                 isWarning
                   ? "text-white font-bold animate-pulse"
                   : isDone
-                  ? "text-white font-bold"
-                  : "text-zinc-400"
+                    ? "text-white font-bold"
+                    : "text-zinc-400"
               }`}
             >
-              {isDone ? "⏰ Next set ready!" : isWarning ? "⚡ Almost time!" : `${targetSeconds}s target`}
+              {isDone
+                ? "⏰ Next set ready!"
+                : isWarning
+                  ? "⚡ Almost time!"
+                  : `${targetSeconds}s target`}
             </span>
           </>
         ) : (
           // ── NORMAL ACTIVE SET STOPWATCH ──
           <>
-            <div className="whitespace-nowrap tabular-nums text-3xl xs:text-4xl sm:text-5xl font-extrabold font-mono tracking-tight text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]">
+            <div className="whitespace-nowrap tabular-nums text-3xl xs:text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-white drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]">
               {formatTime(seconds)}
             </div>
 
             {/* Set Indicator */}
-            <div className="flex items-center gap-2 mt-1.5">
+            <div className="flex items-center gap-1.5 mt-1">
               <button
                 type="button"
                 onClick={onPrevSet}
@@ -147,7 +149,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
                 <Minus className="w-3.5 h-3.5" />
               </button>
 
-              <span className="text-sm sm:text-base font-medium text-zinc-300 tracking-wide font-mono">
+              <span className="text-xs sm:text-sm font-medium text-zinc-300 tracking-wide font-mono">
                 {`Set: ${currentSet}/${totalSets}`}
               </span>
 

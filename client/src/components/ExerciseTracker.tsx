@@ -150,13 +150,13 @@ export default function ExercisePage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* =====================================================
           EXERCISE LIBRARY HEADER (ULTRA MINIMAL & COMPACT WITH PUBLIC BG)
       ====================================================== */}
       <section
         id="exercise-library"
-        className="relative pt-6 pb-2 overflow-hidden border-b border-white/10 select-none"
+        className="relative pt-2 sm:pt-3 pb-2 overflow-hidden border-b border-white/10 select-none"
       >
         {/* Background Image from public folder */}
         <div
@@ -170,7 +170,7 @@ export default function ExercisePage() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
           {/* Top Title & Search Bar Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-3 sm:pb-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-2 h-2 rounded-full bg-white" />
@@ -200,7 +200,7 @@ export default function ExercisePage() {
           </div>
 
           {/* Categories */}
-          <div className="flex gap-2 overflow-x-auto py-8 scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto pt-3 pb-5 scrollbar-hide">
             {categories.map((category) => {
               const active = activeCategory === category;
 
@@ -371,15 +371,18 @@ export default function ExercisePage() {
                   setShowPremiumMessage(false);
                   window.location.href = "/pricing";
                 }}
-                className="flex-1 px-5 py-3 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-gray-200 transition"
+                className="group flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] transition cursor-pointer shadow-lg"
               >
-                Upgrade Now
+                <span>Upgrade Now</span>
+                <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-sm">
+                  <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+                </span>
               </button>
             </div>
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 
@@ -479,7 +482,9 @@ function ExerciseCard({
 
       {/* Play */}
       <div className="absolute top-4 right-4">
-        <div className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
+        <div className="relative w-9 h-9 rounded-full bg-white text-black flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-md">
+          {/* Circular loader ring on hover */}
+          <span className="absolute -inset-1 rounded-full border-2 border-transparent border-t-white border-r-white/60 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity duration-300 pointer-events-none" />
           <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
         </div>
       </div>
@@ -778,7 +783,7 @@ function ExerciseModal({
         className="
           relative w-full h-full sm:h-auto sm:max-h-[90vh] md:max-h-[85vh] lg:max-h-[88vh]
           max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-5xl
-          overflow-y-auto overscroll-contain
+          overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
           bg-neutral-950 border border-white/15
           rounded-none sm:rounded-3xl
           shadow-[0_0_50px_rgba(0,0,0,0.9)]
@@ -823,43 +828,48 @@ function ExerciseModal({
         {/* Content Container */}
         <div className="p-4 sm:p-6 lg:p-8 pt-4 sm:pt-14 lg:pt-16">
           {/* ========================================================
-              RESPONSIVE 50/50 LAYOUT: VIDEO + METADATA (LEFT) & TITLE + TIPS (RIGHT)
+              RESPONSIVE LAYOUT:
+              Mobile (< lg): Order 1 (Video) -> Order 2 (Stopwatch) -> Order 3 (Log Form) -> Order 4 (Title & Tips) -> Order 5 (History)
+              Desktop (>= lg): 2 Columns (Left: Video, InfoBoxes, Stopwatch, History; Right: Title, Badges, Tips, Log Form)
           ======================================================== */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-            {/* LEFT COLUMN (50% Width) - Video Player & 3 Metadata Info Boxes */}
-            <div className="flex flex-col gap-2 lg:h-[78vh] lg:min-h-[640px]">
-              {/* YouTube Video Player */}
-              <div className="relative w-full aspect-video overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-white/10 shadow-2xl">
-                <iframe
-                  className="absolute inset-0 w-full h-full"
-                  src={`https://www.youtube.com/embed/${exercise.videoId}?rel=0`}
-                  title={`${exercise.name} exercise tutorial`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
+          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+            {/* LEFT COLUMN */}
+            <div className="contents lg:flex lg:flex-col lg:gap-4 lg:w-full">
+              {/* 1. Video & Metadata -> order-1 on mobile */}
+              <div className="order-1 lg:order-none flex flex-col gap-2 w-full">
+                {/* YouTube Video Player */}
+                <div className="relative w-full aspect-video overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-white/10 shadow-2xl">
+                  <iframe
+                    className="absolute inset-0 w-full h-full"
+                    src={`https://www.youtube.com/embed/${exercise.videoId}?rel=0`}
+                    title={`${exercise.name} exercise tutorial`}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+
+                {/* 3 Metadata Cards (Duration, Equipment, Target) under Video */}
+                <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
+                  <InfoBox
+                    icon={<Clock3 />}
+                    label="DURATION"
+                    value={exercise.duration}
+                  />
+                  <InfoBox
+                    icon={<Dumbbell />}
+                    label="EQUIPMENT"
+                    value={exercise.equipment}
+                  />
+                  <InfoBox
+                    icon={<Target />}
+                    label="TARGET"
+                    value={exercise.muscle}
+                  />
+                </div>
               </div>
 
-              {/* 3 Metadata Cards (Duration, Equipment, Target) under Video */}
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
-                <InfoBox
-                  icon={<Clock3 />}
-                  label="DURATION"
-                  value={exercise.duration}
-                />
-                <InfoBox
-                  icon={<Dumbbell />}
-                  label="EQUIPMENT"
-                  value={exercise.equipment}
-                />
-                <InfoBox
-                  icon={<Target />}
-                  label="TARGET"
-                  value={exercise.muscle}
-                />
-              </div>
-
-              {/* Modal Stopwatch — fills remaining column height */}
-              <div className="flex-1 md:mt-5 min-h-0 w-full bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
+              {/* 2. Modal Stopwatch -> order-2 on mobile */}
+              <div className="order-2 lg:order-none w-full bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <div className="flex items-center gap-3">
                     <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
@@ -920,63 +930,19 @@ function ExerciseModal({
                   </button>
                 </div>
               </div>
+
+              {/* 5. History List (Under Stopwatch!) -> order-5 on mobile */}
+              <div className="order-5 lg:order-none w-full">
+                <HistoryList logs={history} />
+              </div>
             </div>
 
-            {/* RIGHT COLUMN (50% Width) - Badges, Exercise Title, Description, Technique Tips & CTA */}
-            <div className="space-y-5">
-              {/* Category & Difficulty Badges */}
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full bg-white text-black text-[9px] font-black uppercase tracking-wider">
-                  {exercise.category}
-                </span>
-                <span className="px-3 py-1 rounded-full border border-white/20 text-white/60 text-[9px] font-black uppercase tracking-wider">
-                  {exercise.difficulty}
-                </span>
-              </div>
-
-              {/* Exercise Title & Description */}
-              <div>
-                <h2 className="text-3xl sm:text-4xl lg:text-4xl font-black uppercase tracking-tight leading-[0.95] text-white">
-                  {exercise.name}
-                </h2>
-
-                <p className="text-white/60 text-xs sm:text-sm leading-relaxed mt-3">
-                  {exercise.description}
-                </p>
-              </div>
-
-              {/* Key Technique Tips Box */}
-              <div className="bg-neutral-900/80 border border-white/10 rounded-2xl p-5 space-y-4">
-                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
-                  <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                  </span>
-                  <h3 className="text-xs font-black uppercase tracking-wider text-white">
-                    KEY TECHNIQUE TIPS
-                  </h3>
-                </div>
-
-                <div className="space-y-2.5">
-                  {exercise.tips.map((tip, index) => (
-                    <div
-                      key={tip}
-                      className="flex items-start gap-3 border-b border-white/5 pb-2.5 last:border-none"
-                    >
-                      <span className="shrink-0 text-white/30 text-xs font-black pt-0.5">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <p className="text-xs text-white/75 leading-relaxed">
-                        {tip}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Log This Exercise */}
+            {/* RIGHT COLUMN */}
+            <div className="contents lg:flex lg:flex-col lg:gap-5 lg:w-full">
+              {/* 3. Log This Exercise Form -> order-3 on mobile, order-3 on desktop */}
               <form
                 onSubmit={handleSubmit}
-                className="bg-neutral-900/80 border border-white/10 rounded-2xl p-5 space-y-4"
+                className="order-3 lg:order-3 bg-neutral-900/80 border border-white/10 rounded-2xl p-5 space-y-4 w-full"
                 noValidate
               >
                 <div className="flex items-center gap-3 border-b border-white/10 pb-3">
@@ -1045,8 +1011,57 @@ function ExerciseModal({
                 </div>
               </form>
 
-              {/* Recent History For This Exercise */}
-              <HistoryList logs={history} />
+              {/* 4. Badges, Title, Description, Tips -> order-4 on mobile, order-1 on desktop */}
+              <div className="order-4 lg:order-1 space-y-5 w-full">
+                {/* Category & Difficulty Badges */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 rounded-full bg-white text-black text-[9px] font-black uppercase tracking-wider">
+                    {exercise.category}
+                  </span>
+                  <span className="px-3 py-1 rounded-full border border-white/20 text-white/60 text-[9px] font-black uppercase tracking-wider">
+                    {exercise.difficulty}
+                  </span>
+                </div>
+
+                {/* Exercise Title & Description */}
+                <div>
+                  <h2 className="text-3xl sm:text-4xl lg:text-4xl font-black uppercase tracking-tight leading-[0.95] text-white">
+                    {exercise.name}
+                  </h2>
+
+                  <p className="text-white/60 text-xs sm:text-sm leading-relaxed mt-3">
+                    {exercise.description}
+                  </p>
+                </div>
+
+                {/* Key Technique Tips Box */}
+                <div className="bg-neutral-900/80 border border-white/10 rounded-2xl p-5 space-y-4">
+                  <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+                    <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    </span>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-white">
+                      KEY TECHNIQUE TIPS
+                    </h3>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {exercise.tips.map((tip, index) => (
+                      <div
+                        key={tip}
+                        className="flex items-start gap-3 border-b border-white/5 pb-2.5 last:border-none"
+                      >
+                        <span className="shrink-0 text-white/30 text-xs font-black pt-0.5">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <p className="text-xs text-white/75 leading-relaxed">
+                          {tip}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1165,16 +1180,18 @@ function InfoBox({
   value: string;
 }) {
   return (
-    <div className="bg-neutral-900 border border-white/10 rounded-2xl p-4">
-      <div className="text-white/35 mb-3">
-        <span className="w-4 h-4 block [&>svg]:w-4 [&>svg]:h-4">{icon}</span>
+    <div className="bg-neutral-900 border border-white/10 rounded-xl p-2.5 sm:p-3">
+      <div className="text-white/35 mb-1.5">
+        <span className="w-3.5 h-3.5 block [&>svg]:w-3.5 [&>svg]:h-3.5">
+          {icon}
+        </span>
       </div>
 
-      <p className="text-[8px] font-bold tracking-[0.2em] text-white/30">
+      <p className="text-[7.5px] sm:text-[8px] font-bold tracking-[0.2em] text-white/30">
         {label}
       </p>
 
-      <p className="text-[10px] sm:text-xs font-black uppercase mt-1">
+      <p className="text-[9px] sm:text-[11px] font-black uppercase mt-0.5 truncate">
         {value}
       </p>
     </div>

@@ -664,15 +664,15 @@ export default function ProfilePage() {
   if (!isMounted) return null;
 
   return (
-    <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-12 sm:py-16 px-6 sm:px-10 lg:px-16 select-none">
-      <div className="max-w-6xl mx-auto space-y-12">
+    <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-6 sm:py-8 px-3 sm:px-6 select-none">
+      <div className="w-11/12 max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* ── Page Header (Homepage Style) ── */}
-        <div className="text-center space-y-3 max-w-2xl mx-auto pt-4">
-          <h1 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
+        <div className="text-center space-y-2.5 max-w-2xl mx-auto pt-2">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
             Athlete Profile
           </h1>
           <p
-            className="text-white/80 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
+            className="text-white/70 text-xs sm:text-sm leading-relaxed font-medium"
             style={{ fontStyle: "italic" }}
           >
             Track your progress, update your details, and unlock your full
@@ -692,203 +692,366 @@ export default function ProfilePage() {
           />
         )}
 
-        {/* ── 1. Athlete Header Card ── */}
-        <div className="bg-black border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-          {/* Subtle gradient overlay effect from homepage cards */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-transparent opacity-50" />
+        {/* ── Row 1: Top Athlete Cockpit (3-Column Grid) ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 items-stretch">
+          {/* Card 1: Membership Status Card */}
+          <div className="h-full">
+            <MembershipStatusCard
+              membership={resolvedMembership}
+              onRenew={handleOpenRenewModal}
+            />
+          </div>
 
-          <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6 z-10">
-            {/* Left: Avatar with Upload Overlay & Info */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
-              {/* Profile Avatar with Camera Trigger */}
-              <div className="relative group">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-black border-2 border-white/20 overflow-hidden flex items-center justify-center text-white font-black text-4xl shadow-xl">
-                  {userAvatar ? (
-                    <img
-                      src={userAvatar}
-                      alt={userName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span>{userInitial}</span>
-                  )}
+          {/* Card 2: Personal Details */}
+          <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-full space-y-5">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-white/60" />
+                  <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                    Personal Details
+                  </h2>
                 </div>
-
-                {/* Camera Upload Button */}
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                  Active
+                </span>
               </div>
 
-              {/* Identity & Membership Info */}
-              <div className="space-y-1.5 min-w-0">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
+              <div className="space-y-3 text-xs sm:text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">Full Name</span>
+                  <span className="text-white font-bold truncate text-right">
                     {userName}
-                  </h1>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-white text-black shadow-md">
-                    {isMasterAdmin
-                      ? "MASTER ADMIN"
-                      : isBranchAdmin
-                        ? "BRANCH ADMIN"
-                        : localUser?.plan || "FREE MEMBER"}
                   </span>
                 </div>
-
-                <p className="text-xs sm:text-sm text-white/60 font-medium">
-                  {localUser?.bio || "Fitora Certified Athlete Member"}
-                </p>
-
-                <div className="flex items-center gap-4 text-xs text-white/60 flex-wrap pt-1">
-                  <span className="inline-flex items-center gap-1.5 text-white/80">
-                    <Mail className="w-3.5 h-3.5" />
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">Email Address</span>
+                  <span
+                    className="text-white font-semibold truncate text-right max-w-[180px] sm:max-w-[200px]"
+                    title={userEmail}
+                  >
                     {userEmail}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-white/60">
-                    <MapPin className="w-3.5 h-3.5 text-white/80" />
-                    {localUser?.assignedBranch || "Gulshan-2 Flagship"}
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">Phone Number</span>
+                  <span className="text-white font-semibold truncate text-right">
+                    {localUser?.phone || "+880 1700-000000"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">Gender</span>
+                  <span className="text-white font-semibold truncate text-right">
+                    {localUser?.gender || "Male"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">
+                    Preferred Branch
+                  </span>
+                  <span
+                    className="text-white font-semibold truncate text-right max-w-[170px] sm:max-w-[190px]"
+                    title={
+                      localUser?.assignedBranch || "Gulshan-2 Flagship Branch"
+                    }
+                  >
+                    {localUser?.assignedBranch || "Gulshan-2 Flagship Branch"}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-3 w-full md:w-auto shrink-0 pt-2 md:pt-0">
+            {/* Action Buttons: Edit Profile & Sign Out */}
+            <div className="pt-4 border-t border-white/15 flex items-center gap-2.5">
               <Link
                 href="/profile/edit"
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)] transition-all cursor-pointer shadow-xl"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 bg-white text-black border border-white font-bold text-xs px-3.5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] transition-all cursor-pointer shadow-lg"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Edit Profile</span>
               </Link>
-
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-black text-white border border-white/20 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-white/10 hover:border-white/40 transition-all cursor-pointer shadow-xl"
+                className="inline-flex items-center justify-center gap-1.5 bg-black text-white border border-white/20 font-bold text-xs px-3.5 py-2.5 rounded-full hover:bg-white/10 hover:border-white/40 transition-all cursor-pointer shadow-lg"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out</span>
               </button>
             </div>
           </div>
-        </div>
 
-        {/* ── 1.5. Dedicated Membership Status Card ── */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2.5">
-            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
-              Your Membership Plan
-            </h2>
-          </div>
-
-          <MembershipStatusCard
-            membership={resolvedMembership}
-            onRenew={handleOpenRenewModal}
-          />
-        </div>
-
-        {/* ── 2. Information Sections (Personal & Physical Profile Grid) ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Box 1: Personal & Contact Information */}
-          <div className="bg-black border border-white/20 rounded-2xl p-6 sm:p-7 space-y-5 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
-            <div className="flex items-center justify-between border-b border-white/20 pb-3">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-white/60" />
-                <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
-                  Personal Details
-                </h2>
+          {/* Card 3: Fitness & Physical Profile */}
+          <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-full space-y-5">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <Dumbbell className="w-4 h-4 text-white/60" />
+                  <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                    Fitness Profile
+                  </h2>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-white/60 bg-white/10 px-2.5 py-0.5 rounded-full">
+                  Self-Reported
+                </span>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
-                Active
-              </span>
+
+              <div className="space-y-3 text-xs sm:text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">Primary Goal</span>
+                  <span
+                    className="text-white font-bold uppercase truncate text-right max-w-[170px]"
+                    title={
+                      localUser?.fitnessGoal ||
+                      localUser?.plan ||
+                      "Bulking & Muscle Gain"
+                    }
+                  >
+                    {localUser?.fitnessGoal ||
+                      localUser?.plan ||
+                      "Bulking & Muscle Gain"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">Body Weight</span>
+                  <span className="text-white font-semibold truncate text-right">
+                    {localUser?.weight || "74"} kg
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">Height</span>
+                  <span className="text-white font-semibold truncate text-right">
+                    {localUser?.height || "178"} cm
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">Activity Level</span>
+                  <span className="text-white font-semibold truncate text-right">
+                    {localUser?.activityLevel || "4-5 Days / Week"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-white/60 shrink-0">
+                    Daily Water Target
+                  </span>
+                  <span className="text-white font-semibold truncate text-right">
+                    {goalData.hydration}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-3.5 text-xs sm:text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Full Name</span>
-                <span className="text-white font-bold">{userName}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Email Address</span>
-                <span className="text-white font-semibold">{userEmail}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Phone Number</span>
-                <span className="text-white font-semibold">
-                  {localUser?.phone || "+880 1700-000000"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Gender</span>
-                <span className="text-white font-semibold">
-                  {localUser?.gender || "Male"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Preferred Branch</span>
-                <span className="text-white font-semibold">
-                  {localUser?.assignedBranch || "Gulshan-2 Flagship Branch"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Box 2: Physical & Fitness Metrics */}
-          <div className="bg-black border border-white/20 rounded-2xl p-6 sm:p-7 space-y-5 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
-            <div className="flex items-center justify-between border-b border-white/20 pb-3">
-              <div className="flex items-center gap-2">
-                <Dumbbell className="w-4 h-4 text-white/60" />
-                <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
-                  Fitness & Physical Profile
-                </h2>
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">
-                Self-Reported
-              </span>
-            </div>
-
-            <div className="space-y-3.5 text-xs sm:text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Primary Goal</span>
-                <span className="text-white font-bold uppercase">
-                  {localUser?.fitnessGoal ||
-                    localUser?.plan ||
-                    "Bulking & Muscle Gain"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Body Weight</span>
-                <span className="text-white font-semibold">
-                  {localUser?.weight || "74"} kg
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Height</span>
-                <span className="text-white font-semibold">
-                  {localUser?.height || "178"} cm
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Activity Level</span>
-                <span className="text-white font-semibold">
-                  {localUser?.activityLevel || "4-5 Days / Week"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Daily Water Target</span>
-                <span className="text-white font-semibold">
-                  {goalData.hydration}
-                </span>
-              </div>
+            {/* Action Button: Recalculate */}
+            <div className="pt-4 border-t border-white/15">
+              <Link
+                href="/calculator"
+                className="w-full inline-flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+              >
+                <span>Recalculate Metrics</span>
+                <ArrowUpRight className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* ── 3. Gym & Workout History Section ── */}
+        {/* ── Row 2: Health Metrics & Calculation History (2-Column Grid) ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+          {/* Weight & Goal Progress Card (5 cols on lg) */}
+          <div className="lg:col-span-5 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-white/60" />
+                  <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                    Weight Progress
+                  </h2>
+                </div>
+                <span className="text-xs font-black text-white px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 font-mono">
+                  {fitnessGoalLoading
+                    ? "..."
+                    : `${Math.round(weightProgress)}%`}
+                </span>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="space-y-2">
+                <div className="h-3 w-full overflow-hidden rounded-full border border-white/10 bg-neutral-900">
+                  <div
+                    className="h-full rounded-full bg-white transition-all duration-700"
+                    style={{
+                      width: `${weightProgress}%`,
+                    }}
+                  />
+                </div>
+
+                <div className="flex justify-between text-[11px] font-bold text-white/50 font-mono">
+                  <span>
+                    Current: {currentWeight > 0 ? `${currentWeight} kg` : "--"}
+                  </span>
+                  <span>
+                    Target: {targetWeight > 0 ? `${targetWeight} kg` : "--"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Milestone Status Box */}
+              <div className="rounded-xl border border-white/10 bg-neutral-950 p-3.5">
+                {isGoalReached ? (
+                  <>
+                    <p className="text-xs font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Goal Reached 🎉</span>
+                    </p>
+                    <p className="mt-1 text-xs text-white/60">
+                      Congratulations! You reached your target weight.
+                    </p>
+                  </>
+                ) : targetWeight > 0 ? (
+                  <>
+                    <p className="text-xs font-black uppercase text-white">
+                      {weightDifference.toFixed(1)} kg{" "}
+                      {isWeightLoss ? "remaining to lose" : "remaining to gain"}
+                    </p>
+                    <p className="mt-1 text-xs text-white/60">
+                      Keep training consistently to reach your target weight.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs font-black uppercase text-white/70">
+                      No Active Goal Set
+                    </p>
+                    <p className="mt-1 text-xs text-white/50">
+                      Set a target weight in the calculator to track your
+                      progress.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-white/15">
+              <Link
+                href="/calculator?tab=goals"
+                className="w-full inline-flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+              >
+                <span>Adjust Target Weight</span>
+                <ArrowUpRight className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Calculation History Table (7 cols on lg) */}
+          <div className="lg:col-span-7 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border-b border-white/20 pb-3 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-white/60" />
+                  <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                    Calculation History
+                  </h2>
+                </div>
+                <span className="text-xs text-white/50 font-medium">
+                  {history.length} Records Saved
+                </span>
+              </div>
+
+              {historyLoading ? (
+                <div className="p-8 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-white/60" />
+                </div>
+              ) : historyError ? (
+                <div className="p-4 border border-red-500/20 rounded-xl text-center">
+                  <p className="text-xs text-red-400">{historyError}</p>
+                </div>
+              ) : history.length === 0 ? (
+                <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
+                  <TrendingUp className="w-8 h-8 text-white/20" />
+                  <h3 className="text-sm font-black uppercase text-white">
+                    No Calculation History
+                  </h3>
+                  <p className="text-xs text-white/50 max-w-xs">
+                    Your BMI, BMR and TDEE calculations will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto max-h-[190px] overflow-y-auto scrollbar-thin">
+                  <table className="w-full min-w-[450px] text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/50">
+                        <th className="py-2.5 px-3 font-bold">Date</th>
+                        <th className="py-2.5 px-3 font-bold">Weight</th>
+                        <th className="py-2.5 px-3 font-bold">BMI</th>
+                        <th className="py-2.5 px-3 font-bold">BMR</th>
+                        <th className="py-2.5 px-3 font-bold">TDEE</th>
+                        <th className="py-2.5 px-3 font-bold text-right">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {history.map((item) => (
+                        <tr
+                          key={item._id}
+                          className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors"
+                        >
+                          <td className="py-2.5 px-3 text-white/70">
+                            {new Date(item.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 font-semibold text-white">
+                            {item.weight} kg
+                          </td>
+                          <td className="py-2.5 px-3 font-black text-white">
+                            {item.bmi.toFixed(1)}
+                          </td>
+                          <td className="py-2.5 px-3 text-white/70">
+                            {item.bmr}
+                          </td>
+                          <td className="py-2.5 px-3 text-white/70">
+                            {item.tdee}
+                          </td>
+                          <td className="py-2.5 px-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteHistory(item._id)}
+                              className="inline-flex items-center justify-center p-1 rounded-full text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                              title="Delete record"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-white/15 flex justify-end">
+              <Link
+                href="/calculator"
+                className="text-xs font-bold text-white/70 hover:text-white inline-flex items-center gap-1.5 transition-colors"
+              >
+                <span>Open Calculator</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Row 3: Gym & Workout History (3-Column Grid) ── */}
         <div className="space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
-              <History className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
+              <History className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white font-sans">
                 Gym & Workout History
               </h2>
             </div>
@@ -906,10 +1069,10 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Dynamic Rendering: Show workouts if they exist, otherwise show Empty State */}
             {isLoadingWorkouts ? (
-              <div className="bg-black border border-white/20 rounded-2xl p-8 flex justify-center text-white/50 text-sm">
+              <div className="col-span-full bg-black border border-white/20 rounded-2xl p-8 flex justify-center text-white/50 text-sm">
                 <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading
                 workouts...
               </div>
@@ -917,35 +1080,30 @@ export default function ProfilePage() {
               workoutLogs.map((log, idx) => (
                 <div
                   key={log._id || `workout-log-${idx}`}
-                  className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-5 sm:p-6 transition-all space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]"
+                  className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-4 sm:p-5 transition-all space-y-3.5 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/20 pb-3">
-                    <div>
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <h3 className="text-base font-extrabold uppercase text-white">
-                          {log.exerciseName || "Workout"}
-                        </h3>
-                      </div>
-                      <p className="text-xs text-white/60 mt-0.5">
+                  <div className="flex flex-col gap-2 border-b border-white/15 pb-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-sm font-extrabold uppercase text-white truncate">
+                        {log.exerciseName || "Workout"}
+                      </h3>
+                      <span className="inline-flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full text-[11px] font-bold text-white shrink-0">
+                        <Clock className="w-3 h-3 text-white/60" />
+                        {log.durationMinutes}m
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-white/60">
+                      <span>
                         {log.date
                           ? new Date(log.date).toLocaleDateString("en-US", {
                               weekday: "short",
                               month: "short",
                               day: "numeric",
-                              year: "numeric",
                             })
                           : "Recently"}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0 text-xs font-bold text-white/80">
-                      <span className="inline-flex items-center gap-1 bg-black border border-white/20 px-3 py-1.5 rounded-full">
-                        <Clock className="w-3.5 h-3.5 text-white/60" />
-                        {log.durationMinutes} min
                       </span>
                       {log.weight && log.weight > 0 ? (
-                        <span className="inline-flex items-center gap-1 bg-black border border-white/20 px-3 py-1.5 rounded-full text-white">
-                          <Dumbbell className="w-3.5 h-3.5 text-white" />
+                        <span className="font-semibold text-white/80">
                           {log.weight} kg
                         </span>
                       ) : null}
@@ -954,10 +1112,10 @@ export default function ProfilePage() {
 
                   <div className="space-y-2">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">
-                      Stats ({log.setsCount} Sets, {log.repsCount} Reps)
+                      {log.setsCount} Sets &bull; {log.repsCount} Reps
                     </p>
                     {log.notes && (
-                      <div className="flex items-center gap-2 text-xs text-white/80 bg-black px-3 py-2 rounded-xl border border-white/5">
+                      <div className="flex items-center gap-2 text-xs text-white/80 bg-neutral-950 px-3 py-1.5 rounded-lg border border-white/5">
                         <span className="truncate">{log.notes}</span>
                       </div>
                     )}
@@ -966,7 +1124,7 @@ export default function ProfilePage() {
               ))
             ) : (
               /* Empty State for Workouts */
-              <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
+              <div className="col-span-full bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
                 <Dumbbell className="w-10 h-10 text-white/20" />
                 <div className="space-y-1">
                   <h3 className="text-base sm:text-lg font-black uppercase text-white">
@@ -985,178 +1143,6 @@ export default function ProfilePage() {
                   <span>Start First Session</span>
                 </Link>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── 4. BMI, BMR & TDEE Calculation History ── */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2.5">
-              <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
-                  Calculation History
-                </h2>
-
-                <p className="text-xs text-white/60 mt-1">
-                  Your previous BMI, BMR and TDEE calculations
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {historyLoading ? (
-            <div className="bg-black border border-white/20 rounded-2xl p-10 flex items-center justify-center">
-              <Loader2 className="w-7 h-7 animate-spin text-white/60" />
-            </div>
-          ) : historyError ? (
-            <div className="bg-black border border-red-500/20 rounded-2xl p-6 text-center">
-              <p className="text-sm text-red-400">{historyError}</p>
-            </div>
-          ) : history.length === 0 ? (
-            <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-3">
-              <TrendingUp className="w-10 h-10 text-white/20" />
-
-              <h3 className="text-base sm:text-lg font-black uppercase text-white">
-                No Calculation History
-              </h3>
-
-              <p className="text-xs text-white/60 max-w-sm">
-                Your BMI, BMR and TDEE calculation history will appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="bg-black border border-white/20 rounded-2xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[700px] text-left">
-                  <thead>
-                    <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-white/50">
-                      <th className="px-5 py-4 font-bold">Date</th>
-
-                      <th className="px-5 py-4 font-bold">Weight</th>
-
-                      <th className="px-5 py-4 font-bold">BMI</th>
-
-                      <th className="px-5 py-4 font-bold">BMR</th>
-
-                      <th className="px-5 py-4 font-bold">TDEE</th>
-
-                      <th className="px-5 py-4 font-bold">Actions</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {history.map((item) => (
-                      <tr
-                        key={item._id}
-                        className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors"
-                      >
-                        <td className="px-5 py-4 text-sm text-white/70">
-                          {new Date(item.createdAt).toLocaleDateString()}
-                        </td>
-
-                        <td className="px-5 py-4 text-sm font-semibold text-white">
-                          {item.weight} kg
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <span className="text-sm font-black text-white">
-                            {item.bmi.toFixed(1)}
-                          </span>
-                        </td>
-
-                        <td className="px-5 py-4 text-sm text-white/70">
-                          {item.bmr} kcal
-                        </td>
-
-                        <td className="px-5 py-4 text-sm text-white/70">
-                          {item.tdee} kcal
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteHistory(item._id)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-red-200/30 text-red-200 hover:bg-red-500/10 hover:border-red-500/50 transition-all text-xs font-bold"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* weight progress */}
-
-        <div>
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-wider text-white">
-              Weight Progress
-            </span>
-
-            <span className="text-xs font-black text-white">
-              {fitnessGoalLoading ? "..." : `${Math.round(weightProgress)}%`}
-            </span>
-          </div>
-
-          <div className="h-4 w-full overflow-hidden rounded-full border border-white/5 bg-neutral-900">
-            <div
-              className="h-full rounded-full bg-white transition-all duration-700"
-              style={{
-                width: `${weightProgress}%`,
-              }}
-            />
-          </div>
-
-          <div className="mt-3 flex justify-between">
-            <span className="text-[10px] font-bold text-white/40">
-              {currentWeight > 0 ? `${currentWeight} kg` : "--"}
-            </span>
-
-            <span className="text-[10px] font-bold text-white/40">
-              {targetWeight > 0 ? `${targetWeight} kg` : "--"}
-            </span>
-          </div>
-
-          <div className="mt-5 rounded-2xl border border-white/5 bg-neutral-900 p-4">
-            {isGoalReached ? (
-              <>
-                <p className="text-xs font-black uppercase text-white">
-                  Goal Reached 🎉
-                </p>
-
-                <p className="mt-1 text-[10px] text-white/40">
-                  Congratulations! You reached your target weight.
-                </p>
-              </>
-            ) : targetWeight > 0 ? (
-              <>
-                <p className="text-xs font-black uppercase text-white">
-                  {weightDifference.toFixed(1)} kg{" "}
-                  {isWeightLoss ? "remaining to lose" : "remaining to gain"}
-                </p>
-
-                <p className="mt-1 text-[10px] text-white/40">
-                  Keep training consistently to reach your target.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-xs font-black uppercase text-white">
-                  No Active Goal
-                </p>
-
-                <p className="mt-1 text-[10px] text-white/40">
-                  Set a fitness goal to start tracking your progress.
-                </p>
-              </>
             )}
           </div>
         </div>

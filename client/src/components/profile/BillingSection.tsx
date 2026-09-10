@@ -230,8 +230,7 @@ export default function BillingSection() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-black text-[11px] font-black uppercase tracking-wider">
-                <Sparkles className="w-3 h-3" />
+              <span className="inline-flex items-center px-3 py-1 rounded-full bg-white text-black text-[11px] font-black uppercase tracking-wider">
                 {currentPlan}
               </span>
 
@@ -453,10 +452,12 @@ export default function BillingSection() {
           </div>
           <Link
             href="/#pricing"
-            className="mt-2 inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-xl"
+            className="group mt-2 inline-flex items-center gap-2.5 bg-white text-black font-extrabold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] transition-all cursor-pointer shadow-xl"
           >
-            <ArrowUpRight className="w-4 h-4" />
             <span>Upgrade Membership</span>
+            <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-sm">
+              <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+            </span>
           </Link>
         </div>
       ) : (
