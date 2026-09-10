@@ -372,14 +372,6 @@ export default function FloatingAiWidget() {
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setIsOpen(false)}
-                      className="w-7 h-7 rounded-full bg-neutral-800 text-gray-300 hover:text-white flex items-center justify-center transition-colors shrink-0"
-                      title="Open Full Studio"
-                    >
-                      <Maximize2 className="w-3.5 h-3.5" />
-                    </Link>
                     <button
                       onClick={() => setIsOpen(false)}
                       className="w-7 h-7 rounded-full bg-neutral-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"

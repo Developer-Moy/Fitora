@@ -1143,7 +1143,8 @@ export default function ProfilePage() {
                   )}
                 </h2>
                 <p className="text-xs text-white/60">
-                  Dynamic telemetry tracked across logged workouts, stopwatch sessions & check-ins
+                  Dynamic telemetry tracked across logged workouts, stopwatch
+                  sessions & check-ins
                 </p>
               </div>
             </div>
@@ -1151,7 +1152,9 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 bg-white text-black font-black text-xs sm:text-sm px-3.5 py-1.5 rounded-full shadow-lg">
                 <Flame className="w-4 h-4 fill-black" />
-                <span>{activityStreak?.currentStreak ?? 0} Days Active Streak</span>
+                <span>
+                  {activityStreak?.currentStreak ?? 0} Days Active Streak
+                </span>
               </span>
             </div>
           </div>
@@ -1159,27 +1162,37 @@ export default function ProfilePage() {
           {/* KPI Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-xl border border-white/10 bg-neutral-950 space-y-1">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">Current Streak</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">
+                Current Streak
+              </p>
               <p className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1.5">
                 <span>{activityStreak?.currentStreak ?? 0}</span>
                 <span className="text-xs text-white/50 font-sans">days</span>
               </p>
               <p className="text-[10px] text-white/60">
-                {activityStreak?.todayActive ? "Streak extended today" : "Log today to maintain"}
+                {activityStreak?.todayActive
+                  ? "Streak extended today"
+                  : "Log today to maintain"}
               </p>
             </div>
 
             <div className="p-3.5 rounded-xl border border-white/10 bg-neutral-950 space-y-1">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">Best Record</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">
+                Best Record
+              </p>
               <p className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1.5">
                 <span>{activityStreak?.longestStreak ?? 0}</span>
                 <span className="text-xs text-white/50 font-sans">days</span>
               </p>
-              <p className="text-[10px] text-white/60">Personal all-time best</p>
+              <p className="text-[10px] text-white/60">
+                Personal all-time best
+              </p>
             </div>
 
             <div className="p-3.5 rounded-xl border border-white/10 bg-neutral-950 space-y-1">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">Total Active Days</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">
+                Total Active Days
+              </p>
               <p className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1.5">
                 <span>{activityStreak?.totalActiveDays ?? 0}</span>
                 <span className="text-xs text-white/50 font-sans">days</span>
@@ -1190,7 +1203,9 @@ export default function ProfilePage() {
             </div>
 
             <div className="p-3.5 rounded-xl border border-white/10 bg-neutral-950 space-y-1">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">30-Day Consistency</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">
+                30-Day Consistency
+              </p>
               <p className="text-xl sm:text-2xl font-black text-white font-mono flex items-center gap-1.5">
                 <span>{activityStreak?.consistencyScore ?? 0}%</span>
               </p>
@@ -1212,7 +1227,11 @@ export default function ProfilePage() {
               </span>
               {activityStreak?.nextMilestone && (
                 <span className="text-xs text-white/60 font-medium">
-                  Next: <span className="text-white font-bold">{activityStreak.nextMilestone.name}</span> ({activityStreak.nextMilestone.daysLeft} days away)
+                  Next:{" "}
+                  <span className="text-white font-bold">
+                    {activityStreak.nextMilestone.name}
+                  </span>{" "}
+                  ({activityStreak.nextMilestone.daysLeft} days away)
                 </span>
               )}
             </div>
@@ -1375,32 +1394,6 @@ export default function ProfilePage() {
             isAnnual={false}
             onSuccess={handleSubscriptionSuccess}
           />
-        )}
-
-        {/* ── 7. Admin Management Access (If Admin) ── */}
-        {(isMasterAdmin || isBranchAdmin) && (
-          <div className="bg-black border border-white/20 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-white" />
-                <h3 className="text-sm font-black uppercase text-white">
-                  Elevated Staff Dashboard
-                </h3>
-              </div>
-              <p className="text-xs text-white/60">
-                Authorized staff portal for branches, athlete rosters, and
-                leads.
-              </p>
-            </div>
-
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 bg-white text-black font-bold text-xs px-5 py-2.5 rounded-full hover:bg-neutral-100 transition-all shrink-0 shadow-lg"
-            >
-              <span>Open Dashboard</span>
-              <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-            </Link>
-          </div>
         )}
       </div>
     </div>
