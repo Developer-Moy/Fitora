@@ -188,3 +188,13 @@ Add daily calorie progress bar
 - Compute visual progress bar based on fixed 2950 kcal target [It will dynamically change in the future based on user profile settings, but for now it's hardcoded to 2950 kcal]
 - Display contextual calorie feedback (remaining, goal reached, or over target)
 - Match monochrome design aesthetic and place below grocery list action
+
+## 10-Sep-26
+
+Make activity heatmap dynamic with backend integration
+
+- Connected activity heatmap with the backend API
+- Created Heatmap database schema and model
+- Added heatmap controller and routes
+- Added frontend heatmap service for API communication
+- Updated activity tracking to display dynamic data from the database

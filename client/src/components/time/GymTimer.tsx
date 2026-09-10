@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import {
   Dumbbell,
@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { createWorkoutLog } from "@/services/workoutService";
+import { recordHeatmapActivity } from "@/services/heatmapService";
 import {
   completeStopwatchSession,
   fetchStopwatchPresets,
@@ -159,7 +160,24 @@ export default function GymTimer({
     }
   }, []);
 
-  const authUserId = authSession?.user?.id || localUserId;
+  const authUserId = useMemo(() => {
+    const userRecord = authSession?.user as Record<string, any> | undefined;
+    if (userRecord?.id) return String(userRecord.id);
+    if (userRecord?._id) return String(userRecord._id);
+    if (localUserId) return localUserId;
+    if (typeof window !== "undefined") {
+      try {
+        const userStr = localStorage.getItem("fitora_user");
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          if (u.id || u._id) return u.id || u._id;
+        }
+        const email = localStorage.getItem("fitora_user_email");
+        if (email) return email;
+      } catch {}
+    }
+    return authSession?.user?.email || undefined;
+  }, [authSession, localUserId]);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const voiceAnnouncedRef = useRef<number | null>(null);
@@ -508,11 +526,36 @@ export default function GymTimer({
       toast.success(seconds > 0 ? "Timer resumed" : "Timer started", {
         id: "timer-status",
       });
+
+      // Immediately save activity to backend on start time click
+      const currentUserId = authUserId || "guest_user";
+      const exercise = exerciseName || "Workout";
+      recordHeatmapActivity({
+        userId: currentUserId,
+        exerciseName: exercise,
+        durationMinutes: 1,
+        caloriesBurned: 10,
+        date: new Date().toISOString(),
+      }).catch(() => {});
+
+      if (typeof window !== "undefined") {
+        try {
+          window.dispatchEvent(
+            new CustomEvent("fitora-workout-logged", {
+              detail: {
+                userId: currentUserId,
+                exerciseName: exercise,
+                date: new Date().toISOString(),
+              },
+            }),
+          );
+        } catch {}
+      }
     } else {
       setIsRunning(false);
       toast("Timer paused", { icon: "⏸️", id: "timer-status" });
     }
-  }, [isRunning, seconds, triggerAudioFeedback]);
+  }, [isRunning, seconds, triggerAudioFeedback, authUserId, exerciseName]);
 
   // Persist the completed session to MongoDB via POST /api/workouts/log
   const persistWorkoutLog = useCallback(
@@ -521,11 +564,10 @@ export default function GymTimer({
       timedSeconds: number;
       totalSessionSeconds: number;
     }) => {
-      const { sets, timedSeconds, totalSessionSeconds } = snapshot;
+      const { sets, totalSessionSeconds } = snapshot;
 
-      const setsCount =
-        sets.length > 0 ? sets.length : timedSeconds > 0 ? 1 : 0;
-      if (setsCount === 0 || isSavingLogRef.current) return;
+      const setsCount = sets.length > 0 ? sets.length : 1;
+      if (isSavingLogRef.current) return;
 
       const totalReps = sets.reduce((acc, s) => acc + (s.reps ?? 0), 0);
       const maxWeight = sets.reduce(
@@ -571,6 +613,23 @@ export default function GymTimer({
           id: loadingToastId,
           duration: 4000,
         });
+
+        // Notify active Heatmap or workout listeners of newly saved activity
+        if (typeof window !== "undefined") {
+          try {
+            window.dispatchEvent(
+              new CustomEvent("fitora-workout-logged", {
+                detail: {
+                  userId: authUserId || payload.userId,
+                  exerciseName,
+                  date: payload.date,
+                },
+              }),
+            );
+          } catch {
+            // Heatmap refresh failure must never cause workout save to fail
+          }
+        }
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "Failed to save workout log",

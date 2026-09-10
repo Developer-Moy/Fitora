@@ -579,6 +579,27 @@ export default function ProfilePage() {
     };
   }, [resolvedUserId, userEmail]);
 
+  // Keep Gym & Workout History stack in sync when new workouts are saved
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleWorkoutLogged = () => {
+      const targetId = resolvedUserId || "guest_user";
+      getWorkoutLogs(targetId, 20)
+        .then((res) => {
+          if (res && res.logs) {
+            setWorkoutLogs(res.logs);
+          }
+        })
+        .catch(() => {});
+    };
+
+    window.addEventListener("fitora-workout-logged", handleWorkoutLogged);
+    return () => {
+      window.removeEventListener("fitora-workout-logged", handleWorkoutLogged);
+    };
+  }, [resolvedUserId]);
+
   const handleLogout = async () => {
     try {
       await logoutUser();
