@@ -18,12 +18,7 @@ export interface AuthRequest extends Request {
 export const isMasterEmail = (email?: string): boolean => {
   if (!email) return false;
   const clean = email.toLowerCase().trim();
-  return (
-    clean === "master@fitora.com" ||
-    clean === "moloy@gmail.com" ||
-    clean.startsWith("master") ||
-    clean.startsWith("moloy")
-  );
+  return clean === "master@fitora.com";
 };
 
 export const authMiddleware = (

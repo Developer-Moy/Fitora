@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu } from "lucide-react";
-import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
-import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
-import GlobalSearchBar from "@/components/dashboard/GlobalSearchBar";
+import Link from "next/link";
+import { ShieldAlert } from "lucide-react";
+import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
 import {
   DashboardRoleProvider,
   useDashboardRole,
@@ -16,15 +15,21 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const isLoginPage = pathname === "/dashboard/login";
 
-  const { isAuthenticated, isLoading } = useDashboardRole();
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
-  const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
+  const { isAuthenticated, isLoading, role } = useDashboardRole();
+  const isStaffAdmin = role === "master_admin" || role === "branch_admin";
 
   useEffect(() => {
-    if (!isLoginPage && !isLoading && !isAuthenticated) {
+    if (isLoginPage || isLoading) return;
+
+    if (!isAuthenticated) {
       router.replace("/dashboard/login");
+      return;
     }
-  }, [isLoginPage, isLoading, isAuthenticated, router]);
+
+    if (!isStaffAdmin) {
+      router.replace("/");
+    }
+  }, [isLoginPage, isLoading, isAuthenticated, isStaffAdmin, router]);
 
   // If on dedicated dashboard login page, render full screen without sidebar/navbar
   if (isLoginPage) {
@@ -42,53 +47,39 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
+  if (!isAuthenticated || !isStaffAdmin) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center space-y-4 select-none">
+        <ShieldAlert className="w-14 h-14 text-rose-500" />
+        <div className="space-y-1">
+          <h1 className="text-2xl font-black uppercase tracking-tight text-white">
+            Access Restricted
+          </h1>
+          <p className="text-xs text-white/60 max-w-md">
+            The FITORA Administrative Dashboard is strictly reserved for Master
+            Admin and Branch Admins. Athletes and members cannot access this
+            console.
+          </p>
+        </div>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white text-black font-black text-xs uppercase hover:bg-gray-100 transition shadow-lg cursor-pointer"
+        >
+          Return to FITORA Home
+        </Link>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans antialiased select-none">
-      {/* Client Sidebar Component */}
-      <DashboardSidebar
-        isCollapsed={isCollapsed}
-        setIsCollapsed={setIsCollapsed}
-        isMobileOpen={isMobileOpen}
-        setIsMobileOpen={setIsMobileOpen}
-      />
+    <div className="min-h-screen bg-black text-white font-sans antialiased select-none flex flex-col">
+      {/* Top Navbar with brand, inline navigation links, compact search, and profile dropdown */}
+      <DashboardNavbar />
 
-      {/* Main Content Wrapper */}
-      <div
-        className={`flex min-h-screen flex-col transition-all duration-300 ease-in-out ${
-          isCollapsed ? "lg:ml-20" : "lg:ml-64"
-        }`}
-      >
-        {/* Top Navbar Header — Global Search Bar & Notification Panel */}
-        <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/10 bg-black/90 backdrop-blur-md px-4 lg:px-8">
-          {/* Left: Mobile Drawer Trigger & Global Search Bar */}
-          <div className="flex items-center gap-4 flex-1 max-w-xl">
-            <button
-              onClick={() => setIsMobileOpen(true)}
-              className="flex lg:hidden h-10 w-10 items-center justify-center rounded-xl border border-white/15 bg-neutral-900 text-white cursor-pointer"
-              aria-label="Open Navigation Menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-
-            {/* Global Multi-Entity Search Bar */}
-            <GlobalSearchBar />
-          </div>
-
-          {/* Right: ONLY Notification Panel */}
-          <div className="flex items-center gap-3">
-            <NotificationDropdown />
-          </div>
-        </header>
-
-        {/* Dynamic Page Content Injector */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-8">
-          {children}
-        </main>
-      </div>
+      {/* Main Content Wrapper - Full width and spacious for data */}
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 max-w-[1700px] w-full mx-auto space-y-3 sm:space-y-4">
+        {children}
+      </main>
     </div>
   );
 }

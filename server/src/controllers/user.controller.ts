@@ -411,6 +411,18 @@ export const createUser = async (req: AuthRequest, res: Response) => {
         .json(errorResponse("Name, email and phone are required", "", 400));
     }
 
+    if (role === "master_admin") {
+      return res
+        .status(403)
+        .json(
+          errorResponse(
+            "Forbidden: Master Admin is unique and cannot be created.",
+            "FORBIDDEN",
+            403,
+          ),
+        );
+    }
+
     const existing = await User.findOne({ email });
     if (existing) {
       return res
@@ -501,6 +513,18 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     // Don't allow passwordHash updates through this route
     delete updates.passwordHash;
     delete updates.isMasterProtected;
+
+    if (updates.role === "master_admin") {
+      return res
+        .status(403)
+        .json(
+          errorResponse(
+            "Forbidden: Cannot promote user to Master Admin. FITORA permits only one Master Admin.",
+            "FORBIDDEN",
+            403,
+          ),
+        );
+    }
 
     const updated = await User.findByIdAndUpdate(
       id,

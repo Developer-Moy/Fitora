@@ -83,7 +83,7 @@ export const registerUser = async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(password, 12);
 
     const validRole: UserRole =
-      role && ["master_admin", "branch_admin", "athlete", "user"].includes(role)
+      role && ["branch_admin", "athlete", "user"].includes(role)
         ? role
         : "athlete";
 
@@ -191,11 +191,7 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 
     const cleanEmailLower = (user.email || "").toLowerCase().trim();
-    const isMasterUser =
-      cleanEmailLower === "master@fitora.com" ||
-      cleanEmailLower === "moloy@gmail.com" ||
-      cleanEmailLower.startsWith("master") ||
-      cleanEmailLower.startsWith("moloy");
+    const isMasterUser = cleanEmailLower === "master@fitora.com";
 
     if (isMasterUser && user.role !== "master_admin") {
       user.role = "master_admin";
@@ -273,7 +269,7 @@ export const dashboardLogin = async (req: Request, res: Response) => {
     ) {
       const passwordHash = await bcrypt.hash("P@SSW0RDF!T0R@", 12);
       user = await User.create({
-        name: "Moloy Paul",
+        name: "Master Admin",
         email: "master@fitora.com",
         passwordHash,
         phone: "+8801700000000",
@@ -375,11 +371,7 @@ export const dashboardLogin = async (req: Request, res: Response) => {
         );
     }
 
-    const isMasterUser =
-      cleanEmail === "master@fitora.com" ||
-      cleanEmail === "moloy@gmail.com" ||
-      cleanEmail.startsWith("master") ||
-      cleanEmail.startsWith("moloy");
+    const isMasterUser = cleanEmail === "master@fitora.com";
 
     if (isMasterUser && user.role !== "master_admin") {
       user.role = "master_admin";

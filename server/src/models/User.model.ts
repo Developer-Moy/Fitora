@@ -231,6 +231,21 @@ const userSchema = new Schema<IUser>(
   },
 );
 
+// Enforce single Master Admin
+userSchema.pre("save", function (next) {
+  if (this.role === "master_admin") {
+    const cleanEmail = (this.email || "").toLowerCase().trim();
+    if (cleanEmail !== "master@fitora.com") {
+      return next(
+        new Error(
+          "Only master@fitora.com can be Master Admin. Multiple master admins are strictly prohibited.",
+        ),
+      );
+    }
+  }
+  next();
+});
+
 // Indexes
 userSchema.index({ role: 1 });
 userSchema.index({ assignedBranchSlug: 1 });
