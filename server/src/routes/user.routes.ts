@@ -12,6 +12,7 @@ import {
   updateHealthMetrics,
   updateHydrationTarget,
   updateOwnProfile,
+  getUserActivityStreak,
 } from "../controllers/user.controller";
 import {
   authMiddleware,
@@ -82,5 +83,9 @@ router.patch(
 
 // Update authenticated user's profile (name, phone, branch, goal, weight, targetWeight)
 router.patch("/profile", authMiddleware, updateOwnProfile);
+
+// Dynamic user activity & consistency streak endpoints
+router.get("/activity/streak", authMiddleware, getUserActivityStreak);
+router.get("/activity-streak", authMiddleware, getUserActivityStreak);
 
 export default router;
