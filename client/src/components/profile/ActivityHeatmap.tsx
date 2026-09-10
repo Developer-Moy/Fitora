@@ -10,8 +10,11 @@ import React, {
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Flame, Calendar, Dumbbell, Clock, AlertCircle, RefreshCw } from "lucide-react";
-import { getWorkoutLogs } from "@/services/workoutService";
 import { getAuthSession } from "@/services/authService";
+import {
+  getHeatmapData,
+  type HeatmapDataResult,
+} from "@/services/heatmapService";
 import type { WorkoutLog } from "@/types/workout";
 
 interface ActivityHeatmapProps {
@@ -70,6 +73,9 @@ function formatReadableDate(date: Date): string {
 function getWorkoutDateKey(log: WorkoutLog): string | null {
   const raw = log.date || log.createdAt;
   if (!raw) return null;
+  if (typeof raw === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.trim())) {
+    return raw.trim();
+  }
   const d = new Date(raw);
   if (isNaN(d.getTime())) return null;
   return formatDateKey(d);
@@ -111,7 +117,7 @@ export default function ActivityHeatmap({
   initialLogs,
   className = "",
 }: ActivityHeatmapProps) {
-  const [fetchedLogs, setFetchedLogs] = useState<WorkoutLog[]>([]);
+  const [heatmapData, setHeatmapData] = useState<HeatmapDataResult | null>(null);
   const [isLoading, setIsLoading] = useState(!initialLogs);
   const [error, setError] = useState<string | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState>({
@@ -132,25 +138,24 @@ export default function ActivityHeatmap({
     new Date().getFullYear(),
   );
 
-  const logs = initialLogs ?? fetchedLogs;
-
-  // Extract available years from workout history + current year (like GitHub)
+  // Extract available years from heatmap history or initial logs + current year (like GitHub)
   const availableYears = useMemo(() => {
-    const currentYr = new Date().getFullYear();
-    const set = new Set<number>();
-    set.add(currentYr);
-    set.add(currentYr - 1);
-    for (const log of logs) {
-      const raw = log.date || log.createdAt;
-      if (raw) {
-        const d = new Date(raw);
-        if (!isNaN(d.getTime())) {
-          set.add(d.getFullYear());
+    if (initialLogs) {
+      const currentYr = new Date().getFullYear();
+      const set = new Set<number>([currentYr, currentYr - 1]);
+      for (const log of initialLogs) {
+        const raw = log.date || log.createdAt;
+        if (raw) {
+          const d = new Date(raw);
+          if (!isNaN(d.getTime())) set.add(d.getFullYear());
         }
       }
+      return Array.from(set).sort((a, b) => b - a);
     }
-    return Array.from(set).sort((a, b) => b - a);
-  }, [logs]);
+    return heatmapData?.availableYears && heatmapData.availableYears.length > 0
+      ? heatmapData.availableYears
+      : [new Date().getFullYear(), new Date().getFullYear() - 1];
+  }, [initialLogs, heatmapData]);
 
   // Resolve target user ID
   const effectiveUserId = useMemo(() => {
@@ -167,15 +172,15 @@ export default function ActivityHeatmap({
     return "guest_user";
   }, [userId]);
 
-  // Fetch logs if not provided in initialLogs
-  const fetchLogs = useCallback(async () => {
+  // Fetch heatmap records from dedicated backend API
+  const fetchHeatmap = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await getWorkoutLogs(effectiveUserId, 500);
-      setFetchedLogs(Array.isArray(result.logs) ? result.logs : []);
+      const result = await getHeatmapData(effectiveUserId, selectedYear);
+      setHeatmapData(result);
     } catch (err) {
-      console.error("[ActivityHeatmap] Failed to fetch workout logs:", err);
+      console.error("[ActivityHeatmap] Failed to fetch heatmap records:", err);
       setError(
         err instanceof Error
           ? err.message
@@ -184,7 +189,7 @@ export default function ActivityHeatmap({
     } finally {
       setIsLoading(false);
     }
-  }, [effectiveUserId]);
+  }, [effectiveUserId, selectedYear]);
 
   useEffect(() => {
     if (initialLogs) return;
@@ -194,13 +199,13 @@ export default function ActivityHeatmap({
       setIsLoading(true);
       setError(null);
       try {
-        const result = await getWorkoutLogs(effectiveUserId, 500);
+        const result = await getHeatmapData(effectiveUserId, selectedYear);
         if (!isCancelled) {
-          setFetchedLogs(Array.isArray(result.logs) ? result.logs : []);
+          setHeatmapData(result);
         }
       } catch (err) {
         if (!isCancelled) {
-          console.error("[ActivityHeatmap] Failed to fetch workout logs:", err);
+          console.error("[ActivityHeatmap] Failed to fetch heatmap records:", err);
           setError(
             err instanceof Error
               ? err.message
@@ -219,21 +224,62 @@ export default function ActivityHeatmap({
     return () => {
       isCancelled = true;
     };
-  }, [initialLogs, effectiveUserId]);
+  }, [initialLogs, effectiveUserId, selectedYear]);
 
-  // Group workout logs by date
+  // Listen for newly saved workouts (e.g. from GymTimer, ExerciseTracker) and refresh
+  useEffect(() => {
+    if (initialLogs || typeof window === "undefined") return;
+
+    const handleWorkoutLogged = () => {
+      fetchHeatmap();
+    };
+
+    window.addEventListener("fitora-workout-logged", handleWorkoutLogged);
+    return () => {
+      window.removeEventListener("fitora-workout-logged", handleWorkoutLogged);
+    };
+  }, [fetchHeatmap, initialLogs]);
+
+  // Group workout logs or daily heatmap records by date
+  interface DayEntry {
+    count: number;
+    workouts: WorkoutLog[];
+  }
+
   const workoutsByDate = useMemo(() => {
-    const map = new Map<string, WorkoutLog[]>();
-    for (const log of logs) {
-      const key = getWorkoutDateKey(log);
-      if (key) {
-        const existing = map.get(key) || [];
-        existing.push(log);
-        map.set(key, existing);
+    const map = new Map<string, DayEntry>();
+
+    if (initialLogs) {
+      for (const log of initialLogs) {
+        const key = getWorkoutDateKey(log);
+        if (key) {
+          const existing = map.get(key) || { count: 0, workouts: [] };
+          existing.workouts.push(log);
+          existing.count = existing.workouts.length;
+          map.set(key, existing);
+        }
+      }
+      return map;
+    }
+
+    if (heatmapData?.days) {
+      for (const day of heatmapData.days) {
+        map.set(day.date, {
+          count: day.count,
+          workouts: (day.exercises || []).map(
+            (name) =>
+              ({
+                exerciseName: name,
+                setsCount: 1,
+                repsCount: 1,
+              }) as WorkoutLog,
+          ),
+        });
       }
     }
+
     return map;
-  }, [logs]);
+  }, [initialLogs, heatmapData]);
 
   // Generate GitHub-style 52-53 weeks for selectedYear
   const { weeks, monthLabels, totalWorkoutsInYear, activeDaysInYear } =
@@ -275,8 +321,9 @@ export default function ActivityHeatmap({
           const isToday = key === todayKey;
           const isSelectedYear = dayDate.getFullYear() === selectedYear;
 
-          const dayWorkouts = workoutsByDate.get(key) || [];
-          const count = dayWorkouts.length;
+          const dayEntry = workoutsByDate.get(key);
+          const count = dayEntry ? dayEntry.count : 0;
+          const dayWorkouts = dayEntry ? dayEntry.workouts : [];
 
           if (!isFuture && isSelectedYear && count > 0) {
             workoutCountSum += count;
@@ -345,6 +392,10 @@ export default function ActivityHeatmap({
 
   // Calculate current consistency streak strictly from real data
   const consistencyStreak = useMemo(() => {
+    if (!initialLogs && heatmapData && typeof heatmapData.currentStreak === "number") {
+      return heatmapData.currentStreak;
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayKey = formatDateKey(today);
@@ -353,8 +404,8 @@ export default function ActivityHeatmap({
     yesterday.setDate(today.getDate() - 1);
     const yesterdayKey = formatDateKey(yesterday);
 
-    const todayCount = (workoutsByDate.get(todayKey) || []).length;
-    const yesterdayCount = (workoutsByDate.get(yesterdayKey) || []).length;
+    const todayCount = workoutsByDate.get(todayKey)?.count || 0;
+    const yesterdayCount = workoutsByDate.get(yesterdayKey)?.count || 0;
 
     // If neither today nor yesterday has a workout, current streak is broken (0)
     if (todayCount === 0 && yesterdayCount === 0) {
@@ -368,7 +419,7 @@ export default function ActivityHeatmap({
     if (todayCount > 0) {
       while (true) {
         const key = formatDateKey(checkDate);
-        const dayCount = (workoutsByDate.get(key) || []).length;
+        const dayCount = workoutsByDate.get(key)?.count || 0;
         if (dayCount > 0) {
           streak += 1;
           checkDate.setDate(checkDate.getDate() - 1);
@@ -381,7 +432,7 @@ export default function ActivityHeatmap({
       checkDate.setDate(checkDate.getDate() - 1);
       while (true) {
         const key = formatDateKey(checkDate);
-        const dayCount = (workoutsByDate.get(key) || []).length;
+        const dayCount = workoutsByDate.get(key)?.count || 0;
         if (dayCount > 0) {
           streak += 1;
           checkDate.setDate(checkDate.getDate() - 1);
@@ -392,13 +443,13 @@ export default function ActivityHeatmap({
     }
 
     return streak;
-  }, [workoutsByDate]);
+  }, [initialLogs, heatmapData, workoutsByDate]);
 
   // Contextual streak encouragement text
   const streakMessage = useMemo(() => {
     const today = new Date();
     const todayKey = formatDateKey(today);
-    const workedOutToday = (workoutsByDate.get(todayKey) || []).length > 0;
+    const workedOutToday = (workoutsByDate.get(todayKey)?.count || 0) > 0;
 
     if (consistencyStreak === 0) {
       return "Start your streak with a session today!";
@@ -500,7 +551,7 @@ export default function ActivityHeatmap({
           </div>
           <button
             type="button"
-            onClick={fetchLogs}
+            onClick={fetchHeatmap}
             className="inline-flex items-center gap-1 text-white font-bold underline hover:no-underline cursor-pointer text-xs"
           >
             <RefreshCw className="w-3 h-3" />
@@ -600,7 +651,7 @@ export default function ActivityHeatmap({
           </div>
 
           {/* ── Empty State Callout ── */}
-          {!isLoading && logs.length === 0 && (
+          {!isLoading && totalWorkoutsInYear === 0 && (
             <div className="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left bg-white/[0.02] p-4 rounded-xl border border-white/10">
               <div className="space-y-0.5">
                 <p className="text-xs font-black uppercase tracking-wider text-white">
