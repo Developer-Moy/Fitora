@@ -234,10 +234,10 @@ export default function Footer() {
                   Exercise Directory
                 </Link>
                 <Link
-                  href="/dashboard"
+                  href="/stopwatch"
                   className="hover:text-white transition-colors"
                 >
-                  Athlete Dashboard
+                  Gym Stopwatch
                 </Link>
               </div>
             </div>
@@ -274,7 +274,7 @@ export default function Footer() {
               </span>
               <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
                 <Link
-                  href="/dashboard"
+                  href="/profile"
                   className="hover:text-white transition-colors"
                 >
                   User Profile

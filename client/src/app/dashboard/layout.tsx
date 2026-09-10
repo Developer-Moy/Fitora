@@ -22,7 +22,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isLoginPage && !isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.replace("/dashboard/login");
     }
   }, [isLoginPage, isLoading, isAuthenticated, router]);
 

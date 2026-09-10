@@ -222,39 +222,6 @@ export default function AuthFlowContainer({
 
     setIsLoading(true);
 
-    // 1. Single Master Admin Credentials Strict Check
-    if (
-      email.toLowerCase().trim() === "master@fitora.com" &&
-      password === "P@SSW0RDF!T0R@"
-    ) {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("fitora_auth_session", "true");
-        localStorage.setItem("fitora_active_role", "master_admin");
-      }
-      toast.success("Master Admin Authenticated! Entering Control Center...");
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 600);
-      return;
-    }
-
-    // 2. Branch Admin Credentials Authentication
-    if (
-      (email.toLowerCase().trim().endsWith("admin@fitora.com.bd") ||
-        email.toLowerCase().trim().endsWith("admin@fitora.com")) &&
-      password.length >= 6
-    ) {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("fitora_auth_session", "true");
-        localStorage.setItem("fitora_active_role", "branch_admin");
-      }
-      toast.success("Branch Admin Authenticated! Entering Branch Portal...");
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 600);
-      return;
-    }
-
     try {
       const apiRes = await loginApi(email, password);
       if (apiRes.success && apiRes.user) {
@@ -370,7 +337,6 @@ export default function AuthFlowContainer({
   return (
     <div className="fixed inset-0 z-[100] bg-black text-white flex items-center justify-center p-4 sm:p-6 lg:p-8 xl:p-10 overflow-hidden select-none">
       {/* Premium Theme-Matched Monochrome Glass Toaster */}
-      
 
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 1: PC / DESKTOP (Zero-Border 12-Col Split >= 1024px)

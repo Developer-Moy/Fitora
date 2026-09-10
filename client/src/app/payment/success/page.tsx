@@ -25,11 +25,16 @@ function PaymentSuccessContent() {
   const sessionId = searchParams.get("session_id");
 
   const { data: authSession, isPending: isAuthPending } = useSession();
-  const [localAuth, setLocalAuth] = useState<{ token: string | null; user: any } | null>(null);
+  const [localAuth, setLocalAuth] = useState<{
+    token: string | null;
+    user: any;
+  } | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [paymentData, setPaymentData] = useState<VerifiedPaymentData | null>(null);
+  const [paymentData, setPaymentData] = useState<VerifiedPaymentData | null>(
+    null,
+  );
 
   useEffect(() => {
     setLocalAuth(getAuthSession());
@@ -38,7 +43,9 @@ function PaymentSuccessContent() {
   const verifyPaymentSession = useCallback(async () => {
     if (!sessionId) {
       setIsLoading(false);
-      setErrorMessage("No payment session identifier was found in this request.");
+      setErrorMessage(
+        "No payment session identifier was found in this request.",
+      );
       return;
     }
 
@@ -159,7 +166,8 @@ function PaymentSuccessContent() {
             Verifying your payment...
           </h2>
           <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 leading-relaxed">
-            Please wait while we confirm your transaction with Stripe and activate your membership pass.
+            Please wait while we confirm your transaction with Stripe and
+            activate your membership pass.
           </p>
         </div>
       </div>
@@ -193,7 +201,11 @@ function PaymentSuccessContent() {
           {isLoginError ? (
             <button
               type="button"
-              onClick={() => router.push(`/login?redirect=${encodeURIComponent(redirectUrl)}`)}
+              onClick={() =>
+                router.push(
+                  `/login?redirect=${encodeURIComponent(redirectUrl)}`,
+                )
+              }
               className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-neutral-200 transition-all cursor-pointer shadow-lg"
             >
               Log In to Continue
@@ -209,10 +221,10 @@ function PaymentSuccessContent() {
           )}
           <button
             type="button"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push("/profile")}
             className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-neutral-900 border border-white/15 text-white font-bold text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors cursor-pointer"
           >
-            Go to Dashboard
+            Go to Profile
           </button>
         </div>
       </div>
@@ -253,35 +265,47 @@ function PaymentSuccessContent() {
       {/* Verified Membership Summary Card */}
       <div className="bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 text-left space-y-3">
         <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-          <span className="text-xs uppercase font-bold text-neutral-400">Plan</span>
+          <span className="text-xs uppercase font-bold text-neutral-400">
+            Plan
+          </span>
           <span className="text-sm font-black uppercase text-white tracking-wide">
             {paymentData.planName}
           </span>
         </div>
 
         <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-          <span className="text-xs uppercase font-bold text-neutral-400">Billing Cycle</span>
+          <span className="text-xs uppercase font-bold text-neutral-400">
+            Billing Cycle
+          </span>
           <span className="text-xs font-bold uppercase text-white">
-            {paymentData.billingCycle === "annual" ? "Annual (Billed Yearly)" : "Monthly"}
+            {paymentData.billingCycle === "annual"
+              ? "Annual (Billed Yearly)"
+              : "Monthly"}
           </span>
         </div>
 
         <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-          <span className="text-xs uppercase font-bold text-neutral-400">Amount Paid</span>
+          <span className="text-xs uppercase font-bold text-neutral-400">
+            Amount Paid
+          </span>
           <span className="text-sm font-black text-white">
             ${paymentData.amount} {paymentData.currency.toUpperCase()}
           </span>
         </div>
 
         <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-          <span className="text-xs uppercase font-bold text-neutral-400">Payment Method</span>
+          <span className="text-xs uppercase font-bold text-neutral-400">
+            Payment Method
+          </span>
           <span className="text-xs font-bold uppercase text-white">
             {paymentData.paymentMethod}
           </span>
         </div>
 
         <div className="flex items-center justify-between pt-0.5">
-          <span className="text-xs uppercase font-bold text-neutral-400">Membership Valid Until</span>
+          <span className="text-xs uppercase font-bold text-neutral-400">
+            Membership Valid Until
+          </span>
           <span className="text-xs font-bold text-white">
             {formattedExpiry}
           </span>
@@ -292,10 +316,10 @@ function PaymentSuccessContent() {
       <div className="pt-2 flex flex-col sm:flex-row gap-2.5 justify-center">
         <button
           type="button"
-          onClick={() => router.push("/dashboard")}
+          onClick={() => router.push("/profile")}
           className="w-full sm:w-2/3 py-3 px-6 rounded-full bg-white text-black font-black text-xs uppercase tracking-wider hover:bg-neutral-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xl"
         >
-          <span>Go to Dashboard</span>
+          <span>Go to Profile</span>
           <ArrowRight className="w-4 h-4" />
         </button>
 

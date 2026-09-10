@@ -57,13 +57,20 @@ export default function DashboardLoginPage() {
       const result = await dashboardLoginApi(cleanEmail, cleanPass);
 
       if (result.success && result.user) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("fitora_auth_session", "true");
+          if (result.user.role) {
+            localStorage.setItem("fitora_active_role", result.user.role);
+            localStorage.setItem("fitora_user_role", result.user.role);
+          }
+        }
         toast.success(
           `${result.user.role === "master_admin" ? "Master Admin" : "Branch Admin"} Authenticated! Entering Dashboard...`,
         );
         setSuccessMessage("Security Gateway verified. Entering dashboard...");
         setTimeout(() => {
-          router.replace("/dashboard");
-        }, 500);
+          window.location.href = "/dashboard";
+        }, 300);
         return;
       }
 
@@ -98,8 +105,6 @@ export default function DashboardLoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-black text-white font-sans antialiased flex flex-col justify-between p-4 sm:p-6 select-none overflow-x-hidden">
-
-
       {/* Top Bar */}
       <header className="max-w-5xl mx-auto w-full flex items-center justify-between py-2 shrink-0">
         <Link href="/" className="flex items-center gap-2.5 group select-none">
