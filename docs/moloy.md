@@ -377,3 +377,25 @@ These components form the responsive header, hero section, pricing, callouts, co
     - Enhanced `client/src/services/branchService.ts` and `client/src/services/dashboardService.ts` with robust session token parsing and `x-user-email` fallback headers.
     - Connected `client/src/components/dashboard/HydrationTracker.tsx` to dynamically sync the athlete's hydration target from their MongoDB user profile via `getCurrentUserApi`.
     - Verified 100% clean builds across client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.
+  - Verified 100% clean builds across client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.
+
+### 10-Sep-26 (Day 5)
+
+- **Authoritative Dynamic Workout Consistency Streak & Activity Engine**:
+  - Architected and implemented `getUserActivityStreak` in `server/src/controllers/user.controller.ts`:
+    - Aggregates all user activity streams from MongoDB across `WorkoutLog`, `BranchCheckin` (gym QR check-ins), and `StopwatchSession` (gym timer logs).
+    - Groups activity by calendar day (`YYYY-MM-DD`) and computes calendar-accurate `currentStreak` (verifying active workout today or yesterday to maintain unbroken continuity; resets if gap > 1 day).
+    - Calculates all-time `longestStreak`, `totalActiveDays`, `totalWorkouts`, `totalMinutes`, and 30-day `consistencyScore`.
+    - Generates 180-day dynamic activity history array with activity intensity levels (`0 | 1 | 2 | 3`) for the GitHub-style contribution heatmap.
+    - Evaluates progressive consistency milestone badges (👟 First Step, 🔥 3-Day Fire, ⚡ Weekly Warrior, 🏆 Fortnight Beast, 👑 Monthly Master, 🛡️ 60-Day Titan, 💎 Century Legend) and next milestone countdown.
+    - Persists computed `currentStreak` automatically into `user.attendanceStreakDays` in MongoDB `User` model with `validateModifiedOnly: true`, ensuring permanent real-time synchronization across all user management tables and dashboard views.
+  - Mounted dynamic endpoints in `server/src/routes/user.routes.ts`:
+    - `GET /api/users/activity/streak`
+    - `GET /api/users/activity-streak`
+  - Created client API service `client/src/services/activityService.ts` (`fetchUserActivityStreakApi`) with seamless JWT token and session email resolution.
+  - Built luxury Pure B&W **Workout Consistency Streak & Milestone Badges** cockpit in `client/src/app/profile/page.tsx`:
+    - Real-time current streak pill badge with live `active today` indicator.
+    - 4-column KPI strip (Current Streak, Best Record, Total Active Days, 30-Day Consistency progress bar).
+    - Interactive horizontal milestone badge strip highlighting achieved badges.
+  - Upgraded `getDashboardStats` in `user.controller.ts` to dynamically calculate calendar streak if not already persisted, ensuring member dashboard check-in streak is 100% dynamic.
+  - Verified 100% clean builds across both server (`npm run build`) and client (`npx tsc --noEmit`) with 0 errors.
