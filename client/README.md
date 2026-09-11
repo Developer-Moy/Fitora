@@ -45,19 +45,19 @@ The Fitora frontend strictly adheres to a **Pure Black & White (`#000000` / `#FF
 
 ## 🌟 Core Modules & Application Routes
 
-| Route | Module Name | Access Level | Description & Key Components |
-| :--- | :--- | :---: | :--- |
-| `/` | **Homepage** | Public | 1-to-1 Hero with transparent athlete cutout, SVG arch notch, Why Choose Us, Pricing grid, Trainer Callout, and Consultation Form. |
-| `/calculator` | **BMI & Health Assessment** | Authenticated | Interactive height/weight sliders, BMI categorization, BMR/TDEE calculation, and profile synchronization. |
-| `/exercises` | **Exercise Catalog & Tracker** | Authenticated | Live exercises loaded from MongoDB with category filters, muscle group tags, video instruction links, and VIP locks. |
-| `/meals` | **Healthy Meals Catalog** | Authenticated | Nutrition-focused recipe items with calorie tags, macro breakdowns, and one-click additions to daily meal plans. |
-| `/stopwatch` | **Gym Rest Timer HUD** | Authenticated | Fullscreen distraction-free timer with quick rest chips (+30s, +60s), audio alerts, and workout telemetry logging. |
-| `/profile` | **All-in-One Member Hub** | Authenticated | 4-tab central cockpit: Overview (streak & heatmap), Gym Pass & QR, Workouts & Nutrition, and Subscription & Card. |
-| `/profile/edit` | **Profile Settings** | Authenticated | Edit athlete name, phone, assigned branch, fitness goal, body metrics, and account credentials. |
-| `/dashboard` | **Admin Control Portal** | Admin Only | Administrative management restricted strictly to Master Admin (`master@fitora.com`) and Branch Admins. |
-| `/dashboard/login` | **Admin Portal Login** | Admin Only | Specialized administrative entrypoint for branch managers and platform administrators. |
-| `/payment/success` | **Checkout Receipt** | Authenticated | Post-checkout landing showing confirmed tier, gateway, and instant vector PDF invoice generation. |
-| `/login` & `/register` | **Authentication** | Public | Glassmorphism authentication flow; new user registration triggers the automatic **3-Day Free Premium Trial**. |
+| Route                  | Module Name                    | Access Level  | Description & Key Components                                                                                                      |
+| :--------------------- | :----------------------------- | :-----------: | :-------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                    | **Homepage**                   |    Public     | 1-to-1 Hero with transparent athlete cutout, SVG arch notch, Why Choose Us, Pricing grid, Trainer Callout, and Consultation Form. |
+| `/calculator`          | **BMI & Health Assessment**    | Authenticated | Interactive height/weight sliders, BMI categorization, BMR/TDEE calculation, and profile synchronization.                         |
+| `/exercises`           | **Exercise Catalog & Tracker** | Authenticated | Live exercises loaded from MongoDB with category filters, muscle group tags, video instruction links, and VIP locks.              |
+| `/meals`               | **Healthy Meals Catalog**      | Authenticated | Nutrition-focused recipe items with calorie tags, macro breakdowns, and one-click additions to daily meal plans.                  |
+| `/stopwatch`           | **Gym Rest Timer HUD**         | Authenticated | Fullscreen distraction-free timer with quick rest chips (+30s, +60s), audio alerts, and workout telemetry logging.                |
+| `/profile`             | **All-in-One Member Hub**      | Authenticated | 4-tab central cockpit: Overview (streak & heatmap), Gym Pass & QR, Workouts & Nutrition, and Subscription & Card.                 |
+| `/profile/edit`        | **Profile Settings**           | Authenticated | Edit athlete name, phone, assigned branch, fitness goal, body metrics, and account credentials.                                   |
+| `/dashboard`           | **Admin Control Portal**       |  Admin Only   | Administrative management restricted strictly to Master Admin (`master@fitora.com`) and Branch Admins.                            |
+| `/dashboard/login`     | **Admin Portal Login**         |  Admin Only   | Specialized administrative entrypoint for branch managers and platform administrators.                                            |
+| `/payment/success`     | **Checkout Receipt**           | Authenticated | Post-checkout landing showing confirmed tier, gateway, and instant vector PDF invoice generation.                                 |
+| `/login` & `/register` | **Authentication**             |    Public     | Glassmorphism authentication flow; new user registration triggers the automatic **3-Day Free Premium Trial**.                     |
 
 ---
 
@@ -103,6 +103,7 @@ The `/profile` route serves as the athlete's primary daily dashboard, organized 
 - **3-Day Free Premium Trial Engine**: Automatically granted upon registration; unlocks all Pro/VIP features for 72 hours.
 - **Save Card & 2 Bonus Months Retention Engine**: Purchasing a monthly plan with a saved card grants **90 days of access (1 month purchase + 2 bonus months FREE)**.
 - **1-Click Dynamic Renewal**: Server-authoritative logic that automatically extends future expiration dates without losing remaining days.
+- **Single-Screen Portal Invoice Modal (`createPortal`)**: Mounted directly to `document.body` at `z-[99999]`, providing a sleek, zero-scroll desktop experience with pinned luxury toolbar and full athlete contact and branch metadata.
 - **Pure Vector PDF Invoices (`jspdf`)**: Direct client-side generation of crisp, high-resolution vector PDF invoices with itemized tables, tax calculations, and cryptographic serials (`INV-YYYY-XXXXXX`).
 - **PRO Badge Illumination**: Real-time glowing `PRO` badge synchronized next to the global navigation brand logo upon confirmed checkout.
 
@@ -119,7 +120,7 @@ client/src/components/
 ├── dashboard/                  # Admin KPI cards, user management tables, branch views
 ├── exercises/                  # ExerciseTracker, exercise cards, catalog filters
 ├── home/                       # HeroSection, WhyChooseUs, PricingSection, ContactInfoForm
-├── invoice/                    # Vector PDF & print-accurate InvoiceModal
+├── invoice/                    # React Portal, Vector PDF & print-accurate InvoiceModal
 ├── meals/                      # MealCard, meal planners, category selectors
 ├── notifications/              # Real-time NotificationBell & toast popups
 ├── profile/                    # ActivityHeatmap, BillingSection, NutritionPlan
@@ -135,16 +136,17 @@ client/src/components/
 
 All backend interactions are centralized inside `client/src/services/` for consistency and type safety:
 
-| Service File | Primary Endpoints | Responsibilities |
-| :--- | :--- | :--- |
-| `authService.ts` | `/api/auth/*` | Login, registration, token refresh, session persistence, user profile caching. |
-| `dashboardService.ts` | `/api/dashboard/*`, `/api/users/saved-card` | Admin stats, user directory, saved card save/delete operations. |
-| `paymentService.ts` | `/api/payments/*` | Checkout sessions, renewal extension, transaction ledger, auto-renew toggling. |
-| `activityService.ts` | `/api/users/activity/streak` | Dynamic calendar streaks, milestone badge evaluation, 180-day activity matrix. |
-| `bmiService.ts` | `/api/bmi/*` | BMI calculation history creation, retrieval, and deletion. |
-| `mealService.ts` | `/api/meals/*` | Healthy recipe catalog queries, category filters, and search. |
-| `workoutService.ts` | `/api/workouts/*` | Workout log persistence, duration tracking, and exercise queries. |
-| `branchService.ts` | `/api/branches/*` | 64 nationwide branch directory and live attendance feeds. |
+| Service File          | Primary Endpoints                           | Responsibilities                                                                             |
+| :-------------------- | :------------------------------------------ | :------------------------------------------------------------------------------------------- |
+| `authService.ts`      | `/api/auth/*`                               | Login, registration, token refresh, session persistence, user profile caching.               |
+| `dashboardService.ts` | `/api/dashboard/*`, `/api/users/saved-card` | Admin stats, user directory, saved card save/delete operations.                              |
+| `paymentService.ts`   | `/api/payments/*`                           | Checkout sessions, renewal extension, transaction ledger, auto-renew toggling, plan changes. |
+| `activityService.ts`  | `/api/users/activity/streak`                | Dynamic calendar streaks, milestone badge evaluation, 180-day activity matrix.               |
+| `bmiService.ts`       | `/api/bmi/*`                                | BMI calculation history creation, retrieval, and deletion with user auto-binding.            |
+| `mealService.ts`      | `/api/meals/*`                              | Healthy recipe catalog queries, category filters, and search.                                |
+| `workoutService.ts`   | `/api/workouts/*`                           | Workout log persistence, duration tracking, exercise queries, log deletion, and PR history.  |
+| `branchService.ts`    | `/api/branches/*`                           | 64 nationwide branch directory and live attendance feeds.                                    |
+| `searchService.ts`    | `/api/search`                               | Dynamic multi-entity MongoDB search across athletes, branches, and financials.               |
 
 ---
 

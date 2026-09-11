@@ -52,7 +52,15 @@ export default function SubscriptionModal({
 
   const totalPrice = isAnnual ? plan.annualPrice * 12 : plan.monthlyPrice;
   const savings = isAnnual ? (plan.monthlyPrice - plan.annualPrice) * 12 : 0;
-  const priceBDT = totalPrice * 120;
+
+  const PLAN_BDT_MAP: Record<string, { monthly: number; annual: number }> = {
+    "Basic Pass": { monthly: 2500, annual: 24000 },
+    "Pro Athlete": { monthly: 4900, annual: 47000 },
+    "VIP Ultimate": { monthly: 9900, annual: 95000 },
+  };
+  const priceBDT =
+    PLAN_BDT_MAP[plan.name]?.[isAnnual ? "annual" : "monthly"] ??
+    totalPrice * 120;
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, "").slice(0, 16);

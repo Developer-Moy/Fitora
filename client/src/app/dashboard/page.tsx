@@ -525,15 +525,13 @@ export default function MasterDashboardPage() {
                               ? platformStats.totalRevenueBDT
                               : platformStats.mrrBDT
                             ).toLocaleString("en-IN")
-                          : isMasterAdmin
-                            ? "84,50,000"
-                            : "6,80,000"}
+                          : "0"}
                     </span>
                   </div>
                   <div className="pt-1 flex items-center gap-1 text-[11px] font-bold text-emerald-400">
                     <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>
-                      +{platformStats?.revenueGrowthPercent ?? 18.5}% Growth
+                      +{platformStats?.revenueGrowthPercent ?? 0}% Growth
                     </span>
                   </div>
                 </div>
@@ -551,13 +549,7 @@ export default function MasterDashboardPage() {
                     <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                       {isMasterAdmin && masterRevenue
                         ? revenueSummary.successfulPayments.toLocaleString()
-                        : `৳${
-                            platformStats
-                              ? platformStats.mrrBDT.toLocaleString("en-IN")
-                              : isMasterAdmin
-                                ? "14,20,000"
-                                : "1,95,000"
-                          }`}
+                        : `৳${(platformStats?.mrrBDT ?? 0).toLocaleString("en-IN")}`}
                       {isMasterAdmin && masterRevenue && (
                         <span className="text-[10px] font-black text-white/40 ml-1.5 uppercase">
                           Paid
@@ -567,7 +559,9 @@ export default function MasterDashboardPage() {
                   </div>
                   <div className="pt-1 flex items-center gap-1 text-[11px] font-bold text-emerald-400">
                     <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>+8.2% vs last month</span>
+                    <span>
+                      +{platformStats?.revenueGrowthPercent ?? 0}% vs last month
+                    </span>
                   </div>
                 </div>
 
@@ -595,17 +589,15 @@ export default function MasterDashboardPage() {
                           ? platformStats.totalMembers
                           : platformStats.activeMembersToday
                         ).toLocaleString()
-                      ) : isMasterAdmin ? (
-                        "4,850"
                       ) : (
-                        "480"
+                        "0"
                       )}
                     </span>
                   </div>
                   <div className="pt-1 flex items-center gap-1 text-[11px] font-bold text-emerald-400">
                     <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>
-                      +{platformStats?.membersGrowthPercent ?? 12.3}% New
+                      +{platformStats?.membersGrowthPercent ?? 0}% New
                     </span>
                   </div>
                 </div>
@@ -877,28 +869,7 @@ export default function MasterDashboardPage() {
                   <div className="space-y-2.5 pt-1">
                     {(isMasterAdmin && gatewayList.length > 0
                       ? gatewayList
-                      : gatewayBreakdown.length > 0
-                        ? gatewayBreakdown
-                        : [
-                            {
-                              name: "bKash Direct",
-                              percentage: 62,
-                              amountBDT: 5239000,
-                              color: "#E2136E",
-                            },
-                            {
-                              name: "Nagad Gateway",
-                              percentage: 26,
-                              amountBDT: 2197000,
-                              color: "#F7941D",
-                            },
-                            {
-                              name: "Visa / Mastercard",
-                              percentage: 12,
-                              amountBDT: 1014000,
-                              color: "#00579F",
-                            },
-                          ]
+                      : gatewayBreakdown
                     ).map((gw, idx) => (
                       <div
                         key={idx}
@@ -919,8 +890,8 @@ export default function MasterDashboardPage() {
                         </div>
                       </div>
                     ))}
-                    {isMasterAdmin &&
-                      gatewayList.length === 0 &&
+                    {(isMasterAdmin ? gatewayList : gatewayBreakdown).length ===
+                      0 &&
                       !revenueLoading && (
                         <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-white/50">
                           No completed payments recorded yet.

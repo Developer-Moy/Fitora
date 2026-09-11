@@ -7,6 +7,7 @@ export interface IBMIHistory extends Document {
   bmi: number;
   bmr: number;
   tdee: number;
+  statusCategory?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,10 +47,16 @@ const bmiSchema = new Schema<IBMIHistory>(
       type: Number,
       required: true,
     },
+
+    statusCategory: {
+      type: String,
+      required: false,
+      trim: true,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const BMI = mongoose.model<IBMIHistory>("BMI", bmiSchema);

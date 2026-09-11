@@ -92,10 +92,41 @@ Architected and developed the full dynamic membership lifecycle tracking and dig
 
 ---
 
+## 8. Single-Screen Portal Invoice Engine, Unified Print System & Vector PDF Architecture (`InvoiceModal.tsx`)
+
+Architected and re-engineered the complete invoice rendering, print styling, and vector PDF generation pipeline:
+
+### Key Implementation:
+
+- **React Portal Mounting (`createPortal`)**: Mounted modal directly to `document.body` via `#invoice-modal-portal` at `z-[99999]`, breaking free from parent container overflow clipping, z-index stacking conflicts, and sticky navigation headers.
+- **Single-Screen 100% Viewport View**: Engineered a zero-scroll compact desktop layout (`max-w-2xl max-h-[90vh]`) featuring pinned luxury action toolbar and sleek itemized breakdowns that fit on one screen without cropping on standard 1080p displays.
+- **Cross-Browser Print Isolation (`globals.css`)**: Implemented dual-layer print CSS using `body:has(#invoice-modal-portal) > *:not(#invoice-modal-portal)` and `body.printing-invoice > *:not(#invoice-modal-portal)` with `display: none !important;`, guaranteeing crisp 1-page A4 print output without blank pages or header/footer bleed.
+- **Complete Vector PDF Generation (`jspdf`)**: Client-side vector PDF engine (`handleDownloadPDF`) producing high-definition documents with athlete name, verified email, phone number, assigned branch, athlete ID, TRX ID, payment method, line item tables, verification seal, and legal disclaimer.
+- **Athlete Metadata Propagation**: Integrated live session hydration across `BillingSection.tsx` and `BillingPaymentHistory.tsx` to automatically inject athlete contact and branch information into invoice modals.
+
+---
+
+## 9. Full-Stack Bug Remediation, Model Integrity & Dynamic Data Audit
+
+Conducted an end-to-end full-stack codebase audit to enforce 100% dynamic MongoDB connectivity and eliminate system crashes:
+
+### Key Implementation:
+
+- **Mongoose Model Collision Resolution**: Resolved fatal `OverwriteModelError` between `MealChart.model.ts` and `MealPlan.model.ts` by strictly scoping `MealChart` model registration.
+- **Non-ObjectId MongoDB CastError Protection**: Wrapped `_id` queries in `meal.controller.ts:getMealById` with `mongoose.isValidObjectId(id)` check, preventing 500 crashes when querying meals by slug strings.
+- **Goal Creation Validation & Enum Casing Normalization**: Implemented casing-tolerant enum mapping (`Bulking`, `Cutting`, `Recomp`, `Maintenance`) and automated fallback defaults in `goal.controller.ts`, eliminating Mongoose `ValidationError` on dashboard and calculator goals.
+- **Stopwatch Preset Duration Aliasing**: Unified `warmup` / `warmupDuration` and `cooldown` / `cooldownDuration` parameters and ensured `type`, `isPublic`, and `userId` are properly populated in `stopwatch.controller.ts`.
+- **Telemetry & Stats Field Alignment**: Standardized `caloriesBurned` alongside `burnedCalories` in `user.controller.ts` and mapped client interfaces in `dashboardService.ts`.
+- **BMI Route Authentication & Identity Protection**: Added `optionalAuth` middleware to `/api/bmi/history`, corrected `authUser.userId` resolution, and added `statusCategory` to `bmi.model.ts`.
+- **Response Envelope Normalization**: Fixed array extraction crashes in `ExerciseTracker.tsx` (`json?.data?.logs || json?.data || []`), `adService.ts`, and `consultationService.ts`.
+- **Mock Data Elimination**: Removed all 140+ lines of hardcoded mock athletes, branches, and financials from `searchService.ts` and eliminated fabricated multi-million revenue and member fallbacks in `dashboard/page.tsx`. Search and analytics now strictly reflect authentic MongoDB data.
+- **Canonical Currency Alignment**: Standardized BDT plan pricing across `SubscriptionModal.tsx` and connected member dashboard upgrade flow to live `changeMembershipPlanApi`.
+
+---
+
 ## Overview
 
-These components form the responsive header, hero section, pricing, callouts, contact form, and footer of **Fitora**.
-These components form the responsive header, hero section, pricing, callouts, contact form, footer, membership tracking, and digital billing engine of **Fitora**.
+These components form the responsive header, hero section, pricing, callouts, contact form, footer, membership tracking, digital billing engine, dynamic member hub, and robust full-stack data layer of **Fitora**.
 
 ---
 
@@ -434,6 +465,22 @@ These components form the responsive header, hero section, pricing, callouts, co
     2. **Gym Pass & QR**: Digital luxury membership pass for contactless check-in, high-contrast QR code generated from `user.qrCodeId`, branch details, and live validity status.
     3. **Workouts & Nutrition**: Live workout logs from MongoDB with duration & calories burned, `PersonalizedNutritionPlan` tailored to fitness goals, and `SavedMealPlan` schedule.
     4. **Subscription & Card**: `MembershipStatusCard`, renewal modal, complete invoice billing history (`BillingSection`), and Saved Card Manager (view masked card, delete card, or save a card to unlock 2 bonus months free).
+- **Single-Screen Portal Invoice Engine & Unified Print System (`InvoiceModal.tsx`)**:
+  - Re-architected `InvoiceModal.tsx` using React Portals (`createPortal(content, document.body)`) mounted at `#invoice-modal-portal` with `z-[99999]`, breaking free from parent z-index and overflow boundaries.
+  - Designed single-page compact 1080p desktop layout with zero vertical viewport cropping and pinned action toolbar (Copy No, Raw JSON, Download PDF, Print, Close).
+  - Unified `@media print` CSS in `globals.css` with dual-layer targeting (`body:has(#invoice-modal-portal) > *:not(#invoice-modal-portal)` and `body.printing-invoice > *:not(#invoice-modal-portal)`), resolving blank-page print artifacts across all modern browsers.
+  - Enhanced client-side `jspdf` vector invoice generator with complete athlete credentials (name, email, phone, assigned branch, ID, TRX ID, payment method, itemized lines, totals, verification seal, and disclaimer).
+  - Propagated athlete phone and branch dynamically from session user via `BillingSection.tsx`.
+- **Comprehensive Full-Project Scan & Dynamic Data Audit (100% MongoDB Dynamism)**:
+  - **Mongoose Model Namespace Safety**: Renamed model compilation in `server/src/models/MealChart.model.ts` to `"MealChart"`, resolving fatal `OverwriteModelError` collision with `MealPlan.model.ts`.
+  - **MongoDB ObjectId CastError Guard**: Added `mongoose.isValidObjectId(id)` in `meal.controller.ts:getMealById` before checking `_id`, preventing 500 crashes when querying meals by string slugs.
+  - **Goal Schema Validation & Enum Casing Normalization**: Implemented casing-tolerant enum mapping (`Bulking`, `Cutting`, `Recomp`, `Maintenance`) and automated fallback defaults in `goal.controller.ts`, eliminating Mongoose `ValidationError` on dashboard and calculator goals.
+  - **Stopwatch Preset Parameter Alignment**: Supported `warmup` / `warmupDuration` and `cooldown` / `cooldownDuration` aliases and returned `type` and `isPublic` in `stopwatch.controller.ts`.
+  - **User Stats Alignment**: Added `caloriesBurned: burnedCalories` in `user.controller.ts` and mapped client interfaces in `dashboardService.ts`.
+  - **BMI History Auth & Persistence**: Added `optionalAuth` to `/api/bmi/history`, corrected `authUser.userId` resolution, and added `statusCategory` to `bmi.model.ts`.
+  - **Response Envelope Fixes**: Fixed array extraction crashes in `ExerciseTracker.tsx` (`json?.data?.logs || json?.data || []`), `adService.ts`, and `consultationService.ts`.
+  - **Total Mock Data Purge**: Removed all 140+ lines of hardcoded mock athletes, branches, and financials from `searchService.ts` and purged fabricated multi-million revenue and member fallbacks in `dashboard/page.tsx`. Search and analytics now strictly reflect authentic MongoDB data.
+  - **Currency Alignment**: Standardized canonical BDT plan pricing across `SubscriptionModal.tsx` and wired member dashboard upgrade flow to `changeMembershipPlanApi`.
 - **100% Zero-Error Compilation & Verification**:
   - Server TypeScript build (`cd server && npm run build` -> `tsc`): **0 Errors** (Exit 0).
   - Client TypeScript validation (`cd client && npx tsc --noEmit`): **0 Errors** (Exit 0).

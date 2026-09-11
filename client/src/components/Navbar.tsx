@@ -182,7 +182,7 @@ export default function Navbar() {
 
   const userName = activeUser?.name || "Athlete Member";
   const userFirstName = userName.split(" ")[0];
-  const userEmail = activeUser?.email || "athlete@fitora.com";
+  const userEmail = activeUser?.email || "";
   const userInitial = userName.charAt(0).toUpperCase() || "A";
   const userRole = (activeUser as any)?.role || "athlete";
   const userAvatar =
@@ -329,7 +329,10 @@ export default function Navbar() {
                   </Link>
                 )}
 
-                <NotificationBell />
+                <NotificationBell
+                  isLoggedIn={isLoggedIn}
+                  userEmail={userEmail}
+                />
 
                 <div
                   ref={profileDropdownRef}
@@ -405,7 +408,12 @@ export default function Navbar() {
 
             {/* Mobile & Tablet Actions (< 1024px) */}
             <div className="flex items-center gap-2.5 lg:hidden">
-              {isMounted && userEmail && <NotificationBell />}
+              {isMounted && isLoggedIn && (
+                <NotificationBell
+                  isLoggedIn={isLoggedIn}
+                  userEmail={userEmail}
+                />
+              )}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="cursor-pointer shrink-0 p-2 rounded-xl bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center"

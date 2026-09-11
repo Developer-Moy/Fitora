@@ -39,14 +39,22 @@ export interface UserRecord {
   name: string;
   email: string;
   phone: string;
-  role: "master_admin" | "branch_admin" | "premium_user" | "free_user";
+  role:
+    | "master_admin"
+    | "branch_admin"
+    | "athlete"
+    | "user"
+    | "admin"
+    | "premium_user"
+    | "free_user"
+    | string;
   assignedBranch: string;
-  plan: "Free Pass" | "Basic Pass" | "Pro Athlete" | "VIP Ultimate";
-  status: "active" | "suspended" | "pending";
+  plan: "Free Pass" | "Basic Pass" | "Pro Athlete" | "VIP Ultimate" | string;
+  status: "active" | "suspended" | "pending" | string;
   joinDate: string;
   expiryDate: string;
   totalPaidBDT: number;
-  paymentMethod: "bKash" | "Nagad" | "Card" | "None";
+  paymentMethod: "bKash" | "Nagad" | "Card" | "Bank Transfer" | "None" | string;
   attendanceStreakDays: number;
   lastCheckIn: string;
   qrCodeId: string;
@@ -450,7 +458,15 @@ export async function fetchMemberStats(): Promise<MemberStatsResponse | null> {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data.data;
+    const raw = data?.data;
+    if (!raw) return null;
+    return {
+      workoutsThisMonth: raw.workoutsThisMonth ?? raw.workoutCount ?? 0,
+      caloriesBurned: raw.caloriesBurned ?? raw.burnedCalories ?? 0,
+      streakDays: raw.streakDays ?? 0,
+      targetWorkouts: raw.targetWorkouts ?? 0,
+      consistencyScore: raw.consistencyScore ?? 0,
+    };
   } catch {
     return null;
   }
@@ -547,7 +563,8 @@ export async function deleteSavedCardApi(): Promise<{
     const data = await res.json().catch(() => null);
     return {
       success: res.ok && !!data?.success,
-      message: data?.message || (res.ok ? "Card removed" : "Failed to remove card"),
+      message:
+        data?.message || (res.ok ? "Card removed" : "Failed to remove card"),
     };
   } catch {
     return { success: false, message: "Network error removing card" };

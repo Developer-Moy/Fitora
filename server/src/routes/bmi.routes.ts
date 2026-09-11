@@ -6,12 +6,13 @@ import {
   updateBMIHistory,
   deleteBMIHistory,
 } from "../controllers/bmi.controller";
+import { optionalAuth } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.post("/history", createBMIHistory);
-router.get("/history", getBMIHistory);
-router.put("/history/:id", updateBMIHistory);
-router.delete("/history/:id", deleteBMIHistory);
+router.post("/history", optionalAuth, createBMIHistory);
+router.get("/history", optionalAuth, getBMIHistory);
+router.put("/history/:id", optionalAuth, updateBMIHistory);
+router.delete("/history/:id", optionalAuth, deleteBMIHistory);
 
 export default router;

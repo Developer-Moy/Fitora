@@ -235,3 +235,70 @@ export const requirePremium = (
 
   next();
 };
+
+/**
+ * Optional authentication middleware.
+ * Attaches user payload if a valid Bearer token or fallback user headers/params exist,
+ * but does not reject the request if absent.
+ */
+export const optionalAuth = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const headerEmail = req.headers["x-user-email"] as string | undefined;
+
+    const fallbackUserId =
+      (req.query.userId as string | undefined) || req.body?.userId;
+    const fallbackEmail =
+      (req.query.email as string | undefined) ||
+      req.body?.userEmail ||
+      req.body?.email ||
+      headerEmail;
+
+    if (!authHeader) {
+      if (fallbackUserId || fallbackEmail) {
+        const isMaster = isMasterEmail(fallbackEmail);
+        req.user = {
+          userId: fallbackUserId || "",
+          email: fallbackEmail || "",
+          role: isMaster
+            ? ("master_admin" as UserRole)
+            : fallbackEmail?.includes("admin")
+              ? ("branch_admin" as UserRole)
+              : ("athlete" as UserRole),
+        };
+      }
+      return next();
+    }
+
+    const [schema, token] = authHeader.split(" ");
+    if (schema === "Bearer" && token) {
+      const jwtSecret =
+        process.env.JWT_SECRET || "FITORA_SUPER_SECRET_JWT_KEY_2026_PRODUCTION";
+      try {
+        const decoded = jwt.verify(token, jwtSecret) as AuthUserPayload;
+        req.user = {
+          userId: decoded.userId,
+          email: decoded.email,
+          role: decoded.role,
+          assignedBranch: decoded.assignedBranch,
+          tier: decoded.tier,
+        };
+      } catch {
+        if (fallbackUserId || fallbackEmail) {
+          req.user = {
+            userId: fallbackUserId || "",
+            email: fallbackEmail || "",
+            role: "athlete" as UserRole,
+          };
+        }
+      }
+    }
+    return next();
+  } catch {
+    return next();
+  }
+};
