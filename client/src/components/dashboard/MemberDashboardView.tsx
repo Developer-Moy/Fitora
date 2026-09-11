@@ -50,6 +50,7 @@ import {
   getCurrentUserApi,
   updateSessionAfterPayment,
 } from "@/services/authService";
+import { changeMembershipPlanApi } from "@/services/paymentService";
 import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
 
 interface MemberDashboardViewProps {
@@ -267,7 +268,15 @@ export default function MemberDashboardView({
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setPaymentSuccess(true);
-    await updateSessionAfterPayment("VIP Ultimate");
+    const session = getAuthSession();
+    if (session?.token) {
+      try {
+        await changeMembershipPlanApi(session.token, "VIP Ultimate", "monthly");
+      } catch {}
+    }
+    await updateSessionAfterPayment("VIP Ultimate", {
+      refreshFromServer: true,
+    });
     toast.success("VIP Ultimate membership activated successfully!");
     setTimeout(() => {
       setPaymentSuccess(false);

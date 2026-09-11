@@ -592,7 +592,9 @@ function ExerciseModal({
         );
         if (res.ok) {
           const json = await res.json();
-          const items: WorkoutLog[] = json?.data || [];
+          const items: WorkoutLog[] = Array.isArray(json?.data)
+            ? json.data
+            : json?.data?.logs || [];
           const filtered = items.filter(
             (item: any) =>
               item.exerciseName?.toLowerCase() === exercise.name.toLowerCase(),

@@ -205,6 +205,9 @@ export async function registerApi(payload: {
 export async function getCurrentUserApi(params?: {
   userId?: string;
   email?: string;
+  name?: string;
+  image?: string;
+  avatarUrl?: string;
 }): Promise<AuthResponse> {
   try {
     const token =
@@ -223,6 +226,9 @@ export async function getCurrentUserApi(params?: {
     const query = new URLSearchParams();
     if (params?.userId) query.append("userId", params.userId);
     if (params?.email) query.append("email", params.email);
+    if (params?.name) query.append("name", params.name);
+    if (params?.image) query.append("image", params.image);
+    if (params?.avatarUrl) query.append("avatarUrl", params.avatarUrl);
     const queryString = query.toString() ? `?${query.toString()}` : "";
 
     const headers: Record<string, string> = {
@@ -230,6 +236,9 @@ export async function getCurrentUserApi(params?: {
     };
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (params?.email) {
+      headers["x-user-email"] = params.email;
     }
 
     const res = await fetch(`${API_URL}/auth/me${queryString}`, {

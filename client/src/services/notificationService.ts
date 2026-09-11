@@ -23,19 +23,63 @@ export interface NotificationResponse {
   };
 }
 
+function resolveHeaders(
+  token?: string,
+  email?: string,
+): Record<string, string> {
+  const resolvedToken =
+    token ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token") ||
+        ""
+      : "");
+
+  const resolvedEmail =
+    email ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_email") || ""
+      : "");
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (resolvedToken) {
+    headers["Authorization"] = `Bearer ${resolvedToken}`;
+  }
+  if (resolvedEmail) {
+    headers["x-user-email"] = resolvedEmail;
+  }
+
+  return headers;
+}
+
 /**
  * Fetch authenticated user notifications
  */
-export async function fetchNotificationsApi(token: string): Promise<{
+export async function fetchNotificationsApi(
+  token?: string,
+  email?: string,
+): Promise<{
   success: boolean;
   notifications: AppNotification[];
   unreadCount: number;
 }> {
   try {
-    const res = await fetch(`${BASE_URL}/notifications`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const headers = resolveHeaders(token, email);
+    const resolvedEmail =
+      email ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("fitora_user_email") || ""
+        : "");
+
+    const query = new URLSearchParams();
+    if (resolvedEmail) query.set("email", resolvedEmail);
+    const queryString = query.toString() ? `?${query.toString()}` : "";
+
+    const res = await fetch(`${BASE_URL}/notifications${queryString}`, {
+      headers,
     });
 
     if (!res.ok) {
@@ -58,15 +102,16 @@ export async function fetchNotificationsApi(token: string): Promise<{
  * Mark a single notification as read
  */
 export async function markNotificationAsReadApi(
-  token: string,
-  id: string,
+  token?: string,
+  id?: string,
+  email?: string,
 ): Promise<boolean> {
   try {
+    if (!id) return false;
+    const headers = resolveHeaders(token, email);
     const res = await fetch(`${BASE_URL}/notifications/${id}/read`, {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
     return res.ok;
   } catch {
@@ -78,14 +123,14 @@ export async function markNotificationAsReadApi(
  * Mark all notifications as read
  */
 export async function markAllNotificationsAsReadApi(
-  token: string,
+  token?: string,
+  email?: string,
 ): Promise<boolean> {
   try {
+    const headers = resolveHeaders(token, email);
     const res = await fetch(`${BASE_URL}/notifications/read-all`, {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
     return res.ok;
   } catch {

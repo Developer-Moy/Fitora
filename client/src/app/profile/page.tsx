@@ -13,22 +13,19 @@ import {
   MapPin,
   Dumbbell,
   LogOut,
-  ShieldCheck,
   Loader2,
   CreditCard,
   QrCode,
-  LayoutDashboard,
   Flame,
   Clock,
   CheckCircle,
   Trash2,
   Sparkles,
-  AlertTriangle,
-  Calendar,
   TrendingUp,
-  Phone,
   X,
   Plus,
+  ArrowUpRight,
+  Utensils,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
@@ -76,7 +73,22 @@ interface BMIHistory {
   createdAt: string;
 }
 
-type Tab = "overview" | "gympass" | "workouts" | "subscription";
+interface FitnessGoalResponse {
+  goal: {
+    _id: string;
+    goalType?: string;
+    targetWeight: number;
+    weeklyWorkoutFrequency: number;
+  };
+  activeStreak: number;
+  totalVolumeLifted: number;
+  milestone?: {
+    achieved: boolean;
+    current: number | null;
+  };
+}
+
+type SubmenuTab = "overview" | "workouts" | "nutrition" | "billing";
 
 // ── Trial Countdown Banner ────────────────────────────────────────────────────
 
@@ -105,13 +117,23 @@ function TrialCountdownBanner({ trialExpiresAt }: { trialExpiresAt: string }) {
   if (timeLeft === "expired") return null;
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-white/20 bg-gradient-to-r from-white/10 via-white/5 to-white/10 px-4 py-3 flex items-center gap-3">
-      <Sparkles className="w-4 h-4 text-white shrink-0" />
-      <p className="text-sm text-white font-medium">
-        🎉 <span className="font-bold">Free Premium Trial</span> active —{" "}
-        <span className="font-mono text-white">{timeLeft}</span> remaining.
-        Explore all premium features!
-      </p>
+    <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 via-white/5 to-white/10 px-5 py-3.5 flex items-center justify-between gap-3 shadow-lg">
+      <div className="flex items-center gap-3">
+        <Sparkles className="w-5 h-5 text-white shrink-0 animate-pulse" />
+        <p className="text-sm text-white font-medium">
+          🎉 <span className="font-bold">Free Premium Trial Active</span> —{" "}
+          <span className="font-mono font-bold text-white">{timeLeft}</span>{" "}
+          remaining. Enjoy all Pro athlete perks, QR turnstile access, and macro
+          tracking!
+        </p>
+      </div>
+      <Link
+        href="/#pricing"
+        className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white text-black text-xs font-bold hover:bg-neutral-200 transition-colors shrink-0"
+      >
+        <span>Upgrade Now</span>
+        <ArrowUpRight className="w-3.5 h-3.5" />
+      </Link>
     </div>
   );
 }
@@ -126,54 +148,113 @@ function SaveCardModal({
   onSaved: () => void;
 }) {
   const [form, setForm] = useState({
+    cardNumber: "",
     cardHolder: "",
-    last4: "",
-    brand: "Visa",
     expiryMonth: "",
     expiryYear: "",
+    cvv: "",
   });
   const [saving, setSaving] = useState(false);
 
+  const detectBrand = (num: string) => {
+    const clean = num.replace(/\D/g, "");
+    if (/^4/.test(clean)) return "Visa";
+    if (/^5[1-5]/.test(clean)) return "Mastercard";
+    if (/^3[47]/.test(clean)) return "Amex";
+    return "Card";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.last4.length !== 4 || !/^\d{4}$/.test(form.last4)) {
-      toast.error("Last 4 digits must be exactly 4 numbers");
+    const cleanNum = form.cardNumber.replace(/\D/g, "");
+    if (cleanNum.length < 13) {
+      toast.error("Enter a valid card number");
+      return;
+    }
+    const m = parseInt(form.expiryMonth, 10);
+    const y = parseInt(form.expiryYear, 10);
+    if (!m || m < 1 || m > 12) {
+      toast.error("Valid month: 1–12");
+      return;
+    }
+    if (!y || y < new Date().getFullYear()) {
+      toast.error("Valid expiry year required");
       return;
     }
     setSaving(true);
-    const res = await saveCardApi(form);
-    setSaving(false);
-    if (res.success) {
-      toast.success("Card saved! You'll get 2 bonus months on next purchase.");
-      onSaved();
-      onClose();
-    } else {
-      toast.error(res.message || "Failed to save card");
+    try {
+      const res = await saveCardApi({
+        last4: cleanNum.slice(-4),
+        brand: detectBrand(cleanNum),
+        expiryMonth: String(m).padStart(2, "0"),
+        expiryYear: String(y),
+        cardHolder: form.cardHolder.trim() || "Card Holder",
+      });
+      if (res.success) {
+        toast.success(
+          "💳 Card saved successfully! 2 bonus months unlocked on your next monthly purchase.",
+        );
+        onSaved();
+        onClose();
+      } else {
+        toast.error(res.message || "Failed to save card");
+      }
+    } catch {
+      toast.error("Network error saving card");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md bg-black border border-white/15 rounded-2xl p-6 space-y-5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <CreditCard className="w-5 h-5" /> Save Card
-          </h3>
-          <button onClick={onClose} className="text-white/50 hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
+      <div className="relative w-full max-w-md rounded-2xl border border-white/20 bg-neutral-950 p-6 space-y-5 shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-white" /> Save Payment Card
+          </h2>
+          <p className="text-xs text-white/60 mt-1">
+            Save your credit/debit card for fast 1-click renewals.{" "}
+            <span className="text-white font-semibold">
+              Get 2 bonus months FREE
+            </span>{" "}
+            when you renew!
+          </p>
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/70">
-          <Sparkles className="inline w-4 h-4 mr-1 text-white" />
-          Save your card and get{" "}
-          <span className="text-white font-semibold">
-            2 bonus months FREE
-          </span>{" "}
-          on your next monthly purchase (pay 1 month → get 3 months access)!
-        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs text-white/50 mb-1.5">
+            <label className="block text-xs font-semibold uppercase text-white/60 mb-1">
+              Card Number
+            </label>
+            <input
+              required
+              maxLength={19}
+              value={form.cardNumber}
+              onChange={(e) =>
+                setForm((p) => ({
+                  ...p,
+                  cardNumber: e.target.value
+                    .replace(/\D/g, "")
+                    .replace(/(.{4})/g, "$1 ")
+                    .trim(),
+                }))
+              }
+              placeholder="4242 •••• •••• 4242"
+              className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase text-white/60 mb-1">
               Cardholder Name
             </label>
             <input
@@ -182,52 +263,15 @@ function SaveCardModal({
               onChange={(e) =>
                 setForm((p) => ({ ...p, cardHolder: e.target.value }))
               }
-              placeholder="Name on card"
+              placeholder="e.g. John Doe"
               className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40"
             />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-white/50 mb-1.5">
-                Last 4 Digits
-              </label>
-              <input
-                required
-                maxLength={4}
-                value={form.last4}
-                onChange={(e) =>
-                  setForm((p) => ({
-                    ...p,
-                    last4: e.target.value.replace(/\D/g, ""),
-                  }))
-                }
-                placeholder="1234"
-                className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-white/50 mb-1.5">
-                Brand
-              </label>
-              <select
-                value={form.brand}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, brand: e.target.value }))
-                }
-                className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/40"
-              >
-                {["Visa", "Mastercard", "Amex", "Other"].map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-white/50 mb-1.5">
-                Expiry Month (MM)
+              <label className="block text-xs font-semibold uppercase text-white/60 mb-1">
+                Expiry Month
               </label>
               <input
                 required
@@ -239,13 +283,13 @@ function SaveCardModal({
                     expiryMonth: e.target.value.replace(/\D/g, ""),
                   }))
                 }
-                placeholder="12"
+                placeholder="MM (e.g. 08)"
                 className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40"
               />
             </div>
             <div>
-              <label className="block text-xs text-white/50 mb-1.5">
-                Expiry Year (YYYY)
+              <label className="block text-xs font-semibold uppercase text-white/60 mb-1">
+                Expiry Year
               </label>
               <input
                 required
@@ -257,22 +301,23 @@ function SaveCardModal({
                     expiryYear: e.target.value.replace(/\D/g, ""),
                   }))
                 }
-                placeholder="2028"
+                placeholder="YYYY (e.g. 2028)"
                 className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40"
               />
             </div>
           </div>
+
           <button
             type="submit"
             disabled={saving}
-            className="w-full flex items-center justify-center gap-2 bg-white text-black rounded-xl py-2.5 text-sm font-bold hover:bg-white/90 transition-colors disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 bg-white text-black rounded-xl py-2.5 text-sm font-bold hover:bg-neutral-200 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {saving ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <CheckCircle className="w-4 h-4" />
             )}
-            {saving ? "Saving…" : "Save Card & Unlock Bonus"}
+            {saving ? "Saving…" : "Save Card & Unlock +2 Bonus Months"}
           </button>
         </form>
       </div>
@@ -280,7 +325,7 @@ function SaveCardModal({
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// ── Main Profile Page ─────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
   const { data: authSession } = useSession();
@@ -291,14 +336,13 @@ export default function ProfilePage() {
     () => false,
   );
 
-  // ── Core user state ──
+  // ── Core User State ──
   const [backendUser, setBackendUser] = useState<AuthUser | null>(() =>
     typeof window !== "undefined" ? getAuthSession().user : null,
   );
-  const [userLoading, setUserLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [activeSubmenu, setActiveSubmenu] = useState<SubmenuTab>("overview");
 
-  // ── Data state ──
+  // ── Data State ──
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
   const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>([]);
@@ -309,50 +353,156 @@ export default function ProfilePage() {
   const [activityStreak, setActivityStreak] =
     useState<UserActivityStreakData | null>(null);
   const [activityStreakLoading, setActivityStreakLoading] = useState(true);
+  const [fitnessGoalData, setFitnessGoalData] =
+    useState<FitnessGoalResponse | null>(null);
+  const [fitnessGoalLoading, setFitnessGoalLoading] = useState(true);
+
   const [activeSubscriptionData, setActiveSubscriptionData] = useState<{
     planName?: string;
     startDate?: string | Date;
     expiryDate?: string | Date;
     [key: string]: unknown;
   } | null>(null);
+
   const [membershipBannerData, setMembershipBannerData] = useState<{
     status: "expiring_soon" | "expired" | "no_membership";
     planName: string;
     daysRemaining?: number;
     expiryDate?: string;
   } | null>(null);
+
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [renewPlan, setRenewPlan] = useState<PlanItem | null>(null);
   const [showSaveCardModal, setShowSaveCardModal] = useState(false);
 
-  // ── Derived ──
+  // ── Derived Identifiers ──
+  // ── Active Identity Reconciliation ──
+  // If the user is logged in via authSession, prioritize authSession's active credentials.
+  // Stale cached backendUser from a previous session must never override the currently active session!
+  const activeAuthEmail =
+    authSession?.user?.email ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_email") || ""
+      : "");
+
+  const isBackendMatching =
+    backendUser &&
+    activeAuthEmail &&
+    backendUser.email?.toLowerCase().trim() ===
+      activeAuthEmail.toLowerCase().trim();
+
+  const effectiveUser = isBackendMatching
+    ? backendUser
+    : backendUser && !activeAuthEmail
+      ? backendUser
+      : null;
+
   const resolvedUserId =
+    effectiveUser?.id ||
+    effectiveUser?._id ||
     authSession?.user?.id ||
-    backendUser?.id ||
-    backendUser?._id ||
     (typeof window !== "undefined"
       ? (localStorage.getItem("fitora_user_email") ?? undefined)
       : undefined);
+
   const userEmail =
-    backendUser?.email || authSession?.user?.email || "athlete@fitora.com";
-  const userName = backendUser?.name || authSession?.user?.name || "Athlete";
-  const userInitial = userName.charAt(0).toUpperCase();
-  const userRole = backendUser?.role || "athlete";
-  const userPlan = backendUser?.plan || "Free Pass";
+    activeAuthEmail || effectiveUser?.email || "athlete@fitora.com";
+  const userName =
+    effectiveUser?.name ||
+    authSession?.user?.name ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_name") || ""
+      : "") ||
+    "Athlete";
+  const userInitial = userName.charAt(0).toUpperCase() || "A";
+  const userPlan = effectiveUser?.plan || "Free Pass";
   const isPremium =
     userPlan !== "Free Pass" && !userPlan.toLowerCase().includes("free");
 
-  // ── Fetch user from backend ──
+  const [avatarError, setAvatarError] = useState(false);
+  const userAvatar =
+    effectiveUser?.avatarUrl ||
+    effectiveUser?.image ||
+    (authSession?.user as any)?.image ||
+    (authSession?.user as any)?.avatarUrl ||
+    (typeof window !== "undefined"
+      ? (() => {
+          try {
+            const u = JSON.parse(localStorage.getItem("fitora_user") || "{}");
+            if (
+              !activeAuthEmail ||
+              (u.email &&
+                u.email.toLowerCase().trim() ===
+                  activeAuthEmail.toLowerCase().trim())
+            ) {
+              return u.avatarUrl || u.image || "";
+            }
+            return "";
+          } catch {
+            return "";
+          }
+        })()
+      : "");
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [userAvatar]);
+
+  // ── Fetch User Profile from Backend ──
   const fetchUser = useCallback(async () => {
-    setUserLoading(true);
+    const session = getAuthSession();
+    const targetEmail =
+      authSession?.user?.email ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("fitora_user_email") || ""
+        : "") ||
+      session.user?.email ||
+      backendUser?.email;
+
+    const targetUserId =
+      authSession?.user?.id ||
+      session.user?.id ||
+      session.user?._id ||
+      backendUser?.id ||
+      backendUser?._id;
+
+    if (!targetUserId && !targetEmail && !session.token) return;
+
     const res = await getCurrentUserApi({
-      userId: authSession?.user?.id || backendUser?.id || backendUser?._id,
-      email: authSession?.user?.email || backendUser?.email,
+      userId: targetUserId,
+      email: targetEmail,
+      name: authSession?.user?.name || session.user?.name,
+      image: (authSession?.user as any)?.image || session.user?.avatarUrl,
+      avatarUrl: (authSession?.user as any)?.image || session.user?.avatarUrl,
     });
-    if (res.success && res.user) setBackendUser(res.user);
-    setUserLoading(false);
-  }, [authSession?.user?.id, authSession?.user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    if (res.success && res.user) {
+      setBackendUser(res.user);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("fitora_user", JSON.stringify(res.user));
+          if (res.user.email) {
+            localStorage.setItem("fitora_user_email", res.user.email);
+          }
+          if (res.user.name) {
+            localStorage.setItem("fitora_user_name", res.user.name);
+          }
+          if (res.user.role) {
+            localStorage.setItem("fitora_user_role", res.user.role);
+            localStorage.setItem("fitora_active_role", res.user.role);
+          }
+          if (res.user.plan) {
+            localStorage.setItem("fitora_user_plan", res.user.plan);
+          }
+        } catch {}
+      }
+    }
+  }, [
+    authSession?.user?.id,
+    authSession?.user?.email,
+    authSession?.user?.name,
+  ]);
 
   useEffect(() => {
     fetchUser();
@@ -364,26 +514,29 @@ export default function ProfilePage() {
       if (s.user) setBackendUser(s.user);
     };
     window.addEventListener(AUTH_SESSION_UPDATED, sync);
-    return () => window.removeEventListener(AUTH_SESSION_UPDATED, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(AUTH_SESSION_UPDATED, sync);
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
-  // ── QR Code generation ──
+  // ── QR Code Generation ──
   useEffect(() => {
     const qrValue =
       backendUser?.qrCodeId || `FITORA-${backendUser?.email || "member"}`;
     if (typeof window === "undefined") return;
-    // Simple QR via API
     setQrDataUrl(
       `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrValue)}&size=200x200&bgcolor=000000&color=ffffff&margin=10`,
     );
   }, [backendUser?.qrCodeId, backendUser?.email]);
 
-  // ── Load all data ──
+  // ── Load All Dynamic Profile Data ──
   useEffect(() => {
     if (!resolvedUserId) return;
     let cancelled = false;
 
-    const load = async () => {
+    const loadData = async () => {
       const token =
         typeof window !== "undefined"
           ? localStorage.getItem("fitora_token") ||
@@ -398,6 +551,7 @@ export default function ProfilePage() {
       setIsLoadingDailyPlan(true);
       setBmiLoading(true);
       setActivityStreakLoading(true);
+      setFitnessGoalLoading(true);
 
       const [
         workoutsRes,
@@ -406,6 +560,7 @@ export default function ProfilePage() {
         paymentsRes,
         bmiRes,
         streakRes,
+        goalRes,
       ] = await Promise.allSettled([
         getWorkoutLogs(String(resolvedUserId), 30).catch(() => ({ logs: [] })),
         getDailyMealPlan(String(resolvedUserId)).catch(() => ({
@@ -423,6 +578,12 @@ export default function ProfilePage() {
         fetchUserActivityStreakApi(String(resolvedUserId), userEmail).catch(
           () => null,
         ),
+        fetch(`${apiUrl}/goals/${encodeURIComponent(String(resolvedUserId))}`, {
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
       ]);
 
       if (cancelled) return;
@@ -458,15 +619,26 @@ export default function ProfilePage() {
       if (streakRes.status === "fulfilled")
         setActivityStreak(streakRes.value as UserActivityStreakData);
       setActivityStreakLoading(false);
+
+      if (
+        goalRes.status === "fulfilled" &&
+        goalRes.value?.success &&
+        goalRes.value?.data
+      ) {
+        setFitnessGoalData(goalRes.value.data);
+      } else {
+        setFitnessGoalData(null);
+      }
+      setFitnessGoalLoading(false);
     };
 
-    load();
+    loadData();
     return () => {
       cancelled = true;
     };
-  }, [resolvedUserId, userEmail]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [resolvedUserId, userEmail]);
 
-  // ── Membership banner ──
+  // ── Membership Expiry Banner Evaluation ──
   useEffect(() => {
     const plan = backendUser?.plan || "Free Pass";
     const rawExpiry =
@@ -505,7 +677,7 @@ export default function ProfilePage() {
     backendUser?.subscriptionExpiryDate,
   ]);
 
-  // ── Workout event sync ──
+  // ── Event Listener for Workout Log Sync ──
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = () => {
@@ -523,7 +695,7 @@ export default function ProfilePage() {
     try {
       await logoutUser();
     } catch {}
-    toast.success("Logged out. See you soon! 👋");
+    toast.success("Logged out successfully. Keep training, Champion! 👋");
     setTimeout(() => {
       window.location.href = "/";
     }, 400);
@@ -533,15 +705,15 @@ export default function ProfilePage() {
     const ok = await deleteBmiHistory(id);
     if (ok) {
       setBmiHistory((prev) => prev.filter((h) => h._id !== id));
-      toast.success("BMI record deleted");
-    } else toast.error("Failed to delete");
+      toast.success("Calculation record removed");
+    } else toast.error("Failed to delete record");
   };
 
   const handleDeleteCard = async () => {
-    if (!confirm("Remove saved card?")) return;
+    if (!confirm("Remove this saved card from your account?")) return;
     const res = await deleteSavedCardApi();
     if (res.success) {
-      toast.success("Card removed");
+      toast.success("Card removed successfully");
       await fetchUser();
     } else toast.error(res.message || "Failed to remove card");
   };
@@ -561,13 +733,13 @@ export default function ProfilePage() {
 
   const resolvedMembership: MembershipData = (() => {
     const planName =
-      activeSubscriptionData?.planName || backendUser?.plan || "Free Pass";
+      activeSubscriptionData?.planName || effectiveUser?.plan || "Free Pass";
     const startDate =
-      activeSubscriptionData?.startDate || backendUser?.createdAt || null;
+      activeSubscriptionData?.startDate || effectiveUser?.createdAt || null;
     const expiryDate =
       activeSubscriptionData?.expiryDate ||
-      backendUser?.subscriptionExpiryDate ||
-      backendUser?.membershipExpiresAt ||
+      effectiveUser?.subscriptionExpiryDate ||
+      effectiveUser?.membershipExpiresAt ||
       null;
     if (isFreePlan(planName))
       return { planName, startDate: null, expiryDate: null };
@@ -578,532 +750,802 @@ export default function ProfilePage() {
   })();
 
   const currentGoalKey =
+    effectiveUser?.fitnessGoal ||
     mealChart?.goals?.fitnessGoal ||
-    backendUser?.fitnessGoal ||
     "Bulking & Muscle Gain";
 
-  const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    {
-      key: "overview",
-      label: "Overview",
-      icon: <LayoutDashboard className="w-4 h-4" />,
-    },
-    {
-      key: "gympass",
-      label: "Gym Pass & QR",
-      icon: <QrCode className="w-4 h-4" />,
-    },
-    {
-      key: "workouts",
-      label: "Workouts & Nutrition",
-      icon: <Dumbbell className="w-4 h-4" />,
-    },
-    {
-      key: "subscription",
-      label: "Subscription & Card",
-      icon: <CreditCard className="w-4 h-4" />,
-    },
-  ];
+  // ── Dynamic Weight & Goal Progress Calculations ──
+  const currentWeight = Number(effectiveUser?.weight || 0);
+  const targetWeight = Number(
+    effectiveUser?.targetWeight || fitnessGoalData?.goal?.targetWeight || 0,
+  );
+  const weightDifference = Math.abs(currentWeight - targetWeight);
+  const isWeightLoss = currentWeight > targetWeight;
+  const isGoalReached =
+    currentWeight > 0 && targetWeight > 0 && currentWeight === targetWeight;
+
+  const weightProgress =
+    currentWeight > 0 && targetWeight > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            100 -
+              (weightDifference / Math.max(currentWeight, targetWeight)) * 100,
+          ),
+        )
+      : 0;
 
   if (!isMounted) return null;
 
   return (
-    <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black">
-      {membershipBannerData && (
-        <MembershipExpiryBanner
-          status={membershipBannerData.status}
-          planName={membershipBannerData.planName}
-          daysRemaining={membershipBannerData.daysRemaining}
-          expiryDate={membershipBannerData.expiryDate}
-          onAction={handleOpenRenew}
-        />
-      )}
+    <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-6 sm:py-8 px-3 sm:px-6 select-none">
+      <div className="w-11/12 max-w-7xl mx-auto space-y-6 sm:space-y-8">
+        {/* ── Expiry / Action Alert Banner ── */}
+        {membershipBannerData && (
+          <MembershipExpiryBanner
+            status={membershipBannerData.status}
+            planName={membershipBannerData.planName}
+            daysRemaining={membershipBannerData.daysRemaining}
+            expiryDate={membershipBannerData.expiryDate}
+            onAction={handleOpenRenew}
+          />
+        )}
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-        {/* Trial banner */}
+        {/* ── 3-Day Free Trial Countdown Banner ── */}
         {backendUser?.isTrialActive && backendUser.trialExpiresAt && (
           <TrialCountdownBanner trialExpiresAt={backendUser.trialExpiresAt} />
         )}
 
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* ── Athlete Profile Header (No Dashboard Route, Clean Profile Only) ── */}
+        <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col md:flex-row md:items-center md:justify-between gap-5 h-auto">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-2xl font-black overflow-hidden">
-              {backendUser?.avatarUrl ? (
+            <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/25 flex items-center justify-center text-2xl font-black overflow-hidden shrink-0 shadow-inner">
+              {userAvatar && !avatarError ? (
                 <img
-                  src={backendUser.avatarUrl}
+                  src={userAvatar}
                   alt={userName}
+                  onError={() => setAvatarError(true)}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span>{userInitial}</span>
+                <span className="text-white">{userInitial}</span>
               )}
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">{userName}</h1>
-              <p className="text-sm text-white/50 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5" /> {userEmail}
-              </p>
-              {backendUser?.assignedBranch && (
-                <p className="text-xs text-white/40 flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-3 h-3" /> {backendUser.assignedBranch}
-                </p>
-              )}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                  {userName}
+                </h1>
+                <span
+                  className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border tracking-wider ${
+                    isPremium
+                      ? "bg-white text-black border-white"
+                      : "bg-white/10 text-white/70 border-white/20"
+                  }`}
+                >
+                  {userPlan}
+                </span>
+                {effectiveUser?.isTrialActive && (
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    Pro Trial
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 text-xs text-white/60 flex-wrap">
+                <span className="flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-white/40" /> {userEmail}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-white/40" />{" "}
+                  {effectiveUser?.assignedBranch ||
+                    "Dhaka • Gulshan-2 Branch (Flagship)"}
+                </span>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={`text-xs px-3 py-1 rounded-full border font-semibold ${isPremium ? "border-white/30 text-white bg-white/10" : "border-white/10 text-white/50"}`}
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Link
+              href="/profile/edit"
+              className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/20 text-white/80 hover:text-black hover:bg-white transition-all cursor-pointer shadow-sm"
             >
-              {userPlan}
-            </span>
-            {(userRole === "master_admin" || userRole === "branch_admin") && (
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-colors"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
-              </Link>
-            )}
+              <span>Edit Profile</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-all cursor-pointer"
             >
-              <LogOut className="w-3.5 h-3.5" /> Logout
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
             </button>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-white/10 scrollbar-none">
-          {TABS.map((t) => (
+        {/* ── Submenu Navigation (Clean Sections, No All Overview) ── */}
+        <div className="flex items-center gap-2 border-b border-white/10 pb-2 overflow-x-auto scrollbar-none">
+          {[
+            {
+              key: "overview",
+              label: "Overview & Biometrics",
+              icon: <User className="w-4 h-4" />,
+            },
+            {
+              key: "workouts",
+              label: "Workouts & Gym Pass",
+              icon: <Dumbbell className="w-4 h-4" />,
+            },
+            {
+              key: "nutrition",
+              label: "Nutrition & Meal Plan",
+              icon: <Utensils className="w-4 h-4" />,
+            },
+            {
+              key: "billing",
+              label: "Billing & Cards",
+              icon: <CreditCard className="w-4 h-4" />,
+            },
+          ].map((tab) => (
             <button
-              key={t.key}
-              onClick={() => setActiveTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${activeTab === t.key ? "bg-white text-black" : "text-white/50 hover:text-white hover:bg-white/5"}`}
+              key={tab.key}
+              onClick={() => setActiveSubmenu(tab.key as SubmenuTab)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
+                activeSubmenu === tab.key
+                  ? "bg-white text-black border-white shadow-lg scale-[1.01]"
+                  : "bg-black text-white/60 border-white/15 hover:border-white/40 hover:text-white"
+              }`}
             >
-              {t.icon}
-              {t.label}
+              {tab.icon}
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
 
-        {/* ── TAB 1: OVERVIEW ── */}
-        {activeTab === "overview" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-white" />
-                <h3 className="text-sm font-semibold text-white">
-                  Activity Streak
-                </h3>
+        {/* ══════════════════════════════════════════════════════════════════════
+            SUBMENU 1: OVERVIEW & BIOMETRICS
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeSubmenu === "overview" && (
+          <div className="space-y-6">
+            {/* Row 1: 3-Column Cockpit Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 items-stretch">
+              {/* Card 1: Membership Status Card */}
+              <div className="h-auto">
+                <MembershipStatusCard
+                  membership={resolvedMembership}
+                  onRenew={handleOpenRenew}
+                />
               </div>
-              {activityStreakLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin text-white/40" />
-              ) : (
-                <div className="space-y-1">
-                  <p className="text-4xl font-black text-white">
-                    {activityStreak?.currentStreak ??
-                      backendUser?.attendanceStreakDays ??
-                      0}
-                    <span className="text-base font-normal text-white/40 ml-1">
-                      days
+
+              {/* Card 2: Personal Details & Biometrics */}
+              <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-auto space-y-5">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-white/60" />
+                      <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                        Personal Details
+                      </h2>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                      Active
                     </span>
-                  </p>
-                  {activityStreak?.longestStreak != null && (
-                    <p className="text-xs text-white/40">
-                      Best: {activityStreak.longestStreak} days
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-white" />
-                <h3 className="text-sm font-semibold text-white">
-                  Hydration Target
-                </h3>
-              </div>
-              <p className="text-4xl font-black text-white">
-                {backendUser?.hydrationTargetLiters ?? 3.5}
-                <span className="text-base font-normal text-white/40 ml-1">
-                  L / day
-                </span>
-              </p>
-              <p className="text-xs text-white/40">
-                Daily goal from your health profile
-              </p>
-            </div>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-white" />
-                <h3 className="text-sm font-semibold text-white">Quick Info</h3>
-              </div>
-              <div className="space-y-2 text-sm">
-                {backendUser?.phone && (
-                  <div className="flex items-center gap-2 text-white/60">
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>{backendUser.phone}</span>
                   </div>
-                )}
-                {backendUser?.fitnessGoal && (
-                  <div className="flex items-center gap-2 text-white/60">
-                    <Dumbbell className="w-3.5 h-3.5" />
-                    <span>{backendUser.fitnessGoal}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 text-white/60">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span className="capitalize">
-                    {userRole.replace("_", " ")}
-                  </span>
-                </div>
-                {backendUser?.totalPaidBDT != null &&
-                  backendUser.totalPaidBDT > 0 && (
-                    <div className="flex items-center gap-2 text-white/60">
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>
-                        Total paid: ৳{backendUser.totalPaidBDT.toLocaleString()}
+
+                  <div className="space-y-3 text-xs sm:text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Full Name</span>
+                      <span className="text-white font-bold truncate text-right">
+                        {userName}
                       </span>
                     </div>
-                  )}
-              </div>
-            </div>
-            <div className="md:col-span-2 xl:col-span-3">
-              <ActivityHeatmap
-                userId={resolvedUserId ? String(resolvedUserId) : undefined}
-              />
-            </div>
-            <div className="md:col-span-2 xl:col-span-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-white" />
-                  <h3 className="text-sm font-semibold text-white">
-                    BMI History
-                  </h3>
-                </div>
-                <Link
-                  href="/bmi-calculator"
-                  className="text-xs px-3 py-1 rounded-full border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition-colors"
-                >
-                  + New Calc
-                </Link>
-              </div>
-              {bmiLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin text-white/40" />
-              ) : bmiHistory.length === 0 ? (
-                <p className="text-sm text-white/40">
-                  No BMI calculations yet.
-                </p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left">
-                    <thead>
-                      <tr className="text-white/30 border-b border-white/5">
-                        <th className="py-2 pr-4">Date</th>
-                        <th className="py-2 pr-4">BMI</th>
-                        <th className="py-2 pr-4">Weight</th>
-                        <th className="py-2 pr-4">BMR</th>
-                        <th className="py-2 pr-4">TDEE</th>
-                        <th className="py-2" />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bmiHistory.slice(0, 10).map((b) => (
-                        <tr
-                          key={b._id}
-                          className="border-b border-white/5 text-white/60"
-                        >
-                          <td className="py-1.5 pr-4">
-                            {new Date(b.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="py-1.5 pr-4 font-mono">
-                            {b.bmi.toFixed(1)}
-                          </td>
-                          <td className="py-1.5 pr-4">{b.weight} kg</td>
-                          <td className="py-1.5 pr-4">
-                            {Math.round(b.bmr)} kcal
-                          </td>
-                          <td className="py-1.5 pr-4">
-                            {Math.round(b.tdee)} kcal
-                          </td>
-                          <td className="py-1.5">
-                            <button
-                              onClick={() => handleDeleteBmi(b._id)}
-                              className="text-white/30 hover:text-white/70 transition-colors"
-                              aria-label="Delete"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ── TAB 2: GYM PASS & QR ── */}
-        {activeTab === "gympass" && (
-          <div className="flex flex-col items-center gap-6">
-            <div className="w-full max-w-sm rounded-3xl border border-white/15 bg-gradient-to-br from-white/10 via-white/5 to-white/10 p-6 space-y-5 shadow-xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-white/40 uppercase tracking-widest">
-                    Fitora
-                  </p>
-                  <p className="text-lg font-black text-white">Member Pass</p>
-                </div>
-                <span
-                  className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${isPremium ? "border-white/30 bg-white/10 text-white" : "border-white/10 text-white/40"}`}
-                >
-                  {userPlan}
-                </span>
-              </div>
-              <div className="flex justify-center">
-                {qrDataUrl ? (
-                  <img
-                    src={qrDataUrl}
-                    alt="Gym entry QR code"
-                    className="w-44 h-44 rounded-xl border border-white/10"
-                  />
-                ) : (
-                  <div className="w-44 h-44 rounded-xl border border-white/10 flex items-center justify-center">
-                    <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Email</span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {userEmail}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Phone</span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.phone || "Not linked"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Gender</span>
+                      <span className="text-white font-semibold truncate text-right capitalize">
+                        {effectiveUser?.gender || "Not specified"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">
+                        Body Weight
+                      </span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.weight
+                          ? `${effectiveUser.weight} kg`
+                          : "Not set"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Height</span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.height
+                          ? `${effectiveUser.height} cm`
+                          : "Not set"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">
+                        Activity Level
+                      </span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.activityLevel ||
+                          "Moderate (3-4 days/week)"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">
+                        Daily Water Target
+                      </span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.hydrationTargetLiters
+                          ? `${effectiveUser.hydrationTargetLiters} L / Day`
+                          : "3.0 L / Day"}
+                      </span>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="space-y-1 text-center">
-                <p className="text-sm font-semibold text-white">{userName}</p>
-                <p className="text-xs text-white/40">{userEmail}</p>
-                {backendUser?.assignedBranch && (
-                  <p className="text-xs text-white/30 flex items-center justify-center gap-1">
-                    <MapPin className="w-3 h-3" /> {backendUser.assignedBranch}
-                  </p>
-                )}
-              </div>
-              {backendUser?.qrCodeId && (
-                <div className="text-center">
-                  <p className="text-xs font-mono text-white/30 tracking-wider">
-                    {backendUser.qrCodeId}
-                  </p>
                 </div>
-              )}
-              {(backendUser?.membershipExpiresAt ||
-                backendUser?.subscriptionExpiryDate) && (
-                <div className="flex items-center justify-center gap-1.5 text-xs text-white/40">
-                  <Calendar className="w-3.5 h-3.5" />
-                  Valid until:{" "}
-                  {new Date(
-                    String(
-                      backendUser.membershipExpiresAt ||
-                        backendUser.subscriptionExpiryDate,
-                    ),
-                  ).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+
+                <div className="pt-4 border-t border-white/15">
+                  <Link
+                    href="/calculator"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+                  >
+                    <span>Recalculate Metrics</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+                  </Link>
                 </div>
-              )}
+              </div>
+
+              {/* Card 3: Consistency Streak */}
+              <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-auto space-y-5">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Flame className="w-4 h-4 text-white" />
+                      <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                        Consistency Streak
+                      </h2>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/60 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
+                      Live Score
+                    </span>
+                  </div>
+
+                  {activityStreakLoading ? (
+                    <div className="py-6 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl sm:text-5xl font-black text-white">
+                          {activityStreak?.currentStreak ??
+                            effectiveUser?.attendanceStreakDays ??
+                            0}
+                        </span>
+                        <span className="text-sm font-semibold uppercase text-white/60">
+                          Consecutive Days
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-white/60 leading-relaxed">
+                        {activityStreak?.longestStreak != null &&
+                        activityStreak.longestStreak > 0
+                          ? `Personal record: ${activityStreak.longestStreak} days uninterrupted training streak.`
+                          : "Check in via the gym turnstile or log a workout session to build your streak!"}
+                      </p>
+
+                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex items-center justify-between text-xs text-white/70">
+                        <span>Consistency Rating</span>
+                        <span className="font-mono font-bold text-white">
+                          {(activityStreak?.currentStreak ?? 0) > 5
+                            ? "Elite Athlete ⚡"
+                            : "Active Member"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-white/15">
+                  <Link
+                    href="/stopwatch"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Start Live Workout Session</span>
+                  </Link>
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-white/30 text-center max-w-xs">
-              Show this QR code at the gym entrance for contactless check-in.
-              The code is linked to your account.
-            </p>
-            {!activityStreakLoading && (
-              <div className="flex items-center gap-2 text-sm text-white/50">
-                <Flame className="w-4 h-4 text-white" />
-                <span>
-                  Current streak:{" "}
-                  <strong className="text-white">
-                    {activityStreak?.currentStreak ??
-                      backendUser?.attendanceStreakDays ??
-                      0}
-                  </strong>{" "}
-                  days
-                </span>
+
+            {/* Row 2: 2-Column Grid (Weight Progress + Calculation History) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+              {/* Weight Progress & Milestone (5 cols on lg) */}
+              <div className="lg:col-span-5 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-auto space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-white/60" />
+                      <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                        Weight Progress
+                      </h2>
+                    </div>
+                    <span className="text-xs font-black text-white px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 font-mono">
+                      {fitnessGoalLoading
+                        ? "..."
+                        : `${Math.round(weightProgress)}%`}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="h-3 w-full overflow-hidden rounded-full border border-white/10 bg-neutral-900">
+                      <div
+                        className="h-full rounded-full bg-white transition-all duration-700"
+                        style={{ width: `${weightProgress}%` }}
+                      />
+                    </div>
+
+                    <div className="flex justify-between text-[11px] font-bold text-white/50 font-mono">
+                      <span>
+                        Current:{" "}
+                        {currentWeight > 0 ? `${currentWeight} kg` : "--"}
+                      </span>
+                      <span>
+                        Target: {targetWeight > 0 ? `${targetWeight} kg` : "--"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-neutral-950 p-3.5">
+                    {isGoalReached ? (
+                      <>
+                        <p className="text-xs font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Goal Reached 🎉</span>
+                        </p>
+                        <p className="mt-1 text-xs text-white/60">
+                          Outstanding! You reached your target body weight.
+                        </p>
+                      </>
+                    ) : targetWeight > 0 ? (
+                      <>
+                        <p className="text-xs font-black uppercase text-white">
+                          {weightDifference.toFixed(1)} kg{" "}
+                          {isWeightLoss
+                            ? "remaining to shed"
+                            : "remaining to gain"}
+                        </p>
+                        <p className="mt-1 text-xs text-white/60">
+                          Stay disciplined with nutrition and workout routines.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs font-black uppercase text-white/70">
+                          No Target Goal Set
+                        </p>
+                        <p className="mt-1 text-xs text-white/50">
+                          Set your target body weight in the calculator to track
+                          daily progress.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/15">
+                  <Link
+                    href="/calculator"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+                  >
+                    <span>Adjust Target Weight</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+                  </Link>
+                </div>
               </div>
-            )}
+
+              {/* Calculation History Table (7 cols on lg) */}
+              <div className="lg:col-span-7 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-auto space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3 flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-white/60" />
+                      <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                        Calculation History
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-white/50 font-medium">
+                        {bmiHistory.length} Records Saved
+                      </span>
+                      <Link
+                        href="/calculator"
+                        className="text-xs px-2.5 py-0.5 rounded-full border border-white/20 text-white/70 hover:text-black hover:bg-white transition-all cursor-pointer"
+                      >
+                        + New
+                      </Link>
+                    </div>
+                  </div>
+
+                  {bmiLoading ? (
+                    <div className="py-8 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                    </div>
+                  ) : bmiHistory.length === 0 ? (
+                    <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
+                      <TrendingUp className="w-8 h-8 text-white/20" />
+                      <h3 className="text-sm font-black uppercase text-white">
+                        No Calculation History
+                      </h3>
+                      <p className="text-xs text-white/50 max-w-xs">
+                        Your saved BMI, BMR, and TDEE calculations will appear
+                        here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="w-full">
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="text-white/40 border-b border-white/10 uppercase tracking-wider text-[10px]">
+                            <th className="py-2 pr-3">Date</th>
+                            <th className="py-2 pr-3">BMI</th>
+                            <th className="py-2 pr-3">Weight</th>
+                            <th className="py-2 pr-3">BMR</th>
+                            <th className="py-2 pr-3">TDEE</th>
+                            <th className="py-2 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bmiHistory.slice(0, 5).map((b) => (
+                            <tr
+                              key={b._id}
+                              className="border-b border-white/5 text-white/70 hover:text-white transition-colors"
+                            >
+                              <td className="py-2 pr-3">
+                                {new Date(b.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                  },
+                                )}
+                              </td>
+                              <td className="py-2 pr-3 font-mono font-bold text-white">
+                                {b.bmi.toFixed(1)}
+                              </td>
+                              <td className="py-2 pr-3">{b.weight} kg</td>
+                              <td className="py-2 pr-3">
+                                {Math.round(b.bmr)} kcal
+                              </td>
+                              <td className="py-2 pr-3">
+                                {Math.round(b.tdee)} kcal
+                              </td>
+                              <td className="py-2 text-right">
+                                <button
+                                  onClick={() => handleDeleteBmi(b._id)}
+                                  className="text-white/30 hover:text-red-400 transition-colors p-1 cursor-pointer"
+                                  aria-label="Delete calculation"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-white/15">
+                  <Link
+                    href="/calculator"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+                  >
+                    <span>Open Full BMI & Macro Studio</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* ── TAB 3: WORKOUTS & NUTRITION ── */}
-        {activeTab === "workouts" && (
+        {/* ══════════════════════════════════════════════════════════════════════
+            SUBMENU 2: WORKOUTS & GYM PASS
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeSubmenu === "workouts" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Dumbbell className="w-4 h-4 text-white" />
-                  <h3 className="text-sm font-semibold text-white">
-                    Workout History
-                  </h3>
+            {/* Row 1: 365-Day Heatmap (8 cols) + Digital Gym Pass (4 cols) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+              <div className="lg:col-span-8 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] h-auto">
+                <ActivityHeatmap
+                  userId={resolvedUserId ? String(resolvedUserId) : undefined}
+                />
+              </div>
+
+              <div className="lg:col-span-4 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between space-y-4 h-auto">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                    <div className="flex items-center gap-2">
+                      <QrCode className="w-4 h-4 text-white" />
+                      <h3 className="text-sm font-extrabold uppercase text-white tracking-wide">
+                        Digital Gym Pass
+                      </h3>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white font-mono">
+                      {userPlan}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-center p-2">
+                    {qrDataUrl ? (
+                      <img
+                        src={qrDataUrl}
+                        alt="Gym turnstile entry QR"
+                        className="w-40 h-40 rounded-xl border border-white/20 bg-white p-1.5 shadow-md"
+                      />
+                    ) : (
+                      <div className="w-40 h-40 rounded-xl border border-white/20 flex items-center justify-center bg-white/5">
+                        <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-center space-y-1">
+                    <p className="text-xs font-mono text-white/60 tracking-wider">
+                      {backendUser?.qrCodeId ||
+                        `FITORA-${resolvedUserId ? String(resolvedUserId).slice(-6) : "PASS"}`}
+                    </p>
+                    <p className="text-[11px] text-white/40">
+                      Scan at turnstile for instant contactless gym entry
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/15 text-center">
+                  <span className="text-[11px] text-emerald-400 font-semibold flex items-center justify-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> Turnstile Sync
+                    Active (64 Branches)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Row 2: Gym & Workout History */}
+            <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] space-y-5 h-auto">
+              <div className="flex items-center justify-between border-b border-white/20 pb-4 flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <Dumbbell className="w-5 h-5 text-white" />
+                  <div>
+                    <h2 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                      Gym & Workout History
+                    </h2>
+                    <p className="text-xs text-white/50">
+                      Track logged workout sets, repetitions, weights, and rest
+                      intervals
+                    </p>
+                  </div>
                 </div>
                 <Link
-                  href="/workouts"
-                  className="text-xs px-3 py-1 rounded-full border border-white/15 text-white/50 hover:text-white hover:border-white/30 transition-colors"
+                  href="/stopwatch"
+                  className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-white text-black hover:bg-neutral-200 transition-colors shadow-sm"
                 >
-                  + Log Workout
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Start Stopwatch HUD</span>
                 </Link>
               </div>
+
               {isLoadingWorkouts ? (
-                <Loader2 className="w-5 h-5 animate-spin text-white/40" />
+                <div className="py-12 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+                </div>
               ) : workoutLogs.length === 0 ? (
-                <p className="text-sm text-white/40">
-                  No workouts logged yet. Start your first session!
-                </p>
+                <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
+                  <Dumbbell className="w-10 h-10 text-white/20" />
+                  <h3 className="text-base font-black uppercase text-white">
+                    No Workouts Logged Yet
+                  </h3>
+                  <p className="text-xs text-white/50 max-w-sm">
+                    Your training history is currently clear. Fire up the Live
+                    Workout Stopwatch to record your sets!
+                  </p>
+                  <Link
+                    href="/stopwatch"
+                    className="mt-2 inline-flex items-center gap-2 bg-white text-black font-bold text-xs px-5 py-2.5 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-lg"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>Start First Session</span>
+                  </Link>
+                </div>
               ) : (
-                <div className="space-y-2">
-                  {workoutLogs.slice(0, 10).map((log) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {workoutLogs.slice(0, 6).map((log) => (
                     <div
                       key={log._id}
-                      className="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0"
+                      className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between space-y-3 hover:border-white/25 transition-all h-auto"
                     >
                       <div>
-                        <p className="text-sm font-medium text-white">
-                          {log.exerciseName || "Workout"}
-                        </p>
-                        <p className="text-xs text-white/40">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="text-sm font-bold text-white truncate">
+                            {log.exerciseName || "General Workout"}
+                          </h4>
+                          <span className="text-[10px] font-mono text-white/40 flex items-center gap-1 shrink-0">
+                            <Clock className="w-3 h-3 text-white/60" />
+                            {log.durationMinutes
+                              ? `${log.durationMinutes}m`
+                              : "—"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-white/40 mt-1">
                           {new Date(
                             log.date || log.createdAt || Date.now(),
-                          ).toLocaleDateString()}
-                          {log.durationMinutes
-                            ? ` · ${log.durationMinutes} min`
-                            : ""}
-                          {log.caloriesBurned
-                            ? ` · ${log.caloriesBurned} kcal`
-                            : ""}
+                          ).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          })}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1 text-white/30">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span className="text-xs">
-                          {log.durationMinutes
-                            ? `${log.durationMinutes}m`
-                            : "—"}
-                        </span>
+
+                      <div className="space-y-2 pt-2 border-t border-white/5">
+                        <div className="flex items-center justify-between text-xs text-white/70">
+                          <span className="font-bold uppercase text-[10px] tracking-wider text-white/60">
+                            {log.setsCount
+                              ? `${log.setsCount} Sets`
+                              : "Completed"}
+                            {log.repsCount ? ` • ${log.repsCount} Reps` : ""}
+                          </span>
+                          {log.weight && log.weight > 0 ? (
+                            <span className="font-mono font-bold text-white">
+                              {log.weight} kg
+                            </span>
+                          ) : null}
+                        </div>
+                        {log.notes && (
+                          <p className="text-[11px] text-white/50 bg-black px-2.5 py-1.5 rounded-lg border border-white/5 truncate">
+                            {log.notes}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-            <PersonalizedNutritionPlan
-              user={backendUser}
-              fitnessGoal={currentGoalKey}
-            />
-            {isLoadingDailyPlan ? (
-              <Loader2 className="w-5 h-5 animate-spin text-white/40" />
-            ) : (
-              <SavedMealPlan
-                meals={dailyPlanMeals}
-                isLoading={isLoadingDailyPlan}
-              />
-            )}
           </div>
         )}
 
-        {/* ── TAB 4: SUBSCRIPTION & CARD ── */}
-        {activeTab === "subscription" && (
-          <div className="space-y-5">
-            {!backendUser?.isTrialActive && !isPremium && (
-              <div className="rounded-xl border border-white/15 bg-white/[0.03] p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="space-y-1 flex-1">
-                  <p className="text-sm font-bold text-white flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" /> Upgrade to Premium
-                  </p>
-                  <p className="text-xs text-white/50">
-                    Save your card and buy 1 month → get{" "}
-                    <span className="text-white font-semibold">
-                      3 months total
-                    </span>{" "}
-                    (2 bonus months FREE)!
-                  </p>
+        {/* ══════════════════════════════════════════════════════════════════════
+            SUBMENU 3: NUTRITION & MEAL PLAN (2-COLUMN GRID)
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeSubmenu === "nutrition" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-start">
+            <div className="h-auto">
+              <PersonalizedNutritionPlan
+                user={backendUser}
+                planName={activeSubscriptionData?.planName || backendUser?.plan}
+                fitnessGoal={currentGoalKey}
+                onUpgradeClick={handleOpenRenew}
+              />
+            </div>
+
+            <div className="h-auto">
+              <SavedMealPlan
+                dailyPlanMeals={dailyPlanMeals}
+                isLoadingDailyPlan={isLoadingDailyPlan}
+                targetCalories={bmiHistory?.[0]?.tdee || 2400}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            SUBMENU 4: BILLING & CARDS (2-COLUMN GRID)
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeSubmenu === "billing" && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+            <div className="lg:col-span-7 h-auto">
+              <BillingSection />
+            </div>
+
+            <div className="lg:col-span-5 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between space-y-4 h-auto">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-white" />
+                    <h3 className="text-base font-extrabold uppercase text-white tracking-wide">
+                      Saved Payment Card
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                    +2 Bonus Mos
+                  </span>
                 </div>
-                <button
-                  onClick={handleOpenRenew}
-                  className="shrink-0 px-4 py-2 bg-white text-black rounded-xl text-sm font-bold hover:bg-white/90 transition-colors"
-                >
-                  Upgrade Now
-                </button>
-              </div>
-            )}
-            <MembershipStatusCard
-              membership={resolvedMembership}
-              onRenew={handleOpenRenew}
-            />
-            <BillingSection />
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-white" />
-                <h3 className="text-sm font-semibold text-white">Saved Card</h3>
-              </div>
-              {backendUser?.hasSavedCard && backendUser.savedCard ? (
-                <div className="space-y-3">
-                  <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <p className="text-sm font-semibold text-white">
-                        {backendUser.savedCard.brand} ····{" "}
-                        {backendUser.savedCard.last4}
-                      </p>
-                      <p className="text-xs text-white/40">
-                        {backendUser.savedCard.cardHolder} · Exp{" "}
-                        {backendUser.savedCard.expiryMonth}/
-                        {backendUser.savedCard.expiryYear}
-                      </p>
-                      <p className="text-xs text-white/30">
-                        Saved{" "}
-                        {new Date(
-                          backendUser.savedCard.savedAt,
-                        ).toLocaleDateString()}
-                      </p>
+
+                {backendUser?.hasSavedCard && backendUser.savedCard ? (
+                  <div className="space-y-3">
+                    <div className="rounded-xl border border-white/15 bg-white/5 p-4 flex items-center justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-white flex items-center gap-2">
+                          <span>{backendUser.savedCard.brand}</span>
+                          <span className="font-mono">
+                            •••• {backendUser.savedCard.last4}
+                          </span>
+                        </p>
+                        <p className="text-xs text-white/50">
+                          {backendUser.savedCard.cardHolder} · Exp{" "}
+                          {backendUser.savedCard.expiryMonth}/
+                          {backendUser.savedCard.expiryYear}
+                        </p>
+                        <p className="text-[10px] text-white/30">
+                          Saved on{" "}
+                          {new Date(
+                            backendUser.savedCard.savedAt,
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleDeleteCard}
+                        className="text-white/40 hover:text-red-400 transition-colors p-2 cursor-pointer"
+                        aria-label="Remove card"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
+
+                    <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5">
+                      <CheckCircle className="w-4 h-4 shrink-0" />
+                      <span>
+                        Bonus retention applied: 2 bonus months unlocked on your
+                        next subscription renewal!
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-xs sm:text-sm text-white/60 leading-relaxed">
+                      No card saved yet.{" "}
+                      <span className="text-white font-bold">
+                        Save your card now and get 2 bonus months FREE
+                      </span>{" "}
+                      automatically added to your account on your next
+                      subscription purchase!
+                    </p>
                     <button
-                      onClick={handleDeleteCard}
-                      className="text-white/30 hover:text-white/70 transition-colors p-2"
-                      aria-label="Remove card"
+                      onClick={() => setShowSaveCardModal(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white text-black text-xs font-bold hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Plus className="w-4 h-4" /> Save a Card & Get Bonus
                     </button>
                   </div>
-                  {backendUser.bonusMonthsAwarded != null &&
-                    backendUser.bonusMonthsAwarded > 0 && (
-                      <div className="flex items-center gap-2 text-xs text-white/50">
-                        <CheckCircle className="w-3.5 h-3.5 text-white" />
-                        <span>
-                          {backendUser.bonusMonthsAwarded} bonus month
-                          {backendUser.bonusMonthsAwarded > 1 ? "s" : ""}{" "}
-                          already awarded 🎉
-                        </span>
-                      </div>
-                    )}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-white/40">
-                    No card saved yet.{" "}
-                    <span className="text-white">
-                      Save now and get 2 bonus months FREE
-                    </span>{" "}
-                    on your next monthly subscription purchase!
-                  </p>
-                  <button
-                    onClick={() => setShowSaveCardModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/15 text-sm text-white/60 hover:text-white hover:border-white/30 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" /> Save a Card
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="pt-3 border-t border-white/15 text-center">
+                <p className="text-[11px] text-white/40">
+                  Secured with 256-bit TLS encryption & PCI-DSS compliance
+                </p>
+              </div>
             </div>
           </div>
         )}
       </div>
 
+      {/* ── Membership Renewal / Upgrade Modal ── */}
       {isRenewModalOpen && renewPlan && (
         <SubscriptionModal
           plan={renewPlan}
@@ -1112,11 +1554,13 @@ export default function ProfilePage() {
           onClose={() => setIsRenewModalOpen(false)}
           onSuccess={() => {
             setIsRenewModalOpen(false);
-            toast.success("🎉 Membership updated!");
+            toast.success("🎉 Membership updated successfully!");
             setTimeout(() => window.location.reload(), 800);
           }}
         />
       )}
+
+      {/* ── Save Card Modal ── */}
       {showSaveCardModal && (
         <SaveCardModal
           onClose={() => setShowSaveCardModal(false)}

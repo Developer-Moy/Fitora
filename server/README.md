@@ -89,53 +89,69 @@ server/
 ## 📡 Complete REST API Endpoints Catalog
 
 ### 🔐 Authentication & Session (`/api/auth`)
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :---: | :--- |
-| `POST` | `/api/auth/register` | Public | Register new athlete; automatically triggers **3-Day Free Premium Trial**. |
-| `POST` | `/api/auth/login` | Public | Standard member login; returns signed JWT and trial/membership metadata. |
-| `POST` | `/api/auth/dashboard-login` | Admin Only | Admin login strictly restricted to `master_admin` and `branch_admin`. |
-| `GET` | `/api/auth/me` | Authenticated | Fetches current user profile, active trial status, and saved card flags. |
-| `POST` | `/api/auth/logout` | Authenticated | Invalidates session and clears active cookies. |
+
+| Method | Endpoint                    |    Access     | Description                                                                |
+| :----- | :-------------------------- | :-----------: | :------------------------------------------------------------------------- |
+| `POST` | `/api/auth/register`        |    Public     | Register new athlete; automatically triggers **3-Day Free Premium Trial**. |
+| `POST` | `/api/auth/login`           |    Public     | Standard member login; returns signed JWT and trial/membership metadata.   |
+| `POST` | `/api/auth/dashboard-login` |  Admin Only   | Admin login strictly restricted to `master_admin` and `branch_admin`.      |
+| `GET`  | `/api/auth/me`              | Authenticated | Fetches current user profile, active trial status, and saved card flags.   |
+| `POST` | `/api/auth/logout`          | Authenticated | Invalidates session and clears active cookies.                             |
 
 ### 👤 User Profile & Wallet Management (`/api/users`)
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :---: | :--- |
-| `PATCH` | `/api/users/profile` | Authenticated | Update athlete bio, phone, assigned branch, and fitness goals in MongoDB. |
-| `PATCH` | `/api/users/profile/health-metrics` | Authenticated | Persist BMR, TDEE, height, and weight to athlete record. |
-| `GET` | `/api/users/activity/streak` | Authenticated | Dynamic consistency streak calculation, milestone badges & 180-day matrix. |
-| `POST` | `/api/users/saved-card` | Authenticated | Securely save masked payment card details to user profile in MongoDB. |
-| `DELETE` | `/api/users/saved-card` | Authenticated | Remove saved card from authenticated user profile. |
+
+| Method   | Endpoint                            |    Access     | Description                                                                |
+| :------- | :---------------------------------- | :-----------: | :------------------------------------------------------------------------- |
+| `PATCH`  | `/api/users/profile`                | Authenticated | Update athlete bio, phone, assigned branch, and fitness goals in MongoDB.  |
+| `PATCH`  | `/api/users/profile/health-metrics` | Authenticated | Persist BMR, TDEE, height, and weight to athlete record.                   |
+| `GET`    | `/api/users/activity/streak`        | Authenticated | Dynamic consistency streak calculation, milestone badges & 180-day matrix. |
+| `POST`   | `/api/users/saved-card`             | Authenticated | Securely save masked payment card details to user profile in MongoDB.      |
+| `DELETE` | `/api/users/saved-card`             | Authenticated | Remove saved card from authenticated user profile.                         |
 
 ### 💳 Payments, Invoicing & Subscriptions (`/api/payments`)
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :---: | :--- |
-| `POST` | `/api/payments/checkout` | Authenticated | Server-authoritative checkout (bKash, Nagad, Card, Stripe) with 90-day retention bonus logic. |
-| `GET` | `/api/payments/me` | Authenticated | Retrieve athlete's complete transaction ledger and active subscription details. |
-| `GET` | `/api/payments/invoices/:id/pdf` | Authenticated | Download vector PDF invoice for a completed payment. |
-| `POST` | `/api/payments/toggle-auto-renew` | Authenticated | Toggle subscription auto-renewal without losing active paid period benefits. |
-| `POST` | `/api/payments/change-plan` | Authenticated | Switch membership tier (Basic Pass, Pro Athlete, VIP Ultimate) dynamically. |
+
+| Method | Endpoint                          |    Access     | Description                                                                                   |
+| :----- | :-------------------------------- | :-----------: | :-------------------------------------------------------------------------------------------- |
+| `POST` | `/api/payments/checkout`          | Authenticated | Server-authoritative checkout (bKash, Nagad, Card, Stripe) with 90-day retention bonus logic. |
+| `GET`  | `/api/payments/me`                | Authenticated | Retrieve athlete's complete transaction ledger and active subscription details.               |
+| `GET`  | `/api/payments/invoices/:id/pdf`  | Authenticated | Download vector PDF invoice for a completed payment.                                          |
+| `POST` | `/api/payments/toggle-auto-renew` | Authenticated | Toggle subscription auto-renewal without losing active paid period benefits.                  |
+| `POST` | `/api/payments/change-plan`       | Authenticated | Switch membership tier (Basic Pass, Pro Athlete, VIP Ultimate) dynamically.                   |
 
 ### 🏋️ Workouts & Exercises (`/api/workouts`, `/api/exercises`)
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :---: | :--- |
-| `GET` | `/api/exercises` | Authenticated | Retrieve exercise directory with category, difficulty, and muscle group filters. |
-| `GET` | `/api/workouts/advanced` | Premium/Admin | Gated advanced workout routines protected by `requirePremiumTier`. |
-| `POST` | `/api/workouts/log` | Authenticated | Log completed workout session with exercises, duration, and calories burned. |
-| `GET` | `/api/workouts/logs/:userId` | Authenticated | Retrieve chronological workout history for an athlete. |
+
+| Method   | Endpoint                               |    Access     | Description                                                                      |
+| :------- | :------------------------------------- | :-----------: | :------------------------------------------------------------------------------- |
+| `GET`    | `/api/exercises`                       | Authenticated | Retrieve exercise directory with category, difficulty, and muscle group filters. |
+| `GET`    | `/api/workouts/advanced`               | Premium/Admin | Gated advanced workout routines protected by `requirePremiumTier`.               |
+| `POST`   | `/api/workouts/log`                    | Authenticated | Log completed workout session with exercises, duration, and calories burned.     |
+| `GET`    | `/api/workouts/log`                    | Authenticated | Retrieve chronological workout history and summary for an athlete.               |
+| `DELETE` | `/api/workouts/log/:id`                | Authenticated | Delete a specific logged workout entry.                                          |
+| `GET`    | `/api/workouts/pr-history/:exerciseId` | Authenticated | Fetch athlete personal record (1RM) history for a specific exercise.             |
+
+### 📏 BMI & Health Metrics (`/api/bmi`)
+
+| Method   | Endpoint               |    Access     | Description                                                                           |
+| :------- | :--------------------- | :-----------: | :------------------------------------------------------------------------------------ |
+| `POST`   | `/api/bmi/history`     | Optional Auth | Save BMI calculation record with auto-binding to authenticated athlete or guest user. |
+| `GET`    | `/api/bmi/history`     | Optional Auth | Retrieve chronological BMI calculation history for athlete.                           |
+| `DELETE` | `/api/bmi/history/:id` | Optional Auth | Delete individual BMI ledger record.                                                  |
 
 ### 🏢 Branches & Attendance (`/api/branches`)
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :---: | :--- |
-| `GET` | `/api/branches/public` | Public | List all 64 nationwide branches with server-side regex search and division filter. |
-| `POST` | `/api/branches/checkin` | Authenticated | Turnstile contactless check-in via athlete QR code scan. |
-| `GET` | `/api/branches/:branchId/checkins` | Admin Only | Live attendance stream with dynamic search by member name or email. |
+
+| Method | Endpoint                           |    Access     | Description                                                                        |
+| :----- | :--------------------------------- | :-----------: | :--------------------------------------------------------------------------------- |
+| `GET`  | `/api/branches/public`             |    Public     | List all 64 nationwide branches with server-side regex search and division filter. |
+| `POST` | `/api/branches/checkin`            | Authenticated | Turnstile contactless check-in via athlete QR code scan.                           |
+| `GET`  | `/api/branches/:branchId/checkins` |  Admin Only   | Live attendance stream with dynamic search by member name or email.                |
 
 ### 🔔 Notifications (`/api/notifications`)
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :---: | :--- |
-| `GET` | `/api/notifications` | Authenticated | Fetch newest notifications with dynamic unread counter. |
-| `PATCH` | `/api/notifications/:id/read` | Authenticated | Mark individual notification as read. |
-| `PATCH` | `/api/notifications/read-all` | Authenticated | Mark all notifications as read. |
+
+| Method  | Endpoint                      |    Access     | Description                                             |
+| :------ | :---------------------------- | :-----------: | :------------------------------------------------------ |
+| `GET`   | `/api/notifications`          | Authenticated | Fetch newest notifications with dynamic unread counter. |
+| `PATCH` | `/api/notifications/:id/read` | Authenticated | Mark individual notification as read.                   |
+| `PATCH` | `/api/notifications/read-all` | Authenticated | Mark all notifications as read.                         |
 
 ---
 
@@ -157,6 +173,7 @@ Business calculations are separated from Express controllers inside `server/src/
 ## 🗄️ Database Models & Schema Invariants
 
 ### 1. Single Master Admin Schema Invariant (`User.model.ts`)
+
 ```typescript
 userSchema.pre("save", function (next) {
   if (this.role === "master_admin") {
@@ -174,6 +191,7 @@ userSchema.pre("save", function (next) {
 ```
 
 ### 2. User Document Highlights
+
 - `trialExpiresAt`: Timestamp defining the expiration of the 3-Day Free Premium Trial.
 - `bonusMonthsAwarded`: Counter tracking retention bonus months granted to the member.
 - `savedCard`: Masked payment card metadata (`last4`, `brand`, `expiryMonth`, `expiryYear`, `cardHolder`, `savedAt`).
@@ -196,6 +214,7 @@ userSchema.pre("save", function (next) {
 ## ⚡ Real-Time Socket.IO Telemetry
 
 The server runs an integrated Socket.IO server on port 5000:
+
 - **`connection`**: Handshake and room assignment by branch or user ID.
 - **`branch:checkin`**: Broadcasts live turnstile check-in events to branch admin dashboards.
 - **`timer:sync`**: Synchronizes rest timer HUD telemetry across open athlete sessions.

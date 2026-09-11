@@ -112,9 +112,40 @@ export async function getWorkoutLogs(
   return { logs, summary };
 }
 
+export async function deleteWorkoutLog(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/workouts/log/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function getPRHistory(exerciseId: string): Promise<any[]> {
+  try {
+    const res = await fetch(`${API_URL}/workouts/pr-history/${exerciseId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export {
   getHeatmapData,
   type HeatmapDaySummary,
   type HeatmapDataResult,
 } from "./heatmapService";
-

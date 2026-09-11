@@ -65,9 +65,16 @@ export default function BillingSection() {
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const [userInfo, setUserInfo] = useState<{ name: string; email: string }>({
+  const [userInfo, setUserInfo] = useState<{
+    name: string;
+    email: string;
+    phone?: string;
+    branch?: string;
+  }>({
     name: "",
     email: "",
+    phone: "",
+    branch: "",
   });
 
   // Subscription management state
@@ -90,7 +97,18 @@ export default function BillingSection() {
       setError("");
 
       if (user) {
-        setUserInfo({ name: user.name || "", email: user.email || "" });
+        setUserInfo({
+          name: user.name || "",
+          email: user.email || "",
+          phone:
+            (user as any).phone ||
+            (user as any).phoneNumber ||
+            "+880 1700-000000",
+          branch:
+            (user as any).assignedBranch ||
+            (user as any).branch ||
+            "Gulshan-2 Flagship Branch",
+        });
         setCurrentPlan(user.plan || "Free Pass");
         setAutoRenew((user as any).autoRenew ?? true);
         setCancelAtPeriodEnd((user as any).cancelAtPeriodEnd ?? false);
@@ -216,6 +234,7 @@ export default function BillingSection() {
     setModalOpen(true);
     setTimeout(() => {
       if (typeof window !== "undefined") {
+        document.body.classList.add("printing-invoice");
         window.print();
       }
     }, 300);
@@ -559,6 +578,10 @@ export default function BillingSection() {
       <InvoiceModal
         payment={selectedPayment as Payment}
         userInfo={userInfo}
+        athleteName={userInfo.name}
+        athleteEmail={userInfo.email}
+        athletePhone={userInfo.phone}
+        assignedBranch={userInfo.branch}
         isOpen={modalOpen && !!selectedPayment}
         onClose={closeInvoice}
       />

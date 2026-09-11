@@ -126,6 +126,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         workoutCount,
         workoutsThisMonth: workoutsThisMonth || workoutCount,
         burnedCalories,
+        caloriesBurned: burnedCalories,
         totalHours,
         streakDays,
         targetWorkouts,
@@ -1484,25 +1485,49 @@ export const saveSavedCard = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
-      return res.status(401).json(errorResponse("Unauthorized", "UNAUTHORIZED", 401));
+      return res
+        .status(401)
+        .json(errorResponse("Unauthorized", "UNAUTHORIZED", 401));
     }
-    const { last4, brand, expiryMonth, expiryYear, cardHolder, token } = req.body;
+    const { last4, brand, expiryMonth, expiryYear, cardHolder, token } =
+      req.body;
     if (!last4 || !brand || !expiryMonth || !expiryYear || !cardHolder) {
-      return res.status(400).json(errorResponse("Missing card details", "VALIDATION_ERROR", 400));
+      return res
+        .status(400)
+        .json(errorResponse("Missing card details", "VALIDATION_ERROR", 400));
     }
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json(errorResponse("User not found", "NOT_FOUND", 404));
+      return res
+        .status(404)
+        .json(errorResponse("User not found", "NOT_FOUND", 404));
     }
-    user.savedCard = { last4, brand, expiryMonth, expiryYear, cardHolder, token, savedAt: new Date() };
+    user.savedCard = {
+      last4,
+      brand,
+      expiryMonth,
+      expiryYear,
+      cardHolder,
+      token,
+      savedAt: new Date(),
+    };
     await user.save({ validateModifiedOnly: true });
     return res.status(200).json(
       successResponse("Card saved successfully", {
-        savedCard: { last4, brand, expiryMonth, expiryYear, cardHolder, savedAt: user.savedCard.savedAt },
+        savedCard: {
+          last4,
+          brand,
+          expiryMonth,
+          expiryYear,
+          cardHolder,
+          savedAt: user.savedCard.savedAt,
+        },
       }),
     );
   } catch (error: any) {
-    return res.status(500).json(errorResponse("Failed to save card", error.message, 500));
+    return res
+      .status(500)
+      .json(errorResponse("Failed to save card", error.message, 500));
   }
 };
 
@@ -1514,17 +1539,25 @@ export const deleteSavedCard = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {
-      return res.status(401).json(errorResponse("Unauthorized", "UNAUTHORIZED", 401));
+      return res
+        .status(401)
+        .json(errorResponse("Unauthorized", "UNAUTHORIZED", 401));
     }
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json(errorResponse("User not found", "NOT_FOUND", 404));
+      return res
+        .status(404)
+        .json(errorResponse("User not found", "NOT_FOUND", 404));
     }
     user.savedCard = undefined;
     await user.save({ validateModifiedOnly: true });
-    return res.status(200).json(successResponse("Card removed successfully", {}));
+    return res
+      .status(200)
+      .json(successResponse("Card removed successfully", {}));
   } catch (error: any) {
-    return res.status(500).json(errorResponse("Failed to remove card", error.message, 500));
+    return res
+      .status(500)
+      .json(errorResponse("Failed to remove card", error.message, 500));
   }
 };
 
