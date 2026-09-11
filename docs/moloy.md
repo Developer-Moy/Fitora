@@ -399,3 +399,41 @@ These components form the responsive header, hero section, pricing, callouts, co
     - Interactive horizontal milestone badge strip highlighting achieved badges.
   - Upgraded `getDashboardStats` in `user.controller.ts` to dynamically calculate calendar streak if not already persisted, ensuring member dashboard check-in streak is 100% dynamic.
   - Verified 100% clean builds across both server (`npm run build`) and client (`npx tsc --noEmit`) with 0 errors.
+
+### 11-Sep-26 (Day 6)
+
+- **Single Master Admin Protection & Schema Enforcement**:
+  - Enforced single master admin rule at Mongoose schema level (`server/src/models/User.model.ts`): only `master@fitora.com` can hold `role: "master_admin"`.
+  - Pre-save Mongoose hook strictly rejects any registration or user update attempting to assign `master_admin` to any email other than `master@fitora.com`.
+  - Purged redundant mock master admin accounts and normalized the Master Admin profile name.
+- **Strict Dashboard Access Policy (Admin-Only)**:
+  - Restricted `/dashboard` access strictly to authorized administrators (`master_admin` and `branch_admin`).
+  - Completely blocked free and premium athletes from dashboard administrative routes, directing them to the newly architected Member Hub (`/profile`).
+- **Dynamic Button-Triggered Search with Explicit Clear Buttons**:
+  - Removed search input from global Navbar (`client/src/components/Navbar.tsx`) and moved search into dedicated contextual sections.
+  - Replaced input-on-change search with deliberate button-triggered search (clicking "Search" button or pressing `Enter`) to eliminate unnecessary API requests.
+  - Added dedicated, visible "Clear" buttons that reset the search input, clear active filters, and query MongoDB directly for the full unfiltered dataset.
+  - Eliminated all client-side array filtering (`.filter()`, `.slice()`) in favor of direct MongoDB database queries across User Management, Branch Management, and Attendance Feeds.
+- **3-Day Free Premium Trial Engine**:
+  - Extended `User.model.ts` and `userSchema` with `trialExpiresAt?: Date`, `bonusMonthsAwarded?: number`, and `savedCard?: object`.
+  - Updated `registerUser` in `server/src/controllers/auth.controller.ts`: automatically initializes `trialExpiresAt = Date.now() + 3 days` (72 hours) upon registration.
+  - Updated `loginUser`, `dashboardLogin`, and `getCurrentUser` (`/api/auth/me`) to return `trialExpiresAt`, `isTrialActive`, and `hasSavedCard`.
+  - Implemented dynamic `TrialCountdownBanner` in `client/src/app/profile/page.tsx` displaying real-time countdown (days, hours, minutes, seconds) for active trials.
+- **Saved Card & 2 Bonus Months Retention Engine**:
+  - Integrated card retention incentive into `server/src/controllers/payment.controller.ts` (`checkoutPayment`):
+    - When a user purchases a monthly subscription with `saveCard = true`, the server automatically overrides the expiration date to **90 days** (1 month purchase + 2 bonus months FREE), granting 3 months total access.
+    - Sets `bonusMonthsAwarded = 2` and persists masked card details (`last4`, `brand`, `expiryMonth`, `expiryYear`, `cardHolder`, `savedAt`) to the MongoDB user document.
+  - Added authenticated REST endpoints in `server/src/controllers/user.controller.ts` and `server/src/routes/user.routes.ts`:
+    - `POST /api/users/saved-card`: Securely saves or updates masked payment card metadata.
+    - `DELETE /api/users/saved-card`: Removes saved card from user profile.
+  - Added client API methods `saveCardApi()` and `deleteSavedCardApi()` in `client/src/services/dashboardService.ts`.
+  - Extended `AuthUser` interface in `client/src/services/authService.ts` with trial and saved card fields.
+- **Complete `/profile` Transformation into All-in-One Member Hub**:
+  - Architected and fully rewrote `client/src/app/profile/page.tsx` into a high-performance, 4-tab luxury monochrome Member Hub (`bg-black border border-white/15`):
+    1. **Overview / My Fitness**: Live activity streak counter, hydration daily target, quick profile summary, 365-day dynamic `ActivityHeatmap`, and real-time BMI history table with one-click record deletion.
+    2. **Gym Pass & QR**: Digital luxury membership pass for contactless check-in, high-contrast QR code generated from `user.qrCodeId`, branch details, and live validity status.
+    3. **Workouts & Nutrition**: Live workout logs from MongoDB with duration & calories burned, `PersonalizedNutritionPlan` tailored to fitness goals, and `SavedMealPlan` schedule.
+    4. **Subscription & Card**: `MembershipStatusCard`, renewal modal, complete invoice billing history (`BillingSection`), and Saved Card Manager (view masked card, delete card, or save a card to unlock 2 bonus months free).
+- **100% Zero-Error Compilation & Verification**:
+  - Server TypeScript build (`cd server && npm run build` -> `tsc`): **0 Errors** (Exit 0).
+  - Client TypeScript validation (`cd client && npx tsc --noEmit`): **0 Errors** (Exit 0).
