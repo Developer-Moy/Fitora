@@ -501,3 +501,55 @@ export async function updateUserHydrationTargetApi(
     return false;
   }
 }
+
+/**
+ * Save a payment card to the authenticated user's profile.
+ * POST /api/users/saved-card
+ */
+export async function saveCardApi(cardDetails: {
+  last4: string;
+  brand: string;
+  expiryMonth: string;
+  expiryYear: string;
+  cardHolder: string;
+  token?: string;
+}): Promise<{ success: boolean; message: string; savedCard?: object }> {
+  try {
+    const res = await fetch(`${API_URL}/users/saved-card`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      body: JSON.stringify(cardDetails),
+    });
+    const data = await res.json().catch(() => null);
+    return {
+      success: res.ok && !!data?.success,
+      message: data?.message || (res.ok ? "Card saved" : "Failed to save card"),
+      savedCard: data?.data?.savedCard,
+    };
+  } catch {
+    return { success: false, message: "Network error saving card" };
+  }
+}
+
+/**
+ * Remove the saved card from the authenticated user's profile.
+ * DELETE /api/users/saved-card
+ */
+export async function deleteSavedCardApi(): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  try {
+    const res = await fetch(`${API_URL}/users/saved-card`, {
+      method: "DELETE",
+      headers: { ...getAuthHeader() },
+    });
+    const data = await res.json().catch(() => null);
+    return {
+      success: res.ok && !!data?.success,
+      message: data?.message || (res.ok ? "Card removed" : "Failed to remove card"),
+    };
+  } catch {
+    return { success: false, message: "Network error removing card" };
+  }
+}

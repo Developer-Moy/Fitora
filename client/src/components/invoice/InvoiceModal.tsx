@@ -37,10 +37,12 @@ export interface InvoiceData {
   branch?: string;
 }
 
-interface InvoiceModalProps {
+export interface InvoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  transaction: InvoiceData | null;
+  transaction?: InvoiceData | null;
+  payment?: any;
+  userInfo?: { name?: string; email?: string };
   athleteName?: string;
   athleteEmail?: string;
   athletePhone?: string;
@@ -50,12 +52,22 @@ interface InvoiceModalProps {
 export default function InvoiceModal({
   isOpen,
   onClose,
-  transaction,
-  athleteName,
-  athleteEmail,
+  transaction: propTransaction,
+  payment,
+  userInfo,
+  athleteName: propAthleteName,
+  athleteEmail: propAthleteEmail,
   athletePhone,
   assignedBranch = "Gulshan-2 Flagship Branch",
 }: InvoiceModalProps) {
+  const transaction = (propTransaction || payment) as InvoiceData | null;
+  const athleteName =
+    propAthleteName || userInfo?.name || transaction?.userName || "Athlete";
+  const athleteEmail =
+    propAthleteEmail ||
+    userInfo?.email ||
+    transaction?.userEmail ||
+    "athlete@fitora.com";
   const [copied, setCopied] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 

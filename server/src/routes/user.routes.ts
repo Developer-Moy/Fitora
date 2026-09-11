@@ -13,6 +13,8 @@ import {
   updateHydrationTarget,
   updateOwnProfile,
   getUserActivityStreak,
+  saveSavedCard,
+  deleteSavedCard,
 } from "../controllers/user.controller";
 import {
   authMiddleware,
@@ -88,4 +90,9 @@ router.patch("/profile", authMiddleware, updateOwnProfile);
 router.get("/activity/streak", authMiddleware, getUserActivityStreak);
 router.get("/activity-streak", authMiddleware, getUserActivityStreak);
 
+// ── Saved Card Management ────────────────────────────────────────────────────
+router.post("/saved-card", authMiddleware, saveSavedCard);
+router.delete("/saved-card", authMiddleware, deleteSavedCard);
+
 export default router;
+

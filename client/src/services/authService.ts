@@ -42,6 +42,22 @@ export interface AuthUser {
   updatedAt?: string;
   membershipExpiresAt?: string | Date | null;
   subscriptionExpiryDate?: string | Date | null;
+  attendanceStreakDays?: number;
+  hydrationTargetLiters?: number;
+  // Trial engine
+  trialExpiresAt?: string | null;
+  isTrialActive?: boolean;
+  // Card retention
+  hasSavedCard?: boolean;
+  bonusMonthsAwarded?: number;
+  savedCard?: {
+    last4: string;
+    brand: string;
+    expiryMonth: string;
+    expiryYear: string;
+    cardHolder: string;
+    savedAt: string;
+  } | null;
 }
 
 export interface AuthResponse {

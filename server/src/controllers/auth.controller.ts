@@ -91,6 +91,8 @@ export const registerUser = async (req: Request, res: Response) => {
     const branchSlug = branch.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const qrCode = `FIT-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
+    const trialExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+
     const user = await User.create({
       name: name.trim(),
       email: cleanEmail,
@@ -107,6 +109,8 @@ export const registerUser = async (req: Request, res: Response) => {
       paymentMethod: "None",
       qrCodeId: qrCode,
       isMasterProtected: cleanEmail === "master@fitora.com",
+      trialExpiresAt,
+      bonusMonthsAwarded: 0,
     });
 
     const token = signUserToken(user);
@@ -126,6 +130,13 @@ export const registerUser = async (req: Request, res: Response) => {
           attendanceStreakDays: user.attendanceStreakDays,
           hydrationTargetLiters: user.hydrationTargetLiters,
           totalPaidBDT: user.totalPaidBDT,
+          trialExpiresAt: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt).toISOString()
+            : null,
+          isTrialActive: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt) > new Date()
+            : false,
+          hasSavedCard: false,
         },
       }),
     );
@@ -219,6 +230,23 @@ export const loginUser = async (req: Request, res: Response) => {
           totalPaidBDT: user.totalPaidBDT,
           membershipExpiresAt: user.membershipExpiresAt
             ? new Date(user.membershipExpiresAt).toISOString()
+            : null,
+          trialExpiresAt: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt).toISOString()
+            : null,
+          isTrialActive: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt) > new Date()
+            : false,
+          hasSavedCard: !!user.savedCard?.last4,
+          savedCard: user.savedCard?.last4
+            ? {
+                last4: user.savedCard.last4,
+                brand: user.savedCard.brand,
+                expiryMonth: user.savedCard.expiryMonth,
+                expiryYear: user.savedCard.expiryYear,
+                cardHolder: user.savedCard.cardHolder,
+                savedAt: new Date(user.savedCard.savedAt).toISOString(),
+              }
             : null,
         },
       }),
@@ -478,6 +506,27 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
           membershipExpiresAt: membershipExpiresAt
             ? new Date(membershipExpiresAt).toISOString()
             : null,
+          trialExpiresAt: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt).toISOString()
+            : null,
+          isTrialActive: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt) > new Date()
+            : false,
+          hasSavedCard: !!user.savedCard?.last4,
+          savedCard: user.savedCard?.last4
+            ? {
+                last4: user.savedCard.last4,
+                brand: user.savedCard.brand,
+                expiryMonth: user.savedCard.expiryMonth,
+                expiryYear: user.savedCard.expiryYear,
+                cardHolder: user.savedCard.cardHolder,
+                savedAt: new Date(user.savedCard.savedAt).toISOString(),
+              }
+            : null,
+          bonusMonthsAwarded: user.bonusMonthsAwarded ?? 0,
+          avatarUrl: user.avatarUrl || null,
+          fitnessGoal: user.fitnessGoal || null,
+          targetWeight: user.targetWeight || null,
         },
       }),
     );
