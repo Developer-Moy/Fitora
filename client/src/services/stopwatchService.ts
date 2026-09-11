@@ -32,6 +32,14 @@ export interface StopwatchPreset {
   isPublic: boolean;
 }
 
+export interface CustomRestPreset {
+  _id: string;
+  name: string;
+  duration: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export async function fetchStopwatchPresets(): Promise<StopwatchPreset[]> {
   try {
     const res = await fetch(`${API_URL}/stopwatch/presets`, {
@@ -81,12 +89,40 @@ export async function createCustomPreset(payload: {
   }
 }
 
-export async function completeStopwatchSession(payload: {
+export interface StopwatchSessionRecord {
+  _id: string;
+  userId: string;
+  presetId?: string;
   workoutType?: string;
   durationMinutes: number;
+  durationSeconds?: number;
+  setsCount?: number;
+  repsCount?: number;
+  weightKg?: number;
+  caloriesBurned?: number;
+  notes?: string;
+  completedAt: string;
+}
+
+export interface RecentSessionsData {
+  count: number;
+  sessions: StopwatchSessionRecord[];
+  todayGymSeconds: number;
+  todayCaloriesBurned: number;
+  todaySessionsCount: number;
+  todaySetsCount: number;
+}
+
+export async function completeStopwatchSession(payload: {
+  workoutType?: string;
+  durationMinutes?: number;
+  durationSeconds?: number;
+  setsCount?: number;
+  repsCount?: number;
   weightKg?: number;
   caloriesBurned?: number;
   presetId?: string;
+  notes?: string;
 }): Promise<boolean> {
   try {
     const res = await fetch(`${API_URL}/stopwatch/session-complete`, {
@@ -100,7 +136,9 @@ export async function completeStopwatchSession(payload: {
   }
 }
 
-export async function fetchRecentSessions(limit = 10) {
+export async function fetchRecentSessions(
+  limit = 10,
+): Promise<RecentSessionsData | null> {
   try {
     const res = await fetch(
       `${API_URL}/stopwatch/recent-sessions?limit=${limit}`,
@@ -109,10 +147,90 @@ export async function fetchRecentSessions(limit = 10) {
         cache: "no-store",
       },
     );
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.data) return null;
+    return {
+      count: data.data.count ?? (data.data.sessions?.length || 0),
+      sessions: data.data.sessions ?? [],
+      todayGymSeconds: data.data.todayGymSeconds ?? 0,
+      todayCaloriesBurned: data.data.todayCaloriesBurned ?? 0,
+      todaySessionsCount: data.data.todaySessionsCount ?? 0,
+      todaySetsCount: data.data.todaySetsCount ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function syncDailyGymTime(totalSeconds: number): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/stopwatch/sync-time`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      body: JSON.stringify({ totalSeconds }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function resetDailyGymTime(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/stopwatch/reset-today`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function fetchRestPresets(): Promise<CustomRestPreset[]> {
+  try {
+    const res = await fetch(`${API_URL}/stopwatch/rest-presets`, {
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      cache: "no-store",
+    });
     if (!res.ok) return [];
     const data = await res.json();
-    return data.data?.sessions ?? [];
+    return data.data ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function createRestPreset(payload: {
+  name: string;
+  duration: number;
+}): Promise<CustomRestPreset | null> {
+  try {
+    const res = await fetch(`${API_URL}/stopwatch/rest-preset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteRestPreset(id: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${API_URL}/stopwatch/rest-preset/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      },
+    );
+    return res.ok;
+  } catch {
+    return false;
   }
 }

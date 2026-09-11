@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -371,14 +372,6 @@ export default function FloatingAiWidget() {
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setIsOpen(false)}
-                      className="w-7 h-7 rounded-full bg-neutral-800 text-gray-300 hover:text-white flex items-center justify-center transition-colors shrink-0"
-                      title="Open Full Studio"
-                    >
-                      <Maximize2 className="w-3.5 h-3.5" />
-                    </Link>
                     <button
                       onClick={() => setIsOpen(false)}
                       className="w-7 h-7 rounded-full bg-neutral-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
@@ -554,10 +547,10 @@ export default function FloatingAiWidget() {
               setIsOpen(true);
             }
           }}
-          className={`group flex items-center justify-center bg-black text-white font-bold cursor-pointer border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] transition-all duration-300 z-[45] pointer-events-auto select-none ${
+          className={`group flex items-center justify-center font-bold cursor-pointer transition-all duration-300 z-[45] pointer-events-auto select-none ${
             isScrolled
-              ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
-              : "absolute bottom-[-2px] sm:bottom-[-2px] left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full hover:scale-110"
+              ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full bg-black text-white border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
+              : "absolute bottom-[-2px] sm:bottom-[-2px] left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black border-[3px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] hover:scale-110 active:scale-95"
           }`}
           aria-label="Open FITORA AI"
         >
@@ -570,7 +563,14 @@ export default function FloatingAiWidget() {
             </div>
           ) : (
             <div className="flex items-center justify-center">
-              <Sparkles className="w-4.5 h-4.5 sm:w-6 sm:h-6 fill-white stroke-none drop-shadow-[0_0_10px_rgba(255,255,255,0.9)] group-hover:rotate-12 transition-transform duration-300" />
+              <Image
+                src="/gemini-logo.png"
+                alt="Google Gemini"
+                width={36}
+                height={36}
+                className="w-6 h-6 sm:w-7 sm:h-7 object-contain group-hover:rotate-12 transition-transform duration-300 drop-shadow-[0_0_10px_rgba(66,133,244,0.5)]"
+                priority
+              />
             </div>
           )}
         </button>

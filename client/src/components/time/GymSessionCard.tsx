@@ -73,10 +73,10 @@ export const GymSessionCard: React.FC<GymSessionCardProps> = ({
         <button
           type="button"
           onClick={onToggleSync}
-          className="cursor-pointer hidden md:flex bg-[#1a1d24] hover:bg-[#242832] border border-white/25 rounded-full p-1 transition"
+          className="cursor-pointer hidden md:flex bg-black hover:bg-white/10 border border-white/20 rounded-full p-1 transition"
           title={isSynced ? "Live Cloud Synced" : "Offline Mode"}
         >
-          <ArrowUpRight className="w-3 h-3 text-zinc-300" />
+          <ArrowUpRight className="w-3 h-3 text-white" />
         </button>
       </div>
     </div>

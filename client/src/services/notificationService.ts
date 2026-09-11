@@ -1,0 +1,139 @@
+// client/src/services/notificationService.ts
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+export interface AppNotification {
+  _id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: "payment" | "renewal" | "system" | "invoice" | "upgrade" | "alert";
+  link?: string;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface NotificationResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    notifications: AppNotification[];
+    unreadCount: number;
+  };
+}
+
+function resolveHeaders(
+  token?: string,
+  email?: string,
+): Record<string, string> {
+  const resolvedToken =
+    token ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token") ||
+        ""
+      : "");
+
+  const resolvedEmail =
+    email ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_email") || ""
+      : "");
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (resolvedToken) {
+    headers["Authorization"] = `Bearer ${resolvedToken}`;
+  }
+  if (resolvedEmail) {
+    headers["x-user-email"] = resolvedEmail;
+  }
+
+  return headers;
+}
+
+/**
+ * Fetch authenticated user notifications
+ */
+export async function fetchNotificationsApi(
+  token?: string,
+  email?: string,
+): Promise<{
+  success: boolean;
+  notifications: AppNotification[];
+  unreadCount: number;
+}> {
+  try {
+    const headers = resolveHeaders(token, email);
+    const resolvedEmail =
+      email ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("fitora_user_email") || ""
+        : "");
+
+    const query = new URLSearchParams();
+    if (resolvedEmail) query.set("email", resolvedEmail);
+    const queryString = query.toString() ? `?${query.toString()}` : "";
+
+    const res = await fetch(`${BASE_URL}/notifications${queryString}`, {
+      headers,
+    });
+
+    if (!res.ok) {
+      return { success: false, notifications: [], unreadCount: 0 };
+    }
+
+    const json = await res.json();
+    return {
+      success: true,
+      notifications: json?.data?.notifications || [],
+      unreadCount: json?.data?.unreadCount || 0,
+    };
+  } catch (error) {
+    console.error("[Notification Service] fetchNotificationsApi Error:", error);
+    return { success: false, notifications: [], unreadCount: 0 };
+  }
+}
+
+/**
+ * Mark a single notification as read
+ */
+export async function markNotificationAsReadApi(
+  token?: string,
+  id?: string,
+  email?: string,
+): Promise<boolean> {
+  try {
+    if (!id) return false;
+    const headers = resolveHeaders(token, email);
+    const res = await fetch(`${BASE_URL}/notifications/${id}/read`, {
+      method: "PATCH",
+      headers,
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Mark all notifications as read
+ */
+export async function markAllNotificationsAsReadApi(
+  token?: string,
+  email?: string,
+): Promise<boolean> {
+  try {
+    const headers = resolveHeaders(token, email);
+    const res = await fetch(`${BASE_URL}/notifications/read-all`, {
+      method: "PATCH",
+      headers,
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}

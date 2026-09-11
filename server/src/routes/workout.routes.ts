@@ -1,11 +1,15 @@
 import { Router } from "express";
 import {
   getWorkouts,
+  getAdvancedWorkouts,
   getWorkoutById,
   getWorkoutLogs,
   createWorkoutLog,
   deleteWorkoutLog,
-} from "../controllers/workout.controller.js";
+   getPRHistory,
+} from "../controllers/workout.controller";
+import { authMiddleware } from "../middlewares/auth.middleware";
+import { requirePremiumTier } from "../middlewares/premium.middleware";
 
 const router = Router();
 
@@ -14,7 +18,20 @@ router.get("/log", getWorkoutLogs);
 router.post("/log", createWorkoutLog);
 router.delete("/log/:id", deleteWorkoutLog);
 
+// 1RM / PR History
+router.get(
+  "/pr-history/:exerciseId",
+  authMiddleware,
+  getPRHistory,
+);
+
 // Workout catalog routes
+router.get(
+  "/advanced",
+  authMiddleware,
+  requirePremiumTier,
+  getAdvancedWorkouts,
+);
 router.get("/", getWorkouts);
 router.get("/:id", getWorkoutById);
 

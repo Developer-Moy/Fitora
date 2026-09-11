@@ -13,7 +13,7 @@ Built the User Registration page and form layout with validation and session int
 
 ## Note on Homepage Cleanup
 
-*(Previous temporary homepage sections — `Coaches / Meet Our Trainers` (`TrainersSection` / `MeetTrainers`), `MealChartSection`, and `Advertisement` — were removed from `client/src/app/(main)/page.tsx` during the 1-to-1 design alignment to strictly follow the authoritative design reference `docs/fitora.png`)*.
+_(Previous temporary homepage sections — `Coaches / Meet Our Trainers` (`TrainersSection` / `MeetTrainers`), `MealChartSection`, and `Advertisement` — were removed from `client/src/app/(main)/page.tsx` during the 1-to-1 design alignment to strictly follow the authoritative design reference `docs/fitora.png`)_.
 
 ## 3. Healthy Meals Page (`/meals`)
 
@@ -46,9 +46,9 @@ Built the User Registration page and form layout with validation and session int
 ### Meal Chart API Implementation
 
 - Implemented the Meal Chart API endpoints:
-
   - `GET /api/meal-charts/getMealCharts?userId={userId}` — Fetch meal charts for a specific user.
   - `POST /api/meal-charts/createMealChart` — Create and save a meal plan.
+
 - The `GET /api/meal-charts/getMealCharts` endpoint requires a `userId` query parameter.
 
 ### Client Environment Variables
@@ -84,19 +84,16 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ## 25-Aug-26
 
 - `Fitora\client\src\app\meals\page.tsx`
-
   - Built and structured the Meals page.
   - Integrated meal data with the page layout.
   - Added a responsive listing structure for meal cards.
 
 - `Fitora\client\src\components\Meal\MealCard.tsx`
-
   - Created the reusable Meal Card component.
   - Displays essential meal information.
   - Added a **View Details** interaction for opening the meal details modal.
 
 - `Fitora\client\src\components\Meal\MealDetailsModal.tsx`
-
   - Created the meal details modal.
   - Displays detailed information such as **name, ingredients, calories, and description**.
   - Designed the modal following Fitora's existing UI style.
@@ -164,3 +161,40 @@ We built a feature that lets users save their favorite food items to a custom "D
 
 - Update Subscription Modal for Card Payment
 - Associate userId with PaymentTransaction and implement success verification
+  <https://drive.google.com/file/d/1SMZ4llPlW4lxYa1Yf_RBTCv7rQoEvmhL>
+
+## 07-Sep-26
+
+- Membership expiry warning system
+  <https://drive.google.com/file/d/1oCF9LZnxgxTWu22gh9QU6ijZh4aQKhW8>
+
+## 08-Sep-26
+
+- Extracted the Personalized Nutrition Plan section from the profile page into a standalone, reusable `PersonalizedNutritionPlan` component.
+- Implemented role and membership tier gating (`isFreePlan`): guest visitors see a locked sign-in banner, free users see an upgrade banner, and paid athletes access the full nutrition plan with 1-click recipe copy.
+
+## 09-Sep-26
+
+Implement copy grocery list and refactor saved meal plan
+
+- Extract SavedMealPlan section from profile page into dedicated component
+- Resolve hydration/refresh state persistence for saved meals
+- Add Copy Grocery List button with whitespace normalization and case-insensitive deduplication
+- Add clipboard copy handler with toast notifications and visual feedback
+
+Add daily calorie progress bar
+
+- Calculate total daily calories by summing calories across saved meals
+- Compute visual progress bar based on fixed 2950 kcal target [It will dynamically change in the future based on user profile settings, but for now it's hardcoded to 2950 kcal]
+- Display contextual calorie feedback (remaining, goal reached, or over target)
+- Match monochrome design aesthetic and place below grocery list action
+
+## 10-Sep-26
+
+Make activity heatmap dynamic with backend integration
+
+- Connected activity heatmap with the backend API
+- Created Heatmap database schema and model
+- Added heatmap controller and routes
+- Added frontend heatmap service for API communication
+- Updated activity tracking to display dynamic data from the database

@@ -12,11 +12,13 @@ export interface IPaymentTransaction extends Document {
   planId: string;
   planName: string;
   billingCycle: BillingCycle;
-  amount: number; // in USD (e.g. 25, 49, 99, 228, 468, 948)
+  amount: number;
   currency: string;
   paymentMethod: string;
   status: PaymentStatus;
   paidAt?: Date;
+  subscriptionStartDate?: Date;
+  subscriptionExpiryDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -79,6 +81,13 @@ const paymentTransactionSchema = new Schema<IPaymentTransaction>(
       type: String,
       required: true,
       default: "Card",
+    },
+    subscriptionStartDate: {
+      type: Date,
+    },
+
+    subscriptionExpiryDate: {
+      type: Date,
     },
     status: {
       type: String,

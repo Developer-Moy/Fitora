@@ -41,15 +41,33 @@ export type BranchAttendance = {
 };
 
 function authHeaders(): HeadersInit {
-  const token =
+  let token =
     typeof window !== "undefined"
       ? localStorage.getItem("fitora_token") ||
         localStorage.getItem("fitora_auth_token")
       : null;
 
+  if (!token && typeof window !== "undefined") {
+    const session = localStorage.getItem("fitora_auth_session");
+    if (session) {
+      try {
+        const parsed = JSON.parse(session);
+        token = parsed?.token || parsed?.access_token || null;
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  const userEmail =
+    typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_email")
+      : null;
+
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(userEmail ? { "x-user-email": userEmail } : {}),
   };
 }
 
@@ -112,9 +130,14 @@ export async function fetchBranchOccupancy(
 
 export async function fetchBranchCheckins(
   branchId: string,
+  search?: string,
 ): Promise<BranchAttendance> {
-  const response = await fetch(`${API_URL}/branches/${branchId}/checkins`, {
+  const url = search
+    ? `${API_URL}/branches/${branchId}/checkins?search=${encodeURIComponent(search)}`
+    : `${API_URL}/branches/${branchId}/checkins`;
+  const response = await fetch(url, {
     headers: authHeaders(),
+    cache: "no-store",
   });
   return readResponse<BranchAttendance>(
     response,

@@ -1,70 +1,41 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { WorkoutLog, IWorkoutLog } from "../models/WorkoutLog.model.js";
+import { WorkoutLog, IWorkoutLog } from "../models/WorkoutLog.model";
 import {
   LOCAL_WORKOUTS_DATABASE,
   WorkoutExercise,
 } from "../data/workout.data.js";
 import { successResponse, errorResponse } from "../utils/apiResponse";
-
-// In-memory fallback storage for offline development
-interface LocalLogItem {
-  _id: string;
-  userId: string;
-  exerciseName: string;
-  setsCount: number;
-  repsCount: number;
-  weight: number;
-  durationMinutes: number;
-  caloriesBurned: number;
-  notes: string;
-  date: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Initial sample logs for realistic local database experience
-const inMemoryWorkoutLogs: LocalLogItem[] = [
-  {
-    _id: "log-seed-01",
-    userId: "guest_user",
-    exerciseName: "Barbell Bench Press",
-    setsCount: 4,
-    repsCount: 10,
-    weight: 75,
-    durationMinutes: 20,
-    caloriesBurned: 120,
-    notes: "Felt strong on the last set, hit all 10 reps cleanly.",
-    date: new Date(Date.now() - 24 * 60 * 60 * 1000), // yesterday
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-  },
-  {
-    _id: "log-seed-02",
-    userId: "guest_user",
-    exerciseName: "Barbell Back Squat",
-    setsCount: 4,
-    repsCount: 8,
-    weight: 100,
-    durationMinutes: 25,
-    caloriesBurned: 150,
-    notes: "Deep squats, good mobility and core stability.",
-    date: new Date(Date.now() - 48 * 60 * 60 * 1000), // 2 days ago
-    createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
-  },
-];
+import { AuthRequest } from "../middlewares/auth.middleware";
+import UserTier from "../models/UserTier.model";
+import User from "../models/User.model";
+import {
+  recordHeatmapActivityHelper,
+  syncHeatmapOnWorkoutDeleted,
+} from "./heatmap.controller";
 
 /**
  * GET /api/workouts
  * Retrieve list of workout exercises from local catalog database
  */
 export const getWorkouts = async (
-  req: Request,
+  req: AuthRequest,
   res: Response,
 ): Promise<Response> => {
   try {
     const { category, difficulty, equipment, search, limit, page } = req.query;
+
+    if (difficulty && String(difficulty).toLowerCase() === "advanced") {
+      return res
+        .status(403)
+        .json(
+          errorResponse(
+            "Advanced workouts require premium access. Use /api/workouts/advanced.",
+            "Premium Required",
+            403,
+          ),
+        );
+    }
 
     let results: WorkoutExercise[] = [...LOCAL_WORKOUTS_DATABASE];
 
@@ -131,6 +102,88 @@ export const getWorkouts = async (
 };
 
 /**
+ * GET /api/workouts/advanced
+ * Retrieve advanced workouts for premium users only
+ */
+export const getAdvancedWorkouts = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  try {
+    const { category, equipment, search, limit, page } = req.query;
+
+    let results: WorkoutExercise[] = LOCAL_WORKOUTS_DATABASE.filter(
+      (workout) => workout.difficulty.toLowerCase() === "advanced",
+    );
+
+    // Filter by category / muscle group
+    if (category && typeof category === "string") {
+      const catLower = category.toLowerCase();
+
+      results = results.filter(
+        (workout) =>
+          workout.category.toLowerCase() === catLower ||
+          workout.muscleGroup.toLowerCase().includes(catLower),
+      );
+    }
+
+    // Filter by equipment
+    if (equipment && typeof equipment === "string") {
+      const equipmentLower = equipment.toLowerCase();
+
+      results = results.filter(
+        (workout) => workout.equipment.toLowerCase() === equipmentLower,
+      );
+    }
+
+    // Search
+    if (search && typeof search === "string") {
+      const query = search.toLowerCase();
+
+      results = results.filter(
+        (workout) =>
+          workout.name.toLowerCase().includes(query) ||
+          workout.muscleGroup.toLowerCase().includes(query) ||
+          workout.targetMuscles.some((muscle) =>
+            muscle.toLowerCase().includes(query),
+          ),
+      );
+    }
+
+    const total = results.length;
+
+    const pageNum = parseInt(page as string, 10) || 1;
+    const limitNum = parseInt(limit as string, 10) || total || 1;
+
+    const startIndex = (pageNum - 1) * limitNum;
+
+    const paginatedResults = results.slice(startIndex, startIndex + limitNum);
+
+    return res.status(200).json(
+      successResponse("Advanced workouts retrieved successfully", {
+        items: paginatedResults,
+        count: paginatedResults.length,
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum) || 1,
+      }),
+    );
+  } catch (error) {
+    console.error("[Workout Controller] getAdvancedWorkouts Error:", error);
+
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to fetch advanced workouts",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+};
+
+/**
  * GET /api/workouts/:id
  * Retrieve a specific workout by ID
  */
@@ -180,10 +233,14 @@ export const getWorkoutLogs = async (
   res: Response,
 ): Promise<Response> => {
   try {
-    const { userId, limit } = req.query;
+    const { userId, email, limit } = req.query;
     const authUser = (req as any).user;
+
     const targetUserId =
-      (userId as string) || authUser?.userId || authUser?.id || "guest_user";
+      (userId as string) ||
+      authUser?.userId ||
+      authUser?.id ||
+      "guest_user";
 
     let logs: any[] = [];
     const isDbConnected = mongoose.connection.readyState === 1;
@@ -192,14 +249,53 @@ export const getWorkoutLogs = async (
       try {
         const query: any = {};
         if (targetUserId && targetUserId !== "all") {
-          const conditions: any[] = [
-            { userId: targetUserId },
-            { userId: "guest_user" },
-          ];
-          if (mongoose.Types.ObjectId.isValid(targetUserId)) {
-            conditions.push({
-              userId: new mongoose.Types.ObjectId(targetUserId),
-            });
+          const conditions: any[] = [{ userId: targetUserId }];
+          if (targetUserId !== "guest_user") {
+            if (mongoose.Types.ObjectId.isValid(targetUserId)) {
+              conditions.push({
+                userId: new mongoose.Types.ObjectId(targetUserId),
+              });
+            }
+            try {
+              let userDoc = null;
+              if (mongoose.Types.ObjectId.isValid(targetUserId)) {
+                userDoc = await User.findById(targetUserId).select("_id email");
+              } else if (targetUserId.includes("@")) {
+                userDoc = await User.findOne({
+                  email: targetUserId.toLowerCase(),
+                }).select("_id email");
+              } else {
+                userDoc = await User.findOne({
+                  $or: [
+                    { email: targetUserId },
+                    { phone: targetUserId },
+                  ],
+                }).select("_id email");
+              }
+
+              if (userDoc) {
+                if (
+                  userDoc.email &&
+                  !conditions.some((c) => c.userId === userDoc.email)
+                ) {
+                  conditions.push({ userId: userDoc.email });
+                }
+                const docIdStr = userDoc._id.toString();
+                if (!conditions.some((c) => c.userId === docIdStr)) {
+                  conditions.push({ userId: docIdStr });
+                  conditions.push({ userId: userDoc._id });
+                }
+              }
+            } catch {}
+
+            const queryEmail =
+              (email as string) || authUser?.email;
+            if (
+              queryEmail &&
+              !conditions.some((c) => c.userId === queryEmail)
+            ) {
+              conditions.push({ userId: queryEmail });
+            }
           }
           query.$or = conditions;
         }
@@ -207,26 +303,22 @@ export const getWorkoutLogs = async (
           .sort({ createdAt: -1 })
           .limit(parseInt(limit as string, 10) || 100);
       } catch (dbErr) {
-        console.warn(
-          "[Workout Controller] MongoDB query failed, using in-memory store:",
-          dbErr,
-        );
-        logs = inMemoryWorkoutLogs;
+        console.error("[Workout Controller] MongoDB query failed:", dbErr);
+        return res
+          .status(500)
+          .json(
+            errorResponse(
+              "Failed to retrieve workout logs",
+              dbErr instanceof Error ? dbErr.message : "Internal Server Error",
+              500,
+            ),
+          );
       }
     }
 
-    // If no DB logs found or DB is offline, fall back to in-memory logs
+    // If no DB logs found, return empty array instead of dummy seed data
     if (!logs || logs.length === 0) {
-      logs = inMemoryWorkoutLogs;
-      if (
-        targetUserId &&
-        targetUserId !== "all" &&
-        targetUserId !== "guest_user"
-      ) {
-        logs = logs.filter(
-          (l) => l.userId === targetUserId || l.userId === "guest_user",
-        );
-      }
+      logs = [];
     }
 
     // Compute workout summary stats
@@ -335,7 +427,10 @@ export const createWorkoutLog = async (
 
     const authUser = (req as any).user;
     const finalUserId =
-      userId || authUser?.userId || authUser?.id || "guest_user";
+      userId ||
+      authUser?.userId ||
+      authUser?.id ||
+      "guest_user";
     const logDate = date ? new Date(date) : new Date();
 
     // Auto-calculate estimated calories if not provided
@@ -367,43 +462,56 @@ export const createWorkoutLog = async (
       date: logDate,
     };
 
-    let createdLog: any = null;
     const isDbConnected = mongoose.connection.readyState === 1;
 
-    if (isDbConnected) {
-      try {
-        createdLog = await WorkoutLog.create(logPayload);
-      } catch (dbErr) {
-        console.warn(
-          "[Workout Controller] DB save failed, saving to local in-memory store:",
-          dbErr,
+    if (!isDbConnected) {
+      return res
+        .status(503)
+        .json(
+          errorResponse(
+            "Database unavailable — please try again later",
+            "SERVICE_UNAVAILABLE",
+            503,
+          ),
         );
-      }
     }
 
-    // In-memory fallback item creation
-    const localItem: LocalLogItem = {
-      _id: createdLog ? createdLog._id.toString() : `log-${Date.now()}`,
-      userId: finalUserId,
-      exerciseName: logPayload.exerciseName,
-      setsCount: logPayload.setsCount,
-      repsCount: logPayload.repsCount,
-      weight: logPayload.weight,
-      durationMinutes: logPayload.durationMinutes,
-      caloriesBurned: logPayload.caloriesBurned,
-      notes: logPayload.notes,
-      date: logPayload.date,
-      createdAt: createdLog?.createdAt || new Date(),
-      updatedAt: createdLog?.updatedAt || new Date(),
-    };
+    let createdLog: any = null;
+    try {
+      createdLog = await WorkoutLog.create(logPayload);
+    } catch (dbErr) {
+      console.error("[Workout Controller] DB save failed:", dbErr);
+      return res
+        .status(500)
+        .json(
+          errorResponse(
+            "Failed to save workout log",
+            dbErr instanceof Error ? dbErr.message : "Internal Server Error",
+            500,
+          ),
+        );
+    }
 
-    inMemoryWorkoutLogs.unshift(localItem);
+    // Synchronize with dedicated Heatmap collection (fail-safe)
+    try {
+      await recordHeatmapActivityHelper({
+        userId: createdLog.userId || finalUserId,
+        exerciseName: createdLog.exerciseName,
+        date: createdLog.date || logDate,
+        durationMinutes: createdLog.durationMinutes,
+        caloriesBurned: createdLog.caloriesBurned,
+      });
+    } catch (heatmapSyncErr) {
+      console.error(
+        "[Workout Controller] Heatmap sync failed after workout log saved:",
+        heatmapSyncErr,
+      );
+      // Heatmap sync failure must never cause workout logging to fail
+    }
 
     return res
       .status(201)
-      .json(
-        successResponse("Workout logged successfully", createdLog || localItem),
-      );
+      .json(successResponse("Workout logged successfully", createdLog));
   } catch (error) {
     console.error("[Workout Controller] createWorkoutLog Error:", error);
     return res
@@ -428,22 +536,48 @@ export const deleteWorkoutLog = async (
 ): Promise<Response> => {
   try {
     const { id } = req.params;
-    const isDbConnected = mongoose.connection.readyState === 1;
 
-    if (isDbConnected) {
-      try {
-        if (mongoose.Types.ObjectId.isValid(id)) {
-          await WorkoutLog.findByIdAndDelete(id);
-        }
-      } catch (dbErr) {
-        console.warn("[Workout Controller] DB delete failed:", dbErr);
-      }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(400)
+        .json(errorResponse("Invalid workout log ID", "VALIDATION_ERROR", 400));
     }
 
-    // Remove from in-memory fallback
-    const index = inMemoryWorkoutLogs.findIndex((l) => l._id === id);
-    if (index !== -1) {
-      inMemoryWorkoutLogs.splice(index, 1);
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    if (!isDbConnected) {
+      return res
+        .status(503)
+        .json(
+          errorResponse(
+            "Database unavailable — please try again later",
+            "SERVICE_UNAVAILABLE",
+            503,
+          ),
+        );
+    }
+
+    const deleted = await WorkoutLog.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res
+        .status(404)
+        .json(errorResponse("Workout log not found", "NOT_FOUND", 404));
+    }
+
+    // Synchronize with dedicated Heatmap collection (fail-safe)
+    try {
+      await syncHeatmapOnWorkoutDeleted({
+        userId: deleted.userId,
+        date: deleted.date || (deleted as any).createdAt,
+        exerciseName: deleted.exerciseName,
+      });
+    } catch (heatmapDeleteSyncErr) {
+      console.error(
+        "[Workout Controller] Heatmap delete sync failed:",
+        heatmapDeleteSyncErr,
+      );
+      // Heatmap sync failure must never cause workout deletion to fail
     }
 
     return res
@@ -456,6 +590,143 @@ export const deleteWorkoutLog = async (
       .json(
         errorResponse(
           "Failed to delete workout log",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+};
+
+/**
+ * GET /api/workouts/pr-history/:exerciseId
+ * Retrieve user's estimated 1RM progression history for an exercise
+ *
+ * Brzycki Formula:
+ * 1RM = weight * (36 / (37 - reps))
+ */
+export const getPRHistory = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<Response> => {
+  try {
+    const { exerciseId } = req.params;
+
+    if (!exerciseId || exerciseId.trim() === "") {
+      return res
+        .status(400)
+        .json(errorResponse("exerciseId is required", "VALIDATION_ERROR", 400));
+    }
+
+    // Get authenticated user ID from JWT
+    const authUser = (req as any).user;
+    const userId = authUser?.userId || authUser?.id || authUser?._id;
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json(errorResponse("Authentication required", "UNAUTHORIZED", 401));
+    }
+
+    // Find exercise from local workout catalog
+    const exercise = LOCAL_WORKOUTS_DATABASE.find(
+      (workout) =>
+        String(workout.id) === String(exerciseId) ||
+        workout.name.toLowerCase() === exerciseId.toLowerCase(),
+    );
+
+    if (!exercise) {
+      return res
+        .status(404)
+        .json(
+          errorResponse(
+            `Exercise with ID '${exerciseId}' not found`,
+            "EXERCISE_NOT_FOUND",
+            404,
+          ),
+        );
+    }
+
+    const exerciseName = exercise.name.trim();
+
+    let logs: any[] = [];
+    const isDbConnected = mongoose.connection.readyState === 1;
+
+    if (isDbConnected) {
+      try {
+        const userConditions: any[] = [{ userId: String(userId) }];
+
+        // Support MongoDB ObjectId userId
+        if (mongoose.Types.ObjectId.isValid(String(userId))) {
+          userConditions.push({
+            userId: new mongoose.Types.ObjectId(String(userId)),
+          });
+        }
+
+        logs = await WorkoutLog.find({
+          $and: [
+            {
+              $or: userConditions,
+            },
+            {
+              exerciseName: {
+                $regex: `^${exerciseName.replace(
+                  /[.*+?^${}()|[\]\\]/g,
+                  "\\$&",
+                )}$`,
+                $options: "i",
+              },
+            },
+          ],
+        }).sort({ date: 1, createdAt: 1 });
+      } catch (dbErr) {
+        console.warn("[Workout Controller] PR history DB query failed:", dbErr);
+      }
+    }
+
+    // If no logs found, fallback to empty array
+    if (!logs) {
+      logs = [];
+    }
+
+    // Calculate Brzycki estimated 1RM
+    const history = logs
+      .map((log) => {
+        const weight = Number(log.weight) || 0;
+        const reps = Number(log.repsCount) || 0;
+
+        // Brzycki formula becomes invalid at 37+ reps
+        if (weight <= 0 || reps <= 0 || reps >= 37) {
+          return null;
+        }
+
+        const estimated1RM = weight * (36 / (37 - reps));
+
+        return {
+          date: log.date || log.createdAt,
+          weight,
+          reps,
+          estimated1RM: Number(estimated1RM.toFixed(2)),
+        };
+      })
+      .filter(Boolean);
+
+    return res.status(200).json(
+      successResponse("1RM progression history retrieved successfully", {
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        formula: "Brzycki",
+        history,
+        count: history.length,
+      }),
+    );
+  } catch (error) {
+    console.error("[Workout Controller] getPRHistory Error:", error);
+
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve 1RM progression history",
           error instanceof Error ? error.message : "Internal Server Error",
           500,
         ),

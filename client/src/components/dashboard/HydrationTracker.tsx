@@ -7,6 +7,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { FaGlassWaterDroplet } from "react-icons/fa6";
 import toast from "react-hot-toast";
+import { getCurrentUserApi } from "@/services/authService";
 
 /** Utility for clean tailwind class merging */
 function cn(...inputs: ClassValue[]) {
@@ -97,7 +98,7 @@ export default function HydrationTracker() {
     setTimeout(() => setShowConfetti(false), 3000);
   }, []);
 
-  // Initialization & Validation
+  // Initialization & Validation — Load from localStorage first, then sync hydration goal from MongoDB
   useEffect(() => {
     let isMounted = true;
 
@@ -144,6 +145,34 @@ export default function HydrationTracker() {
       setGoal(initialGoal);
       setHasCelebrated(initialCelebrated);
       setIsLoaded(true);
+
+      // Sync hydration goal from MongoDB profile (non-blocking)
+      try {
+        const profileResult = await getCurrentUserApi();
+        if (isMounted && profileResult.success && profileResult.user) {
+          const dbGoalLiters = (profileResult.user as any)
+            .hydrationTargetLiters;
+          if (dbGoalLiters && dbGoalLiters > 0) {
+            const dbGoalMl = Math.round(dbGoalLiters * 1000);
+            setGoal(dbGoalMl);
+            // Update localStorage with the MongoDB goal
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+              try {
+                const parsed = JSON.parse(stored) as HydrationData;
+                localStorage.setItem(
+                  STORAGE_KEY,
+                  JSON.stringify({ ...parsed, goal: dbGoalMl }),
+                );
+              } catch {
+                /* ignore */
+              }
+            }
+          }
+        }
+      } catch {
+        /* silently ignore — localStorage goal stays as fallback */
+      }
     };
 
     loadData();
@@ -207,27 +236,27 @@ export default function HydrationTracker() {
     ringCircumference - progressPercentage * ringCircumference;
 
   return (
-    <section className="relative w-full max-w-md lg:max-w-3xl mx-auto group my-15">
+    <section className="relative w-full max-w-md lg:max-w-3xl mx-auto group my-2 sm:my-4">
       {/* Background Ambient Glow */}
-      <div className="absolute inset-0 bg-emerald-500/10 blur-3xl rounded-[3rem] -z-10 transition-opacity duration-500 opacity-50 group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-white/5 blur-3xl rounded-[2rem] -z-10 transition-opacity duration-500 opacity-30 group-hover:opacity-60" />
 
-      <div className="bg-slate-900/85 border border-slate-700/70 backdrop-blur-xl rounded-3xl p-8 lg:p-10 flex flex-col lg:grid lg:grid-cols-2 lg:gap-10 xl:gap-12 items-center lg:items-stretch text-center shadow-lg relative overflow-hidden">
+      <div className="bg-black border border-white/15 rounded-2xl p-5 lg:p-6 flex flex-col lg:grid lg:grid-cols-2 lg:gap-8 xl:gap-10 items-center lg:items-stretch text-center shadow-xl relative overflow-hidden">
         {/* Left Column (Desktop) */}
         <div className="w-full flex flex-col">
           {/* Header Area */}
-          <div className="w-full flex justify-between items-start mb-8 lg:mb-12">
+          <div className="w-full flex justify-between items-start mb-4 lg:mb-6">
             <div className="flex flex-col items-start gap-0.5">
-              <h2 className="text-slate-100 font-medium text-lg flex items-center gap-2">
-                <Droplet className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-white font-medium text-lg flex items-center gap-2">
+                <Droplet className="w-5 h-5 text-white" />
                 Hydration
               </h2>
-              <span className="text-sm text-slate-500 font-medium ml-7">
+              <span className="text-sm text-white/50 font-medium ml-7">
                 Today
               </span>
             </div>
 
             {/* Reset Button (Absolute on Desktop to sit top-right) */}
-            <div className="flex items-center h-8 lg:absolute lg:top-10 lg:right-10 lg:z-10">
+            <div className="flex items-center h-8 lg:absolute lg:top-6 lg:right-6 lg:z-10">
               <AnimatePresence mode="wait">
                 {!confirmReset ? (
                   <motion.button
@@ -240,7 +269,7 @@ export default function HydrationTracker() {
                     disabled={!isLoaded}
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all duration-200 border",
-                      "bg-slate-950/70 text-slate-500 border-slate-700/70 hover:text-slate-300 hover:border-slate-600",
+                      "bg-white/5 text-white/60 border-white/15 hover:text-white hover:border-white/30 cursor-pointer",
                       !isLoaded && "opacity-50 cursor-not-allowed",
                     )}
                     aria-label="Reset hydration"
@@ -259,13 +288,13 @@ export default function HydrationTracker() {
                   >
                     <button
                       onClick={executeReset}
-                      className="px-3 py-1.5 rounded-xl text-sm font-medium bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20 transition-all duration-200"
+                      className="px-3 py-1.5 rounded-xl text-sm font-medium bg-rose-500/20 text-rose-400 border border-rose-500/40 hover:bg-rose-500/30 transition-all duration-200 cursor-pointer"
                     >
                       Yes
                     </button>
                     <button
                       onClick={() => setConfirmReset(false)}
-                      className="px-3 py-1.5 rounded-xl text-sm font-medium bg-slate-950/70 text-slate-400 border border-slate-700/70 hover:text-slate-300 hover:border-slate-600 transition-all duration-200"
+                      className="px-3 py-1.5 rounded-xl text-sm font-medium bg-white/5 text-white/70 border border-white/15 hover:text-white hover:border-white/30 transition-all duration-200 cursor-pointer"
                     >
                       No
                     </button>
@@ -276,7 +305,7 @@ export default function HydrationTracker() {
           </div>
 
           {/* Progress Ring Area */}
-          <div className="relative flex justify-center items-center mb-6 lg:mb-0 w-full">
+          <div className="relative flex justify-center items-center mb-4 lg:mb-0 w-full">
             {/* Confetti Particle System */}
             <AnimatePresence>
               {showConfetti && (
@@ -302,24 +331,24 @@ export default function HydrationTracker() {
               )}
             </AnimatePresence>
 
-            <svg width="220" height="220" className="transform -rotate-90">
+            <svg width="200" height="200" className="transform -rotate-90">
               {/* Background Track */}
               <circle
-                cx="110"
-                cy="110"
+                cx="100"
+                cy="100"
                 r={ringRadius}
                 fill="transparent"
-                strokeWidth="16"
-                className="stroke-slate-950/70"
+                strokeWidth="14"
+                className="stroke-white/10"
               />
 
               {/* Progress Stroke */}
               <motion.circle
-                cx="110"
-                cy="110"
+                cx="100"
+                cy="100"
                 r={ringRadius}
                 fill="transparent"
-                strokeWidth="16"
+                strokeWidth="14"
                 strokeLinecap="round"
                 className="stroke-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
                 initial={{
@@ -339,8 +368,8 @@ export default function HydrationTracker() {
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               {!isLoaded ? (
                 <div className="flex flex-col items-center gap-2 animate-pulse">
-                  <div className="w-16 h-8 bg-slate-800 rounded-md"></div>
-                  <div className="w-12 h-4 bg-slate-800 rounded-md"></div>
+                  <div className="w-16 h-8 bg-white/10 rounded-md"></div>
+                  <div className="w-12 h-4 bg-white/10 rounded-md"></div>
                 </div>
               ) : (
                 <>
@@ -349,14 +378,12 @@ export default function HydrationTracker() {
                     initial={{ scale: 0.9, opacity: 0.8 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="text-5xl font-bold text-slate-100 tracking-tight flex items-start"
+                    className="text-4xl font-bold text-white tracking-tight flex items-start"
                   >
                     {displayPercentage}
-                    <span className="text-2xl text-slate-400 ml-0.5 mt-1">
-                      %
-                    </span>
+                    <span className="text-xl text-white/40 ml-0.5 mt-1">%</span>
                   </motion.div>
-                  <div className="text-sm font-medium text-slate-500 mt-1">
+                  <div className="text-xs font-medium text-white/50 mt-0.5">
                     Complete
                   </div>
                 </>
@@ -366,17 +393,17 @@ export default function HydrationTracker() {
         </div>
 
         {/* Right Column (Desktop) */}
-        <div className="w-full flex flex-col items-center justify-center lg:mt-6 lg:pt-18">
+        <div className="w-full flex flex-col items-center justify-center lg:mt-2 lg:pt-6">
           {/* Outer Liters Display */}
           <div
-            className="mb-8 flex items-baseline justify-center gap-1.5 transition-opacity duration-300"
+            className="mb-4 flex items-baseline justify-center gap-1.5 transition-opacity duration-300"
             style={{ opacity: isLoaded ? 1 : 0 }}
           >
-            <span className="text-xl font-semibold text-slate-100">
+            <span className="text-xl font-semibold text-white">
               {displayIntakeL} L
             </span>
-            <span className="text-slate-500 text-sm mx-0.5">/</span>
-            <span className="text-lg font-medium text-slate-400">
+            <span className="text-white/40 text-sm mx-0.5">/</span>
+            <span className="text-lg font-medium text-white/60">
               {displayGoalL} L
             </span>
           </div>
@@ -413,9 +440,9 @@ export default function HydrationTracker() {
                     onClick={handleAddWater}
                     disabled={!isLoaded}
                     className={cn(
-                      "flex items-center justify-center gap-2 w-full max-w-50 py-3.5 rounded-2xl font-semibold transition-all duration-300",
-                      "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-                      "hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]",
+                      "flex items-center justify-center gap-2 w-full max-w-50 py-3.5 rounded-2xl font-semibold transition-all duration-300 cursor-pointer",
+                      "bg-white text-black border border-white hover:bg-gray-100",
+                      "hover:shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]",
                       "active:scale-95 disabled:opacity-50 disabled:pointer-events-none",
                     )}
                     aria-label="Add 250 milliliters of water"
@@ -424,7 +451,7 @@ export default function HydrationTracker() {
                     +250ml Glass
                   </button>
 
-                  <div className="text-sm font-medium text-slate-500 mt-3">
+                  <div className="text-sm font-medium text-white/50 mt-3">
                     {remainingGlasses}{" "}
                     {remainingGlasses === 1 ? "glass" : "glasses"} remaining
                   </div>

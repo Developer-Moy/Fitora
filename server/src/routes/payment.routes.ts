@@ -1,24 +1,36 @@
 import { Router } from "express";
+
 import {
   createCheckoutSession,
   verifySession,
   checkoutPayment,
   getMyTransactions,
   getAllPayments,
+  getInvoiceById,
+  toggleAutoRenew,
+  changeMembershipPlan,
 } from "../controllers/payment.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-// Stripe Checkout & Verification
-router.post("/create-checkout-session", createCheckoutSession);
-router.get("/verify-session", verifySession);
+router.post("/create-checkout-session", authMiddleware, createCheckoutSession);
 
-// Direct bKash / Nagad / Card Checkout
-router.post("/checkout", checkoutPayment);
+router.get("/verify-session", authMiddleware, verifySession);
 
-// Transaction History
-router.get("/me", getMyTransactions);
-router.get("/my-transactions", getMyTransactions);
-router.get("/all", getAllPayments);
+router.post("/checkout", authMiddleware, checkoutPayment);
+
+router.get("/me", authMiddleware, getMyTransactions);
+
+router.get("/my-transactions", authMiddleware, getMyTransactions);
+
+router.get("/all", authMiddleware, getAllPayments);
+
+// Digital Invoice by ID or Transaction ID
+router.get("/invoice/:id", authMiddleware, getInvoiceById);
+
+// Auto-Renewal and Subscription Management
+router.post("/toggle-auto-renew", authMiddleware, toggleAutoRenew);
+router.post("/change-plan", authMiddleware, changeMembershipPlan);
 
 export default router;

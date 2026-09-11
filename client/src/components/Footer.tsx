@@ -134,88 +134,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Middle Row: Unique Non-Navbar Links Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-white/20 text-xs text-gray-200">
-            <div>
-              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
-                Fitness Hubs
-              </span>
-              <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
-                <Link
-                  href="/meals"
-                  className="hover:text-white transition-colors"
-                >
-                  Meal Plans
-                </Link>
-                <Link
-                  href="/exercises"
-                  className="hover:text-white transition-colors"
-                >
-                  Exercise Directory
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="hover:text-white transition-colors"
-                >
-                  Athlete Dashboard
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
-                Fitora Highlights
-              </span>
-              <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
-                <Link
-                  href="/#why-choose"
-                  className="hover:text-white transition-colors"
-                >
-                  Why Choose Us
-                </Link>
-                <Link
-                  href="/#coaches"
-                  className="hover:text-white transition-colors"
-                >
-                  Coaches & Mentors
-                </Link>
-                <Link
-                  href="/#trainers"
-                  className="hover:text-white transition-colors"
-                >
-                  Certified Trainers
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
-                Account & Portal
-              </span>
-              <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
-                <Link
-                  href="/dashboard"
-                  className="hover:text-white transition-colors"
-                >
-                  User Profile
-                </Link>
-                <Link
-                  href="/register"
-                  className="hover:text-white transition-colors"
-                >
-                  Free Trial
-                </Link>
-                <Link
-                  href="/login"
-                  className="hover:text-white transition-colors"
-                >
-                  Login Portal
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Row: Social Media Icons + E-Newsletter Bar */}
+          {/* Row 2: Social Media Icons + E-Newsletter Bar (Swapped from Bottom Row) */}
           <div className="pt-6 border-t border-white/20 flex flex-col md:flex-row items-center justify-between gap-6">
             {/* Social Media Icons */}
             <div className="flex items-center gap-5">
@@ -293,6 +212,87 @@ export default function Footer() {
                 )}
               </button>
             </form>
+          </div>
+
+          {/* Row 3: Unique Non-Navbar Links Grid (Swapped from Middle Row) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-white/20 text-xs text-gray-200">
+            <div>
+              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
+                Fitness Hubs
+              </span>
+              <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
+                <Link
+                  href="/meals"
+                  className="hover:text-white transition-colors"
+                >
+                  Meal Plans
+                </Link>
+                <Link
+                  href="/exercises"
+                  className="hover:text-white transition-colors"
+                >
+                  Exercise Directory
+                </Link>
+                <Link
+                  href="/stopwatch"
+                  className="hover:text-white transition-colors"
+                >
+                  Gym Stopwatch
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
+                Fitora Highlights
+              </span>
+              <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
+                <Link
+                  href="/#why-choose"
+                  className="hover:text-white transition-colors"
+                >
+                  Why Choose Us
+                </Link>
+                <Link
+                  href="/#coaches"
+                  className="hover:text-white transition-colors"
+                >
+                  Coaches & Mentors
+                </Link>
+                <Link
+                  href="/#trainers"
+                  className="hover:text-white transition-colors"
+                >
+                  Certified Trainers
+                </Link>
+              </div>
+            </div>
+
+            <div>
+              <span className="font-black text-white uppercase text-[11px] tracking-wider block mb-2">
+                Account & Portal
+              </span>
+              <div className="flex flex-wrap gap-x-5 gap-y-1.5 font-semibold">
+                <Link
+                  href="/profile"
+                  className="hover:text-white transition-colors"
+                >
+                  User Profile
+                </Link>
+                <Link
+                  href="/register"
+                  className="hover:text-white transition-colors"
+                >
+                  Free Trial
+                </Link>
+                <Link
+                  href="/login"
+                  className="hover:text-white transition-colors"
+                >
+                  Login Portal
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>

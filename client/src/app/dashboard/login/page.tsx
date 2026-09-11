@@ -57,13 +57,20 @@ export default function DashboardLoginPage() {
       const result = await dashboardLoginApi(cleanEmail, cleanPass);
 
       if (result.success && result.user) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("fitora_auth_session", "true");
+          if (result.user.role) {
+            localStorage.setItem("fitora_active_role", result.user.role);
+            localStorage.setItem("fitora_user_role", result.user.role);
+          }
+        }
         toast.success(
           `${result.user.role === "master_admin" ? "Master Admin" : "Branch Admin"} Authenticated! Entering Dashboard...`,
         );
         setSuccessMessage("Security Gateway verified. Entering dashboard...");
         setTimeout(() => {
-          router.replace("/dashboard");
-        }, 500);
+          window.location.href = "/dashboard";
+        }, 300);
         return;
       }
 
@@ -98,8 +105,6 @@ export default function DashboardLoginPage() {
 
   return (
     <div className="min-h-screen w-full bg-black text-white font-sans antialiased flex flex-col justify-between p-4 sm:p-6 select-none overflow-x-hidden">
-
-
       {/* Top Bar */}
       <header className="max-w-5xl mx-auto w-full flex items-center justify-between py-2 shrink-0">
         <Link href="/" className="flex items-center gap-2.5 group select-none">
@@ -112,7 +117,7 @@ export default function DashboardLoginPage() {
             <span className="text-white font-black text-base tracking-wider uppercase leading-none font-sans">
               FITORA
             </span>
-            <span className="text-[8px] text-neutral-400 font-bold tracking-[0.25em] uppercase">
+            <span className="text-[8px] text-white/50 font-bold tracking-[0.25em] uppercase">
               ADMIN GATEWAY
             </span>
           </div>
@@ -120,7 +125,7 @@ export default function DashboardLoginPage() {
 
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-white/50 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Home</span>
@@ -131,21 +136,21 @@ export default function DashboardLoginPage() {
       <main className="max-w-[440px] w-full mx-auto my-auto shrink-0 space-y-5 py-6">
         {/* Title */}
         <div className="text-center space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900 border border-white/15 text-[10px] font-bold uppercase tracking-widest text-neutral-300">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/15 text-[10px] font-bold uppercase tracking-widest text-white/70">
             <Shield className="w-3 h-3" />
             <span>Management Security Gateway</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black font-sans uppercase tracking-tight text-white select-none">
             Sign In to Dashboard
           </h1>
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs text-white/50">
             Access restricted to Master Admin & 64-District Directors.
           </p>
         </div>
 
         {/* Quick Fill Credentials Pills */}
         <div className="space-y-2">
-          <p className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 text-center">
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-white/50 text-center">
             One-Click Administrative Demo Profiles:
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -185,40 +190,40 @@ export default function DashboardLoginPage() {
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[11px] font-extrabold uppercase tracking-wider text-neutral-300">
+            <label className="text-[11px] font-extrabold uppercase tracking-wider text-white/70">
               Admin Email
             </label>
             <div className="relative flex items-center">
-              <Mail className="absolute left-3.5 w-4 h-4 text-neutral-500" />
+              <Mail className="absolute left-3.5 w-4 h-4 text-white/40" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="master@fitora.com"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-neutral-900 border border-white/15 text-white text-sm placeholder-neutral-500 outline-none focus:border-white transition-colors"
+                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-black border border-white/15 text-white text-sm placeholder-white/30 outline-none focus:border-white transition-colors"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[11px] font-extrabold uppercase tracking-wider text-neutral-300">
+            <label className="text-[11px] font-extrabold uppercase tracking-wider text-white/70">
               Security Passkey
             </label>
             <div className="relative flex items-center">
-              <Lock className="absolute left-3.5 w-4 h-4 text-neutral-500" />
+              <Lock className="absolute left-3.5 w-4 h-4 text-white/40" />
               <input
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-10 py-3 rounded-2xl bg-neutral-900 border border-white/15 text-white text-sm placeholder-neutral-500 outline-none focus:border-white transition-colors"
+                className="w-full pl-10 pr-10 py-3 rounded-2xl bg-black border border-white/15 text-white text-sm placeholder-white/30 outline-none focus:border-white transition-colors"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                className="absolute right-3.5 text-white/40 hover:text-white transition-colors cursor-pointer"
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -232,7 +237,7 @@ export default function DashboardLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 rounded-full bg-white text-black font-black text-sm uppercase tracking-wider hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 shadow-2xl cursor-pointer disabled:opacity-60"
+            className="w-full py-3.5 rounded-full bg-white text-black font-black text-sm uppercase tracking-wider hover:bg-gray-100 transition-all flex items-center justify-center gap-2 shadow-2xl cursor-pointer disabled:opacity-60"
           >
             <span>{isLoading ? "Authenticating..." : "Enter Dashboard"}</span>
             <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
@@ -242,7 +247,7 @@ export default function DashboardLoginPage() {
 
       {/* Footer */}
       <footer className="text-center py-2 shrink-0">
-        <p className="text-[10px] text-neutral-500 font-medium">
+        <p className="text-[10px] text-white/40 font-medium">
           FITORA Central Management Architecture © 2026. All rights reserved.
         </p>
       </footer>

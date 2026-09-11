@@ -21,6 +21,12 @@ const TikTokIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 );
 
+const XTwitterIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
 const CountUp = ({
   end,
   duration = 2000,
@@ -71,65 +77,16 @@ export default function HeroSection() {
       <div className="relative w-full bg-black text-white overflow-x-clip min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
         {/* ─── Centered max-w-7xl container to lock relative positions on Zoom & UltraWide ─── */}
         <div className="relative w-full max-w-7xl mx-auto h-full min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
-          {/* ─── Z-10: "Build Your Body" Title Case Serif Italic Headline ─── */}
-          <div className="absolute z-10 top-5 sm:top-8 md:top-10 inset-x-0 flex flex-col items-center pointer-events-none px-2 sm:px-4">
+          {/* ─── Z-10: "BUILD YOUR BODY" Unified Headline ─── */}
+          <div className="absolute z-10 top-5 sm:top-8 md:top-10 inset-x-0 flex flex-col items-center pointer-events-none px-4">
             <h1
               className="text-white leading-none whitespace-nowrap select-none tracking-tight text-center font-sans uppercase font-black"
               style={{
-                fontSize: "clamp(1.75rem, 6.8vw, 5.8rem)",
+                fontSize: "clamp(2rem, 7.8vw, 6.8rem)",
               }}
             >
-              Build Your Body
+              BUILD YOUR BODY
             </h1>
-
-            {/* Mobile Social Icons centered directly under Build Your Body (No BG) */}
-            <div className="flex sm:hidden items-center justify-center gap-3 text-white/80 mt-2 pointer-events-auto">
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors cursor-pointer"
-                aria-label="Facebook"
-              >
-                <Facebook className="w-3.5 h-3.5" />
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors cursor-pointer"
-                aria-label="Instagram"
-              >
-                <Instagram className="w-3.5 h-3.5" />
-              </a>
-              <a
-                href="https://tiktok.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors cursor-pointer"
-                aria-label="TikTok"
-              >
-                <TikTokIcon className="w-3.5 h-3.5" />
-              </a>
-              <a
-                href="https://wa.me/8801700000000"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors cursor-pointer"
-                aria-label="WhatsApp"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-              </a>
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors cursor-pointer"
-                aria-label="YouTube"
-              >
-                <Youtube className="w-3.5 h-3.5" />
-              </a>
-            </div>
           </div>
 
           {/* ─── Z-20: Athlete Cutout Image — Head overlapping text (10% Larger & Mobile Optimized) ─── */}
@@ -158,52 +115,65 @@ export default function HeroSection() {
             </p>
           </div>
 
-          {/* ─── Z-30: Desktop Social Icons locked at bottom left (No BG) ─── */}
-          <div className="hidden sm:flex absolute z-30 left-6 md:left-8 bottom-6 items-center gap-3.5 text-white/80">
+          {/* ─── Z-30: Social Icons (3 on Left Bottom: Facebook, Instagram, TikTok) ─── */}
+          <div className="absolute z-30 left-3 xs:left-5 sm:left-6 md:left-8 bottom-4 sm:bottom-6 flex items-center gap-3 sm:gap-4 text-white/70">
             <a
               href="https://facebook.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-white transition-colors cursor-pointer"
+              className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="Facebook"
             >
-              <Facebook className="w-4 h-4" />
+              <Facebook className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             </a>
             <a
               href="https://instagram.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-white transition-colors cursor-pointer"
+              className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="Instagram"
             >
-              <Instagram className="w-4 h-4" />
+              <Instagram className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             </a>
             <a
               href="https://tiktok.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-white transition-colors cursor-pointer"
+              className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="TikTok"
             >
-              <TikTokIcon className="w-4 h-4" />
+              <TikTokIcon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             </a>
+          </div>
+
+          {/* ─── Z-30: Social Icons (3 on Right Bottom: WhatsApp, YouTube, X) ─── */}
+          <div className="absolute z-30 right-3 xs:right-5 sm:right-6 md:right-8 bottom-4 sm:bottom-6 flex items-center gap-3 sm:gap-4 text-white/70">
             <a
               href="https://wa.me/8801700000000"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-white transition-colors cursor-pointer"
+              className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="WhatsApp"
             >
-              <MessageCircle className="w-4 h-4" />
+              <MessageCircle className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             </a>
             <a
               href="https://youtube.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-white transition-colors cursor-pointer"
+              className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="YouTube"
             >
-              <Youtube className="w-4 h-4" />
+              <Youtube className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            </a>
+            <a
+              href="https://x.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
+              aria-label="X (formerly Twitter)"
+            >
+              <XTwitterIcon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
             </a>
           </div>
 

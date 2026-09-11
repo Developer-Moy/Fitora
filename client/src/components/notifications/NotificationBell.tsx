@@ -1,0 +1,342 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Bell,
+  CheckCheck,
+  CreditCard,
+  FileText,
+  Sparkles,
+  RefreshCw,
+  AlertCircle,
+  ExternalLink,
+  X,
+} from "lucide-react";
+import {
+  fetchNotificationsApi,
+  markNotificationAsReadApi,
+  markAllNotificationsAsReadApi,
+  type AppNotification,
+} from "@/services/notificationService";
+import {
+  getAuthSession,
+  AUTH_SESSION_UPDATED,
+  type AuthUser,
+} from "@/services/authService";
+import { useSession } from "@/lib/auth-client";
+
+function formatRelativeTime(dateStr?: string): string {
+  if (!dateStr) return "Just now";
+  const now = Date.now();
+  const past = new Date(dateStr).getTime();
+  const diffSec = Math.floor((now - past) / 1000);
+
+  if (diffSec < 60) return "Just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}h ago`;
+  const diffDay = Math.floor(diffHour / 24);
+  return `${diffDay}d ago`;
+}
+
+interface NotificationBellProps {
+  isLoggedIn?: boolean;
+  userEmail?: string;
+  token?: string;
+}
+
+export default function NotificationBell({
+  isLoggedIn: propIsLoggedIn,
+  userEmail: propUserEmail,
+  token: propToken,
+}: NotificationBellProps = {}) {
+  const router = useRouter();
+  const { data: authSession } = useSession();
+  const [localUser, setLocalUser] = useState<AuthUser | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    const syncLocal = () => {
+      const session = getAuthSession();
+      if (session.user) {
+        setLocalUser(session.user);
+      }
+    };
+    syncLocal();
+
+    window.addEventListener(AUTH_SESSION_UPDATED, syncLocal);
+    window.addEventListener("storage", syncLocal);
+
+    return () => {
+      window.removeEventListener(AUTH_SESSION_UPDATED, syncLocal);
+      window.removeEventListener("storage", syncLocal);
+    };
+  }, []);
+
+  const activeUser = authSession?.user || localUser;
+  const isUserLoggedIn =
+    propIsLoggedIn ??
+    Boolean(
+      activeUser ||
+      (mounted &&
+        typeof window !== "undefined" &&
+        (localStorage.getItem("fitora_user") ||
+          localStorage.getItem("fitora_token") ||
+          localStorage.getItem("fitora_user_email"))),
+    );
+
+  const resolvedEmail =
+    propUserEmail ||
+    activeUser?.email ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_email") || ""
+      : "");
+
+  const resolvedToken =
+    propToken ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token") ||
+        ""
+      : "");
+
+  const loadNotifications = async () => {
+    if (!isUserLoggedIn && !resolvedEmail && !resolvedToken) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+
+    const data = await fetchNotificationsApi(resolvedToken, resolvedEmail);
+    if (data.success) {
+      setNotifications(data.notifications);
+      setUnreadCount(data.unreadCount);
+    }
+  };
+
+  useEffect(() => {
+    if (isUserLoggedIn || resolvedEmail || resolvedToken) {
+      loadNotifications();
+    }
+
+    const handleSessionUpdate = () => {
+      loadNotifications();
+    };
+
+    window.addEventListener(AUTH_SESSION_UPDATED, handleSessionUpdate);
+    window.addEventListener("storage", handleSessionUpdate);
+
+    // Subtle 45s interval to check for updates
+    const interval = setInterval(() => {
+      if (isUserLoggedIn || resolvedEmail || resolvedToken) {
+        loadNotifications();
+      }
+    }, 45000);
+
+    return () => {
+      window.removeEventListener(AUTH_SESSION_UPDATED, handleSessionUpdate);
+      window.removeEventListener("storage", handleSessionUpdate);
+      clearInterval(interval);
+    };
+  }, [isUserLoggedIn, resolvedEmail, resolvedToken]);
+
+  // Close when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  if (!isUserLoggedIn) return null;
+
+  const handleMarkAsRead = async (id: string, link?: string) => {
+    await markNotificationAsReadApi(resolvedToken, id, resolvedEmail);
+    setNotifications((prev) =>
+      prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)),
+    );
+    setUnreadCount((c) => Math.max(0, c - 1));
+    setIsOpen(false);
+    if (link) {
+      router.push(link);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    setLoading(true);
+    await markAllNotificationsAsReadApi(resolvedToken, resolvedEmail);
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setUnreadCount(0);
+    setLoading(false);
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "invoice":
+        return <FileText className="w-3.5 h-3.5 text-white" />;
+      case "upgrade":
+        return <Sparkles className="w-3.5 h-3.5 text-white" />;
+      case "renewal":
+        return <RefreshCw className="w-3.5 h-3.5 text-white" />;
+      case "payment":
+        return <CreditCard className="w-3.5 h-3.5 text-white" />;
+      default:
+        return <AlertCircle className="w-3.5 h-3.5 text-white" />;
+    }
+  };
+
+  return (
+    <div className="relative inline-block" ref={containerRef}>
+      {/* ── Bell Trigger Button (White theme matching navbar buttons) ── */}
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label="Open notifications"
+        className="relative w-10 h-10 rounded-full bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] flex items-center justify-center transition-all duration-200 cursor-pointer select-none shadow-md"
+      >
+        <Bell className="w-4 h-4 text-black stroke-[2.5]" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-black text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border border-white animate-pulse">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {/* ── Mobile/Tablet Backdrop (tap anywhere outside to dismiss) ── */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[92] sm:hidden"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* ── Dropdown Panel ── */}
+      {isOpen && (
+        <div className="fixed inset-x-3 top-18 z-[95] sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-sm sm:max-w-md mx-auto sm:mx-0 rounded-2xl bg-neutral-950/95 backdrop-blur-xl border border-white/20 shadow-[0_15px_50px_rgba(0,0,0,0.9)] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/70">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black uppercase tracking-wider text-white">
+                Notifications
+              </span>
+              {unreadCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-bold text-white">
+                  {unreadCount} new
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllAsRead}
+                  disabled={loading}
+                  className="text-[11px] font-bold text-white/60 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <CheckCheck className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">Mark all read</span>
+                </button>
+              )}
+              {/* Close button for mobile */}
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer sm:hidden"
+                aria-label="Close notifications"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Body List */}
+          <div className="max-h-[60vh] sm:max-h-80 overflow-y-auto divide-y divide-white/5 scrollbar-thin">
+            {notifications.length === 0 ? (
+              <div className="py-10 px-4 text-center text-white/40 space-y-2">
+                <Bell className="w-7 h-7 mx-auto opacity-30" />
+                <p className="text-xs font-medium">No notifications yet</p>
+                <p className="text-[11px] opacity-70">
+                  You are completely caught up!
+                </p>
+              </div>
+            ) : (
+              notifications.map((n) => (
+                <div
+                  key={n._id}
+                  onClick={() => handleMarkAsRead(n._id, n.link)}
+                  className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer select-none hover:bg-neutral-900/80 ${
+                    !n.isRead ? "bg-white/[0.04]" : "opacity-80"
+                  }`}
+                >
+                  <div className="w-7 h-7 rounded-full bg-neutral-900 border border-white/15 flex items-center justify-center shrink-0 mt-0.5">
+                    {getTypeIcon(n.type)}
+                  </div>
+
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <p className="text-xs font-black uppercase tracking-tight text-white truncate">
+                        {n.title}
+                      </p>
+                      <span className="text-[10px] text-white/40 shrink-0 font-medium">
+                        {formatRelativeTime(n.createdAt)}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-white/70 leading-snug line-clamp-2">
+                      {n.message}
+                    </p>
+
+                    {n.link && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white/50 hover:text-white uppercase tracking-wider pt-0.5">
+                        <span>View details</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </span>
+                    )}
+                  </div>
+
+                  {!n.isRead && (
+                    <span className="w-2 h-2 rounded-full bg-white shrink-0 mt-1.5 shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Footer Link */}
+          <div className="p-2.5 border-t border-white/10 bg-black/40 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                router.push("/profile");
+              }}
+              className="text-[11px] font-black uppercase tracking-wider text-white/70 hover:text-white transition-colors cursor-pointer"
+            >
+              Go to Profile &amp; Billing ↗
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

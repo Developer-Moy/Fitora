@@ -1,15 +1,52 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { fetchMealsApi, MealItem } from "@/services/mealService";
 import { MealsData } from "@/data/MealsData";
 import MealCard from "@/components/meals/MealCard";
-import { Search, Utensils, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Search,
+  Utensils,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
 
 export default function MealsPage() {
+  const [meals, setMeals] = useState<MealItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadMeals() {
+      setIsLoading(true);
+      try {
+        const data = await fetchMealsApi();
+        if (isMounted) {
+          if (Array.isArray(data) && data.length > 0) {
+            setMeals(data);
+          } else {
+            // Fallback if backend is warming up
+            setMeals(MealsData as MealItem[]);
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setMeals(MealsData as MealItem[]);
+        }
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    loadMeals();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const categories = [
     { id: "all", label: "All Meals" },
@@ -19,7 +56,7 @@ export default function MealsPage() {
   ];
 
   const filteredMeals = useMemo(() => {
-    return MealsData.filter((meal) => {
+    return meals.filter((meal) => {
       const matchesSearch =
         meal.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         meal.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -41,7 +78,7 @@ export default function MealsPage() {
 
       return true;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [meals, searchQuery, selectedCategory]);
 
   const totalPages = Math.ceil(filteredMeals.length / ITEMS_PER_PAGE);
 
@@ -51,10 +88,10 @@ export default function MealsPage() {
   }, [filteredMeals, currentPage]);
 
   return (
-    <main className="w-full min-h-screen bg-black text-white pt-24 sm:pt-28 lg:pt-32 pb-20 px-6 sm:px-10 lg:px-16 select-none font-sans border-t border-white/10">
-      <div className="max-w-7xl mx-auto space-y-12">
+    <div className="w-full min-h-screen bg-black text-white pt-2 sm:pt-4 pb-20 px-4 sm:px-8 lg:px-12 select-none font-sans">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Section */}
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
+        <div className="text-center space-y-3 max-w-3xl mx-auto">
           <h1 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
             Healthy Meals Catalog
           </h1>
@@ -124,7 +161,14 @@ export default function MealsPage() {
         </div>
 
         {/* Meals Grid & Pagination */}
-        {paginatedMeals.length > 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Loader2 className="w-8 h-8 text-white animate-spin" />
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
+              Loading healthy meals from database...
+            </p>
+          </div>
+        ) : paginatedMeals.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {paginatedMeals.map((meal) => (
@@ -209,6 +253,6 @@ export default function MealsPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

@@ -282,9 +282,45 @@ Implemented the client-side payment service layer and live subscription synchron
 ---
 
 
+## 13. Today's Task: Billing History & Invoice Action Integration (Profile)
+
+Implemented the **Billing & Transactions** section on the Profile page with a responsive payment history table and invoice actions wired to a reusable invoice modal.
+
+### What Was Implemented:
+
+* Created `client/src/components/profile/BillingSection.tsx` — the Billing & Transactions section on the Profile page.
+* Created `client/src/components/InvoiceModal.tsx` — a reusable, printer-friendly invoice modal for payment records.
+* Rendered a responsive payment history table with Date, Plan, Amount (BDT), Gateway, Status badge, and Actions columns.
+* Loaded the authenticated user's payment history through the existing `fetchMyPaymentsApi()` service (`GET /api/payments/me`).
+* Added a graceful session-based fallback (`derivePaymentFromUser()`) that builds a payment record from the user's real plan/payment fields when the dedicated endpoint is unavailable, instead of hardcoding mock data.
+* Added loading, empty, and error states for the billing table.
+* Wired **View Invoice** and **Print** actions for every payment row — View Invoice opens `InvoiceModal` with the selected payment, and Print opens the invoice and triggers the browser print dialog.
+* Extended the `AuthUser` interface with server-returned billing fields (`totalPaidBDT`, `paymentMethod`, `qrCodeId`, `createdAt`).
+* Added print-specific CSS so only the invoice document prints in clean black-on-white.
+
+### Implementation Flow:
+
+1. The Billing section resolves the authenticated session (`getAuthSession()`) on mount.
+2. When a token exists, `fetchMyPaymentsApi()` requests the user's payment history from the backend.
+3. If the API is unavailable or returns no records, a payment row is derived from the user's session data (plan, total paid BDT, payment method).
+4. Each table row exposes View Invoice and Print actions bound to that payment record.
+5. View Invoice stores the selected payment in component state and opens `InvoiceModal`; the modal updates cleanly when a different row is selected.
+6. Print opens the same modal for the selected payment and triggers `window.print()`; print CSS isolates the invoice document for clean output.
+
+### Relevant Frontend Areas:
+
+* `client/src/app/profile/page.tsx` — renders the Billing & Transactions section between the Calculation History and nutrition plan sections.
+* `client/src/components/profile/BillingSection.tsx` — billing history table, modal/print state management, and data loading.
+* `client/src/components/InvoiceModal.tsx` — reusable invoice modal with print support.
+* `client/src/services/paymentService.ts` — typed `Payment` model, typed `fetchMyPaymentsApi()`, and session-based payment fallback.
+* `client/src/services/authService.ts` — `AuthUser` billing fields for session-based billing data.
+* `client/src/app/globals.css` — print-only styles for the invoice modal.
+
+---
+
 ## Overview
 
-These contributions cover both the **frontend UI** and **backend API** development for **Fitora**, including homepage improvements, authentication UI, membership plans, dashboard statistics, UI polish, seed dataset creation, RBAC user management, branch portal workflows, live check-in operations, and stabilization work for production-ready admin features.
+These contributions cover both the **frontend UI** and **backend API** development for **Fitora**, including homepage improvements, authentication UI, membership plans, dashboard statistics, UI polish, seed dataset creation, RBAC user management, branch portal workflows, live check-in operations, billing history and invoice actions, and stabilization work for production-ready admin features.
 
 ---
 
@@ -412,6 +448,125 @@ These contributions cover both the **frontend UI** and **backend API** developme
 
 ---
 
+## 07-Sep-26
+
+* Added the **Billing & Transactions** section to the Profile page with a responsive payment history table (Date, Plan, Amount BDT, Gateway, Status, Actions).
+* Loaded the user's payment history through the existing `fetchMyPaymentsApi()` service with loading, empty, and error states.
+* Added a session-based fallback so billing rows render from real user plan/payment data instead of hardcoded mock records.
+* Created the reusable **InvoiceModal** component; every payment row exposes **View Invoice** and **Print** actions.
+* Added print-specific CSS so only the selected invoice document prints in clean black-on-white.
+* Verified the production build and TypeScript checks pass with the new section integrated.
+
+---
+
+## 08-Sep-26
+
+### Master Admin Revenue Analytics (Live API + Dashboard)
+
+* Added `GET /api/dashboard/master/revenue` endpoint (master_admin only) in the new `master.controller.ts`, registered through `server/src/routes/master.routes.ts`.
+* Aggregated only `completed` payments in a single Mongo `$facet` pipeline returning:
+  - **summary** — total revenue BDT, successful payment count, and average payment BDT;
+  - **planRevenue** — per-tier breakdown (Basic Pass / Pro Athlete / VIP Ultimate) with zero rows always present;
+  - **monthlyRevenue** — month-by-month revenue distribution with human-readable month labels;
+  - **gatewayRevenue** — revenue and payment count grouped by payment gateway.
+* Connected the master dashboard to the live endpoint: added `fetchMasterRevenue()` plus typed models (`MasterRevenue`, `RevenueSummary`, `PlanRevenue`, `MonthlyRevenue`, `GatewayRevenue`) to `dashboardService.ts`.
+* Replaced hardcoded package/membership figures on `client/src/app/dashboard/page.tsx` with live revenue/summary data, showing a graceful fallback message when the endpoint cannot be reached.
+
+### Live Subscription Plans, Expiry Dates & Status in Users Table
+
+* Extended the users management table with **Subscription Plan**, **Expiry Date**, and **Sub Status** columns.
+* Resolved the subscription status from the live expiry date: `active`, `expiring-soon` (within 7 days), `expired`, or `Free / No Plan` when no expiry exists.
+* Surfaced `subscriptionExpiryDate` / `membershipExpiresAt` (from the latest completed payment) in the `getAllUsers` API response and in both client type definitions (`dashboardData.ts` and `dashboardService.ts`).
+
+### Membership Management Actions with Root Account Protection
+
+* Added three membership-management APIs (master admin only):
+  - `GET /api/dashboard/users/:id/membership` — read-only membership & payment audit (plan, billing cycle, transaction id, gateway, amount BDT, subscription start/expiry, invoice number, status).
+  - `POST /api/dashboard/users/:id/membership/extend` — extend membership expiry by N days (validated 1–3650).
+  - `PUT /api/dashboard/users/:id/membership/plan` — change the subscription plan among the three paid tiers.
+* Enforced **root account immutability** (`master@fitora.com` / `isMasterProtected`) across membership extend, plan change, user update, and user delete — all blocked with `403 Forbidden`.
+* Built the matching UI in `UserManagementTable.tsx`: per-row **Membership Audit**, **Extend Membership**, and **Modify Plan** actions with client-side root-account guards (toast error), and table refresh after successful operations.
+* Added `fetchUserMembership()`, `extendUserMembership()`, and `updateUserMembershipPlan()` service functions to `dashboardService.ts`.
+
+---
+
+## 09-Sep-26
+
+### Admin Dashboard: CSV Export for Check-in Reports
+
+Added a one-click **CSV Export** feature to the master/branch-admin dashboard so administrators can download today's check-in records for offline reporting and auditing.
+
+#### Key Implementation:
+* Wired an **"Export CSV"** button into the **Today's Check-ins** panel in `client/src/app/dashboard/page.tsx`.
+* Built `exportCheckInsCSV()` which maps the current day's check-in records into CSV rows with `Member Name`, `Date`, `Branch`, and `Check-in Time` columns.
+* Applied proper **CSV escaping** (`escapeCSV`) so values containing quotes, commas, or newlines are wrapped and safely encoded.
+* Parsed `checkInTime` into a human-friendly date and local time string (falling back to the attendance date / raw timestamp when parsing fails).
+* Generated the file as a UTF-8 `text/csv` Blob, triggered the download as `fitora-check-in-report.csv`, and cleaned up the object URL afterward.
+* Styled the button with a lucide `Download` icon, hover-to-invert effect, and a live **"N tracked"** counter next to it.
+
+### Admin Dashboard: Branch Occupancy Warning
+
+Enhanced the **branch management** view to surface occupancy load and warn administrators when a gym branch is approaching its capacity.
+
+#### Key Implementation:
+* Added a fixed `TOTAL_CAPACITY = 400` (people per branch) constant in `client/src/components/dashboard/BranchManagementView.tsx`.
+* Calculated `occupancyPercentage = (currentOccupancy / TOTAL_CAPACITY) * 100` for each branch card.
+* Flagged branches as **"Near Capacity"** whenever occupancy reaches **≥ 90%** via `isNearCapacity`.
+* Rendered a rose-colored `CircleAlert`-icon warning banner — **"Near Capacity (>90%)"** — on branch cards that hit the threshold.
+* Kept the existing per-branch **Capacity Load** meter (the progress bar using `totalMembers / maxCapacity`) and added the warning label directly beneath it using the fixed 400-person figure.
+
+### Branch Admin: Live Attendance & Occupancy Dashboard UI
+
+Built the **brand-new branch-admin attendance dashboard** on the dashboard page, replacing static/dummy attendance data with live API records.
+
+#### Key Implementation:
+* Added `BranchManagementView`, `MemberDashboardView`, and attendance/occupancy/check-in service functions to the dashboard page.
+* Consumed `fetchBranchCheckins()`, `fetchBranchOccupancy()`, and `fetchBranchOverview()` from the typed `branchService`.
+* Displayed a **Current Occupancy** card with live occupancy count, member capacity, occupancy percentage, an animated capacity meter (turning rose-red when `isAtCapacity`), plus **Available** and **Active now** quick stats.
+* Added a **Branch Summary** card showing the branch name, capacity, and open/full status.
+* Rendered paginated **Today's Check-ins** (4 per page) with member avatar initials, member name, branch, and check-in source, plus Prev/Next pagination controls.
+* Handled loading, error, and empty states so the dashboard only ever shows real API records (no dummy fallbacks).
+
+---
+
+## 10-Sep-26
+
+### Reusable CSV Export Utility
+
+Created a shared, reusable client-side utility for converting an array of JavaScript objects into a downloadable CSV file, used by the admin dashboard's export actions.
+
+#### Key Implementation:
+* New file `client/src/utils/csvExporter.ts` exporting a single **`exportToCSV(rows, filename)`** function (plus private helpers).
+* `escapeCSV(value)` safely serializes cells: wraps a value in quotes when it contains a comma, quote, or newline, and converts `null`/`undefined` into an empty string.
+* `buildCsv(rows)` auto-derives the header row from the first object's keys (preserving key order) and maps each object into a data row, joined with `\r\n`; returns an empty string when the array is empty.
+* `triggerDownload(csv, filename)` creates a UTF-8 `text/csv` `Blob`, uses `URL.createObjectURL()`, triggers the download via a temporary `<a>` element, cleans up the node, and revokes the object URL.
+* `exportToCSV()` guards against an empty/invalid array (no-op) and simply builds + downloads the CSV.
+
+### Admin Dashboard: Attendance CSV Export Action
+
+Added an **"Export Attendance (CSV)"** action to the admin dashboard that exports the **live attendance data** already shown on the page.
+
+#### Key Implementation:
+* Imported `exportToCSV` from the new utility into `client/src/app/dashboard/page.tsx`.
+* Added `exportAttendanceCSV()` which no-ops when there are no records, maps the existing `displayCheckins` (the real `BranchCheckin` data) into rows with columns **Member Name**, **Date**, **Branch**, **Status** (Checked In / Checked Out), **Source**, and **Check-in Time**.
+* Parses `checkInTime` into a locale date and time (falling back to the attendance date / raw timestamp when parsing fails).
+* Builds a **dynamic filename** `fitora-attendance-YYYY-MM-DD.csv` from the current date (zero-padded, not hardcoded).
+* Passed the rows + filename to `exportToCSV()` to trigger the browser download.
+* Added the button with a lucide `Download` icon to the **Today's Check-ins** action area, styled to match the existing Fitora admin UI (no mock data, no new API, no backend changes).
+
+### Admin Dashboard: Monthly Revenue CSV Export Action
+
+Added an **"Export Monthly Revenue (CSV)"** action that exports the **real monthly revenue data** already rendered in the revenue chart.
+
+#### Key Implementation:
+* Added `exportMonthlyRevenueCSV()` in `client/src/app/dashboard/page.tsx`.
+* No-ops when `monthlyRevenueChart` is empty, otherwise maps the existing chart data into rows with columns **Month**, **Revenue (BDT)**, and **Payments** — preserving the existing data fields (no recalculation).
+* Builds a **dynamic filename** `fitora-monthly-revenue-YYYY-MM-DD.csv` from the current date.
+* Passed the rows + filename to `exportToCSV()` to trigger the download.
+* Added the button with a `Download` icon to the **Monthly Revenue Progression** chart header, matched to the existing Fitora admin styling.
+
+---
+
 ## Summary of My Contributions
 
 ### Frontend
@@ -425,6 +580,17 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Membership checkout client integration.
 - Live dashboard/profile subscription synchronization after payment.
 - Payment history service integration.
+- Billing & Transactions section on the Profile page.
+- Invoice modal with View Invoice / Print integration.
+- Live master revenue analytics dashboard (wired to the revenue aggregation API).
+- Subscription plan / expiry date / status columns in the users management table.
+- Membership management modals — extend membership, modify plan, and membership audit.
+- CSV export for today's check-in reports (`fitora-check-in-report.csv`).
+- Branch occupancy warning banner ("Near Capacity >90%") in the branch management view.
+- Branch-admin live attendance & occupancy dashboard (live check-ins, occupancy meter, pagination).
+- Reusable client-side CSV exporter utility (`client/src/utils/csvExporter.ts`).
+- **Export Attendance (CSV)** action (`fitora-attendance-YYYY-MM-DD.csv`).
+- **Export Monthly Revenue (CSV)** action (`fitora-monthly-revenue-YYYY-MM-DD.csv`).
 
 ### Backend
 - Dashboard Statistics Controller.
@@ -432,6 +598,8 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - `GET /api/dashboard/stats` API implementation.
 - Master admin overview and revenue aggregations.
 - User management CRUD and RBAC controls.
+- `GET /api/dashboard/master/revenue` aggregation endpoint (summary, plan/month/gateway breakdown).
+- Membership management APIs — audit, extend expiry, and change plan — with immutable `master@fitora.com` root-account protection.
 - Branch admin portal and lead management endpoints.
 - Live check-in and checkout APIs.
 - Branch occupancy and capacity API integration.
@@ -450,6 +618,11 @@ These contributions cover both the **frontend UI** and **backend API** developme
 - Branch-admin attendance and live occupancy dashboard UI.
 - Typed branch API client service.
 - Branch and user seed-data dashboard directory views.
+- `BillingSection.tsx` — profile billing history table with invoice actions.
+- `InvoiceModal.tsx` — reusable invoice modal with print support.
+- `UserManagementTable.tsx` — live subscription status/expiry columns and membership extend/plan/audit action modals.
+- Dashboard **Export CSV** check-in report generator.
+- `csvExporter.ts` — reusable object-array → downloadable CSV utility powering the admin export actions.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.

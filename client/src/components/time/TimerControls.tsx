@@ -9,7 +9,6 @@ import {
   VolumeX,
   CheckCircle2,
   Timer,
-  ClipboardList,
 } from "lucide-react";
 
 interface TimerControlsProps {
@@ -24,7 +23,7 @@ interface TimerControlsProps {
   onNextSet: () => void;
   onToggleSound: () => void;
   onSetTarget: (amount: number) => void;
-  onQuickLog: () => void;
+  onQuickLog?: () => void;
   quickTargets?: number[];
 }
 
@@ -48,9 +47,9 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
     targetSeconds !== null ? Math.max(0, targetSeconds - seconds) : null;
 
   return (
-    <div className="flex flex-col items-center gap-3 w-full">
+    <div className="flex flex-col items-center gap-2.5 w-full">
       {/* ── Quick target duration chips ── */}
-      <div className="flex items-center gap-2 flex-wrap justify-center">
+      <div className="flex items-center gap-1.5 flex-wrap justify-center">
         <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest flex items-center gap-1 mr-0.5">
           <Timer className="w-3.5 h-3.5 text-white" /> Rest Target
         </span>
@@ -66,10 +65,10 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
                   ? "Click to clear rest target"
                   : `Set ${amount}s rest countdown`
               }
-              className={`relative px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all duration-200 active:scale-95 cursor-pointer overflow-hidden ${
+              className={`relative px-3 py-1 rounded-full text-[11px] font-bold border transition-all duration-200 active:scale-95 cursor-pointer overflow-hidden ${
                 isActive
                   ? "bg-white text-black border-white shadow-[0_0_14px_rgba(255,255,255,0.3)]"
-                  : "bg-[#181c24] hover:bg-[#1f2430] text-zinc-400 hover:text-zinc-200 border-[#252b38] hover:border-zinc-600"
+                  : "bg-black hover:bg-white/10 text-white/70 hover:text-white border-white/20 hover:border-white/40"
               }`}
             >
               {/* Fill bar when active and running */}
@@ -99,17 +98,17 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
       </div>
 
       {/* Thin separator */}
-      <div className="w-full h-px bg-gradient-to-r from-transparent via-[#2a303c]/60 to-transparent" />
+      <div className="w-full h-px bg-white/10" />
 
       {/* ── Main controls row ── */}
-      <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
+      <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
         {/* Stop Button */}
         <button
           type="button"
           onClick={onStop}
-          className="bg-[#181a1f] hover:bg-[#22262e] text-zinc-300 hover:text-white border border-[#2b313d] rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold tracking-wide transition-all duration-200 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+          className="bg-black hover:bg-white/10 text-white/80 hover:text-white border border-white/20 hover:border-white/40 rounded-xl px-4 py-1.5 sm:py-2 text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 flex items-center gap-1.5 cursor-pointer"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="w-3.5 h-3.5" />
           <span>Stop</span>
         </button>
 
@@ -117,7 +116,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
         <button
           type="button"
           onClick={onStartPause}
-          className={`rounded-xl px-6 sm:px-8 py-2 sm:py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 transform active:scale-95 flex items-center gap-2 text-black shadow-lg cursor-pointer ${
+          className={`rounded-xl px-5 sm:px-7 py-1.5 sm:py-2 text-xs sm:text-sm font-bold tracking-wide transition-all duration-200 transform active:scale-95 flex items-center gap-2 text-black shadow-lg cursor-pointer ${
             isRunning
               ? "bg-zinc-200 hover:bg-white shadow-[0_0_20px_rgba(255,255,255,0.25)]"
               : "bg-white hover:bg-gray-100 shadow-[0_0_25px_rgba(255,255,255,0.3)]"
@@ -125,12 +124,12 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
         >
           {isRunning ? (
             <>
-              <Pause className="w-4 h-4 fill-black" />
+              <Pause className="w-3.5 h-3.5 fill-black" />
               <span>Pause</span>
             </>
           ) : (
             <>
-              <Play className="w-4 h-4 fill-black" />
+              <Play className="w-3.5 h-3.5 fill-black" />
               <span>
                 {seconds > 0
                   ? "Resume"
@@ -142,26 +141,16 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
           )}
         </button>
 
-        {/* Adaptive action: Log Set only when clock is at 00, else Next Set */}
-        {seconds !== 0 && currentSet < totalSets ? (
+        {/* Next Set Button */}
+        {seconds !== 0 && currentSet < totalSets && (
           <button
             type="button"
             onClick={onNextSet}
-            className="bg-[#181a1f] hover:bg-[#22262e] text-white border border-white/20 hover:border-white/40 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="bg-black hover:bg-white/10 text-white border border-white/20 hover:border-white/40 rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-semibold transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
             title="Complete current set & start next"
           >
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Next Set</span>
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={onQuickLog}
-            className="bg-[#181a1f] hover:bg-[#22262e] text-white border border-white/20 hover:border-white/40 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
-            title="Log weight & reps for the current set"
-          >
-            <ClipboardList className="w-4 h-4" />
-            <span>Log Set</span>
           </button>
         )}
 
@@ -169,13 +158,13 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
         <button
           type="button"
           onClick={onToggleSound}
-          className="bg-[#181a1f] hover:bg-[#22262e] text-zinc-400 hover:text-white border border-[#2b313d] rounded-xl p-2 sm:p-2.5 transition cursor-pointer"
+          className="bg-black hover:bg-white/10 text-white/70 hover:text-white border border-white/20 hover:border-white/40 rounded-xl p-1.5 sm:p-2 transition cursor-pointer"
           title={soundEnabled ? "Mute sound cues" : "Unmute sound cues"}
         >
           {soundEnabled ? (
-            <Volume2 className="w-4 h-4 text-white" />
+            <Volume2 className="w-3.5 h-3.5 text-white" />
           ) : (
-            <VolumeX className="w-4 h-4 text-zinc-500" />
+            <VolumeX className="w-3.5 h-3.5 text-zinc-500" />
           )}
         </button>
       </div>

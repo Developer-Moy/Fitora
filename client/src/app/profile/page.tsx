@@ -1,61 +1,65 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
   Mail,
-  Phone,
   MapPin,
-  Calendar,
   Dumbbell,
-  Clock,
-  Utensils,
-  Activity,
-  ArrowUpRight,
   LogOut,
-  Edit3,
-  Camera,
-  Upload,
-  CheckCircle2,
-  ShieldCheck,
-  Flame,
-  Droplets,
-  Award,
   Loader2,
+  CreditCard,
+  QrCode,
+  Flame,
+  Clock,
+  CheckCircle,
   Trash2,
-  Copy,
-  ChevronRight,
-  Check,
-  History,
-  TrendingUp,
   Sparkles,
+  TrendingUp,
+  X,
+  Plus,
+  ArrowUpRight,
+  Utensils,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
 import {
   getAuthSession,
-  clearAuthSession,
   logoutUser,
+  getCurrentUserApi,
   AuthUser,
   AUTH_SESSION_UPDATED,
 } from "@/services/authService";
-import {
-  uploadToImgBB,
-  readFileAsDataURL,
-} from "@/services/imageUploadService";
 import { getWorkoutLogs } from "@/services/workoutService";
 import type { WorkoutLog } from "@/types/workout";
-import MealCard from "@/components/meals/MealCard";
+import SavedMealPlan from "@/components/profile/SavedMealPlan";
 import {
   getDailyMealPlan,
   SavedMealPlanItem,
 } from "@/services/dailyMealPlanService";
-import { deleteBmiHistory, fetchBmiHistory } from "@/services/bmiService";
+import { fetchBmiHistory, deleteBmiHistory } from "@/services/bmiService";
 import { fetchMealCharts, type MealChart } from "@/services/mealChartService";
-import BillingPaymentHistory from "@/components/BillingPaymentHistory";
+import BillingSection from "@/components/profile/BillingSection";
+import PersonalizedNutritionPlan from "@/components/profile/PersonalizedNutritionPlan";
+import SubscriptionModal from "@/components/home/SubscriptionModal";
+import MembershipStatusCard from "@/components/subscription/MembershipStatusCard";
+import ActivityHeatmap from "@/components/profile/ActivityHeatmap";
+import { FITORA_PLANS, PlanItem } from "@/components/home/PricingSection";
+import { type MembershipData, isFreePlan } from "@/lib/membershipUtils";
+import MembershipExpiryBanner from "@/components/MembershipExpiryBanner";
+import {
+  fetchUserActivityStreakApi,
+  type UserActivityStreakData,
+} from "@/services/activityService";
+import { saveCardApi, deleteSavedCardApi } from "@/services/dashboardService";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface BMIHistory {
   _id: string;
@@ -69,1113 +73,1500 @@ interface BMIHistory {
   createdAt: string;
 }
 
-// Removed DEFAULT_WORKOUT_HISTORY
+interface FitnessGoalResponse {
+  goal: {
+    _id: string;
+    goalType?: string;
+    targetWeight: number;
+    weeklyWorkoutFrequency: number;
+  };
+  activeStreak: number;
+  totalVolumeLifted: number;
+  milestone?: {
+    achieved: boolean;
+    current: number | null;
+  };
+}
 
-// Meal Plan Suggestions tailored by Fitness Goal
-const MEAL_SUGGESTIONS_BY_GOAL: Record<
-  string,
-  {
-    targetCalories: string;
-    protein: string;
-    carbs: string;
-    fats: string;
-    hydration: string;
-    advice: string;
-    meals: {
-      type: string;
-      name: string;
-      calories: number;
-      protein: string;
-      carbs: string;
-      fats: string;
-      ingredients: string[];
-      description: string;
-    }[];
-  }
-> = {
-  "Bulking & Muscle Gain": {
-    targetCalories: "2,950 kcal",
-    protein: "185g",
-    carbs: "360g",
-    fats: "80g",
-    hydration: "3.8 L",
-    advice:
-      "Maintain a 400-500 kcal surplus with nutrient-dense complex carbohydrates, lean red meat, poultry, and healthy dietary fats.",
-    meals: [
-      {
-        type: "Breakfast (Power Start)",
-        name: "Double Oatmeal with Whey & Peanut Butter Bowl",
-        calories: 720,
-        protein: "48g",
-        carbs: "85g",
-        fats: "22g",
-        ingredients: [
-          "100g Rolled Oats",
-          "1.5 Scoops Whey Isolate",
-          "2 Tbsp Natural Peanut Butter",
-          "1 Sliced Banana",
-          "200ml Almond Milk",
-        ],
-        description:
-          "High glycemic carb replenish combined with slow digesting fats for prolonged morning anabolism.",
-      },
-      {
-        type: "Lunch (Post-Workout Recovery)",
-        name: "Grilled Steak Bowl with Brown Rice & Avocado",
-        calories: 860,
-        protein: "55g",
-        carbs: "90g",
-        fats: "28g",
-        ingredients: [
-          "200g Lean Beef Sirloin",
-          "250g Cooked Brown Rice",
-          "1/2 Fresh Avocado",
-          "1 Cup Steamed Broccoli",
-          "1 Tbsp Olive Oil Drizzle",
-        ],
-        description:
-          "Natural creatine from sirloin paired with nutrient-rich brown rice and monounsaturated healthy fats.",
-      },
-      {
-        type: "Dinner (Overnight Recovery)",
-        name: "Baked Atlantic Salmon with Sweet Potatoes & Asparagus",
-        calories: 780,
-        protein: "52g",
-        carbs: "75g",
-        fats: "26g",
-        ingredients: [
-          "220g Atlantic Salmon Fillet",
-          "300g Roasted Sweet Potatoes",
-          "150g Grilled Asparagus",
-          "Lemon Herb Seasoning",
-        ],
-        description:
-          "Rich in Omega-3 fatty acids to reduce joint inflammation and support deep REM hormone production.",
-      },
-    ],
-  },
-  "Fat Loss & Cutting": {
-    targetCalories: "1,950 kcal",
-    protein: "175g",
-    carbs: "140g",
-    fats: "50g",
-    hydration: "4.0 L",
-    advice:
-      "Maintain a 400-500 kcal deficit while keeping protein high at 2.2g per kg of bodyweight to preserve lean muscle tissue.",
-    meals: [
-      {
-        type: "Breakfast (High Protein)",
-        name: "Egg White Veggie Scramble with Avocado Toast",
-        calories: 420,
-        protein: "38g",
-        carbs: "28g",
-        fats: "14g",
-        ingredients: [
-          "6 Egg Whites + 1 Whole Egg",
-          "1 Cup Baby Spinach & Diced Bell Peppers",
-          "1 Slice Whole Grain Sourdough",
-          "30g Sliced Avocado",
-        ],
-        description:
-          "Satiating low-calorie breakfast with high volume greens and quality amino acids.",
-      },
-      {
-        type: "Lunch (Lean Fuel)",
-        name: "Herb Grilled Chicken Breast with Quinoa Salad",
-        calories: 560,
-        protein: "54g",
-        carbs: "45g",
-        fats: "12g",
-        ingredients: [
-          "220g Skinless Chicken Breast",
-          "120g Cooked Quinoa",
-          "Cucumber, Cherry Tomatoes & Red Onion",
-          "Fresh Lemon & Herb Vinaigrette",
-        ],
-        description:
-          "Ultra-lean protein delivery with complete amino profile quinoa and micronutrient dense salad.",
-      },
-      {
-        type: "Dinner (Low-Carb Satiety)",
-        name: "Seared White Fish with Cauliflower Mash & Green Beans",
-        calories: 480,
-        protein: "46g",
-        carbs: "22g",
-        fats: "16g",
-        ingredients: [
-          "240g White Cod or Tilapia Fillet",
-          "200g Steamed & Mashed Cauliflower with Garlic",
-          "150g Sautéed Green Beans in Olive Oil",
-        ],
-        description:
-          "High volume, very low calorie dinner to eliminate late night cravings while accelerating fat oxidation.",
-      },
-    ],
-  },
-  "Strength & Conditioning": {
-    targetCalories: "2,550 kcal",
-    protein: "180g",
-    carbs: "270g",
-    fats: "70g",
-    hydration: "3.5 L",
-    advice:
-      "Balanced performance nutrition optimizing glycogen replenishment and central nervous system recovery.",
-    meals: [
-      {
-        type: "Breakfast (Power Fuel)",
-        name: "Protein Pancakes with Greek Yogurt & Mixed Berries",
-        calories: 590,
-        protein: "45g",
-        carbs: "72g",
-        fats: "12g",
-        ingredients: [
-          "Oat Flour & Egg White Batter",
-          "1 Scoop Whey Isolate",
-          "150g Non-fat Greek Yogurt",
-          "1/2 Cup Fresh Blueberries & Honey",
-        ],
-        description:
-          "Sustained energy release ideal for intense athletic lifting and cardiovascular sessions.",
-      },
-      {
-        type: "Lunch (Athletic Plate)",
-        name: "Lean Turkey Breast Wrap with Hummus & Roasted Veggies",
-        calories: 680,
-        protein: "52g",
-        carbs: "70g",
-        fats: "18g",
-        ingredients: [
-          "200g Roasted Turkey Breast",
-          "Large Whole Wheat Tortilla",
-          "2 Tbsp Garlic Hummus",
-          "Roasted Zucchini, Peppers & Spinach",
-        ],
-        description:
-          "Balanced glycemic index meal ensuring stable insulin levels throughout training windows.",
-      },
-      {
-        type: "Dinner (Recovery)",
-        name: "Grilled Flank Steak with Basmati Rice & Grilled Corn",
-        calories: 740,
-        protein: "50g",
-        carbs: "68g",
-        fats: "22g",
-        ingredients: [
-          "190g Grilled Flank Steak",
-          "180g Steamed Basmati Rice",
-          "Grilled Sweet Corn Cob",
-          "Side Garden Salad",
-        ],
-        description:
-          "Packed with zinc, iron, and B-vitamins to accelerate muscular rebuilding and power regeneration.",
-      },
-    ],
-  },
-  Maintenance: {
-    targetCalories: "2,350 kcal",
-    protein: "160g",
-    carbs: "240g",
-    fats: "65g",
-    hydration: "3.2 L",
-    advice:
-      "Maintain homeostatic caloric equilibrium while cycling nutrient timing around daily workout routines.",
-    meals: [
-      {
-        type: "Breakfast",
-        name: "Avocado & Poached Eggs on Toasted Rye",
-        calories: 520,
-        protein: "26g",
-        carbs: "42g",
-        fats: "24g",
-        ingredients: [
-          "2 Whole Poached Eggs",
-          "2 Slices Toasted Rye Bread",
-          "1/2 Mashed Avocado with Chili Flakes",
-          "Handful of Arugula",
-        ],
-        description:
-          "Nutritious balance of wholesome fats, complex carbohydrates, and clean proteins.",
-      },
-      {
-        type: "Lunch",
-        name: "Mediterranean Chicken Bowl with Couscous",
-        calories: 680,
-        protein: "48g",
-        carbs: "65g",
-        fats: "18g",
-        ingredients: [
-          "180g Marinated Chicken Thighs",
-          "150g Whole Wheat Couscous",
-          "Kalamata Olives, Cucumbers & Feta Cheese",
-          "Tzatziki Sauce",
-        ],
-        description:
-          "Delicious heart-healthy meal full of polyphenols and high biological value protein.",
-      },
-      {
-        type: "Dinner",
-        name: "Teriyaki Tofu or Salmon Stir-Fry with Jasmine Rice",
-        calories: 620,
-        protein: "42g",
-        carbs: "70g",
-        fats: "16g",
-        ingredients: [
-          "200g Fresh Salmon or Firm Organic Tofu",
-          "180g Steamed Jasmine Rice",
-          "Snap Peas, Carrots, & Broccoli",
-          "Low-Sodium Teriyaki Glaze",
-        ],
-        description:
-          "Light yet deeply nourishing dinner optimized for effortless metabolic digestion.",
-      },
-    ],
-  },
-};
+type SubmenuTab = "overview" | "workouts" | "nutrition" | "billing";
 
-export default function ProfilePage() {
-  const router = useRouter();
-  const { data: authSession } = useSession();
-  const [localUser, setLocalUser] = useState<AuthUser | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const [copiedMealIndex, setCopiedMealIndex] = useState<number | null>(null);
-  const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>([]);
-  const [isLoadingDailyPlan, setIsLoadingDailyPlan] = useState<boolean>(true);
+// ── Trial Countdown Banner ────────────────────────────────────────────────────
 
-  const [history, setHistory] = useState<BMIHistory[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(true);
-  const [historyError, setHistoryError] = useState("");
-
-  // Edit Modal State
+function TrialCountdownBanner({ trialExpiresAt }: { trialExpiresAt: string }) {
+  const [timeLeft, setTimeLeft] = useState("");
 
   useEffect(() => {
-    setIsMounted(true);
-
-    const syncLocalUser = () => {
-      const session = getAuthSession();
-      if (session.user) {
-        setLocalUser(session.user);
-      }
-    };
-
-    syncLocalUser();
-    window.addEventListener(AUTH_SESSION_UPDATED, syncLocalUser);
-    return () => {
-      window.removeEventListener(AUTH_SESSION_UPDATED, syncLocalUser);
-    };
-  }, []);
-
-  useEffect(() => {
-    const fetchBMIHistory = async () => {
-      try {
-        setHistoryLoading(true);
-        setHistoryError("");
-
-        const userId = (localUser?.id || localUser?._id) as string | undefined;
-        const historyData = await fetchBmiHistory(userId);
-        setHistory(historyData);
-      } catch (error) {
-        console.error("BMI history fetch error:", error);
-        setHistoryError("Failed to load your calculation history.");
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
-
-    fetchBMIHistory();
-  }, [localUser?.id, localUser?._id]);
-
-  const handleDeleteHistory = async (id: string) => {
-    try {
-      const success = await deleteBmiHistory(id);
-
-      if (!success) {
-        toast.error("Failed to delete history.");
+    const update = () => {
+      const diff = new Date(trialExpiresAt).getTime() - Date.now();
+      if (diff <= 0) {
+        setTimeLeft("expired");
         return;
       }
+      const totalH = Math.floor(diff / 3_600_000);
+      const m = Math.floor((diff % 3_600_000) / 60_000);
+      const s = Math.floor((diff % 60_000) / 1_000);
+      const d = Math.floor(totalH / 24);
+      if (d > 0) setTimeLeft(`${d}d ${totalH % 24}h ${m}m`);
+      else setTimeLeft(`${totalH}h ${m}m ${s}s`);
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [trialExpiresAt]);
 
-      setHistory((prev) => prev.filter((item) => item._id !== id));
+  if (timeLeft === "expired") return null;
 
-      toast.success("Calculation history deleted successfully.");
-    } catch (error) {
-      console.error("Delete BMI history error:", error);
-      toast.error("Failed to delete history.");
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 via-white/5 to-white/10 px-5 py-3.5 flex items-center justify-between gap-3 shadow-lg">
+      <div className="flex items-center gap-3">
+        <Sparkles className="w-5 h-5 text-white shrink-0 animate-pulse" />
+        <p className="text-sm text-white font-medium">
+          🎉 <span className="font-bold">Free Premium Trial Active</span> —{" "}
+          <span className="font-mono font-bold text-white">{timeLeft}</span>{" "}
+          remaining. Enjoy all Pro athlete perks, QR turnstile access, and macro
+          tracking!
+        </p>
+      </div>
+      <Link
+        href="/#pricing"
+        className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white text-black text-xs font-bold hover:bg-neutral-200 transition-colors shrink-0"
+      >
+        <span>Upgrade Now</span>
+        <ArrowUpRight className="w-3.5 h-3.5" />
+      </Link>
+    </div>
+  );
+}
+
+// ── Save Card Modal ────────────────────────────────────────────────────────────
+
+function SaveCardModal({
+  onClose,
+  onSaved,
+}: {
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [form, setForm] = useState({
+    cardNumber: "",
+    cardHolder: "",
+    expiryMonth: "",
+    expiryYear: "",
+    cvv: "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  const detectBrand = (num: string) => {
+    const clean = num.replace(/\D/g, "");
+    if (/^4/.test(clean)) return "Visa";
+    if (/^5[1-5]/.test(clean)) return "Mastercard";
+    if (/^3[47]/.test(clean)) return "Amex";
+    return "Card";
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanNum = form.cardNumber.replace(/\D/g, "");
+    if (cleanNum.length < 13) {
+      toast.error("Enter a valid card number");
+      return;
+    }
+    const m = parseInt(form.expiryMonth, 10);
+    const y = parseInt(form.expiryYear, 10);
+    if (!m || m < 1 || m > 12) {
+      toast.error("Valid month: 1–12");
+      return;
+    }
+    if (!y || y < new Date().getFullYear()) {
+      toast.error("Valid expiry year required");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await saveCardApi({
+        last4: cleanNum.slice(-4),
+        brand: detectBrand(cleanNum),
+        expiryMonth: String(m).padStart(2, "0"),
+        expiryYear: String(y),
+        cardHolder: form.cardHolder.trim() || "Card Holder",
+      });
+      if (res.success) {
+        toast.success(
+          "💳 Card saved successfully! 2 bonus months unlocked on your next monthly purchase.",
+        );
+        onSaved();
+        onClose();
+      } else {
+        toast.error(res.message || "Failed to save card");
+      }
+    } catch {
+      toast.error("Network error saving card");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const activeUser = { ...authSession?.user, ...localUser };
-  const userName = activeUser?.name || "Athlete Member";
-  const userEmail = activeUser?.email || "athlete@fitora.com";
-  const userInitial = userName.charAt(0).toUpperCase() || "A";
-  const userRole = (activeUser as any)?.role || "athlete";
-  const userAvatar =
-    localUser?.avatarUrl ||
-    (activeUser as any)?.image ||
-    (activeUser as any)?.avatarUrl ||
-    "";
-  const isMasterAdmin =
-    userRole === "master_admin" ||
-    userEmail.toLowerCase().includes("master@fitora.com");
-  const isBranchAdmin =
-    userRole === "branch_admin" ||
-    userEmail.toLowerCase().includes("admin@fitora");
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-md rounded-2xl border border-white/20 bg-neutral-950 p-6 space-y-5 shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
+          aria-label="Close"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-white" /> Save Payment Card
+          </h2>
+          <p className="text-xs text-white/60 mt-1">
+            Save your credit/debit card for fast 1-click renewals.{" "}
+            <span className="text-white font-semibold">
+              Get 2 bonus months FREE
+            </span>{" "}
+            when you renew!
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase text-white/60 mb-1">
+              Card Number
+            </label>
+            <input
+              required
+              maxLength={19}
+              value={form.cardNumber}
+              onChange={(e) =>
+                setForm((p) => ({
+                  ...p,
+                  cardNumber: e.target.value
+                    .replace(/\D/g, "")
+                    .replace(/(.{4})/g, "$1 ")
+                    .trim(),
+                }))
+              }
+              placeholder="4242 •••• •••• 4242"
+              className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase text-white/60 mb-1">
+              Cardholder Name
+            </label>
+            <input
+              required
+              value={form.cardHolder}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, cardHolder: e.target.value }))
+              }
+              placeholder="e.g. John Doe"
+              className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold uppercase text-white/60 mb-1">
+                Expiry Month
+              </label>
+              <input
+                required
+                maxLength={2}
+                value={form.expiryMonth}
+                onChange={(e) =>
+                  setForm((p) => ({
+                    ...p,
+                    expiryMonth: e.target.value.replace(/\D/g, ""),
+                  }))
+                }
+                placeholder="MM (e.g. 08)"
+                className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase text-white/60 mb-1">
+                Expiry Year
+              </label>
+              <input
+                required
+                maxLength={4}
+                value={form.expiryYear}
+                onChange={(e) =>
+                  setForm((p) => ({
+                    ...p,
+                    expiryYear: e.target.value.replace(/\D/g, ""),
+                  }))
+                }
+                placeholder="YYYY (e.g. 2028)"
+                className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full flex items-center justify-center gap-2 bg-white text-black rounded-xl py-2.5 text-sm font-bold hover:bg-neutral-200 transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <CheckCircle className="w-4 h-4" />
+            )}
+            {saving ? "Saving…" : "Save Card & Unlock +2 Bonus Months"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Profile Page ─────────────────────────────────────────────────────────
+
+export default function ProfilePage() {
+  const { data: authSession } = useSession();
+
+  const isMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+
+  // ── Core User State ──
+  const [backendUser, setBackendUser] = useState<AuthUser | null>(() =>
+    typeof window !== "undefined" ? getAuthSession().user : null,
+  );
+  const [activeSubmenu, setActiveSubmenu] = useState<SubmenuTab>("overview");
+
+  // ── Data State ──
+  const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>([]);
+  const [isLoadingDailyPlan, setIsLoadingDailyPlan] = useState(true);
+  const [bmiHistory, setBmiHistory] = useState<BMIHistory[]>([]);
+  const [bmiLoading, setBmiLoading] = useState(true);
+  const [mealChart, setMealChart] = useState<MealChart | null>(null);
+  const [activityStreak, setActivityStreak] =
+    useState<UserActivityStreakData | null>(null);
+  const [activityStreakLoading, setActivityStreakLoading] = useState(true);
+  const [fitnessGoalData, setFitnessGoalData] =
+    useState<FitnessGoalResponse | null>(null);
+  const [fitnessGoalLoading, setFitnessGoalLoading] = useState(true);
+
+  const [activeSubscriptionData, setActiveSubscriptionData] = useState<{
+    planName?: string;
+    startDate?: string | Date;
+    expiryDate?: string | Date;
+    [key: string]: unknown;
+  } | null>(null);
+
+  const [membershipBannerData, setMembershipBannerData] = useState<{
+    status: "expiring_soon" | "expired" | "no_membership";
+    planName: string;
+    daysRemaining?: number;
+    expiryDate?: string;
+  } | null>(null);
+
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
+  const [renewPlan, setRenewPlan] = useState<PlanItem | null>(null);
+  const [showSaveCardModal, setShowSaveCardModal] = useState(false);
+
+  // ── Derived Identifiers ──
+  // ── Active Identity Reconciliation ──
+  // If the user is logged in via authSession, prioritize authSession's active credentials.
+  // Stale cached backendUser from a previous session must never override the currently active session!
+  const activeAuthEmail =
+    authSession?.user?.email ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_email") || ""
+      : "");
+
+  const isBackendMatching =
+    backendUser &&
+    activeAuthEmail &&
+    backendUser.email?.toLowerCase().trim() ===
+      activeAuthEmail.toLowerCase().trim();
+
+  const effectiveUser = isBackendMatching
+    ? backendUser
+    : backendUser && !activeAuthEmail
+      ? backendUser
+      : null;
 
   const resolvedUserId =
+    effectiveUser?.id ||
+    effectiveUser?._id ||
     authSession?.user?.id ||
-    localUser?.id ||
-    localUser?._id ||
     (typeof window !== "undefined"
       ? (localStorage.getItem("fitora_user_email") ?? undefined)
       : undefined);
 
-  const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
-  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const userEmail =
+    activeAuthEmail || effectiveUser?.email || "athlete@fitora.com";
+  const userName =
+    effectiveUser?.name ||
+    authSession?.user?.name ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_name") || ""
+      : "") ||
+    "Athlete";
+  const userInitial = userName.charAt(0).toUpperCase() || "A";
+  const userPlan = effectiveUser?.plan || "Free Pass";
+  const isPremium =
+    userPlan !== "Free Pass" && !userPlan.toLowerCase().includes("free");
 
-  const [mealChart, setMealChart] = useState<MealChart | null>(null);
-
-  const currentGoalKey =
-    mealChart?.goals?.fitnessGoal ||
-    localUser?.fitnessGoal ||
-    localUser?.plan ||
-    "Bulking & Muscle Gain";
-
-  const goalData =
-    MEAL_SUGGESTIONS_BY_GOAL[currentGoalKey] ||
-    MEAL_SUGGESTIONS_BY_GOAL["Bulking & Muscle Gain"];
+  const [avatarError, setAvatarError] = useState(false);
+  const userAvatar =
+    effectiveUser?.avatarUrl ||
+    effectiveUser?.image ||
+    (authSession?.user as any)?.image ||
+    (authSession?.user as any)?.avatarUrl ||
+    (typeof window !== "undefined"
+      ? (() => {
+          try {
+            const u = JSON.parse(localStorage.getItem("fitora_user") || "{}");
+            if (
+              !activeAuthEmail ||
+              (u.email &&
+                u.email.toLowerCase().trim() ===
+                  activeAuthEmail.toLowerCase().trim())
+            ) {
+              return u.avatarUrl || u.image || "";
+            }
+            return "";
+          } catch {
+            return "";
+          }
+        })()
+      : "");
 
   useEffect(() => {
-    const targetId = resolvedUserId || "guest_user";
+    setAvatarError(false);
+  }, [userAvatar]);
 
-    const fetchData = async () => {
-      setIsLoadingDailyPlan(true);
-      setIsLoadingWorkouts(true);
-      try {
-        const token =
-          typeof window !== "undefined"
-            ? localStorage.getItem("fitora_token") ||
-              localStorage.getItem("fitora_auth_token")
-            : null;
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const headers: Record<string, string> = {};
-        if (token) headers["Authorization"] = `Bearer ${token}`;
+  // ── Fetch User Profile from Backend ──
+  const fetchUser = useCallback(async () => {
+    const session = getAuthSession();
+    const targetEmail =
+      authSession?.user?.email ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("fitora_user_email") || ""
+        : "") ||
+      session.user?.email ||
+      backendUser?.email;
 
-        const [dailyPlanRes, workoutsRes, mealChartsRes, paymentsRes] =
-          await Promise.all([
-            getDailyMealPlan(targetId),
-            getWorkoutLogs(targetId, 20).catch(() => ({ logs: [] })),
-            fetchMealCharts(targetId).catch(() => []),
-            fetch(
-              `${apiUrl}/payments/me?userId=${encodeURIComponent(targetId)}&email=${encodeURIComponent(userEmail)}`,
-              { headers },
-            )
-              .then((r) => (r.ok ? r.json() : { data: { payments: [] } }))
-              .catch(() => ({ data: { payments: [] } })),
-          ]);
+    const targetUserId =
+      authSession?.user?.id ||
+      session.user?.id ||
+      session.user?._id ||
+      backendUser?.id ||
+      backendUser?._id;
 
-        if (dailyPlanRes.success && dailyPlanRes.data) {
-          setDailyPlanMeals(dailyPlanRes.data);
-        }
-        if (workoutsRes && workoutsRes.logs) {
-          setWorkoutLogs(workoutsRes.logs);
-        }
-        if (mealChartsRes && mealChartsRes.length > 0) {
-          setMealChart(mealChartsRes[0]);
-        }
-        if (paymentsRes?.data?.payments) {
-          setTransactions(paymentsRes.data.payments);
-        }
-      } catch (err) {
-        console.error("Failed to fetch profile data:", err);
-      } finally {
-        setIsLoadingDailyPlan(false);
-        setIsLoadingWorkouts(false);
+    if (!targetUserId && !targetEmail && !session.token) return;
+
+    const res = await getCurrentUserApi({
+      userId: targetUserId,
+      email: targetEmail,
+      name: authSession?.user?.name || session.user?.name,
+      image: (authSession?.user as any)?.image || session.user?.avatarUrl,
+      avatarUrl: (authSession?.user as any)?.image || session.user?.avatarUrl,
+    });
+
+    if (res.success && res.user) {
+      setBackendUser(res.user);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("fitora_user", JSON.stringify(res.user));
+          if (res.user.email) {
+            localStorage.setItem("fitora_user_email", res.user.email);
+          }
+          if (res.user.name) {
+            localStorage.setItem("fitora_user_name", res.user.name);
+          }
+          if (res.user.role) {
+            localStorage.setItem("fitora_user_role", res.user.role);
+            localStorage.setItem("fitora_active_role", res.user.role);
+          }
+          if (res.user.plan) {
+            localStorage.setItem("fitora_user_plan", res.user.plan);
+          }
+        } catch {}
       }
+    }
+  }, [
+    authSession?.user?.id,
+    authSession?.user?.email,
+    authSession?.user?.name,
+  ]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    const sync = () => {
+      const s = getAuthSession();
+      if (s.user) setBackendUser(s.user);
+    };
+    window.addEventListener(AUTH_SESSION_UPDATED, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(AUTH_SESSION_UPDATED, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  // ── QR Code Generation ──
+  useEffect(() => {
+    const qrValue =
+      backendUser?.qrCodeId || `FITORA-${backendUser?.email || "member"}`;
+    if (typeof window === "undefined") return;
+    setQrDataUrl(
+      `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrValue)}&size=200x200&bgcolor=000000&color=ffffff&margin=10`,
+    );
+  }, [backendUser?.qrCodeId, backendUser?.email]);
+
+  // ── Load All Dynamic Profile Data ──
+  useEffect(() => {
+    if (!resolvedUserId) return;
+    let cancelled = false;
+
+    const loadData = async () => {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("fitora_token") ||
+            localStorage.getItem("fitora_auth_token")
+          : null;
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      setIsLoadingWorkouts(true);
+      setIsLoadingDailyPlan(true);
+      setBmiLoading(true);
+      setActivityStreakLoading(true);
+      setFitnessGoalLoading(true);
+
+      const [
+        workoutsRes,
+        mealsRes,
+        mealChartsRes,
+        paymentsRes,
+        bmiRes,
+        streakRes,
+        goalRes,
+      ] = await Promise.allSettled([
+        getWorkoutLogs(String(resolvedUserId), 30).catch(() => ({ logs: [] })),
+        getDailyMealPlan(String(resolvedUserId)).catch(() => ({
+          success: false,
+          data: [],
+        })),
+        fetchMealCharts(String(resolvedUserId)).catch(() => []),
+        fetch(
+          `${apiUrl}/payments/me?userId=${encodeURIComponent(String(resolvedUserId))}&email=${encodeURIComponent(userEmail)}`,
+          { headers },
+        )
+          .then((r) => (r.ok ? r.json() : { data: { payments: [] } }))
+          .catch(() => ({ data: { payments: [] } })),
+        fetchBmiHistory(String(resolvedUserId)).catch(() => []),
+        fetchUserActivityStreakApi(String(resolvedUserId), userEmail).catch(
+          () => null,
+        ),
+        fetch(`${apiUrl}/goals/${encodeURIComponent(String(resolvedUserId))}`, {
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null),
+      ]);
+
+      if (cancelled) return;
+
+      if (workoutsRes.status === "fulfilled")
+        setWorkoutLogs(workoutsRes.value?.logs || []);
+      setIsLoadingWorkouts(false);
+
+      if (mealsRes.status === "fulfilled") {
+        const d = mealsRes.value;
+        setDailyPlanMeals(d.success && Array.isArray(d.data) ? d.data : []);
+      }
+      setIsLoadingDailyPlan(false);
+
+      if (
+        mealChartsRes.status === "fulfilled" &&
+        (mealChartsRes.value as MealChart[])?.length > 0
+      )
+        setMealChart((mealChartsRes.value as MealChart[])[0]);
+
+      if (paymentsRes.status === "fulfilled") {
+        const p = paymentsRes.value as any;
+        if (p?.data?.activeSubscription)
+          setActiveSubscriptionData(p.data.activeSubscription);
+      }
+
+      if (bmiRes.status === "fulfilled")
+        setBmiHistory(
+          Array.isArray(bmiRes.value) ? (bmiRes.value as BMIHistory[]) : [],
+        );
+      setBmiLoading(false);
+
+      if (streakRes.status === "fulfilled")
+        setActivityStreak(streakRes.value as UserActivityStreakData);
+      setActivityStreakLoading(false);
+
+      if (
+        goalRes.status === "fulfilled" &&
+        goalRes.value?.success &&
+        goalRes.value?.data
+      ) {
+        setFitnessGoalData(goalRes.value.data);
+      } else {
+        setFitnessGoalData(null);
+      }
+      setFitnessGoalLoading(false);
     };
 
-    fetchData();
+    loadData();
+    return () => {
+      cancelled = true;
+    };
   }, [resolvedUserId, userEmail]);
 
-  // Handle direct file selection & upload (Local Preview + ImgBB Cloud Sync)
-  const handleCopyMeal = (meal: any, index: number) => {
-    const textToCopy = `FITORA NUTRITION SUGGESTION (${meal.type})\nMeal: ${meal.name}\nMacros: ${meal.calories} kcal | ${meal.protein} Protein | ${meal.carbs} Carbs | ${meal.fats} Fats\nIngredients: ${meal.ingredients.join(", ")}\nPrep note: ${meal.description}`;
-    navigator.clipboard.writeText(textToCopy);
-    setCopiedMealIndex(index);
-    toast.success(`${meal.name} recipe & macros copied to clipboard!`);
-    setTimeout(() => setCopiedMealIndex(null), 2000);
-  };
+  // ── Membership Expiry Banner Evaluation ──
+  useEffect(() => {
+    const plan = backendUser?.plan || "Free Pass";
+    const rawExpiry =
+      backendUser?.membershipExpiresAt || backendUser?.subscriptionExpiryDate;
+    const freeTier =
+      !plan || plan === "Free Pass" || plan.toLowerCase().includes("free");
+    if (freeTier || !rawExpiry) {
+      setMembershipBannerData({ status: "no_membership", planName: plan });
+      return;
+    }
+    const exp = new Date(String(rawExpiry)).getTime();
+    const now = Date.now();
+    const diff = exp - now;
+    const formatted = new Date(String(rawExpiry)).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    if (diff <= 0)
+      setMembershipBannerData({
+        status: "expired",
+        planName: plan,
+        expiryDate: formatted,
+      });
+    else if (diff <= 7 * 86_400_000)
+      setMembershipBannerData({
+        status: "expiring_soon",
+        planName: plan,
+        daysRemaining: Math.max(1, Math.ceil(diff / 86_400_000)),
+        expiryDate: formatted,
+      });
+    else setMembershipBannerData(null);
+  }, [
+    backendUser?.plan,
+    backendUser?.membershipExpiresAt,
+    backendUser?.subscriptionExpiryDate,
+  ]);
 
+  // ── Event Listener for Workout Log Sync ──
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => {
+      if (!resolvedUserId) return;
+      getWorkoutLogs(String(resolvedUserId), 30)
+        .then((r) => setWorkoutLogs(r?.logs || []))
+        .catch(() => {});
+    };
+    window.addEventListener("fitora-workout-logged", handler);
+    return () => window.removeEventListener("fitora-workout-logged", handler);
+  }, [resolvedUserId]);
+
+  // ── Handlers ──
   const handleLogout = async () => {
     try {
       await logoutUser();
     } catch {}
-    toast.success("Logged out successfully. See you soon, Champion!");
+    toast.success("Logged out successfully. Keep training, Champion! 👋");
     setTimeout(() => {
       window.location.href = "/";
     }, 400);
   };
 
+  const handleDeleteBmi = async (id: string) => {
+    const ok = await deleteBmiHistory(id);
+    if (ok) {
+      setBmiHistory((prev) => prev.filter((h) => h._id !== id));
+      toast.success("Calculation record removed");
+    } else toast.error("Failed to delete record");
+  };
+
+  const handleDeleteCard = async () => {
+    if (!confirm("Remove this saved card from your account?")) return;
+    const res = await deleteSavedCardApi();
+    if (res.success) {
+      toast.success("Card removed successfully");
+      await fetchUser();
+    } else toast.error(res.message || "Failed to remove card");
+  };
+
+  const handleOpenRenew = () => {
+    const key =
+      activeSubscriptionData?.planName || backendUser?.plan || "Pro Athlete";
+    const found =
+      FITORA_PLANS.find(
+        (p) =>
+          p.name.toLowerCase() === key.toLowerCase() ||
+          p.planKey.toLowerCase() === key.toLowerCase(),
+      ) || FITORA_PLANS[1];
+    setRenewPlan(found);
+    setIsRenewModalOpen(true);
+  };
+
+  const resolvedMembership: MembershipData = (() => {
+    const planName =
+      activeSubscriptionData?.planName || effectiveUser?.plan || "Free Pass";
+    const startDate =
+      activeSubscriptionData?.startDate || effectiveUser?.createdAt || null;
+    const expiryDate =
+      activeSubscriptionData?.expiryDate ||
+      effectiveUser?.subscriptionExpiryDate ||
+      effectiveUser?.membershipExpiresAt ||
+      null;
+    if (isFreePlan(planName))
+      return { planName, startDate: null, expiryDate: null };
+    if (expiryDate) return { planName, startDate, expiryDate };
+    const fb = new Date();
+    fb.setDate(fb.getDate() + 30);
+    return { planName, startDate: startDate || new Date(), expiryDate: fb };
+  })();
+
+  const currentGoalKey =
+    effectiveUser?.fitnessGoal ||
+    mealChart?.goals?.fitnessGoal ||
+    "Bulking & Muscle Gain";
+
+  // ── Dynamic Weight & Goal Progress Calculations ──
+  const currentWeight = Number(effectiveUser?.weight || 0);
+  const targetWeight = Number(
+    effectiveUser?.targetWeight || fitnessGoalData?.goal?.targetWeight || 0,
+  );
+  const weightDifference = Math.abs(currentWeight - targetWeight);
+  const isWeightLoss = currentWeight > targetWeight;
+  const isGoalReached =
+    currentWeight > 0 && targetWeight > 0 && currentWeight === targetWeight;
+
+  const weightProgress =
+    currentWeight > 0 && targetWeight > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            100 -
+              (weightDifference / Math.max(currentWeight, targetWeight)) * 100,
+          ),
+        )
+      : 0;
+
   if (!isMounted) return null;
 
   return (
-    <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-12 sm:py-16 px-6 sm:px-10 lg:px-16 select-none">
-      <div className="max-w-6xl mx-auto space-y-12">
-        {/* ── Page Header (Homepage Style) ── */}
-        <div className="text-center space-y-3 max-w-2xl mx-auto pt-4">
-          <h1 className="text-3xl sm:text-5xl font-black font-sans uppercase tracking-tight text-white select-none">
-            Athlete Profile
-          </h1>
-          <p
-            className="text-white/80 text-[11px] xs:text-xs sm:text-[13px] md:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
-            style={{ fontStyle: "italic" }}
-          >
-            Track your progress, update your details, and unlock your full
-            athletic potential.
-          </p>
+    <div className="w-full min-h-screen bg-black text-white selection:bg-white selection:text-black py-6 sm:py-8 px-3 sm:px-6 select-none">
+      <div className="w-11/12 max-w-7xl mx-auto space-y-6 sm:space-y-8">
+        {/* ── Expiry / Action Alert Banner ── */}
+        {membershipBannerData && (
+          <MembershipExpiryBanner
+            status={membershipBannerData.status}
+            planName={membershipBannerData.planName}
+            daysRemaining={membershipBannerData.daysRemaining}
+            expiryDate={membershipBannerData.expiryDate}
+            onAction={handleOpenRenew}
+          />
+        )}
+
+        {/* ── 3-Day Free Trial Countdown Banner ── */}
+        {backendUser?.isTrialActive && backendUser.trialExpiresAt && (
+          <TrialCountdownBanner trialExpiresAt={backendUser.trialExpiresAt} />
+        )}
+
+        {/* ── Athlete Profile Header (No Dashboard Route, Clean Profile Only) ── */}
+        <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col md:flex-row md:items-center md:justify-between gap-5 h-auto">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/25 flex items-center justify-center text-2xl font-black overflow-hidden shrink-0 shadow-inner">
+              {userAvatar && !avatarError ? (
+                <img
+                  src={userAvatar}
+                  alt={userName}
+                  onError={() => setAvatarError(true)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white">{userInitial}</span>
+              )}
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white">
+                  {userName}
+                </h1>
+                <span
+                  className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border tracking-wider ${
+                    isPremium
+                      ? "bg-white text-black border-white"
+                      : "bg-white/10 text-white/70 border-white/20"
+                  }`}
+                >
+                  {userPlan}
+                </span>
+                {effectiveUser?.isTrialActive && (
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    Pro Trial
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 text-xs text-white/60 flex-wrap">
+                <span className="flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-white/40" /> {userEmail}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-white/40" />{" "}
+                  {effectiveUser?.assignedBranch ||
+                    "Dhaka • Gulshan-2 Branch (Flagship)"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Link
+              href="/profile/edit"
+              className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/20 text-white/80 hover:text-black hover:bg-white transition-all cursor-pointer shadow-sm"
+            >
+              <span>Edit Profile</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-all cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
 
-        {/* ── 1. Athlete Header Card ── */}
-        <div className="bg-black border border-white/20 rounded-3xl p-6 sm:p-8 shadow-[0_0_40px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-          {/* Subtle gradient overlay effect from homepage cards */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-transparent opacity-50" />
+        {/* ── Submenu Navigation (Clean Sections, No All Overview) ── */}
+        <div className="flex items-center gap-2 border-b border-white/10 pb-2 overflow-x-auto scrollbar-none">
+          {[
+            {
+              key: "overview",
+              label: "Overview & Biometrics",
+              icon: <User className="w-4 h-4" />,
+            },
+            {
+              key: "workouts",
+              label: "Workouts & Gym Pass",
+              icon: <Dumbbell className="w-4 h-4" />,
+            },
+            {
+              key: "nutrition",
+              label: "Nutrition & Meal Plan",
+              icon: <Utensils className="w-4 h-4" />,
+            },
+            {
+              key: "billing",
+              label: "Billing & Cards",
+              icon: <CreditCard className="w-4 h-4" />,
+            },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveSubmenu(tab.key as SubmenuTab)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
+                activeSubmenu === tab.key
+                  ? "bg-white text-black border-white shadow-lg scale-[1.01]"
+                  : "bg-black text-white/60 border-white/15 hover:border-white/40 hover:text-white"
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
 
-          <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6 z-10">
-            {/* Left: Avatar with Upload Overlay & Info */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
-              {/* Profile Avatar with Camera Trigger */}
-              <div className="relative group">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-black border-2 border-white/20 overflow-hidden flex items-center justify-center text-white font-black text-4xl shadow-xl">
-                  {userAvatar ? (
-                    <img
-                      src={userAvatar}
-                      alt={userName}
-                      className="w-full h-full object-cover"
-                    />
+        {/* ══════════════════════════════════════════════════════════════════════
+            SUBMENU 1: OVERVIEW & BIOMETRICS
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeSubmenu === "overview" && (
+          <div className="space-y-6">
+            {/* Row 1: 3-Column Cockpit Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 items-stretch">
+              {/* Card 1: Membership Status Card */}
+              <div className="h-auto">
+                <MembershipStatusCard
+                  membership={resolvedMembership}
+                  onRenew={handleOpenRenew}
+                />
+              </div>
+
+              {/* Card 2: Personal Details & Biometrics */}
+              <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-auto space-y-5">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-white/60" />
+                      <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                        Personal Details
+                      </h2>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                      Active
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 text-xs sm:text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Full Name</span>
+                      <span className="text-white font-bold truncate text-right">
+                        {userName}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Email</span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {userEmail}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Phone</span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.phone || "Not linked"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Gender</span>
+                      <span className="text-white font-semibold truncate text-right capitalize">
+                        {effectiveUser?.gender || "Not specified"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">
+                        Body Weight
+                      </span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.weight
+                          ? `${effectiveUser.weight} kg`
+                          : "Not set"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">Height</span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.height
+                          ? `${effectiveUser.height} cm`
+                          : "Not set"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">
+                        Activity Level
+                      </span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.activityLevel ||
+                          "Moderate (3-4 days/week)"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60 shrink-0">
+                        Daily Water Target
+                      </span>
+                      <span className="text-white font-semibold truncate text-right">
+                        {effectiveUser?.hydrationTargetLiters
+                          ? `${effectiveUser.hydrationTargetLiters} L / Day`
+                          : "3.0 L / Day"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-white/15">
+                  <Link
+                    href="/calculator"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+                  >
+                    <span>Recalculate Metrics</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Card 3: Consistency Streak */}
+              <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-auto space-y-5">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Flame className="w-4 h-4 text-white" />
+                      <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                        Consistency Streak
+                      </h2>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/60 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/15">
+                      Live Score
+                    </span>
+                  </div>
+
+                  {activityStreakLoading ? (
+                    <div className="py-6 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                    </div>
                   ) : (
-                    <span>{userInitial}</span>
+                    <div className="space-y-3">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl sm:text-5xl font-black text-white">
+                          {activityStreak?.currentStreak ??
+                            effectiveUser?.attendanceStreakDays ??
+                            0}
+                        </span>
+                        <span className="text-sm font-semibold uppercase text-white/60">
+                          Consecutive Days
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-white/60 leading-relaxed">
+                        {activityStreak?.longestStreak != null &&
+                        activityStreak.longestStreak > 0
+                          ? `Personal record: ${activityStreak.longestStreak} days uninterrupted training streak.`
+                          : "Check in via the gym turnstile or log a workout session to build your streak!"}
+                      </p>
+
+                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex items-center justify-between text-xs text-white/70">
+                        <span>Consistency Rating</span>
+                        <span className="font-mono font-bold text-white">
+                          {(activityStreak?.currentStreak ?? 0) > 5
+                            ? "Elite Athlete ⚡"
+                            : "Active Member"}
+                        </span>
+                      </div>
+                    </div>
                   )}
                 </div>
 
-                {/* Camera Upload Button */}
-              </div>
-
-              {/* Identity & Membership Info */}
-              <div className="space-y-1.5 min-w-0">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
-                    {userName}
-                  </h1>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-white text-black shadow-md">
-                    {isMasterAdmin
-                      ? "MASTER ADMIN"
-                      : isBranchAdmin
-                        ? "BRANCH ADMIN"
-                        : localUser?.plan || "FREE MEMBER"}
-                  </span>
-                </div>
-
-                <p className="text-xs sm:text-sm text-white/60 font-medium">
-                  {localUser?.bio || "Fitora Certified Athlete Member"}
-                </p>
-
-                <div className="flex items-center gap-4 text-xs text-white/60 flex-wrap pt-1">
-                  <span className="inline-flex items-center gap-1.5 text-white/80">
-                    <Mail className="w-3.5 h-3.5" />
-                    {userEmail}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 text-white/60">
-                    <MapPin className="w-3.5 h-3.5 text-white/80" />
-                    {localUser?.assignedBranch || "Gulshan-2 Flagship"}
-                  </span>
+                <div className="pt-4 border-t border-white/15">
+                  <Link
+                    href="/stopwatch"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-white text-black hover:bg-neutral-200 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Start Live Workout Session</span>
+                  </Link>
                 </div>
               </div>
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-3 w-full md:w-auto shrink-0 pt-2 md:pt-0">
-              <Link
-                href="/profile/edit"
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)] transition-all cursor-pointer shadow-xl"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>Edit Profile</span>
-              </Link>
-
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 bg-black text-white border border-white/20 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-white/10 hover:border-white/40 transition-all cursor-pointer shadow-xl"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* ── 2. Information Sections (Personal & Physical Profile Grid) ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Box 1: Personal & Contact Information */}
-          <div className="bg-black border border-white/20 rounded-2xl p-6 sm:p-7 space-y-5 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
-            <div className="flex items-center justify-between border-b border-white/20 pb-3">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-white/60" />
-                <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
-                  Personal Details
-                </h2>
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
-                Active
-              </span>
-            </div>
-
-            <div className="space-y-3.5 text-xs sm:text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Full Name</span>
-                <span className="text-white font-bold">{userName}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Email Address</span>
-                <span className="text-white font-semibold">{userEmail}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Phone Number</span>
-                <span className="text-white font-semibold">
-                  {localUser?.phone || "+880 1700-000000"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Gender</span>
-                <span className="text-white font-semibold">
-                  {localUser?.gender || "Male"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Preferred Branch</span>
-                <span className="text-white font-semibold">
-                  {localUser?.assignedBranch || "Gulshan-2 Flagship Branch"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Box 2: Physical & Fitness Metrics */}
-          <div className="bg-black border border-white/20 rounded-2xl p-6 sm:p-7 space-y-5 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
-            <div className="flex items-center justify-between border-b border-white/20 pb-3">
-              <div className="flex items-center gap-2">
-                <Dumbbell className="w-4 h-4 text-white/60" />
-                <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
-                  Fitness & Physical Profile
-                </h2>
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">
-                Self-Reported
-              </span>
-            </div>
-
-            <div className="space-y-3.5 text-xs sm:text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Primary Goal</span>
-                <span className="text-white font-bold uppercase">
-                  {localUser?.fitnessGoal ||
-                    localUser?.plan ||
-                    "Bulking & Muscle Gain"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Body Weight</span>
-                <span className="text-white font-semibold">
-                  {localUser?.weight || "74"} kg
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Height</span>
-                <span className="text-white font-semibold">
-                  {localUser?.height || "178"} cm
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Activity Level</span>
-                <span className="text-white font-semibold">
-                  {localUser?.activityLevel || "4-5 Days / Week"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">Daily Water Target</span>
-                <span className="text-white font-semibold">
-                  {goalData.hydration}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── 3. Gym & Workout History Section ── */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2.5">
-              <History className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
-                Gym & Workout History
-              </h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-white/60 font-medium hidden sm:inline">
-                {workoutLogs.length} Logged Sessions
-              </span>
-              <Link
-                href="/stopwatch"
-                className="inline-flex items-center gap-1.5 bg-white text-black font-bold text-xs px-4 py-2 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
-              >
-                <Clock className="w-3.5 h-3.5" />
-                <span>Start New Session</span>
-              </Link>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {/* Dynamic Rendering: Show workouts if they exist, otherwise show Empty State */}
-            {isLoadingWorkouts ? (
-              <div className="bg-black border border-white/20 rounded-2xl p-8 flex justify-center text-white/50 text-sm">
-                <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading
-                workouts...
-              </div>
-            ) : workoutLogs && workoutLogs.length > 0 ? (
-              workoutLogs.map((log) => (
-                <div
-                  key={log._id || Math.random().toString()}
-                  className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-5 sm:p-6 transition-all space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/20 pb-3">
-                    <div>
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <h3 className="text-base font-extrabold uppercase text-white">
-                          {log.exerciseName || "Workout"}
-                        </h3>
-                      </div>
-                      <p className="text-xs text-white/60 mt-0.5">
-                        {log.date
-                          ? new Date(log.date).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
-                          : "Recently"}
-                      </p>
+            {/* Row 2: 2-Column Grid (Weight Progress + Calculation History) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+              {/* Weight Progress & Milestone (5 cols on lg) */}
+              <div className="lg:col-span-5 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-auto space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-white/60" />
+                      <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                        Weight Progress
+                      </h2>
                     </div>
-
-                    <div className="flex items-center gap-3 shrink-0 text-xs font-bold text-white/80">
-                      <span className="inline-flex items-center gap-1 bg-black border border-white/20 px-3 py-1.5 rounded-full">
-                        <Clock className="w-3.5 h-3.5 text-white/60" />
-                        {log.durationMinutes} min
-                      </span>
-                      {log.weight && log.weight > 0 ? (
-                        <span className="inline-flex items-center gap-1 bg-black border border-white/20 px-3 py-1.5 rounded-full text-white">
-                          <Dumbbell className="w-3.5 h-3.5 text-white" />
-                          {log.weight} kg
-                        </span>
-                      ) : null}
-                    </div>
+                    <span className="text-xs font-black text-white px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 font-mono">
+                      {fitnessGoalLoading
+                        ? "..."
+                        : `${Math.round(weightProgress)}%`}
+                    </span>
                   </div>
 
                   <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-white/60">
-                      Stats ({log.setsCount} Sets, {log.repsCount} Reps)
-                    </p>
-                    {log.notes && (
-                      <div className="flex items-center gap-2 text-xs text-white/80 bg-black px-3 py-2 rounded-xl border border-white/5">
-                        <span className="truncate">{log.notes}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              /* Empty State for Workouts */
-              <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
-                <Dumbbell className="w-10 h-10 text-white/20" />
-                <div className="space-y-1">
-                  <h3 className="text-base sm:text-lg font-black uppercase text-white">
-                    No Workouts Logged
-                  </h3>
-                  <p className="text-xs text-white/60 max-w-sm mx-auto">
-                    Your gym history is currently empty. Start your first
-                    session using the stopwatch to track your progress!
-                  </p>
-                </div>
-                <Link
-                  href="/stopwatch"
-                  className="mt-2 group inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-xl hover:scale-[1.03] active:scale-[0.97]"
-                >
-                  <Clock className="w-4 h-4" />
-                  <span>Start First Session</span>
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── 4. BMI, BMR & TDEE Calculation History ── */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2.5">
-              <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
-                  Calculation History
-                </h2>
-
-                <p className="text-xs text-white/60 mt-1">
-                  Your previous BMI, BMR and TDEE calculations
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {historyLoading ? (
-            <div className="bg-black border border-white/20 rounded-2xl p-10 flex items-center justify-center">
-              <Loader2 className="w-7 h-7 animate-spin text-white/60" />
-            </div>
-          ) : historyError ? (
-            <div className="bg-black border border-red-500/20 rounded-2xl p-6 text-center">
-              <p className="text-sm text-red-400">{historyError}</p>
-            </div>
-          ) : history.length === 0 ? (
-            <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-3">
-              <TrendingUp className="w-10 h-10 text-white/20" />
-
-              <h3 className="text-base sm:text-lg font-black uppercase text-white">
-                No Calculation History
-              </h3>
-
-              <p className="text-xs text-white/60 max-w-sm">
-                Your BMI, BMR and TDEE calculation history will appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="bg-black border border-white/20 rounded-2xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[700px] text-left">
-                  <thead>
-                    <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-white/50">
-                      <th className="px-5 py-4 font-bold">Date</th>
-
-                      <th className="px-5 py-4 font-bold">Weight</th>
-
-                      <th className="px-5 py-4 font-bold">BMI</th>
-
-                      <th className="px-5 py-4 font-bold">BMR</th>
-
-                      <th className="px-5 py-4 font-bold">TDEE</th>
-
-                      <th className="px-5 py-4 font-bold">Actions</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {history.map((item) => (
-                      <tr
-                        key={item._id}
-                        className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors"
-                      >
-                        <td className="px-5 py-4 text-sm text-white/70">
-                          {new Date(item.createdAt).toLocaleDateString()}
-                        </td>
-
-                        <td className="px-5 py-4 text-sm font-semibold text-white">
-                          {item.weight} kg
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <span className="text-sm font-black text-white">
-                            {item.bmi.toFixed(1)}
-                          </span>
-                        </td>
-
-                        <td className="px-5 py-4 text-sm text-white/70">
-                          {item.bmr} kcal
-                        </td>
-
-                        <td className="px-5 py-4 text-sm text-white/70">
-                          {item.tdee} kcal
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteHistory(item._id)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-red-200/30 text-red-200 hover:bg-red-500/10 hover:border-red-500/50 transition-all text-xs font-bold"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ── 5. Meal Suggestion According to Profile ── */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2.5">
-              <Utensils className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
-                  Personalized Nutrition Plan
-                </h2>
-                <p className="text-xs text-white/60">
-                  Custom meal recommendations tailored for{" "}
-                  <strong className="text-white uppercase font-bold">
-                    {currentGoalKey}
-                  </strong>
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href="/meals"
-              className="inline-flex items-center gap-1 text-xs font-bold text-white/80 hover:text-white transition-colors"
-            >
-              <span>Explore All Recipes</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          {/* Nutrition Macro Target Banner */}
-          <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                  Daily Macro Target ({currentGoalKey})
-                </span>
-                <p className="text-xs sm:text-sm text-white/80">
-                  {goalData.advice}
-                </p>
-              </div>
-
-              {/* Macro Pills Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full sm:w-auto shrink-0">
-                <div className="bg-black border border-white/20 rounded-2xl px-4 py-2.5 text-center">
-                  <span className="text-[10px] font-bold text-white/60 block uppercase">
-                    Calories
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-white">
-                    {goalData.targetCalories}
-                  </span>
-                </div>
-                <div className="bg-black border border-white/20 rounded-2xl px-4 py-2.5 text-center">
-                  <span className="text-[10px] font-bold text-white/60 block uppercase">
-                    Protein
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-white">
-                    {goalData.protein}
-                  </span>
-                </div>
-                <div className="bg-black border border-white/20 rounded-2xl px-4 py-2.5 text-center">
-                  <span className="text-[10px] font-bold text-white/60 block uppercase">
-                    Carbs
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-white">
-                    {goalData.carbs}
-                  </span>
-                </div>
-                <div className="bg-black border border-white/20 rounded-2xl px-4 py-2.5 text-center">
-                  <span className="text-[10px] font-bold text-white/60 block uppercase">
-                    Fats
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-white">
-                    {goalData.fats}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Curated Daily Meal Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2">
-              {goalData.meals.map((meal, index) => (
-                <div
-                  key={index}
-                  className="bg-black border border-white/20 hover:border-white/25 rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 transition-all shadow-md"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                        {meal.type}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white text-black">
-                        {meal.calories} kcal
-                      </span>
+                    <div className="h-3 w-full overflow-hidden rounded-full border border-white/10 bg-neutral-900">
+                      <div
+                        className="h-full rounded-full bg-white transition-all duration-700"
+                        style={{ width: `${weightProgress}%` }}
+                      />
                     </div>
 
-                    <div>
-                      <h4 className="text-sm font-extrabold text-white leading-snug">
-                        {meal.name}
-                      </h4>
-                      <p className="text-xs text-white/60 mt-1 line-clamp-2">
-                        {meal.description}
-                      </p>
-                    </div>
-
-                    {/* Macro Split Badge */}
-                    <div className="flex items-center gap-2 text-[11px] font-bold text-white/80">
-                      <span className="bg-black/60 px-2 py-1 rounded-lg border border-white/5">
-                        P: {meal.protein}
+                    <div className="flex justify-between text-[11px] font-bold text-white/50 font-mono">
+                      <span>
+                        Current:{" "}
+                        {currentWeight > 0 ? `${currentWeight} kg` : "--"}
                       </span>
-                      <span className="bg-black/60 px-2 py-1 rounded-lg border border-white/5">
-                        C: {meal.carbs}
+                      <span>
+                        Target: {targetWeight > 0 ? `${targetWeight} kg` : "--"}
                       </span>
-                      <span className="bg-black/60 px-2 py-1 rounded-lg border border-white/5">
-                        F: {meal.fats}
-                      </span>
-                    </div>
-
-                    {/* Ingredients List */}
-                    <div className="space-y-1 pt-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-white/60 block">
-                        Ingredients:
-                      </span>
-                      <ul className="text-xs text-white/60 space-y-0.5 list-disc list-inside">
-                        {meal.ingredients.map((ing, i) => (
-                          <li key={i} className="truncate">
-                            {ing}
-                          </li>
-                        ))}
-                      </ul>
                     </div>
                   </div>
 
-                  {/* Copy Recipe Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleCopyMeal(meal, index)}
-                    className="group w-full flex items-center justify-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
-                  >
-                    {copiedMealIndex === index ? (
+                  <div className="rounded-xl border border-white/10 bg-neutral-950 p-3.5">
+                    {isGoalReached ? (
                       <>
-                        <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
-                        <span className="text-emerald-600 font-extrabold">
-                          Copied!
-                        </span>
+                        <p className="text-xs font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Goal Reached 🎉</span>
+                        </p>
+                        <p className="mt-1 text-xs text-white/60">
+                          Outstanding! You reached your target body weight.
+                        </p>
+                      </>
+                    ) : targetWeight > 0 ? (
+                      <>
+                        <p className="text-xs font-black uppercase text-white">
+                          {weightDifference.toFixed(1)} kg{" "}
+                          {isWeightLoss
+                            ? "remaining to shed"
+                            : "remaining to gain"}
+                        </p>
+                        <p className="mt-1 text-xs text-white/60">
+                          Stay disciplined with nutrition and workout routines.
+                        </p>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span>Copy Recipe & Macros</span>
+                        <p className="text-xs font-black uppercase text-white/70">
+                          No Target Goal Set
+                        </p>
+                        <p className="mt-1 text-xs text-white/50">
+                          Set your target body weight in the calculator to track
+                          daily progress.
+                        </p>
                       </>
                     )}
-                  </button>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* ── 4.5. My Saved Daily Meal Plan Section ── */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2.5">
-              <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-sans">
-                  Saved Daily Meal Plan
-                </h2>
-                <p className="text-xs text-white/60">
-                  Meals saved directly to your account
-                </p>
+                <div className="pt-3 border-t border-white/15">
+                  <Link
+                    href="/calculator"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+                  >
+                    <span>Adjust Target Weight</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Calculation History Table (7 cols on lg) */}
+              <div className="lg:col-span-7 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between h-auto space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3 flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-white/60" />
+                      <h2 className="text-base font-extrabold uppercase text-white tracking-wide">
+                        Calculation History
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-white/50 font-medium">
+                        {bmiHistory.length} Records Saved
+                      </span>
+                      <Link
+                        href="/calculator"
+                        className="text-xs px-2.5 py-0.5 rounded-full border border-white/20 text-white/70 hover:text-black hover:bg-white transition-all cursor-pointer"
+                      >
+                        + New
+                      </Link>
+                    </div>
+                  </div>
+
+                  {bmiLoading ? (
+                    <div className="py-8 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                    </div>
+                  ) : bmiHistory.length === 0 ? (
+                    <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
+                      <TrendingUp className="w-8 h-8 text-white/20" />
+                      <h3 className="text-sm font-black uppercase text-white">
+                        No Calculation History
+                      </h3>
+                      <p className="text-xs text-white/50 max-w-xs">
+                        Your saved BMI, BMR, and TDEE calculations will appear
+                        here.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="w-full">
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="text-white/40 border-b border-white/10 uppercase tracking-wider text-[10px]">
+                            <th className="py-2 pr-3">Date</th>
+                            <th className="py-2 pr-3">BMI</th>
+                            <th className="py-2 pr-3">Weight</th>
+                            <th className="py-2 pr-3">BMR</th>
+                            <th className="py-2 pr-3">TDEE</th>
+                            <th className="py-2 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bmiHistory.slice(0, 5).map((b) => (
+                            <tr
+                              key={b._id}
+                              className="border-b border-white/5 text-white/70 hover:text-white transition-colors"
+                            >
+                              <td className="py-2 pr-3">
+                                {new Date(b.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                  },
+                                )}
+                              </td>
+                              <td className="py-2 pr-3 font-mono font-bold text-white">
+                                {b.bmi.toFixed(1)}
+                              </td>
+                              <td className="py-2 pr-3">{b.weight} kg</td>
+                              <td className="py-2 pr-3">
+                                {Math.round(b.bmr)} kcal
+                              </td>
+                              <td className="py-2 pr-3">
+                                {Math.round(b.tdee)} kcal
+                              </td>
+                              <td className="py-2 text-right">
+                                <button
+                                  onClick={() => handleDeleteBmi(b._id)}
+                                  className="text-white/30 hover:text-red-400 transition-colors p-1 cursor-pointer"
+                                  aria-label="Delete calculation"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-3 border-t border-white/15">
+                  <Link
+                    href="/calculator"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white hover:text-black border border-white/20 font-bold text-xs py-2.5 rounded-full transition-all cursor-pointer shadow-lg group"
+                  >
+                    <span>Open Full BMI & Macro Studio</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+                  </Link>
+                </div>
               </div>
             </div>
-
-            <Link
-              href="/meals"
-              className="inline-flex items-center gap-1 text-xs font-bold text-white/80 hover:text-white transition-colors"
-            >
-              <span>Add More Meals</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
           </div>
+        )}
 
-          {isLoadingDailyPlan ? (
-            <div className="bg-black border border-white/20 rounded-2xl p-8 flex items-center justify-center text-white/60">
-              <Loader2 className="w-6 h-6 animate-spin mr-2" />
-              <span className="text-xs font-bold uppercase tracking-wider">
-                Loading Daily Meal Plan...
-              </span>
-            </div>
-          ) : dailyPlanMeals.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {dailyPlanMeals.map((item) => (
-                <MealCard
-                  key={item._id}
-                  id={item.mealId || item._id}
-                  name={item.name}
-                  ingredients={item.ingredients}
-                  calories={item.calories}
-                  description={item.description}
-                  img={item.img}
+        {/* ══════════════════════════════════════════════════════════════════════
+            SUBMENU 2: WORKOUTS & GYM PASS
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeSubmenu === "workouts" && (
+          <div className="space-y-6">
+            {/* Row 1: 365-Day Heatmap (8 cols) + Digital Gym Pass (4 cols) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+              <div className="lg:col-span-8 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] h-auto">
+                <ActivityHeatmap
+                  userId={resolvedUserId ? String(resolvedUserId) : undefined}
                 />
-              ))}
+              </div>
+
+              <div className="lg:col-span-4 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between space-y-4 h-auto">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                    <div className="flex items-center gap-2">
+                      <QrCode className="w-4 h-4 text-white" />
+                      <h3 className="text-sm font-extrabold uppercase text-white tracking-wide">
+                        Digital Gym Pass
+                      </h3>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-white font-mono">
+                      {userPlan}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-center p-2">
+                    {qrDataUrl ? (
+                      <img
+                        src={qrDataUrl}
+                        alt="Gym turnstile entry QR"
+                        className="w-40 h-40 rounded-xl border border-white/20 bg-white p-1.5 shadow-md"
+                      />
+                    ) : (
+                      <div className="w-40 h-40 rounded-xl border border-white/20 flex items-center justify-center bg-white/5">
+                        <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-center space-y-1">
+                    <p className="text-xs font-mono text-white/60 tracking-wider">
+                      {backendUser?.qrCodeId ||
+                        `FITORA-${resolvedUserId ? String(resolvedUserId).slice(-6) : "PASS"}`}
+                    </p>
+                    <p className="text-[11px] text-white/40">
+                      Scan at turnstile for instant contactless gym entry
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/15 text-center">
+                  <span className="text-[11px] text-emerald-400 font-semibold flex items-center justify-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> Turnstile Sync
+                    Active (64 Branches)
+                  </span>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="bg-black border border-white/20 rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.3)]">
-              <Utensils className="w-10 h-10 text-white/20" />
-              <div className="space-y-1">
-                <h3 className="text-base sm:text-lg font-black uppercase text-white">
-                  No Meals Saved Yet
-                </h3>
-                <p className="text-xs text-white/60 max-w-sm mx-auto">
-                  Your daily meal plan is empty. Browse recipes and click "Add
-                  to Daily Plan" to save meals here!
+
+            {/* Row 2: Gym & Workout History */}
+            <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] space-y-5 h-auto">
+              <div className="flex items-center justify-between border-b border-white/20 pb-4 flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <Dumbbell className="w-5 h-5 text-white" />
+                  <div>
+                    <h2 className="text-base sm:text-lg font-black uppercase text-white tracking-wide">
+                      Gym & Workout History
+                    </h2>
+                    <p className="text-xs text-white/50">
+                      Track logged workout sets, repetitions, weights, and rest
+                      intervals
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/stopwatch"
+                  className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-white text-black hover:bg-neutral-200 transition-colors shadow-sm"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Start Stopwatch HUD</span>
+                </Link>
+              </div>
+
+              {isLoadingWorkouts ? (
+                <div className="py-12 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+                </div>
+              ) : workoutLogs.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
+                  <Dumbbell className="w-10 h-10 text-white/20" />
+                  <h3 className="text-base font-black uppercase text-white">
+                    No Workouts Logged Yet
+                  </h3>
+                  <p className="text-xs text-white/50 max-w-sm">
+                    Your training history is currently clear. Fire up the Live
+                    Workout Stopwatch to record your sets!
+                  </p>
+                  <Link
+                    href="/stopwatch"
+                    className="mt-2 inline-flex items-center gap-2 bg-white text-black font-bold text-xs px-5 py-2.5 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-lg"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>Start First Session</span>
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {workoutLogs.slice(0, 6).map((log) => (
+                    <div
+                      key={log._id}
+                      className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between space-y-3 hover:border-white/25 transition-all h-auto"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="text-sm font-bold text-white truncate">
+                            {log.exerciseName || "General Workout"}
+                          </h4>
+                          <span className="text-[10px] font-mono text-white/40 flex items-center gap-1 shrink-0">
+                            <Clock className="w-3 h-3 text-white/60" />
+                            {log.durationMinutes
+                              ? `${log.durationMinutes}m`
+                              : "—"}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-white/40 mt-1">
+                          {new Date(
+                            log.date || log.createdAt || Date.now(),
+                          ).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2 pt-2 border-t border-white/5">
+                        <div className="flex items-center justify-between text-xs text-white/70">
+                          <span className="font-bold uppercase text-[10px] tracking-wider text-white/60">
+                            {log.setsCount
+                              ? `${log.setsCount} Sets`
+                              : "Completed"}
+                            {log.repsCount ? ` • ${log.repsCount} Reps` : ""}
+                          </span>
+                          {log.weight && log.weight > 0 ? (
+                            <span className="font-mono font-bold text-white">
+                              {log.weight} kg
+                            </span>
+                          ) : null}
+                        </div>
+                        {log.notes && (
+                          <p className="text-[11px] text-white/50 bg-black px-2.5 py-1.5 rounded-lg border border-white/5 truncate">
+                            {log.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            SUBMENU 3: NUTRITION & MEAL PLAN (2-COLUMN GRID)
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeSubmenu === "nutrition" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-start">
+            <div className="h-auto">
+              <PersonalizedNutritionPlan
+                user={backendUser}
+                planName={activeSubscriptionData?.planName || backendUser?.plan}
+                fitnessGoal={currentGoalKey}
+                onUpgradeClick={handleOpenRenew}
+              />
+            </div>
+
+            <div className="h-auto">
+              <SavedMealPlan
+                dailyPlanMeals={dailyPlanMeals}
+                isLoadingDailyPlan={isLoadingDailyPlan}
+                targetCalories={bmiHistory?.[0]?.tdee || 2400}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            SUBMENU 4: BILLING & CARDS (2-COLUMN GRID)
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeSubmenu === "billing" && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
+            <div className="lg:col-span-7 h-auto">
+              <BillingSection />
+            </div>
+
+            <div className="lg:col-span-5 bg-black border border-white/20 rounded-2xl p-5 sm:p-6 shadow-[0_0_30px_rgba(0,0,0,0.3)] flex flex-col justify-between space-y-4 h-auto">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-white/20 pb-3">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-white" />
+                    <h3 className="text-base font-extrabold uppercase text-white tracking-wide">
+                      Saved Payment Card
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                    +2 Bonus Mos
+                  </span>
+                </div>
+
+                {backendUser?.hasSavedCard && backendUser.savedCard ? (
+                  <div className="space-y-3">
+                    <div className="rounded-xl border border-white/15 bg-white/5 p-4 flex items-center justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-white flex items-center gap-2">
+                          <span>{backendUser.savedCard.brand}</span>
+                          <span className="font-mono">
+                            •••• {backendUser.savedCard.last4}
+                          </span>
+                        </p>
+                        <p className="text-xs text-white/50">
+                          {backendUser.savedCard.cardHolder} · Exp{" "}
+                          {backendUser.savedCard.expiryMonth}/
+                          {backendUser.savedCard.expiryYear}
+                        </p>
+                        <p className="text-[10px] text-white/30">
+                          Saved on{" "}
+                          {new Date(
+                            backendUser.savedCard.savedAt,
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleDeleteCard}
+                        className="text-white/40 hover:text-red-400 transition-colors p-2 cursor-pointer"
+                        aria-label="Remove card"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5">
+                      <CheckCircle className="w-4 h-4 shrink-0" />
+                      <span>
+                        Bonus retention applied: 2 bonus months unlocked on your
+                        next subscription renewal!
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-xs sm:text-sm text-white/60 leading-relaxed">
+                      No card saved yet.{" "}
+                      <span className="text-white font-bold">
+                        Save your card now and get 2 bonus months FREE
+                      </span>{" "}
+                      automatically added to your account on your next
+                      subscription purchase!
+                    </p>
+                    <button
+                      onClick={() => setShowSaveCardModal(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-white text-black text-xs font-bold hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
+                    >
+                      <Plus className="w-4 h-4" /> Save a Card & Get Bonus
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-3 border-t border-white/15 text-center">
+                <p className="text-[11px] text-white/40">
+                  Secured with 256-bit TLS encryption & PCI-DSS compliance
                 </p>
               </div>
-              <Link
-                href="/meals"
-                className="mt-2 inline-flex items-center gap-2 bg-white text-black font-bold text-xs sm:text-sm px-6 py-3 rounded-full hover:bg-neutral-200 transition-all cursor-pointer shadow-xl"
-              >
-                <Utensils className="w-4 h-4" />
-                <span>Explore Recipes</span>
-              </Link>
             </div>
-          )}
-        </div>
-
-        {/* ── 6. Billing & Payment History ── */}
-        <BillingPaymentHistory
-          userPlan={localUser?.plan || "Free Pass"}
-          transactions={transactions}
-        />
-
-        {/* ── 7. Admin Management Access (If Admin) ── */}
-        {(isMasterAdmin || isBranchAdmin) && (
-          <div className="bg-black border border-white/20 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-white" />
-                <h3 className="text-sm font-black uppercase text-white">
-                  Elevated Staff Dashboard
-                </h3>
-              </div>
-              <p className="text-xs text-white/60">
-                Authorized staff portal for branches, athlete rosters, and
-                leads.
-              </p>
-            </div>
-
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 bg-white text-black font-bold text-xs px-5 py-2.5 rounded-full hover:bg-neutral-100 transition-all shrink-0 shadow-lg"
-            >
-              <span>Open Dashboard</span>
-              <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-            </Link>
           </div>
         )}
       </div>
+
+      {/* ── Membership Renewal / Upgrade Modal ── */}
+      {isRenewModalOpen && renewPlan && (
+        <SubscriptionModal
+          plan={renewPlan}
+          isOpen={isRenewModalOpen}
+          isAnnual={false}
+          onClose={() => setIsRenewModalOpen(false)}
+          onSuccess={() => {
+            setIsRenewModalOpen(false);
+            toast.success("🎉 Membership updated successfully!");
+            setTimeout(() => window.location.reload(), 800);
+          }}
+        />
+      )}
+
+      {/* ── Save Card Modal ── */}
+      {showSaveCardModal && (
+        <SaveCardModal
+          onClose={() => setShowSaveCardModal(false)}
+          onSaved={fetchUser}
+        />
+      )}
     </div>
   );
 }

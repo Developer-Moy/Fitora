@@ -6,6 +6,15 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  extendUserMembership,
+  updateUserMembershipPlan,
+  getUserMembershipAudit,
+  updateHealthMetrics,
+  updateHydrationTarget,
+  updateOwnProfile,
+  getUserActivityStreak,
+  saveSavedCard,
+  deleteSavedCard,
 } from "../controllers/user.controller";
 import {
   authMiddleware,
@@ -23,39 +32,67 @@ router.get(
   "/platform-stats",
   authMiddleware,
   requireAdminOrBranchAdmin,
-  getPlatformStats
+  getPlatformStats,
 );
 
 // List all users with filters (admin only)
-router.get(
-  "/users",
-  authMiddleware,
-  requireAdminOrBranchAdmin,
-  getAllUsers
-);
+router.get("/users", authMiddleware, requireAdminOrBranchAdmin, getAllUsers);
 
 // Create new user (admin only)
-router.post(
-  "/users",
-  authMiddleware,
-  requireAdminOrBranchAdmin,
-  createUser
-);
+router.post("/users", authMiddleware, requireAdminOrBranchAdmin, createUser);
 
 // Update user (admin only)
-router.put(
-  "/users/:id",
-  authMiddleware,
-  requireAdminOrBranchAdmin,
-  updateUser
-);
+router.put("/users/:id", authMiddleware, requireAdminOrBranchAdmin, updateUser);
 
 // Delete user (master admin only)
-router.delete(
-  "/users/:id",
+router.delete("/users/:id", authMiddleware, requireMasterAdmin, deleteUser);
+
+// ── Membership Management (master admin only) ────────────────────────────────
+
+// Membership & payment audit (read-only)
+router.get(
+  "/users/:id/membership",
   authMiddleware,
   requireMasterAdmin,
-  deleteUser
+  getUserMembershipAudit,
 );
 
+// Extend membership expiry by N days
+router.post(
+  "/users/:id/membership/extend",
+  authMiddleware,
+  requireMasterAdmin,
+  extendUserMembership,
+);
+
+// Change subscription plan (Basic Pass / Pro Athlete / VIP Ultimate)
+router.put(
+  "/users/:id/membership/plan",
+  authMiddleware,
+  requireMasterAdmin,
+  updateUserMembershipPlan,
+);
+
+// Update authenticated user's BMR and TDEE
+router.patch("/profile/health-metrics", authMiddleware, updateHealthMetrics);
+
+// Update authenticated user's hydration target
+router.patch(
+  "/profile/hydration-target",
+  authMiddleware,
+  updateHydrationTarget,
+);
+
+// Update authenticated user's profile (name, phone, branch, goal, weight, targetWeight)
+router.patch("/profile", authMiddleware, updateOwnProfile);
+
+// Dynamic user activity & consistency streak endpoints
+router.get("/activity/streak", authMiddleware, getUserActivityStreak);
+router.get("/activity-streak", authMiddleware, getUserActivityStreak);
+
+// ── Saved Card Management ────────────────────────────────────────────────────
+router.post("/saved-card", authMiddleware, saveSavedCard);
+router.delete("/saved-card", authMiddleware, deleteSavedCard);
+
 export default router;
+

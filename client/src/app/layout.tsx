@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MainContentWrapper from "@/components/MainContentWrapper";
 import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -61,11 +62,14 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={inter.className + " bg-black text-white antialiased min-h-screen flex flex-col justify-between overflow-x-hidden"}
+        className={
+          inter.className +
+          " bg-black text-white antialiased min-h-screen flex flex-col justify-between overflow-x-hidden"
+        }
       >
         <Providers>
           <Navbar />
-          <main className="flex-1 pt-16 sm:pt-20">{children}</main>
+          <MainContentWrapper>{children}</MainContentWrapper>
           <Footer />
         </Providers>
       </body>

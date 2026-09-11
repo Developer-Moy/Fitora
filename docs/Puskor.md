@@ -121,4 +121,142 @@ Fixed two issues on the `/exercises` route in `client/src/components/ExerciseTra
 " enhance Billing & Payment History with plan management link and layout adjustments"
 " enhance BillingPaymentHistory with modal for managing plans and improved layout"
 
+---
 
+## 7. Membership Status Card on `/profile` (2026-09-07)
+
+Added a dedicated, premium **Membership Status Card** to the user profile page showing plan name, dynamic status badge, real-time countdown, progress bar, expiry date, and renew CTA.
+
+### New Files
+* `client/src/lib/membershipUtils.ts` — framework-agnostic helpers: `getMembershipStatus`, `calculateRemainingTime`, `calculateProgressPercentage`, `formatRemainingTime`, plus `MembershipData`/`MembershipStatus` types and an isolated `TEMP_MEMBERSHIP` mock.
+* `client/src/components/subscription/MembershipStatusCard.tsx` — card component with real-time countdown (`useState` + `useEffect` + `setInterval` + cleanup), status badge, progress bar, expiry date, and renew button.
+
+### Modified Files
+* `client/src/app/profile/page.tsx` — imported card/helpers, added `resolvedMembership` memo (prefers live API data, falls back to mock), and rendered `<MembershipStatusCard>` as section 1.5.
+
+### Logic
+* **Active**: >3 days remaining (green).
+* **Expiring Soon**: <3 days and not expired (amber).
+* **Expired**: <=0 (red), shows prominent `Renew Now`.
+ * Progress bar represents **remaining** membership time, clamped 0–100.
+ * Countdown updates every second; values are clamped to 0 when expired.
+
+## 6. Stopwatch Enhancements — Custom Rest Presets, Audio Alerts & Real Data (2026-09-08)
+
+### Backend
+- **New Model**: `server/src/models/CustomRestPreset.model.ts`
+  - Fields: `userId` (ref User, indexed), `name`, `duration` (1–3600s), `createdAt`, `updatedAt`
+  - Compound index on `{ userId, createdAt: -1 }`
+- **Premium Middleware**: Added `requirePremium` in `server/src/middlewares/auth.middleware.ts`
+  - Blocks non-premium users by checking JWT `tier` (plan) field
+- **New Routes** (`server/src/routes/stopwatch.routes.ts`):
+  - `POST /api/stopwatch/rest-preset` — create custom rest preset (auth + premium)
+  - `GET /api/stopwatch/rest-presets` — fetch user's presets (auth)
+  - `DELETE /api/stopwatch/rest-preset/:id` — delete preset (auth + ownership)
+- **Controller** (`server/src/controllers/stopwatch.controller.ts`):
+  - `createRestPreset` — validates `name` and `duration`, associates with authenticated user, premium-gated
+  - `getRestPresets` — returns only the current user's presets
+  - `deleteRestPreset` — verifies ownership before deletion
+- **Removed Dummy Data** (`server/src/controllers/workout.controller.ts`):
+  - Removed in-memory seed logs (`log-seed-01`, `log-seed-02`, etc.)
+  - `GET /api/workouts/log` now returns empty array instead of dummy data when no real logs exist
+  - `POST /api/workouts/log` returns 503 if DB is unavailable, 500 on DB write failure
+  - `DELETE /api/workouts/log/:id` returns 404 if record not found in MongoDB
+
+### Frontend
+- **Service Layer** (`client/src/services/stopwatchService.ts`):
+  - Added `CustomRestPreset` type
+  - Added `fetchRestPresets()`, `createRestPreset()`, `deleteRestPreset()`
+- **GymTimer** (`client/src/components/time/GymTimer.tsx`):
+  - Detects premium status from localStorage on mount
+  - Loads custom rest presets from backend when premium
+  - Merges preset durations into `quickTargets` chips (up to 6 total)
+  - Added "Custom Rest Presets" management card with name/duration inputs, save, use, and delete
+  - Non-premium users see a locked state with "Upgrade to Premium" prompt
+- **Audio Improvements** (`client/src/components/time/GymTimer.tsx`):
+  - Single reusable `AudioContext` stored in ref instead of creating per chime
+  - Added `resumeAudioContext()` to handle browser autoplay restrictions
+  - Distinct ascending chimes at 3s (523 Hz), 2s (659 Hz), 1s (784 Hz), 0s (1047+1319 Hz)
+  - Deduplication via `chimePlayedRef` Set prevents duplicate/stale sounds
+  - Cleared on stop, pause, reset, and target change
+
+### Data Flow Verified
+```text
+Stopwatch completion
+        ↓
+POST /api/workouts/log
+        ↓
+MongoDB WorkoutLog collection (real data only)
+        ↓
+Profile activity API/query
+        ↓
+Profile workout history table
+```
+
+### Build Status
+- `npm run build:server` — passes
+- `npm run build:client` — passes
+- Server running on `http://localhost:5001` with MongoDB connected
+
+---
+
+## 8. Dynamic MongoDB Stopwatch Session Persistence & Realtime Daily Gym Time (2026-09-09)
+
+Completed full dynamic MongoDB integration for the Gym Stopwatch experience, eliminating static and memory-only storage:
+
+### Backend Enhancements
+- **Enhanced Model** (`server/src/models/StopwatchSession.model.ts`):
+  - Added `durationSeconds`, `setsCount`, `repsCount`, and `notes` to the schema with proper defaults and validation.
+- **Enhanced Controller** (`server/src/controllers/stopwatch.controller.ts`):
+  - `markSessionComplete`: Accepts sub-minute sessions (`durationSeconds`), dynamic sets, reps, weight, and notes. Accurately estimates calories and saves directly to MongoDB `StopwatchSession`.
+  - `getRecentSessions`: Computes today's accumulated metrics (`todayGymSeconds`, `todayCaloriesBurned`, `todaySessionsCount`, `todaySetsCount`) directly from MongoDB records starting from 00:00:00 today.
+  - `syncGymTime` (`POST /api/stopwatch/sync-time`): Allows live athlete sync of daily gym time into MongoDB.
+  - `resetTodayGymTime` (`POST /api/stopwatch/reset-today`): Resets today's accumulated gym time directly in MongoDB when an athlete resets the counter.
+- **Routes** (`server/src/routes/stopwatch.routes.ts`):
+  - Mounted `/api/stopwatch/sync-time` and `/api/stopwatch/reset-today` with JWT authentication.
+
+### Frontend Enhancements
+- **Service Layer** (`client/src/services/stopwatchService.ts`):
+  - Added `StopwatchSessionRecord` and `RecentSessionsData` interfaces.
+  - Added `syncDailyGymTime(totalSeconds)` and `resetDailyGymTime()` client API functions.
+  - Enhanced `completeStopwatchSession` to transmit `durationSeconds`, `setsCount`, `repsCount`, and `notes`.
+- **GymTimer Component** (`client/src/components/time/GymTimer.tsx`):
+  - On mount, automatically loads `todayGymSeconds` and mapped sets from MongoDB via `fetchRecentSessions(20)`.
+  - Daily gym time changes automatically sync to MongoDB in the background.
+  - Reset button connects directly to `resetDailyGymTime()` in MongoDB.
+  - Realtime Sync badge connects to MongoDB sync verification.
+  - Sets logged via QuickSetLogger and completed intervals persist seamlessly into MongoDB `WorkoutLog` and `StopwatchSession`.
+
+---
+
+## 9. GitHub-Style ActivityHeatmap & Profile Integration (2026-09-10)
+
+Implemented a GitHub-style monochrome activity heatmap component representing training consistency, integrated directly into the athlete profile:
+
+### Frontend Implementation
+- **New Component** (`client/src/components/profile/ActivityHeatmap.tsx`):
+  - **Data Integration**: Reuses real workout data via `getWorkoutLogs(effectiveUserId, 500)` from `@/services/workoutService.ts` with user authentication headers. Zero mock data.
+  - **Dynamic Calendar Generation**: Generates 52–53 week columns (Monday through Sunday rows) aligned to exact calendar boundaries and leap years.
+  - **Monochrome Hierarchy**: Strictly monochrome grayscale/light palette (0 = subtle dark, 1 = light gray, 2 = brighter gray, 3 = near-white, 4+ = glowing white with drop shadow; today highlighted with a white ring).
+  - **Dynamic Streak Calculation**: Real consecutive active days calculation ending today or yesterday, with contextual motivation badges.
+  - **Visual Month Gaps**: Added distinct spacing (`ml-2.5`) between month boundaries so each month is visually separated into clean clusters, with synchronized month labels.
+  - **GitHub Right-Side Year Selector**: Added desktop/tablet vertical year navigation (e.g. `2026`, `2025`) with active pills, dynamically populated from real workout history.
+  - **Stable Portal Tooltip**: Tooltip is rendered into `document.body` via React `createPortal` with `useSyncExternalStore` for hydration safety, preventing section height expansion or layout shifts on hover.
+  - **Empty & Error States**: Graceful non-breaking error banner with retry button, and empty state with quick link to `/stopwatch`.
+
+- **Profile Page Integration** (`client/src/app/profile/page.tsx`):
+  - Integrated `<ActivityHeatmap userId={resolvedUserId || "guest_user"} />` directly above Row 3 (*Gym & Workout History*).
+  - Preserved all existing cards: `MembershipStatusCard`, `Personal Details`, `Weight Progress`, `BMI Calculation Log`, and `Gym & Workout History`.
+
+- **Dependency & Build Fixes**:
+  - Installed missing `jspdf` dependency in `client/` to resolve `InvoiceModal.tsx` compilation error.
+  - Cleared stale background processes on port 3000.
+
+### Verification
+- `npx eslint src/components/profile/ActivityHeatmap.tsx` — passed with 0 errors and 0 warnings.
+- `npx tsc --noEmit` in `client/` — passed with 0 errors.
+- `npx next build` — compiled all 14 routes cleanly with Turbopack.
+
+---
+
+<p align="right">Updated: 2026-09-10</p>

@@ -9,18 +9,24 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 function getAuthHeader(): Record<string, string> {
   if (typeof window === "undefined") return {};
   try {
+    const userEmail = localStorage.getItem("fitora_user_email") || undefined;
+    const emailHeader: Record<string, string> = userEmail
+      ? { "x-user-email": userEmail }
+      : {};
+
     const token =
       localStorage.getItem("fitora_token") ||
       localStorage.getItem("fitora_auth_token");
-    if (token) return { Authorization: `Bearer ${token}` };
+    if (token) return { Authorization: `Bearer ${token}`, ...emailHeader };
 
     const session = localStorage.getItem("fitora_auth_session");
     if (session) {
       const parsed = JSON.parse(session);
       const sessToken = parsed?.token || parsed?.access_token;
-      if (sessToken) return { Authorization: `Bearer ${sessToken}` };
+      if (sessToken)
+        return { Authorization: `Bearer ${sessToken}`, ...emailHeader };
     }
-    return {};
+    return emailHeader;
   } catch {
     return {};
   }
@@ -33,17 +39,28 @@ export interface UserRecord {
   name: string;
   email: string;
   phone: string;
-  role: "master_admin" | "branch_admin" | "premium_user" | "free_user";
+  role:
+    | "master_admin"
+    | "branch_admin"
+    | "athlete"
+    | "user"
+    | "admin"
+    | "premium_user"
+    | "free_user"
+    | string;
   assignedBranch: string;
-  plan: "Free Pass" | "Basic Pass" | "Pro Athlete" | "VIP Ultimate";
-  status: "active" | "suspended" | "pending";
+  plan: "Free Pass" | "Basic Pass" | "Pro Athlete" | "VIP Ultimate" | string;
+  status: "active" | "suspended" | "pending" | string;
   joinDate: string;
   expiryDate: string;
   totalPaidBDT: number;
-  paymentMethod: "bKash" | "Nagad" | "Card" | "None";
+  paymentMethod: "bKash" | "Nagad" | "Card" | "Bank Transfer" | "None" | string;
   attendanceStreakDays: number;
   lastCheckIn: string;
   qrCodeId: string;
+  // Live subscription info surfaced from the latest completed payment
+  subscriptionExpiryDate?: string | null;
+  membershipExpiresAt?: string | null;
 }
 
 export interface PlatformStats {
@@ -86,6 +103,141 @@ export interface PlatformStatsResponse {
   paymentGatewayBreakdown: PaymentGatewayBreakdown[];
   packageSalesBreakdown: PackageSalesBreakdown[];
   recentCheckIns: CheckInRecord[];
+}
+
+// ── Master Revenue Dashboard ────────────────────────────────────────────────
+
+export interface RevenueSummary {
+  totalRevenueBDT: number;
+  successfulPayments: number;
+  averagePaymentBDT: number;
+}
+
+export interface PlanRevenue {
+  planName: string;
+  totalRevenueBDT: number;
+  subscriptions: number;
+}
+
+export interface MonthlyRevenue {
+  month: string;
+  revenueBDT: number;
+  payments: number;
+}
+
+export interface GatewayRevenue {
+  gateway: string;
+  revenueBDT: number;
+  payments: number;
+}
+
+export interface MasterRevenue {
+  summary: RevenueSummary;
+  planRevenue: PlanRevenue[];
+  monthlyRevenue: MonthlyRevenue[];
+  gatewayRevenue: GatewayRevenue[];
+}
+
+export async function fetchMasterRevenue(): Promise<MasterRevenue | null> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/master/revenue`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data || null;
+  } catch {
+    return null;
+  }
+}
+
+// ── Membership Management (master admin only) ────────────────────────────────
+
+export type PaidPlanName = "Basic Pass" | "Pro Athlete" | "VIP Ultimate";
+
+export interface UserMembership {
+  userId: string;
+  name: string;
+  email: string;
+  plan: string;
+  billingCycle: string | null;
+  transactionId: string | null;
+  gateway: string | null;
+  amountBDT: number;
+  subscriptionStartDate: string | null;
+  subscriptionExpiryDate: string | null;
+  invoiceNumber: string | null;
+  status: string;
+}
+
+/** Latest completed payment + membership snapshot for audit modal. */
+export async function fetchUserMembership(
+  id: string,
+): Promise<UserMembership | null> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/users/${id}/membership`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data?.membership || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Extend a user's subscription expiry by N days. */
+export async function extendUserMembership(
+  id: string,
+  days: number,
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${API_URL}/dashboard/users/${id}/membership/extend`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({ days }),
+      },
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Change a user's subscription plan among the three paid tiers. */
+export async function updateUserMembershipPlan(
+  id: string,
+  planName: PaidPlanName,
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${API_URL}/dashboard/users/${id}/membership/plan`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({ planName }),
+      },
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export interface BranchInfo {
@@ -257,7 +409,7 @@ export async function fetchPublicBranches(params?: {
 }): Promise<BranchInfo[] | null> {
   try {
     const query = new URLSearchParams();
-    if (params?.division && params.division !== "All")
+    if (params?.division && params.division.toLowerCase() !== "all")
       query.append("division", params.division);
     if (params?.search) query.append("search", params.search);
 
@@ -306,8 +458,115 @@ export async function fetchMemberStats(): Promise<MemberStatsResponse | null> {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data.data;
+    const raw = data?.data;
+    if (!raw) return null;
+    return {
+      workoutsThisMonth: raw.workoutsThisMonth ?? raw.workoutCount ?? 0,
+      caloriesBurned: raw.caloriesBurned ?? raw.burnedCalories ?? 0,
+      streakDays: raw.streakDays ?? 0,
+      targetWorkouts: raw.targetWorkouts ?? 0,
+      consistencyScore: raw.consistencyScore ?? 0,
+    };
   } catch {
     return null;
+  }
+}
+
+export async function updateUserProfileApi(payload: {
+  name?: string;
+  phone?: string;
+  assignedBranch?: string;
+  fitnessGoal?: string;
+  weight?: number;
+  targetWeight?: number;
+  height?: number;
+  gender?: string;
+  bio?: string;
+  avatarUrl?: string;
+  image?: string;
+}): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/profile`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(payload),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function updateUserHydrationTargetApi(
+  hydrationTargetLiters: number,
+): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/dashboard/profile/hydration-target`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({ hydrationTargetLiters }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Save a payment card to the authenticated user's profile.
+ * POST /api/users/saved-card
+ */
+export async function saveCardApi(cardDetails: {
+  last4: string;
+  brand: string;
+  expiryMonth: string;
+  expiryYear: string;
+  cardHolder: string;
+  token?: string;
+}): Promise<{ success: boolean; message: string; savedCard?: object }> {
+  try {
+    const res = await fetch(`${API_URL}/users/saved-card`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      body: JSON.stringify(cardDetails),
+    });
+    const data = await res.json().catch(() => null);
+    return {
+      success: res.ok && !!data?.success,
+      message: data?.message || (res.ok ? "Card saved" : "Failed to save card"),
+      savedCard: data?.data?.savedCard,
+    };
+  } catch {
+    return { success: false, message: "Network error saving card" };
+  }
+}
+
+/**
+ * Remove the saved card from the authenticated user's profile.
+ * DELETE /api/users/saved-card
+ */
+export async function deleteSavedCardApi(): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  try {
+    const res = await fetch(`${API_URL}/users/saved-card`, {
+      method: "DELETE",
+      headers: { ...getAuthHeader() },
+    });
+    const data = await res.json().catch(() => null);
+    return {
+      success: res.ok && !!data?.success,
+      message:
+        data?.message || (res.ok ? "Card removed" : "Failed to remove card"),
+    };
+  } catch {
+    return { success: false, message: "Network error removing card" };
   }
 }

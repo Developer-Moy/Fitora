@@ -17,6 +17,8 @@ export interface AuthUser {
   name: string;
   email: string;
   role: string;
+  bmr?: number | null;
+  tdee?: number | null;
   plan?: string;
   assignedBranch?: string;
   status?: string;
@@ -25,6 +27,7 @@ export interface AuthUser {
   phone?: string;
   gender?: string;
   weight?: string;
+  targetWeight?: string;
   height?: string;
   bio?: string;
   fitnessGoal?: string;
@@ -32,6 +35,29 @@ export interface AuthUser {
   joinedDate?: string;
   isMasterAdmin?: boolean;
   isBranchAdmin?: boolean;
+  totalPaidBDT?: number;
+  paymentMethod?: string;
+  qrCodeId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  membershipExpiresAt?: string | Date | null;
+  subscriptionExpiryDate?: string | Date | null;
+  attendanceStreakDays?: number;
+  hydrationTargetLiters?: number;
+  // Trial engine
+  trialExpiresAt?: string | null;
+  isTrialActive?: boolean;
+  // Card retention
+  hasSavedCard?: boolean;
+  bonusMonthsAwarded?: number;
+  savedCard?: {
+    last4: string;
+    brand: string;
+    expiryMonth: string;
+    expiryYear: string;
+    cardHolder: string;
+    savedAt: string;
+  } | null;
 }
 
 export interface AuthResponse {
@@ -173,36 +199,67 @@ export async function registerApi(payload: {
 
 /**
  * 4. Get Current User Profile (/api/auth/me)
+ * Queries the authoritative backend database. Supports JWT Bearer authentication
+ * as well as userId/email query parameters for session-based profiles.
  */
-export async function getCurrentUserApi(): Promise<AuthResponse> {
+export async function getCurrentUserApi(params?: {
+  userId?: string;
+  email?: string;
+  name?: string;
+  image?: string;
+  avatarUrl?: string;
+}): Promise<AuthResponse> {
   try {
     const token =
       typeof window !== "undefined"
-        ? localStorage.getItem("fitora_token")
+        ? localStorage.getItem("fitora_token") ||
+          localStorage.getItem("fitora_auth_token")
         : null;
-    if (!token) {
-      return { success: false, message: "No active token found" };
+
+    if (!token && !params?.userId && !params?.email) {
+      return {
+        success: false,
+        message: "No active token or credentials found",
+      };
     }
 
-    const res = await fetch(`${API_URL}/auth/me`, {
+    const query = new URLSearchParams();
+    if (params?.userId) query.append("userId", params.userId);
+    if (params?.email) query.append("email", params.email);
+    if (params?.name) query.append("name", params.name);
+    if (params?.image) query.append("image", params.image);
+    if (params?.avatarUrl) query.append("avatarUrl", params.avatarUrl);
+    const queryString = query.toString() ? `?${query.toString()}` : "";
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (params?.email) {
+      headers["x-user-email"] = params.email;
+    }
+
+    const res = await fetch(`${API_URL}/auth/me${queryString}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
 
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return { success: false, message: "Session expired" };
+      return {
+        success: false,
+        message: data?.message || "Could not retrieve user profile",
+      };
     }
 
     return {
       success: true,
       message: "User verified",
       user: data.data?.user,
-      token,
+      token: token || undefined,
     };
   } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return { success: false, message: "Could not fetch user claims" };
@@ -216,12 +273,19 @@ export function saveAuthSession(token: string, user?: AuthUser) {
   if (typeof window === "undefined") return;
   localStorage.setItem("fitora_token", token);
   localStorage.setItem("fitora_auth_token", token);
+  localStorage.setItem("fitora_auth_session", "true");
   if (user) {
     localStorage.setItem("fitora_user", JSON.stringify(user));
-    if (user.role) localStorage.setItem("fitora_user_role", user.role);
+    if (user.role) {
+      localStorage.setItem("fitora_user_role", user.role);
+      // Also set fitora_active_role — this is what useDashboardRole reads
+      localStorage.setItem("fitora_active_role", user.role);
+    }
     if (user.email) localStorage.setItem("fitora_user_email", user.email);
     if (user.name) localStorage.setItem("fitora_user_name", user.name);
     if (user.plan) localStorage.setItem("fitora_user_plan", user.plan);
+    if (user.assignedBranch)
+      localStorage.setItem("fitora_active_branch", user.assignedBranch);
   }
   dispatchAuthSessionUpdated(user);
 }
@@ -247,7 +311,12 @@ export async function refreshCurrentUser(): Promise<AuthResponse> {
  */
 export async function updateSessionAfterPayment(
   planKey: string,
-  options?: { role?: string; refreshFromServer?: boolean },
+  options?: {
+    role?: string;
+    refreshFromServer?: boolean;
+    subscriptionExpiryDate?: string | Date | null;
+    membershipExpiresAt?: string | Date | null;
+  },
 ): Promise<AuthUser | null> {
   const { token, user } = getAuthSession();
   if (!user && !token) return null;
@@ -256,11 +325,23 @@ export async function updateSessionAfterPayment(
     ...(user || { name: "", email: "", role: "premium_user" }),
     plan: planKey,
     role: options?.role || "premium_user",
+    subscriptionExpiryDate:
+      options?.subscriptionExpiryDate ?? user?.subscriptionExpiryDate,
+    membershipExpiresAt:
+      options?.membershipExpiresAt ??
+      options?.subscriptionExpiryDate ??
+      user?.membershipExpiresAt,
   };
 
   saveAuthSession(token || "", updatedUser);
   localStorage.setItem("fitora_active_role", updatedUser.role);
   localStorage.setItem("fitora_user_plan", planKey);
+  if (updatedUser.subscriptionExpiryDate) {
+    localStorage.setItem(
+      "fitora_subscription_expiry",
+      String(updatedUser.subscriptionExpiryDate),
+    );
+  }
 
   if (options?.refreshFromServer && token) {
     const refreshed = await refreshCurrentUser();
@@ -311,13 +392,13 @@ export function clearAuthSession() {
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-  } catch { }
+  } catch {}
 }
 
 export async function logoutUser(): Promise<void> {
   try {
     await authClient.signOut().catch(() => null);
-  } catch { }
+  } catch {}
   clearAuthSession();
 }
 
