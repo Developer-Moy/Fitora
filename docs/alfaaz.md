@@ -567,6 +567,40 @@ Added an **"Export Monthly Revenue (CSV)"** action that exports the **real month
 
 ---
 
+## 13-Sep-26
+
+### Authentication Session & JWT Storage Audit
+
+Completed an audit of the `/login` and `/register` authentication flow to keep Better Auth session handling consistent and secure.
+
+#### Key Implementation:
+* Audited login, register, and logout flows for session and JWT/storage consistency.
+* Removed duplicate JWT token persistence (the same token was stored under two localStorage keys), consolidating reads/writes to a single canonical `fitora_token` key while preserving existing function names, exports, and API signatures.
+* Preserved the Better Auth session-cookie flow (`client/src/lib/auth-client.ts`) unchanged — no new auth library introduced.
+
+### Authentication Error Handling
+
+Standardized authentication error handling across login, register, logout, and authenticated requests.
+
+#### Key Implementation:
+* Added a reusable `authErrorResponse()` helper and a shared `AUTH_ERROR_MESSAGES` map in `client/src/services/authService.ts`.
+* Normalized user-facing messages for invalid credentials, network failures, session expiry (401), and unexpected server errors.
+* Routed `dashboardLoginApi`, `loginApi`, `registerApi`, and `getCurrentUserApi` through the shared helper, avoiding duplicated error-handling logic.
+
+### WhatsApp & Contact Information Update
+
+Updated the homepage contact section and added a reusable WhatsApp link helper.
+
+#### Key Implementation:
+* Added `client/src/utils/whatsappHelper.ts` exporting a single pure `getWhatsAppUrl(phone)` helper that builds an international `https://wa.me/...` URL with the pre-filled FITORA inquiry message (URL-encoded).
+* Updated `client/src/components/home/ContactInfoForm.tsx`:
+  * Made the Information phone number a clickable `tel:+8801700000000` link with a call icon.
+  * Converted the support email into a clickable `mailto:` link.
+  * Added a WhatsApp contact link (shows the number) using the shared helper.
+  * Appended a WhatsApp social icon to the **Follow Us** row using the same styling as the existing icons.
+
+---
+
 ## Summary of My Contributions
 
 ### Frontend
