@@ -152,10 +152,10 @@ export default function ContactInfoForm() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
-                  aria-label="Chat with us on WhatsApp"
+                  aria-label="WhatsApp"
                 >
                   <FaWhatsapp size={14} className="shrink-0" />
-                  Chat with us on WhatsApp
+                  {FITORA_CONTACT_PHONE}
                 </a>
               </div>
             </div>
