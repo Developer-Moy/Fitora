@@ -5,14 +5,17 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Sparkles,
   X,
-  Bot,
   User,
   Zap,
   Lock,
   Trash2,
   ArrowUpRight,
+  Dumbbell,
+  Target,
+  Flame,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 import {
   sendAiChatApi,
@@ -29,29 +32,44 @@ interface Message {
   timestamp: string;
 }
 
-const QUICK_SUGGESTIONS = [
+/* ── Luxury Bespoke Fitness Protocols (Zero Emojis, 100% Fitora Brand DNA) ── */
+const FITNESS_PROTOCOLS = [
   {
-    label: "🏋️ Hypertrophy Split",
+    tag: "HYPERTROPHY",
+    title: "4-Day Muscle Split",
+    desc: "Optimal push/pull split, volume distribution & progressive overload schedule.",
+    icon: Dumbbell,
     query: "What is the best 4-day workout split for muscle hypertrophy?",
   },
   {
-    label: "🥩 Daily Protein Macros",
+    tag: "NUTRITION",
+    title: "Daily Macro Blueprint",
+    desc: "Calculate precise protein, carb & caloric targets for lean muscle mass.",
+    icon: Target,
     query: "How many grams of protein should I consume daily for bodybuilding?",
   },
   {
-    label: "🔥 Fat Loss Routine",
-    query:
-      "Give me an effective fat loss workout and calorie deficit strategy.",
+    tag: "FAT LOSS",
+    title: "Fat Loss Accelerator",
+    desc: "Structured calorie deficit training and metabolic cardio timing protocol.",
+    icon: Flame,
+    query: "Give me an effective fat loss workout and calorie deficit strategy.",
   },
   {
-    label: "💊 Creatine & Whey",
-    query: "How should I dose creatine monohydrate and whey protein?",
+    tag: "RECOVERY",
+    title: "Creatine & Supplement Stack",
+    desc: "Evidence-based dosing timing, creatine monohydrate & muscle recovery.",
+    icon: Zap,
+    query: "How should I dose creatine monohydrate and whey protein for maximum results?",
   },
-  {
-    label: "⏱️ Rest Between Sets",
-    query:
-      "What is the optimal rest time between heavy compound sets vs isolation?",
-  },
+];
+
+const COMPACT_PROMPTS = [
+  { label: "Hypertrophy Split", icon: Dumbbell, query: "What is the best 4-day workout split for muscle hypertrophy?" },
+  { label: "Protein Macros", icon: Target, query: "How many grams of protein should I consume daily for bodybuilding?" },
+  { label: "Fat Loss Strategy", icon: Flame, query: "Give me an effective fat loss workout and calorie deficit strategy." },
+  { label: "Creatine & Whey", icon: Zap, query: "How should I dose creatine monohydrate and whey protein?" },
+  { label: "Rest Intervals", icon: Clock, query: "What is the optimal rest time between heavy compound sets vs isolation?" },
 ];
 
 export default function FloatingAiWidget() {
@@ -66,7 +84,7 @@ export default function FloatingAiWidget() {
     {
       id: "1",
       sender: "ai",
-      text: "Welcome to FITORA AI Studio! I am your 24/7 certified Personal Trainer and Sports Nutritionist. Ask me anything about progressive overload, workout routines, diet macros, or gym exercises.",
+      text: "Welcome to FITORA AI Studio. I am your 24/7 certified Personal Trainer and Sports Nutritionist. Select a training protocol below or input your fitness query to generate a calibrated coaching blueprint.",
       timestamp: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -167,7 +185,7 @@ export default function FloatingAiWidget() {
       {
         id: Date.now().toString(),
         sender: "ai",
-        text: "Chat cleared! How can FITORA AI help your gym workouts and nutrition today?",
+        text: "Session cleared. What fitness goal, workout split, or nutrition target would you like to calibrate today?",
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
@@ -177,6 +195,7 @@ export default function FloatingAiWidget() {
   };
 
   const isQuotaExhausted = quota !== null && quota.plansRemaining <= 0;
+  const isFreshConversation = messages.length <= 1;
 
   return (
     <>
@@ -186,13 +205,13 @@ export default function FloatingAiWidget() {
           <AnimatePresence>
             {isOpen && (
               <>
-                {/* Soft backdrop blur click-catcher */}
+                {/* Luxury Soft Backdrop Blur Click-Catcher */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setIsOpen(false)}
-                  className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[9990] pointer-events-auto"
+                  className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-[9990] pointer-events-auto"
                 />
 
                 {/* Main Studio Modal Console */}
@@ -200,7 +219,7 @@ export default function FloatingAiWidget() {
                   initial={{
                     opacity: 0,
                     y: 35,
-                    scale: 0.94,
+                    scale: 0.95,
                     filter: "blur(6px)",
                   }}
                   animate={{
@@ -212,27 +231,24 @@ export default function FloatingAiWidget() {
                   exit={{
                     opacity: 0,
                     y: 25,
-                    scale: 0.94,
+                    scale: 0.95,
                     filter: "blur(4px)",
                   }}
-                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                  className="fixed bottom-[80px] sm:bottom-24 left-1/2 -translate-x-1/2 w-[calc(100vw-1.5rem)] xs:w-[calc(100vw-2rem)] sm:w-[580px] md:w-[640px] max-w-[640px] h-[520px] max-h-[calc(100vh-120px)] flex flex-col bg-neutral-950/95 backdrop-blur-3xl border border-white/20 rounded-[2.2rem] shadow-[0_30px_90px_rgba(0,0,0,0.98),0_0_40px_rgba(255,255,255,0.06)] overflow-hidden z-[9999] pointer-events-auto font-sans before:absolute before:inset-x-8 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/50 before:to-transparent"
+                  transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  className="fixed bottom-[80px] sm:bottom-24 left-1/2 -translate-x-1/2 w-[calc(100vw-1.5rem)] xs:w-[calc(100vw-2rem)] sm:w-[620px] md:w-[680px] max-w-[680px] h-[560px] max-h-[calc(100vh-120px)] flex flex-col bg-neutral-950/95 backdrop-blur-3xl border border-white/20 rounded-[2.2rem] shadow-[0_30px_90px_rgba(0,0,0,0.98),0_0_40px_rgba(255,255,255,0.08)] overflow-hidden z-[9999] pointer-events-auto font-sans before:absolute before:inset-x-8 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent"
                 >
-                  {/* Header: Signature Luxury Fitora Console Header */}
-                  <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5 bg-gradient-to-b from-neutral-900/90 to-neutral-950/80 border-b border-white/10 shrink-0">
+                  {/* Header: Symmetrical Luxury Console Brand Bar */}
+                  <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5 bg-gradient-to-b from-neutral-900/90 to-neutral-950/90 border-b border-white/10 shrink-0">
                     <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <div className="w-9 h-9 rounded-2xl bg-white text-black flex items-center justify-center shadow-lg border border-white/40">
-                          <Image
-                            src="/gemini-logo.png"
-                            alt="Gemini"
-                            width={22}
-                            height={22}
-                            className="object-contain"
-                          />
-                        </div>
-                        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center">
-                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                      {/* Brand Logo Emblem */}
+                      <div className="relative w-9 h-9 rounded-2xl bg-white text-black flex items-center justify-center shadow-lg border border-white/40 shrink-0">
+                        <img
+                          src="/logo.svg"
+                          alt="Fitora"
+                          className="w-5 h-5 object-contain"
+                        />
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-black flex items-center justify-center">
+                          <span className="w-1 h-1 rounded-full bg-white animate-ping" />
                         </span>
                       </div>
 
@@ -246,7 +262,7 @@ export default function FloatingAiWidget() {
                           </h3>
                         </div>
                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mt-0.5">
-                          Certified Gym Trainer & Sports Nutritionist
+                          Personal Gym Trainer & Nutritionist
                         </span>
                       </div>
                     </div>
@@ -254,10 +270,10 @@ export default function FloatingAiWidget() {
                     <div className="flex items-center gap-2">
                       {/* Live Daily Quota Pill Badge */}
                       {quota && (
-                        <div className="hidden xs:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] font-black uppercase tracking-wider text-gray-200 backdrop-blur-md shadow-sm">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] font-black uppercase tracking-wider text-gray-200 backdrop-blur-md shadow-sm">
                           <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
                           <span>
-                            {quota.plansRemaining}/{quota.plansLimit} Free Plans
+                            {quota.plansRemaining}/{quota.plansLimit} Plans
                           </span>
                         </div>
                       )}
@@ -266,7 +282,7 @@ export default function FloatingAiWidget() {
                         type="button"
                         onClick={handleClearHistory}
                         className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10 flex items-center justify-center transition-all duration-200 cursor-pointer"
-                        title="Clear Chat"
+                        title="Clear Conversation"
                         aria-label="Clear Conversation"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -283,61 +299,136 @@ export default function FloatingAiWidget() {
                     </div>
                   </div>
 
-                  {/* Chat Conversation Canvas */}
+                  {/* Chat Canvas Area */}
                   <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-black via-neutral-950 to-black text-xs sm:text-sm scrollbar-thin scrollbar-thumb-white/20">
-                    {messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex gap-3 ${
-                          msg.sender === "user"
-                            ? "justify-end"
-                            : "justify-start"
-                        }`}
-                      >
-                        {msg.sender === "ai" && (
-                          <div className="w-7 h-7 rounded-xl bg-white text-black flex items-center justify-center shrink-0 mt-0.5 shadow-lg border border-white/20">
-                            <Bot className="w-4 h-4" />
+                    {/* Welcome Screen: High-End Fitness Protocol Grid when chat is fresh */}
+                    {isFreshConversation ? (
+                      <div className="space-y-4 pt-1">
+                        {/* Welcome Announcement Card */}
+                        <div className="p-4 rounded-2xl bg-gradient-to-r from-neutral-900/90 to-neutral-900/40 border border-white/10 flex items-start gap-3 shadow-lg">
+                          <div className="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
+                            <Sparkles className="w-4 h-4" />
                           </div>
-                        )}
-
-                        <div
-                          className={`max-w-[85%] p-3.5 sm:p-4 rounded-2xl ${
-                            msg.sender === "user"
-                              ? "bg-white text-black font-semibold rounded-tr-none shadow-xl leading-relaxed"
-                              : "bg-neutral-900/90 text-gray-100 border border-white/15 rounded-tl-none leading-relaxed shadow-lg whitespace-pre-line"
-                          }`}
-                        >
-                          <p>{msg.text}</p>
-                          <span
-                            className={`text-[9px] block text-right mt-1.5 font-bold ${
-                              msg.sender === "user"
-                                ? "text-gray-500"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            {msg.timestamp}
-                          </span>
+                          <div className="space-y-1">
+                            <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
+                              Welcome to FITORA Intelligence
+                            </h4>
+                            <p className="text-[11px] sm:text-xs text-gray-300 leading-relaxed">
+                              Your 24/7 certified gym trainer and nutrition coach. Select a core fitness protocol below or ask any custom question about workouts, macros, and exercises.
+                            </p>
+                          </div>
                         </div>
 
-                        {msg.sender === "user" && (
-                          <div className="w-7 h-7 rounded-xl bg-neutral-800 text-white border border-white/20 flex items-center justify-center shrink-0 mt-0.5 shadow-md">
-                            <User className="w-4 h-4" />
+                        {/* 2x2 Bespoke Protocol Cards Grid (Matches Homepage Luxury Card Language) */}
+                        <div>
+                          <div className="flex items-center justify-between pb-2 px-1">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                              Recommended Protocols
+                            </span>
+                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                              1-Click Execution
+                            </span>
                           </div>
-                        )}
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {FITNESS_PROTOCOLS.map((proto, i) => {
+                              const IconComponent = proto.icon;
+                              return (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  disabled={isTyping || isQuotaExhausted}
+                                  onClick={() => handleSendMessage(proto.query)}
+                                  className="group flex flex-col justify-between p-3.5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/30 transition-all duration-300 text-left cursor-pointer shadow-md hover:shadow-[0_0_20px_rgba(255,255,255,0.06)] hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                  <div className="flex items-center justify-between w-full">
+                                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-[9px] font-black uppercase tracking-wider text-gray-300">
+                                      <IconComponent className="w-2.5 h-2.5 text-white" />
+                                      <span>{proto.tag}</span>
+                                    </div>
+                                    <span className="w-6 h-6 rounded-full bg-white/10 group-hover:bg-white text-gray-400 group-hover:text-black flex items-center justify-center transition-all duration-300 shadow-sm">
+                                      <ArrowUpRight className="w-3 h-3 stroke-[2.5] group-hover:rotate-45 transition-transform duration-300" />
+                                    </span>
+                                  </div>
+
+                                  <div className="mt-2.5">
+                                    <h5 className="text-xs sm:text-[13px] font-black uppercase tracking-tight text-white group-hover:text-white leading-tight">
+                                      {proto.title}
+                                    </h5>
+                                    <p className="text-[10px] text-gray-400 line-clamp-2 mt-1 leading-relaxed">
+                                      {proto.desc}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    ))}
+                    ) : (
+                      /* Active Conversation Messages Flow */
+                      messages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`flex gap-3 ${
+                            msg.sender === "user"
+                              ? "justify-end"
+                              : "justify-start"
+                          }`}
+                        >
+                          {msg.sender === "ai" && (
+                            <div className="w-7 h-7 rounded-xl bg-white text-black flex items-center justify-center shrink-0 mt-0.5 shadow-lg border border-white/20">
+                              <img
+                                src="/logo.svg"
+                                alt="Fitora"
+                                className="w-4 h-4 object-contain"
+                              />
+                            </div>
+                          )}
+
+                          <div
+                            className={`max-w-[85%] p-3.5 sm:p-4 rounded-2xl ${
+                              msg.sender === "user"
+                                ? "bg-white text-black font-semibold rounded-tr-none shadow-xl leading-relaxed"
+                                : "bg-neutral-900/90 text-gray-100 border border-white/15 rounded-tl-none leading-relaxed shadow-lg whitespace-pre-line"
+                            }`}
+                          >
+                            <p>{msg.text}</p>
+                            <span
+                              className={`text-[9px] block text-right mt-1.5 font-bold ${
+                                msg.sender === "user"
+                                  ? "text-gray-500"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {msg.timestamp}
+                            </span>
+                          </div>
+
+                          {msg.sender === "user" && (
+                            <div className="w-7 h-7 rounded-xl bg-neutral-800 text-white border border-white/20 flex items-center justify-center shrink-0 mt-0.5 shadow-md">
+                              <User className="w-4 h-4" />
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
 
                     {isTyping && (
                       <div className="flex items-center gap-3 text-gray-400 text-xs pl-1">
                         <div className="w-7 h-7 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
-                          <Bot className="w-4 h-4" />
+                          <img
+                            src="/logo.svg"
+                            alt="Fitora"
+                            className="w-4 h-4 object-contain"
+                          />
                         </div>
                         <div className="bg-neutral-900 border border-white/15 px-4 py-2.5 rounded-2xl rounded-tl-none flex items-center gap-2 shadow-md">
                           <span className="w-2 h-2 bg-white rounded-full animate-bounce" />
                           <span className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
                           <span className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.4s]" />
                           <span className="text-[11px] font-medium text-gray-300 ml-1">
-                            Analyzing fitness protocol...
+                            Calibrating fitness protocol...
                           </span>
                         </div>
                       </div>
@@ -345,23 +436,29 @@ export default function FloatingAiWidget() {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Quick Action Suggestion Chips Bar */}
-                  <div className="px-3.5 py-2.5 bg-neutral-950/90 border-t border-white/10 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 shrink-0 flex items-center gap-1 pl-1">
-                      <Sparkles className="w-3 h-3 text-white" /> Quick
-                    </span>
-                    {QUICK_SUGGESTIONS.map((sug, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        disabled={isTyping || isQuotaExhausted}
-                        onClick={() => handleSendMessage(sug.query)}
-                        className="px-3 py-1.5 rounded-full bg-white/5 hover:bg-white text-gray-300 hover:text-black border border-white/10 hover:border-white text-[11px] font-semibold whitespace-nowrap transition-all duration-300 cursor-pointer shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {sug.label}
-                      </button>
-                    ))}
-                  </div>
+                  {/* Active Prompt Ribbon (Only shown during active conversation) */}
+                  {!isFreshConversation && (
+                    <div className="px-3.5 py-2 bg-neutral-950/90 border-t border-white/10 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-gray-400 shrink-0 pl-1">
+                        Protocols:
+                      </span>
+                      {COMPACT_PROMPTS.map((sug, i) => {
+                        const IconComponent = sug.icon;
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            disabled={isTyping || isQuotaExhausted}
+                            onClick={() => handleSendMessage(sug.query)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white text-gray-300 hover:text-black border border-white/10 hover:border-white text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <IconComponent className="w-2.5 h-2.5" />
+                            <span>{sug.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {/* Interactive Command Input Deck */}
                   {isQuotaExhausted ? (
