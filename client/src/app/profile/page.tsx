@@ -13,7 +13,6 @@ import {
   MapPin,
   Dumbbell,
   LogOut,
-  Loader2,
   CreditCard,
   QrCode,
   Flame,
@@ -58,6 +57,9 @@ import {
   type UserActivityStreakData,
 } from "@/services/activityService";
 import { saveCardApi, deleteSavedCardApi } from "@/services/dashboardService";
+import FitoraPillButton from "@/components/ui/FitoraPillButton";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
+import VipPassModal from "@/components/home/VipPassModal";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -313,7 +315,7 @@ function SaveCardModal({
             className="w-full flex items-center justify-center gap-2 bg-white text-black rounded-xl py-2.5 text-sm font-bold hover:bg-neutral-200 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <FitoraSpinner className="w-4 h-4 animate-spin" />
             ) : (
               <CheckCircle className="w-4 h-4" />
             )}
@@ -331,7 +333,7 @@ export default function ProfilePage() {
   const { data: authSession } = useSession();
 
   const isMounted = useSyncExternalStore(
-    () => () => {},
+    () => () => { },
     () => true,
     () => false,
   );
@@ -371,6 +373,8 @@ export default function ProfilePage() {
     expiryDate?: string;
   } | null>(null);
 
+  const [isVipPassOpen, setIsVipPassOpen] = useState(false);
+
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [renewPlan, setRenewPlan] = useState<PlanItem | null>(null);
@@ -390,7 +394,7 @@ export default function ProfilePage() {
     backendUser &&
     activeAuthEmail &&
     backendUser.email?.toLowerCase().trim() ===
-      activeAuthEmail.toLowerCase().trim();
+    activeAuthEmail.toLowerCase().trim();
 
   const effectiveUser = isBackendMatching
     ? backendUser
@@ -428,21 +432,21 @@ export default function ProfilePage() {
     (authSession?.user as any)?.avatarUrl ||
     (typeof window !== "undefined"
       ? (() => {
-          try {
-            const u = JSON.parse(localStorage.getItem("fitora_user") || "{}");
-            if (
-              !activeAuthEmail ||
-              (u.email &&
-                u.email.toLowerCase().trim() ===
-                  activeAuthEmail.toLowerCase().trim())
-            ) {
-              return u.avatarUrl || u.image || "";
-            }
-            return "";
-          } catch {
-            return "";
+        try {
+          const u = JSON.parse(localStorage.getItem("fitora_user") || "{}");
+          if (
+            !activeAuthEmail ||
+            (u.email &&
+              u.email.toLowerCase().trim() ===
+              activeAuthEmail.toLowerCase().trim())
+          ) {
+            return u.avatarUrl || u.image || "";
           }
-        })()
+          return "";
+        } catch {
+          return "";
+        }
+      })()
       : "");
 
   useEffect(() => {
@@ -495,7 +499,7 @@ export default function ProfilePage() {
           if (res.user.plan) {
             localStorage.setItem("fitora_user_plan", res.user.plan);
           }
-        } catch {}
+        } catch { }
       }
     }
   }, [
@@ -540,7 +544,7 @@ export default function ProfilePage() {
       const token =
         typeof window !== "undefined"
           ? localStorage.getItem("fitora_token") ||
-            localStorage.getItem("fitora_auth_token")
+          localStorage.getItem("fitora_auth_token")
           : null;
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -684,7 +688,7 @@ export default function ProfilePage() {
       if (!resolvedUserId) return;
       getWorkoutLogs(String(resolvedUserId), 30)
         .then((r) => setWorkoutLogs(r?.logs || []))
-        .catch(() => {});
+        .catch(() => { });
     };
     window.addEventListener("fitora-workout-logged", handler);
     return () => window.removeEventListener("fitora-workout-logged", handler);
@@ -694,7 +698,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch {}
+    } catch { }
     toast.success("Logged out successfully. Keep training, Champion! 👋");
     setTimeout(() => {
       window.location.href = "/";
@@ -767,13 +771,13 @@ export default function ProfilePage() {
   const weightProgress =
     currentWeight > 0 && targetWeight > 0
       ? Math.min(
-          100,
-          Math.max(
-            0,
-            100 -
-              (weightDifference / Math.max(currentWeight, targetWeight)) * 100,
-          ),
-        )
+        100,
+        Math.max(
+          0,
+          100 -
+          (weightDifference / Math.max(currentWeight, targetWeight)) * 100,
+        ),
+      )
       : 0;
 
   if (!isMounted) return null;
@@ -818,11 +822,10 @@ export default function ProfilePage() {
                   {userName}
                 </h1>
                 <span
-                  className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border tracking-wider ${
-                    isPremium
-                      ? "bg-white text-black border-white"
-                      : "bg-white/10 text-white/70 border-white/20"
-                  }`}
+                  className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border tracking-wider ${isPremium
+                    ? "bg-white text-black border-white"
+                    : "bg-white/10 text-white/70 border-white/20"
+                    }`}
                 >
                   {userPlan}
                 </span>
@@ -846,13 +849,18 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
-            <Link
+            <FitoraPillButton
               href="/profile/edit"
-              className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/20 text-white/80 hover:text-black hover:bg-white transition-all cursor-pointer shadow-sm"
             >
               <span>Edit Profile</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
+
+            </FitoraPillButton>
+            <FitoraPillButton
+              variant="white"
+              onClick={() => setIsVipPassOpen(true)}
+            >
+              FREE VIP PASS
+            </FitoraPillButton>
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-all cursor-pointer"
@@ -890,11 +898,10 @@ export default function ProfilePage() {
             <button
               key={tab.key}
               onClick={() => setActiveSubmenu(tab.key as SubmenuTab)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
-                activeSubmenu === tab.key
-                  ? "bg-white text-black border-white shadow-lg scale-[1.01]"
-                  : "bg-black text-white/60 border-white/15 hover:border-white/40 hover:text-white"
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${activeSubmenu === tab.key
+                ? "bg-white text-black border-white shadow-lg scale-[1.01]"
+                : "bg-black text-white/60 border-white/15 hover:border-white/40 hover:text-white"
+                }`}
             >
               {tab.icon}
               <span>{tab.label}</span>
@@ -1025,7 +1032,7 @@ export default function ProfilePage() {
 
                   {activityStreakLoading ? (
                     <div className="py-6 flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                      <FitoraSpinner className="w-6 h-6 animate-spin text-white/40" />
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1042,7 +1049,7 @@ export default function ProfilePage() {
 
                       <p className="text-xs text-white/60 leading-relaxed">
                         {activityStreak?.longestStreak != null &&
-                        activityStreak.longestStreak > 0
+                          activityStreak.longestStreak > 0
                           ? `Personal record: ${activityStreak.longestStreak} days uninterrupted training streak.`
                           : "Check in via the gym turnstile or log a workout session to build your streak!"}
                       </p>
@@ -1182,7 +1189,7 @@ export default function ProfilePage() {
 
                   {bmiLoading ? (
                     <div className="py-8 flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                      <FitoraSpinner className="w-6 h-6 animate-spin text-white/40" />
                     </div>
                   ) : bmiHistory.length === 0 ? (
                     <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
@@ -1300,7 +1307,7 @@ export default function ProfilePage() {
                       />
                     ) : (
                       <div className="w-40 h-40 rounded-xl border border-white/20 flex items-center justify-center bg-white/5">
-                        <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                        <FitoraSpinner className="w-6 h-6 animate-spin text-white/40" />
                       </div>
                     )}
                   </div>
@@ -1351,7 +1358,7 @@ export default function ProfilePage() {
 
               {isLoadingWorkouts ? (
                 <div className="py-12 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+                  <FitoraSpinner />
                 </div>
               ) : workoutLogs.length === 0 ? (
                 <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
@@ -1567,6 +1574,12 @@ export default function ProfilePage() {
           onSaved={fetchUser}
         />
       )}
+
+      {/* Free vip pass Modal */}
+      <VipPassModal
+        isOpen={isVipPassOpen}
+        onClose={() => setIsVipPassOpen(false)}
+      />
     </div>
   );
 }
