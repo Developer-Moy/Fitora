@@ -198,3 +198,16 @@ Make activity heatmap dynamic with backend integration
 - Added heatmap controller and routes
 - Added frontend heatmap service for API communication
 - Updated activity tracking to display dynamic data from the database
+
+## 13-Sep-26
+
+Add dedicated SavedMealCard for saved daily meal plan
+
+- Create SavedMealCard component without "Add to Daily Plan" button
+- Provide "View Details" modal featuring recipe details and "Copy Recipe" action
+- Integrate SavedMealCard into SavedMealPlan
+
+Add responsive skeleton loader grid for meal catalog
+
+- Create MealSkeletonCard and MealSkeletonGrid matching MealCard
+- Adapt skeleton grid across mobile (1-col), tablet (2-col), and desktop (3-col)
