@@ -1285,11 +1285,17 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                       <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                         <motion.div
-                          className="h-full rounded-full bg-white"
+                          className="h-full rounded-full bg-white origin-left"
+                          initial={{ width: 0 }}
                           animate={{
-                            width: `${(macros.protein / maxMacro) * 100}%`,
+                            width: `${macroPercentages.protein}%`,
                           }}
-                          transition={{ duration: 0.6 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 120,
+                            damping: 18,
+                            mass: 0.8,
+                          }}
                         />
                       </div>
                     </div>
@@ -1315,11 +1321,18 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                       <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                         <motion.div
-                          className="h-full rounded-full bg-gray-400"
+                          className="h-full rounded-full bg-gray-400 origin-left"
+                          initial={{ width: 0 }}
                           animate={{
-                            width: `${(macros.carbs / maxMacro) * 100}%`,
+                            width: `${macroPercentages.carbs}%`,
                           }}
-                          transition={{ duration: 0.6 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 120,
+                            damping: 18,
+                            mass: 0.8,
+                            delay: 0.08,
+                          }}
                         />
                       </div>
                     </div>
@@ -1345,11 +1358,18 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                       <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                         <motion.div
-                          className="h-full rounded-full bg-gray-500"
+                          className="h-full rounded-full bg-gray-500 origin-left"
+                          initial={{ width: 0 }}
                           animate={{
-                            width: `${(macros.fats / maxMacro) * 100}%`,
+                            width: `${macroPercentages.fats}%`,
                           }}
-                          transition={{ duration: 0.6 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 120,
+                            damping: 18,
+                            mass: 0.8,
+                            delay: 0.16,
+                          }}
                         />
                       </div>
                     </div>
@@ -1386,6 +1406,46 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                 </div>
               </div>
             </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="mt-2.5 rounded-2xl border border-white/15 bg-white/5 p-3.5 sm:p-4"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-black">
+                    <Utensils className="h-4 w-4" />
+                  </div>
+
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">
+                      PERSONALIZED MEAL PLAN
+                    </p>
+
+                    <h3 className="mt-0.5 text-sm font-black uppercase tracking-tight text-white">
+                      Build Your Daily Meal Plan.
+                    </h3>
+
+                    <p className="mt-0.5 text-[10px] leading-relaxed text-gray-400">
+                      Explore meals tailored around your {Math.round(targetCalories)} kcal
+                      daily calorie target.
+                    </p>
+                  </div>
+                </div>
+
+                <FitoraPillButton
+                  variant="white"
+                  size="md"
+                  onClick={() =>
+                    window.location.href = `/meals?calories=${Math.round(targetCalories)}`
+                  }
+                >
+                  View Meal Plan
+                </FitoraPillButton>
+              </div>
+            </motion.div>
 
             {/* Pro Athlete Macro Adjuster */}
             <div className="mt-4">
