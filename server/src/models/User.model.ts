@@ -284,4 +284,6 @@ userSchema.index({ status: 1 });
 
 const User = mongoose.model<IUser>("User", userSchema);
 
+export { User };
 export default User;
+
