@@ -662,18 +662,18 @@ export default function FloatingAiWidget() {
                       }}
                       className="p-3 sm:p-3.5 bg-neutral-900/95 border-t border-white/15 flex items-center gap-2 shrink-0"
                     >
-                      <div className="flex-1 flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-full bg-black border border-white/20 focus-within:border-white focus-within:ring-2 focus-within:ring-white/20 transition-all duration-300 shadow-inner">
+                      <div className="flex-1 flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-full bg-white border border-white/90 focus-within:ring-2 focus-within:ring-white/40 transition-all duration-300 shadow-[0_2px_15px_rgba(255,255,255,0.12)]">
                         <input
                           type="text"
                           value={inputText}
                           onChange={(e) => setInputText(e.target.value)}
                           placeholder="Ask about workout splits, macros, exercise form..."
-                          className="bg-transparent text-xs sm:text-sm text-white placeholder-gray-500 outline-none w-full font-medium"
+                          className="bg-transparent text-xs sm:text-sm text-black placeholder-neutral-500 outline-none w-full font-medium"
                         />
                         <button
                           type="submit"
                           disabled={!inputText.trim() || isTyping}
-                          className="group w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white text-black disabled:bg-neutral-800 disabled:text-gray-600 flex items-center justify-center shrink-0 transition-all duration-300 shadow-lg cursor-pointer hover:scale-105 active:scale-95 disabled:cursor-not-allowed"
+                          className="group w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white disabled:bg-neutral-200 disabled:text-neutral-400 flex items-center justify-center shrink-0 transition-all duration-300 shadow-md cursor-pointer hover:scale-105 active:scale-95 disabled:cursor-not-allowed"
                           aria-label="Send Message"
                         >
                           <ArrowUpRight className="w-4 h-4 stroke-[2.5] group-hover:rotate-45 transition-transform duration-300" />
