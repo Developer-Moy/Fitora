@@ -199,7 +199,7 @@ export default function FloatingAiWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed bottom-[72px] sm:bottom-20 left-1/2 -translate-x-1/2 w-[calc(100vw-1rem)] xs:w-[calc(100vw-1.5rem)] sm:w-[600px] md:w-[660px] max-w-[660px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2.2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[50] pointer-events-auto"
+            className="fixed bottom-[72px] sm:bottom-20 right-4 sm:right-6 md:right-8 w-[calc(100vw-2rem)] sm:w-[460px] md:w-[500px] max-w-[500px] max-h-[calc(100vh-120px)] flex flex-col bg-black text-white border-2 border-white/20 rounded-2xl sm:rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.95)] overflow-hidden z-[50] pointer-events-auto"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-5 sm:py-3 bg-neutral-900/90 border-b border-white/15 shrink-0">
@@ -378,42 +378,41 @@ export default function FloatingAiWidget() {
         )}
       </AnimatePresence>
 
-      {/* ─── 2. Morphing AI Trigger Button (Notch Locked at Hero Bottom) ─── */}
-      {!isOpen && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOpen(true);
-          }}
-          className={`group flex items-center justify-center font-bold cursor-pointer transition-all duration-300 z-[45] pointer-events-auto select-none ${
-            isScrolled
-              ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full bg-black text-white border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
-              : "absolute bottom-[-2px] sm:bottom-[-2px] left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black border-[3px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] hover:scale-110 active:scale-95"
-          }`}
-          aria-label="Open FITORA AI"
-        >
-          {isScrolled ? (
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white stroke-none group-hover:rotate-12 transition-transform duration-300 drop-shadow-md" />
-              <span className="text-[11px] sm:text-xs tracking-wide">
-                Ask AI
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center">
-              <Image
-                src="/gemini-logo.png"
-                alt="Google Gemini"
-                width={36}
-                height={36}
-                className="w-6 h-6 sm:w-7 sm:h-7 object-contain group-hover:rotate-12 transition-transform duration-300 drop-shadow-[0_0_10px_rgba(66,133,244,0.5)]"
-                priority
-              />
-            </div>
-          )}
-        </button>
-      )}
+
+      {/* ─── 2. Morphing AI Trigger Button (Notch Locked at Hero Bottom, Always Visible) ─── */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
+        className={`group flex items-center justify-center font-bold cursor-pointer transition-all duration-300 z-[45] pointer-events-auto select-none ${
+          isScrolled
+            ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full bg-black text-white border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
+            : "absolute bottom-[-2px] sm:bottom-[-2px] left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black border-[3px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] hover:scale-110 active:scale-95"
+        } ${isOpen ? "ring-2 ring-white/60 shadow-[0_0_25px_rgba(255,255,255,0.5)]" : ""}`}
+        aria-label="Toggle FITORA AI"
+      >
+        {isScrolled ? (
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white stroke-none group-hover:rotate-12 transition-transform duration-300 drop-shadow-md" />
+            <span className="text-[11px] sm:text-xs tracking-wide">
+              {isOpen ? "Close AI" : "Ask AI"}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center">
+            <Image
+              src="/gemini-logo.png"
+              alt="Google Gemini"
+              width={36}
+              height={36}
+              className="w-6 h-6 sm:w-7 sm:h-7 object-contain group-hover:rotate-12 transition-transform duration-300 drop-shadow-[0_0_10px_rgba(66,133,244,0.5)]"
+              priority
+            />
+          </div>
+        )}
+      </button>
     </div>
   );
 }
