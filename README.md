@@ -116,6 +116,15 @@ Replaces fragmented user pages with a unified 4-tab athlete cockpit:
 - Fully dynamic MongoDB persistence across all entities: exercises, healthy meals, workout logs, user goals, stopwatch presets, and transaction history.
 - All hardcoded mock athletes, branches, and fallback financial figures have been completely eradicated, ensuring all data displayed originates directly from authentic MongoDB collections.
 
+### 9. 🤖 AI Studio & Floating Fitness Intelligence Engine
+
+- **Portal-Mounted Viewport Architecture**: Studio modal rendered directly to `document.body` via React Portal (`createPortal`) at `z-[9999]`, breaking free from container boundaries and preventing clipping from `overflow: hidden` parent sections.
+- **Morphing Hero Notch Trigger**: Persistent trigger launcher locked into the hero section notch on initial load, smoothly morphing into a fixed floating pill (`Ask AI` / `Close AI`) when scrolling past the hero.
+- **Bespoke Luxury Protocol Cards**: High-contrast 2x2 grid (`HYPERTROPHY`, `NUTRITION`, `FAT LOSS`, `RECOVERY`) with 1-click execution matching Fitora's monochromatic luxury brand identity.
+- **Two-Sided Protocols Scroll Rail**: Circular navigation buttons (`<` and `>`) for effortless horizontal browsing across coaching prompts.
+- **Background Body Scroll Lock**: Active body scroll lock (`overflow: hidden`, `overscroll-behavior: none`, `touch-none`) ensuring only the chat console scrolls when active.
+- **Dynamic Identity**: High-contrast visible Fitora logo with `brightness-0` and authenticated athlete profile picture integration via `useSession()`.
+
 ---
 
 ## 🔐 User Roles & Access Control Matrix
@@ -146,6 +155,7 @@ The platform enforces strict Role-Based Access Control (RBAC) across 5 distinct 
 - **Trainer Callout Banner (`TrainerCalloutBanner.tsx`)**: Pitch-black callout banner _"Need a Fitness Trainer?"_, contact hotline, and signature _"PURCHASE NOW"_ button.
 - **Consultation Form (`ContactInfoForm.tsx`)**: Consultation inquiry form, head office details (`Fitora Tower, Gulshan-2, Dhaka 1212` & `64 Branches in Bangladesh`), and signature _"SUBMIT NOW"_ button.
 - **Global Header & Navigation (`Navbar.tsx`)**: Desktop centered nav links, mobile slide-in drawer, active route indicators, real-time unread notification bell, and dynamic `PRO` badge synchronization.
+- **Floating AI Coach Studio (`FloatingAiWidget.tsx`)**: 24/7 personal gym trainer and nutrition studio powered by Google Gemini, portaled directly to the viewport with luxury protocol cards, two-sided scroll controls, body scroll lock, and real athlete avatar integration.
 - **Global Footer (`Footer.tsx`)**: Bold _"GO FOR IT!"_ headline, location details, newsletter subscription, and developer credits.
 
 ### 📊 Health, Telemetry & Workout Tools

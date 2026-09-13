@@ -124,9 +124,42 @@ Conducted an end-to-end full-stack codebase audit to enforce 100% dynamic MongoD
 
 ---
 
+## 10. AI Studio & Floating Fitness Intelligence Engine (`FloatingAiWidget.tsx`)
+
+Architected and developed the bespoke FITORA AI Studio and morphing floating assistant widget:
+
+### Key Implementation:
+
+- **React Portal Viewport Architecture (`createPortal`)**: Mounted the AI Studio modal directly to `document.body` at `z-[9999]`, breaking free of `HeroSection`'s `overflow: hidden` bounding box and sticky navigation stacking context to guarantee unclipped viewport rendering.
+- **Symmetrical Viewport Centering**: Centered the studio console horizontally (`left-1/2 -translate-x-1/2`) above the notch launcher with responsive geometry (`w-[calc(100vw-1.5rem)] sm:w-[620px] md:w-[680px] max-w-[680px] h-[560px] max-h-[calc(100vh-120px)]`), ensuring optimal layout on mobile and desktop displays.
+- **Persistent Morphing Launcher Trigger**:
+  - Locked into the hero bottom notch on page entry (`bottom-[-2px] sm:bottom-[-2px]`) with Google Gemini branding.
+  - Dynamically morphs into a fixed floating pill (`Ask AI` / `Close AI` at `bottom-5 sm:bottom-6`) once scrolled past the hero (`window.scrollY > 60`), remaining permanently accessible and non-disappearing when the studio modal is toggled.
+- **Luxury Bespoke Fitness Protocol Cards Grid**:
+  - Replaced generic emoji prompt strips with a 2x2 high-contrast grid of bespoke coaching protocols (`HYPERTROPHY`, `NUTRITION`, `FAT LOSS`, `RECOVERY`) during welcome state.
+  - Styled with deep obsidian glass cards, micro category pills, typography hierarchy, rotating circular `ArrowUpRight` (`↗`) badges, and 1-click execution.
+- **Protocols Horizontal Rail with Dedicated Scroll Controls (`<` and `>`)**:
+  - Integrated circular scroll navigation buttons (`ChevronLeft` and `ChevronRight`) on both ends of the active conversation protocol ribbon.
+  - Smooth horizontal scrolling (`scrollBy({ behavior: "smooth" })`) enables effortless desktop and mobile prompt selection without click-dragging.
+- **High-Contrast Brand Emblem & Visible AI Avatar**:
+  - Fixed white-on-white SVG vector invisibility in `/logo.svg` by applying CSS `brightness-0` across header emblems, welcome cards, message bubbles, and typing status.
+  - Presents the iconic Fitora "F" mark in jet black on pure white badge tiles.
+- **Authenticated Real User Profile Avatar**:
+  - Integrated `useSession()` from `@/lib/auth-client` and `getAuthSession()` from `@/services/authService`.
+  - Automatically loads and displays authenticated athlete profile images (`user.image` / `user.avatarUrl`) with graceful initial monogram fallback.
+- **Strict Background Body Scroll Lock**:
+  - When the AI Studio modal opens, `document.body` scroll is completely locked (`overflow: hidden` and `overscroll-behavior: none`) with dynamic padding-right compensation for scrollbar width.
+  - Applied `overscroll-contain` to modal and chat canvas to eliminate scroll chaining.
+  - Added touch and wheel interception (`touch-none`, `preventDefault()`) on the backdrop blur.
+- **Refined Matte White Command Deck & Always-Black Action Button**:
+  - Clean matte white input pill (`border border-neutral-200`) without distracting outer glow.
+  - Circular action button remains permanently solid black (`bg-black text-white disabled:opacity-40`), ensuring tactile luxury aesthetics.
+
+---
+
 ## Overview
 
-These components form the responsive header, hero section, pricing, callouts, contact form, footer, membership tracking, digital billing engine, dynamic member hub, and robust full-stack data layer of **Fitora**.
+These components form the responsive header, hero section, pricing, callouts, contact form, footer, membership tracking, digital billing engine, dynamic member hub, AI coach studio, and robust full-stack data layer of **Fitora**.
 
 ---
 
@@ -484,3 +517,19 @@ These components form the responsive header, hero section, pricing, callouts, co
 - **100% Zero-Error Compilation & Verification**:
   - Server TypeScript build (`cd server && npm run build` -> `tsc`): **0 Errors** (Exit 0).
   - Client TypeScript validation (`cd client && npx tsc --noEmit`): **0 Errors** (Exit 0).
+
+### 13-Sep-26 (Day 7)
+
+- **AI Studio & Floating Fitness Intelligence Engine Architecture**:
+  - Resolved complex git merge conflicts across `client/src/app/loading.tsx`, `client/src/components/home/FloatingAiWidget.tsx`, `server/src/controllers/ai.controller.ts`, and `server/src/routes/ai.routes.ts`.
+  - Merged PR #157 into `development` on GitHub; validated clean Vercel and Render cloud deployments.
+  - Re-architected `FloatingAiWidget.tsx` with React Portal (`createPortal(..., document.body)`) at `z-[9999]`, breaking free of `HeroSection`'s `overflow: hidden` bounding box and eliminating UI clipping.
+  - Symmetrically positioned the AI Studio console in the horizontal center of the viewport (`left-1/2 -translate-x-1/2`) above the launcher button with responsive sizing (`w-[calc(100vw-1.5rem)] sm:w-[620px] md:w-[680px]`).
+  - Replaced disappearing trigger with a persistent morphing button: locked in hero notch on load, morphs to floating pill (`Ask AI` / `Close AI`) when scrolled past hero (`window.scrollY > 60`), remaining permanently interactive and clickable to toggle.
+  - Replaced generic emoji prompt strip with a 2x2 luxury protocol card grid matching Fitora's homepage theme (`HYPERTROPHY`, `NUTRITION`, `FAT LOSS`, `RECOVERY`) with signature `ArrowUpRight` rotating badges and 1-click execution.
+  - Added dedicated two-sided circular scroll navigation buttons (`ChevronLeft` and `ChevronRight`) on the active conversation protocol rail for effortless smooth horizontal scrolling on desktop and mobile.
+  - Fixed white-on-white SVG vector invisibility on `/logo.svg` using CSS `brightness-0`, rendering the sharp black Fitora "F" mark on pure white badge tiles in the header, welcome card, AI chat bubbles, and typing indicator.
+  - Integrated real athlete profile picture resolution via `useSession()` and `getAuthSession()` with monogram fallback badge for authenticated members.
+  - Implemented background body scroll lock (`overflow: hidden`, `overscroll-behavior: none`, `touch-none`) so only the chat widget scrolls when open, completely preventing page jump and scroll chaining.
+  - Refined input deck into a clean matte white pill with zero distracting outer glow and an always-black circular submit button (`bg-black text-white disabled:opacity-40`).
+  - Validated 100% clean builds across client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.
