@@ -7,14 +7,8 @@ import { AiRequestWithQuota } from "../middlewares/aiQuota.middleware";
 import { User } from "../models/User.model";
 
 /**
- * High-performance Domain-Specific Fitness AI Reasoning Engine
- * Fitness Domain Keyword Checker to Guardrail Local Heuristic Fallbacks
  * Fitness Domain Keyword Checker to Guardrail Heuristic Fallbacks
  */
-const generateIntelligentFitnessResponse = (
-  prompt: string,
-  mode: "chat" | "coach" = "chat",
-): string => {
 const isFitnessRelatedQuery = (text: string): boolean => {
   const lower = text.toLowerCase();
   const fitnessKeywords = [
@@ -81,10 +75,9 @@ const OFF_TOPIC_REFUSAL =
 /**
  * High-performance Domain-Specific Fitness AI Reasoning Engine (Heuristic Fallback)
  */
-const generateIntelligentFitnessResponse = (prompt: string): string => {
 const generateIntelligentFitnessResponse = (
   prompt: string,
-  mode: "chat" | "coach" = "chat"
+  mode: "chat" | "coach" = "chat",
 ): string => {
   const lower = prompt.toLowerCase();
 
@@ -118,9 +111,6 @@ const generateIntelligentFitnessResponse = (
       return "🏋️ Strength & Power Lifting Protocol:\n• Focus: Squat, Bench Press, Deadlift, Overhead Press in 3-5 rep range.\n• Rest: 3-5 minutes between maximal compound sets.\n• Target RPE: 8-9 (leave 1-2 reps in reserve on working sets).";
     }
     return "🎯 Personalized Coaching Blueprint:\n• Priority: Consistency, progressive overload, and micronutrient density.\n• Routine: 4-day Upper/Lower or 6-day PPL tailored to your lifestyle.\n• Check your calorie & macro split in the BMI & Calorie Calculator tab!";
-  // Strict Scope Check: Reject off-topic questions immediately
-  if (!isFitnessRelatedQuery(lower)) {
-    return OFF_TOPIC_REFUSAL;
   }
 
   // General Chat Mode
@@ -204,7 +194,6 @@ const generateIntelligentFitnessResponse = (
     return "Evidence-based supplement stack: 1. Creatine Monohydrate (5g daily, anytime) for ATP power. 2. Whey Protein for convenient post-workout recovery. 3. Multivitamin & Omega-3 for joint health.";
   }
 
-  return "Welcome to FITORA AI! I am your 24/7 fitness & bodybuilding assistant. Ask me anything about workout routines, nutrition macros, exercise technique, or recovery!";
   return "Welcome to FITORA AI! I am your 24/7 fitness & bodybuilding coach. Ask me anything about workout routines, nutrition macros, exercise technique, or recovery!";
 };
 
@@ -214,10 +203,6 @@ const generateIntelligentFitnessResponse = (
 export const handleAiChat = async (req: Request, res: Response) => {
   try {
     const promptText = req.body.promptText || req.body.prompt || req.body.text;
-    const mode = (req.body.mode === "coach" ? "coach" : "chat") as
-      | "chat"
-      | "coach";
-    const mode = req.body.mode === "coach" ? "coach" : "chat";
     const mode: "chat" | "coach" = req.body.mode === "coach" ? "coach" : "chat";
     const sessionId = req.body.sessionId || `SESSION_${Date.now()}`;
     const userId = req.body.userId || (req as AuthRequest).user?.userId;
@@ -227,18 +212,16 @@ export const handleAiChat = async (req: Request, res: Response) => {
       typeof promptText !== "string" ||
       promptText.trim().length === 0
     ) {
-      return res.status(400).json(
-        errorResponse("Prompt text is required.", "VALIDATION_ERROR", 400)
-      );
       return res
         .status(400)
-        .json(errorResponse("Prompt text is required.", "VALIDATION_ERROR", 400));
+        .json(
+          errorResponse("Prompt text is required.", "VALIDATION_ERROR", 400),
+        );
     }
 
     const cleanPrompt = promptText.trim();
     let responseText = "";
 
-    // Optional Google Gemini API Call if Key is present
     // ── Google Gemini Flash API Call with Strict Gym Guardrails ──
     const geminiKey = process.env.GEMINI_API_KEY;
     if (geminiKey && geminiKey.startsWith("AIzaSy")) {
@@ -260,8 +243,6 @@ CRITICAL OPERATIONAL RULES:
               {
                 parts: [
                   {
-                    text: `You are FITORA AI, a world-class certified fitness trainer, bodybuilding coach, and sports nutritionist for the FITORA gym network in Bangladesh. Mode: ${mode}. User query: "${cleanPrompt}". Provide a concise, highly motivating, structured, and actionable answer with bullet points if appropriate (max 4-5 sentences).`,
-                    text: `${systemInstruction}\n\nUser Query: "${cleanPrompt}"\n\nProvide your coaching response:`,
                     text: `${systemInstruction}\n\nUser Query (${mode} mode): "${cleanPrompt}"\n\nProvide your coaching response:`,
                   },
                 ],
@@ -283,14 +264,11 @@ CRITICAL OPERATIONAL RULES:
       }
     }
 
-    // Heuristic Fallback
     // Heuristic Fallback with Scope Enforcement
     if (!responseText) {
       responseText = generateIntelligentFitnessResponse(cleanPrompt, mode);
-      responseText = generateIntelligentFitnessResponse(cleanPrompt);
     }
 
-    // Persist to MongoDB
     // ── Update Daily Quota ──
     const quotaReq = req as AiRequestWithQuota;
     let quotaStatus = null;
@@ -305,7 +283,7 @@ CRITICAL OPERATIONAL RULES:
         const updated = await AiQuota.findOneAndUpdate(
           { identifier: quotaReq.aiQuota.identifier, date: today },
           updateField,
-          { new: true }
+          { new: true },
         );
 
         if (updated) {
@@ -313,12 +291,12 @@ CRITICAL OPERATIONAL RULES:
             tier: updated.tier,
             plansRemaining: Math.max(
               0,
-              quotaReq.aiQuota.plansLimit - updated.planGenerations
+              quotaReq.aiQuota.plansLimit - updated.planGenerations,
             ),
             plansLimit: quotaReq.aiQuota.plansLimit,
             chatsRemaining: Math.max(
               0,
-              quotaReq.aiQuota.chatsLimit - updated.chatQueries
+              quotaReq.aiQuota.chatsLimit - updated.chatQueries,
             ),
             chatsLimit: quotaReq.aiQuota.chatsLimit,
           };
@@ -335,7 +313,6 @@ CRITICAL OPERATIONAL RULES:
         ...(userId && { userId }),
         sessionId,
         mode,
-        mode: "chat",
         promptText: cleanPrompt,
         responseText,
         sender: "ai",
@@ -348,27 +325,25 @@ CRITICAL OPERATIONAL RULES:
       successResponse("AI response generated successfully.", {
         id: savedRecord?._id || Date.now().toString(),
         promptText: cleanPrompt,
-        messageId: savedRecord?._id || `MSG_${Date.now()}`,
         responseText,
         mode,
         sender: "ai",
-        timestamp: new Date().toISOString(),
         sessionId,
         timestamp: new Date().toISOString(),
         quota: quotaStatus,
-      })
+      }),
     );
   } catch (error: any) {
-    console.error("Error in handleAiChat:", error);
     console.error("Critical AI Controller Error:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Internal server error while processing AI chat request.",
-        "Failed to generate fitness response.",
-        error.message,
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to generate fitness response.",
+          error.message,
+          500,
+        ),
+      );
   }
 };
 
@@ -428,12 +403,12 @@ export const getAiQuotaStatus = async (req: Request, res: Response) => {
         chatsUsed,
         chatsLimit: limits.chats,
         chatsRemaining: Math.max(0, limits.chats - chatsUsed),
-      })
+      }),
     );
   } catch (error: any) {
-    return res.status(500).json(
-      errorResponse("Failed to retrieve AI quota.", error.message, 500)
-    );
+    return res
+      .status(500)
+      .json(errorResponse("Failed to retrieve AI quota.", error.message, 500));
   }
 };
 
@@ -466,17 +441,19 @@ export const getAiHistory = async (req: Request, res: Response) => {
       successResponse("AI chat history retrieved successfully.", {
         count: messages.length,
         history: messages,
-      })
+      }),
     );
   } catch (error: any) {
     console.error("Error fetching AI history:", error);
-    return res.status(500).json(
-      errorResponse(
-        "Failed to load AI conversation history.",
-        error.message,
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to load AI conversation history.",
+          error.message,
+          500,
+        ),
+      );
   }
 };
 
