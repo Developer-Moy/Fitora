@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { BookmarkCheck } from "lucide-react";
 import { saveBmiHistory } from "@/services/bmiService";
+import FitoraPillButton from "../ui/FitoraPillButton";
 
 interface BmiCalculatorProps {
   onBmiChange?: (bmi: number) => void;
@@ -73,24 +73,24 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
   const weightProgress =
     weightUnit === "kg"
       ? Math.min(
-          100,
-          Math.max(0, ((weight - 20) / (300 - 20)) * 100),
-        )
+        100,
+        Math.max(0, ((weight - 20) / (300 - 20)) * 100),
+      )
       : Math.min(
-          100,
-          Math.max(0, ((displayWeightLbs - 44) / (660 - 44)) * 100),
-        );
+        100,
+        Math.max(0, ((displayWeightLbs - 44) / (660 - 44)) * 100),
+      );
 
   const heightProgress =
     heightUnit === "cm"
       ? Math.min(
-          100,
-          Math.max(0, ((height - 50) / (250 - 50)) * 100),
-        )
+        100,
+        Math.max(0, ((height - 50) / (250 - 50)) * 100),
+      )
       : Math.min(
-          100,
-          Math.max(0, ((totalInches - 20) / (98 - 20)) * 100),
-        );
+        100,
+        Math.max(0, ((totalInches - 20) / (98 - 20)) * 100),
+      );
 
   // FITORA Signature Dynamic Monochrome Status Theme
   const getStatusTheme = () => {
@@ -272,11 +272,10 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
                 <button
                   type="button"
                   onClick={() => setWeightUnit("kg")}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${
-                    weightUnit === "kg"
+                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${weightUnit === "kg"
                       ? "bg-white text-black shadow-sm"
                       : "text-zinc-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   KG
                 </button>
@@ -284,11 +283,10 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
                 <button
                   type="button"
                   onClick={() => setWeightUnit("lbs")}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${
-                    weightUnit === "lbs"
+                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${weightUnit === "lbs"
                       ? "bg-white text-black shadow-sm"
                       : "text-zinc-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   LBS
                 </button>
@@ -362,11 +360,10 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
                 <button
                   type="button"
                   onClick={() => setHeightUnit("cm")}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${
-                    heightUnit === "cm"
+                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${heightUnit === "cm"
                       ? "bg-white text-black shadow-sm"
                       : "text-zinc-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   CM
                 </button>
@@ -374,11 +371,10 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
                 <button
                   type="button"
                   onClick={() => setHeightUnit("ft")}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${
-                    heightUnit === "ft"
+                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${heightUnit === "ft"
                       ? "bg-white text-black shadow-sm"
                       : "text-zinc-400 hover:text-white"
-                  }`}
+                    }`}
                 >
                   FT.IN
                 </button>
@@ -462,17 +458,16 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
 
         {/* Save BMI to Profile Button */}
         <div className="pt-2">
-          <button
-            type="button"
+          <FitoraPillButton
+            variant="white"
+            size="md"
             onClick={handleSaveBmi}
+            loading={isSaving}
             disabled={isSaving}
-            className="w-full inline-flex items-center justify-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-3 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all cursor-pointer shadow-xl active:scale-[0.98] disabled:opacity-60 uppercase tracking-wide"
+            className="w-full"
           >
-            <BookmarkCheck className="w-4 h-4 text-black" />
-            <span>
-              {isSaving ? "Saving..." : "Save BMI to Profile"}
-            </span>
-          </button>
+            Save BMI to Profile
+          </FitoraPillButton>
         </div>
       </div>
     </div>
