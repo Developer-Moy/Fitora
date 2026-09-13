@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { handleAiChat, getAiHistory } from "../controllers/ai.controller";
 import {
   handleAiChat,
   getAiHistory,
@@ -11,7 +10,6 @@ const router = Router();
 
 /**
  * @route POST /api/ai/chat
- * @desc Handle AI Trainer prompts and return AI responses (Supports 'chat' and 'coach' modes)
  * @desc Handle AI Trainer prompts and return AI responses
  * @access Public / Protected with Daily Quota Check
  */
@@ -22,7 +20,6 @@ router.post("/chat", checkAiQuota, handleAiChat);
  * @desc Get today's remaining AI credit quota
  * @access Public / Protected
  */
-router.post("/chat", handleAiChat);
 router.get("/quota", getAiQuotaStatus);
 
 /**
