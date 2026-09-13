@@ -16,12 +16,20 @@ import {
   Flame,
   Clock,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   sendAiChatApi,
   fetchAiQuotaApi,
   QuotaData,
 } from "@/services/aiService";
+import { useSession } from "@/lib/auth-client";
+import {
+  getAuthSession,
+  AuthUser,
+  AUTH_SESSION_UPDATED,
+} from "@/services/authService";
 import toast from "react-hot-toast";
 import FitoraPillButton from "@/components/ui/FitoraPillButton";
 
@@ -53,23 +61,47 @@ const FITNESS_PROTOCOLS = [
     title: "Fat Loss Accelerator",
     desc: "Structured calorie deficit training and metabolic cardio timing protocol.",
     icon: Flame,
-    query: "Give me an effective fat loss workout and calorie deficit strategy.",
+    query:
+      "Give me an effective fat loss workout and calorie deficit strategy.",
   },
   {
     tag: "RECOVERY",
     title: "Creatine & Supplement Stack",
     desc: "Evidence-based dosing timing, creatine monohydrate & muscle recovery.",
     icon: Zap,
-    query: "How should I dose creatine monohydrate and whey protein for maximum results?",
+    query:
+      "How should I dose creatine monohydrate and whey protein for maximum results?",
   },
 ];
 
 const COMPACT_PROMPTS = [
-  { label: "Hypertrophy Split", icon: Dumbbell, query: "What is the best 4-day workout split for muscle hypertrophy?" },
-  { label: "Protein Macros", icon: Target, query: "How many grams of protein should I consume daily for bodybuilding?" },
-  { label: "Fat Loss Strategy", icon: Flame, query: "Give me an effective fat loss workout and calorie deficit strategy." },
-  { label: "Creatine & Whey", icon: Zap, query: "How should I dose creatine monohydrate and whey protein?" },
-  { label: "Rest Intervals", icon: Clock, query: "What is the optimal rest time between heavy compound sets vs isolation?" },
+  {
+    label: "Hypertrophy Split",
+    icon: Dumbbell,
+    query: "What is the best 4-day workout split for muscle hypertrophy?",
+  },
+  {
+    label: "Protein Macros",
+    icon: Target,
+    query: "How many grams of protein should I consume daily for bodybuilding?",
+  },
+  {
+    label: "Fat Loss Strategy",
+    icon: Flame,
+    query:
+      "Give me an effective fat loss workout and calorie deficit strategy.",
+  },
+  {
+    label: "Creatine & Whey",
+    icon: Zap,
+    query: "How should I dose creatine monohydrate and whey protein?",
+  },
+  {
+    label: "Rest Intervals",
+    icon: Clock,
+    query:
+      "What is the optimal rest time between heavy compound sets vs isolation?",
+  },
 ];
 
 export default function FloatingAiWidget() {
@@ -94,6 +126,47 @@ export default function FloatingAiWidget() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
+  const protocolScrollRef = useRef<HTMLDivElement>(null);
+
+  // Authenticated user resolution for real profile avatar
+  const { data: authSession } = useSession();
+  const [localUser, setLocalUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    const session = getAuthSession();
+    if (session.user) {
+      setLocalUser(session.user);
+    }
+    const handleAuthUpdate = (e: any) => {
+      if (e.detail?.user) {
+        setLocalUser(e.detail.user);
+      } else {
+        const s = getAuthSession();
+        setLocalUser(s.user);
+      }
+    };
+    window.addEventListener(AUTH_SESSION_UPDATED, handleAuthUpdate);
+    return () =>
+      window.removeEventListener(AUTH_SESSION_UPDATED, handleAuthUpdate);
+  }, []);
+
+  const activeUser = authSession?.user || localUser;
+  const userAvatar =
+    localUser?.avatarUrl ||
+    (activeUser as any)?.image ||
+    (activeUser as any)?.avatarUrl ||
+    "";
+  const userName = activeUser?.name || "Athlete Member";
+  const userInitial = userName.charAt(0).toUpperCase() || "U";
+
+  const scrollProtocols = (direction: "left" | "right") => {
+    if (protocolScrollRef.current) {
+      protocolScrollRef.current.scrollBy({
+        left: direction === "left" ? -180 : 180,
+        behavior: "smooth",
+      });
+    }
+  };
 
   // Ensure client-side portal mounting
   useEffect(() => {
@@ -245,7 +318,7 @@ export default function FloatingAiWidget() {
                         <img
                           src="/logo.svg"
                           alt="Fitora"
-                          className="w-5 h-5 object-contain"
+                          className="w-5 h-5 object-contain brightness-0"
                         />
                         <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-black flex items-center justify-center">
                           <span className="w-1 h-1 rounded-full bg-white animate-ping" />
@@ -307,14 +380,21 @@ export default function FloatingAiWidget() {
                         {/* Welcome Announcement Card */}
                         <div className="p-4 rounded-2xl bg-gradient-to-r from-neutral-900/90 to-neutral-900/40 border border-white/10 flex items-start gap-3 shadow-lg">
                           <div className="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
-                            <Sparkles className="w-4 h-4" />
+                            <img
+                              src="/logo.svg"
+                              alt="Fitora AI"
+                              className="w-4.5 h-4.5 object-contain brightness-0"
+                            />
                           </div>
                           <div className="space-y-1">
                             <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
                               Welcome to FITORA Intelligence
                             </h4>
                             <p className="text-[11px] sm:text-xs text-gray-300 leading-relaxed">
-                              Your 24/7 certified gym trainer and nutrition coach. Select a core fitness protocol below or ask any custom question about workouts, macros, and exercises.
+                              Your 24/7 certified gym trainer and nutrition
+                              coach. Select a core fitness protocol below or ask
+                              any custom question about workouts, macros, and
+                              exercises.
                             </p>
                           </div>
                         </div>
@@ -380,8 +460,8 @@ export default function FloatingAiWidget() {
                             <div className="w-7 h-7 rounded-xl bg-white text-black flex items-center justify-center shrink-0 mt-0.5 shadow-lg border border-white/20">
                               <img
                                 src="/logo.svg"
-                                alt="Fitora"
-                                className="w-4 h-4 object-contain"
+                                alt="Fitora AI"
+                                className="w-4 h-4 object-contain brightness-0"
                               />
                             </div>
                           )}
@@ -406,8 +486,36 @@ export default function FloatingAiWidget() {
                           </div>
 
                           {msg.sender === "user" && (
-                            <div className="w-7 h-7 rounded-xl bg-neutral-800 text-white border border-white/20 flex items-center justify-center shrink-0 mt-0.5 shadow-md">
-                              <User className="w-4 h-4" />
+                            <div className="w-7 h-7 rounded-xl bg-neutral-800 text-white border border-white/20 flex items-center justify-center shrink-0 mt-0.5 shadow-md overflow-hidden">
+                              {userAvatar ? (
+                                <img
+                                  src={userAvatar}
+                                  alt={userName}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (
+                                      e.currentTarget as HTMLElement
+                                    ).style.display = "none";
+                                    const fallback =
+                                      e.currentTarget.parentElement?.querySelector(
+                                        ".user-avatar-fallback",
+                                      ) as HTMLElement | null;
+                                    if (fallback)
+                                      fallback.style.display = "flex";
+                                  }}
+                                />
+                              ) : null}
+                              <div
+                                className={`user-avatar-fallback w-full h-full ${
+                                  userAvatar ? "hidden" : "flex"
+                                } items-center justify-center text-[10px] font-black uppercase text-white bg-gradient-to-br from-neutral-700 to-neutral-900`}
+                              >
+                                {userInitial ? (
+                                  userInitial
+                                ) : (
+                                  <User className="w-3.5 h-3.5" />
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -419,8 +527,8 @@ export default function FloatingAiWidget() {
                         <div className="w-7 h-7 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
                           <img
                             src="/logo.svg"
-                            alt="Fitora"
-                            className="w-4 h-4 object-contain"
+                            alt="Fitora AI"
+                            className="w-4 h-4 object-contain brightness-0"
                           />
                         </div>
                         <div className="bg-neutral-900 border border-white/15 px-4 py-2.5 rounded-2xl rounded-tl-none flex items-center gap-2 shadow-md">
@@ -436,27 +544,60 @@ export default function FloatingAiWidget() {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Active Prompt Ribbon (Only shown during active conversation) */}
+                  {/* Active Prompt Ribbon (With Smooth Scroll Controls on Both Sides) */}
                   {!isFreshConversation && (
-                    <div className="px-3.5 py-2 bg-neutral-950/90 border-t border-white/10 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-gray-400 shrink-0 pl-1">
+                    <div className="px-2.5 py-2 bg-neutral-950/95 border-t border-white/10 flex items-center gap-1.5 shrink-0 select-none">
+                      {/* Left Scroll Button */}
+                      <button
+                        type="button"
+                        onClick={() => scrollProtocols("left")}
+                        className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/20 text-gray-400 hover:text-white border border-white/10 flex items-center justify-center shrink-0 transition-all duration-200 cursor-pointer active:scale-90 shadow-sm"
+                        aria-label="Scroll protocols left"
+                        title="Previous protocols"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+
+                      <span className="text-[9px] font-black uppercase tracking-wider text-gray-400 shrink-0 px-1 hidden xs:inline">
                         Protocols:
                       </span>
-                      {COMPACT_PROMPTS.map((sug, i) => {
-                        const IconComponent = sug.icon;
-                        return (
-                          <button
-                            key={i}
-                            type="button"
-                            disabled={isTyping || isQuotaExhausted}
-                            onClick={() => handleSendMessage(sug.query)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white text-gray-300 hover:text-black border border-white/10 hover:border-white text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                          >
-                            <IconComponent className="w-2.5 h-2.5" />
-                            <span>{sug.label}</span>
-                          </button>
-                        );
-                      })}
+
+                      {/* Scrollable Protocols Rail */}
+                      <div
+                        ref={protocolScrollRef}
+                        className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-none scroll-smooth py-0.5"
+                        style={{
+                          scrollbarWidth: "none",
+                          msOverflowStyle: "none",
+                        }}
+                      >
+                        {COMPACT_PROMPTS.map((sug, i) => {
+                          const IconComponent = sug.icon;
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              disabled={isTyping || isQuotaExhausted}
+                              onClick={() => handleSendMessage(sug.query)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] hover:bg-white text-gray-300 hover:text-black border border-white/10 hover:border-white text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                            >
+                              <IconComponent className="w-2.5 h-2.5" />
+                              <span>{sug.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Right Scroll Button */}
+                      <button
+                        type="button"
+                        onClick={() => scrollProtocols("right")}
+                        className="w-6 h-6 rounded-full bg-white/5 hover:bg-white/20 text-gray-400 hover:text-white border border-white/10 flex items-center justify-center shrink-0 transition-all duration-200 cursor-pointer active:scale-90 shadow-sm"
+                        aria-label="Scroll protocols right"
+                        title="Next protocols"
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   )}
 
