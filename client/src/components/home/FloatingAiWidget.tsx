@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,7 +14,11 @@ import {
   Trash2,
   ArrowUpRight,
 } from "lucide-react";
-import { sendAiChatApi, fetchAiQuotaApi, QuotaData } from "@/services/aiService";
+import {
+  sendAiChatApi,
+  fetchAiQuotaApi,
+  QuotaData,
+} from "@/services/aiService";
 import toast from "react-hot-toast";
 import FitoraPillButton from "@/components/ui/FitoraPillButton";
 
@@ -35,7 +40,8 @@ const QUICK_SUGGESTIONS = [
   },
   {
     label: "🔥 Fat Loss Routine",
-    query: "Give me an effective fat loss workout and calorie deficit strategy.",
+    query:
+      "Give me an effective fat loss workout and calorie deficit strategy.",
   },
   {
     label: "💊 Creatine & Whey",
@@ -43,7 +49,8 @@ const QUICK_SUGGESTIONS = [
   },
   {
     label: "⏱️ Rest Between Sets",
-    query: "What is the optimal rest time between heavy compound sets vs isolation?",
+    query:
+      "What is the optimal rest time between heavy compound sets vs isolation?",
   },
 ];
 
@@ -53,6 +60,7 @@ export default function FloatingAiWidget() {
   const [isTyping, setIsTyping] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [quota, setQuota] = useState<QuotaData | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -68,6 +76,11 @@ export default function FloatingAiWidget() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
+
+  // Ensure client-side portal mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Smooth scroll listener for notch vs fixed bottom morphing position
   useEffect(() => {
@@ -97,21 +110,6 @@ export default function FloatingAiWidget() {
         }
       });
     }
-  }, [isOpen]);
-
-  // Click-outside listener
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (!document.body.contains(target)) return;
-      if (widgetRef.current && !widgetRef.current.contains(target)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener("click", handleClickOutside);
-    }
-    return () => document.removeEventListener("click", handleClickOutside);
   }, [isOpen]);
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -181,259 +179,295 @@ export default function FloatingAiWidget() {
   const isQuotaExhausted = quota !== null && quota.plansRemaining <= 0;
 
   return (
-    <div
-      ref={widgetRef}
-      className="absolute inset-0 select-none pointer-events-none"
-    >
-      {/* ─── 1. Ultra-Premium AI Studio Modal (Centered Above Launcher) ─── */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 35, scale: 0.94, filter: "blur(6px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: 25, scale: 0.94, filter: "blur(4px)" }}
-            transition={{ type: "spring", stiffness: 400, damping: 32 }}
-            className="fixed bottom-[76px] sm:bottom-24 left-1/2 -translate-x-1/2 w-[calc(100vw-1.5rem)] xs:w-[calc(100vw-2rem)] sm:w-[620px] md:w-[680px] max-w-[680px] h-[550px] max-h-[calc(100vh-140px)] flex flex-col bg-neutral-950/95 backdrop-blur-3xl border border-white/20 rounded-[2.2rem] shadow-[0_30px_90px_rgba(0,0,0,0.98),0_0_40px_rgba(255,255,255,0.06)] overflow-hidden z-[50] pointer-events-auto font-sans relative before:absolute before:inset-x-8 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/50 before:to-transparent"
-          >
-            {/* Header: Signature Luxury Fitora Console Header */}
-            <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5 bg-gradient-to-b from-neutral-900/90 to-neutral-950/80 border-b border-white/10 shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-9 h-9 rounded-2xl bg-white text-black flex items-center justify-center shadow-lg border border-white/40">
-                    <Image
-                      src="/gemini-logo.png"
-                      alt="Gemini"
-                      width={22}
-                      height={22}
-                      className="object-contain"
-                    />
-                  </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-                  </span>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white leading-none">
-                      FITORA AI{" "}
-                      <span className="font-serif italic font-normal text-gray-400">
-                        #Studio
-                      </span>
-                    </h3>
-                  </div>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mt-0.5">
-                    Certified Gym Trainer & Sports Nutritionist
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Live Daily Quota Pill Badge */}
-                {quota && (
-                  <div className="hidden xs:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] font-black uppercase tracking-wider text-gray-200 backdrop-blur-md shadow-sm">
-                    <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
-                    <span>
-                      {quota.plansRemaining}/{quota.plansLimit} Free Plans
-                    </span>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleClearHistory}
-                  className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10 flex items-center justify-center transition-all duration-200 cursor-pointer"
-                  title="Clear Chat"
-                  aria-label="Clear Conversation"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  type="button"
+    <>
+      {/* ─── 1. Ultra-Premium AI Studio Modal (Portaled Directly to Viewport) ─── */}
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {isOpen && (
+              <>
+                {/* Soft backdrop blur click-catcher */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   onClick={() => setIsOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-gray-300 hover:text-black border border-white/20 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-md"
-                  aria-label="Close AI Studio"
-                >
-                  <X className="w-4 h-4 stroke-[2.5]" />
-                </button>
-              </div>
-            </div>
+                  className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[9990] pointer-events-auto"
+                />
 
-            {/* Chat Conversation Canvas */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-black via-neutral-950 to-black text-xs sm:text-sm scrollbar-thin scrollbar-thumb-white/20">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex gap-3 ${
-                    msg.sender === "user" ? "justify-end" : "justify-start"
-                  }`}
+                {/* Main Studio Modal Console */}
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    y: 35,
+                    scale: 0.94,
+                    filter: "blur(6px)",
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    filter: "blur(0px)",
+                  }}
+                  exit={{
+                    opacity: 0,
+                    y: 25,
+                    scale: 0.94,
+                    filter: "blur(4px)",
+                  }}
+                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  className="fixed bottom-[80px] sm:bottom-24 left-1/2 -translate-x-1/2 w-[calc(100vw-1.5rem)] xs:w-[calc(100vw-2rem)] sm:w-[580px] md:w-[640px] max-w-[640px] h-[520px] max-h-[calc(100vh-120px)] flex flex-col bg-neutral-950/95 backdrop-blur-3xl border border-white/20 rounded-[2.2rem] shadow-[0_30px_90px_rgba(0,0,0,0.98),0_0_40px_rgba(255,255,255,0.06)] overflow-hidden z-[9999] pointer-events-auto font-sans before:absolute before:inset-x-8 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/50 before:to-transparent"
                 >
-                  {msg.sender === "ai" && (
-                    <div className="w-7 h-7 rounded-xl bg-white text-black flex items-center justify-center shrink-0 mt-0.5 shadow-lg border border-white/20">
-                      <Bot className="w-4 h-4" />
+                  {/* Header: Signature Luxury Fitora Console Header */}
+                  <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5 bg-gradient-to-b from-neutral-900/90 to-neutral-950/80 border-b border-white/10 shrink-0">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-9 h-9 rounded-2xl bg-white text-black flex items-center justify-center shadow-lg border border-white/40">
+                          <Image
+                            src="/gemini-logo.png"
+                            alt="Gemini"
+                            width={22}
+                            height={22}
+                            className="object-contain"
+                          />
+                        </div>
+                        <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white leading-none">
+                            FITORA AI{" "}
+                            <span className="font-serif italic font-normal text-gray-400">
+                              #Studio
+                            </span>
+                          </h3>
+                        </div>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mt-0.5">
+                          Certified Gym Trainer & Sports Nutritionist
+                        </span>
+                      </div>
                     </div>
-                  )}
 
-                  <div
-                    className={`max-w-[85%] p-3.5 sm:p-4 rounded-2xl ${
-                      msg.sender === "user"
-                        ? "bg-white text-black font-semibold rounded-tr-none shadow-xl leading-relaxed"
-                        : "bg-neutral-900/90 text-gray-100 border border-white/15 rounded-tl-none leading-relaxed shadow-lg whitespace-pre-line"
-                    }`}
-                  >
-                    <p>{msg.text}</p>
-                    <span
-                      className={`text-[9px] block text-right mt-1.5 font-bold ${
-                        msg.sender === "user"
-                          ? "text-gray-500"
-                          : "text-gray-400"
-                      }`}
+                    <div className="flex items-center gap-2">
+                      {/* Live Daily Quota Pill Badge */}
+                      {quota && (
+                        <div className="hidden xs:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] font-black uppercase tracking-wider text-gray-200 backdrop-blur-md shadow-sm">
+                          <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
+                          <span>
+                            {quota.plansRemaining}/{quota.plansLimit} Free Plans
+                          </span>
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleClearHistory}
+                        className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-gray-400 hover:text-white border border-white/10 flex items-center justify-center transition-all duration-200 cursor-pointer"
+                        title="Clear Chat"
+                        aria-label="Clear Conversation"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsOpen(false)}
+                        className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-gray-300 hover:text-black border border-white/20 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-md"
+                        aria-label="Close AI Studio"
+                      >
+                        <X className="w-4 h-4 stroke-[2.5]" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Chat Conversation Canvas */}
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-black via-neutral-950 to-black text-xs sm:text-sm scrollbar-thin scrollbar-thumb-white/20">
+                    {messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`flex gap-3 ${
+                          msg.sender === "user"
+                            ? "justify-end"
+                            : "justify-start"
+                        }`}
+                      >
+                        {msg.sender === "ai" && (
+                          <div className="w-7 h-7 rounded-xl bg-white text-black flex items-center justify-center shrink-0 mt-0.5 shadow-lg border border-white/20">
+                            <Bot className="w-4 h-4" />
+                          </div>
+                        )}
+
+                        <div
+                          className={`max-w-[85%] p-3.5 sm:p-4 rounded-2xl ${
+                            msg.sender === "user"
+                              ? "bg-white text-black font-semibold rounded-tr-none shadow-xl leading-relaxed"
+                              : "bg-neutral-900/90 text-gray-100 border border-white/15 rounded-tl-none leading-relaxed shadow-lg whitespace-pre-line"
+                          }`}
+                        >
+                          <p>{msg.text}</p>
+                          <span
+                            className={`text-[9px] block text-right mt-1.5 font-bold ${
+                              msg.sender === "user"
+                                ? "text-gray-500"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {msg.timestamp}
+                          </span>
+                        </div>
+
+                        {msg.sender === "user" && (
+                          <div className="w-7 h-7 rounded-xl bg-neutral-800 text-white border border-white/20 flex items-center justify-center shrink-0 mt-0.5 shadow-md">
+                            <User className="w-4 h-4" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {isTyping && (
+                      <div className="flex items-center gap-3 text-gray-400 text-xs pl-1">
+                        <div className="w-7 h-7 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
+                          <Bot className="w-4 h-4" />
+                        </div>
+                        <div className="bg-neutral-900 border border-white/15 px-4 py-2.5 rounded-2xl rounded-tl-none flex items-center gap-2 shadow-md">
+                          <span className="w-2 h-2 bg-white rounded-full animate-bounce" />
+                          <span className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
+                          <span className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.4s]" />
+                          <span className="text-[11px] font-medium text-gray-300 ml-1">
+                            Analyzing fitness protocol...
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+
+                  {/* Quick Action Suggestion Chips Bar */}
+                  <div className="px-3.5 py-2.5 bg-neutral-950/90 border-t border-white/10 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 shrink-0 flex items-center gap-1 pl-1">
+                      <Sparkles className="w-3 h-3 text-white" /> Quick
+                    </span>
+                    {QUICK_SUGGESTIONS.map((sug, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        disabled={isTyping || isQuotaExhausted}
+                        onClick={() => handleSendMessage(sug.query)}
+                        className="px-3 py-1.5 rounded-full bg-white/5 hover:bg-white text-gray-300 hover:text-black border border-white/10 hover:border-white text-[11px] font-semibold whitespace-nowrap transition-all duration-300 cursor-pointer shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {sug.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Interactive Command Input Deck */}
+                  {isQuotaExhausted ? (
+                    <div className="p-3.5 sm:p-4 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 border-t border-white/20 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shrink-0">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center shrink-0">
+                          <Lock className="w-4 h-4 text-amber-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-black uppercase text-white">
+                            Daily Free Quota Reached
+                          </h4>
+                          <p className="text-[11px] text-gray-400 font-medium">
+                            You used {quota?.plansUsed}/{quota?.plansLimit}{" "}
+                            plans today. Upgrade to Pro for 10 daily plans!
+                          </p>
+                        </div>
+                      </div>
+                      <FitoraPillButton
+                        variant="white"
+                        size="sm"
+                        href="/pricing"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        UPGRADE TO PRO
+                      </FitoraPillButton>
+                    </div>
+                  ) : (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }}
+                      className="p-3 sm:p-3.5 bg-neutral-900/95 border-t border-white/15 flex items-center gap-2 shrink-0"
                     >
-                      {msg.timestamp}
-                    </span>
-                  </div>
-
-                  {msg.sender === "user" && (
-                    <div className="w-7 h-7 rounded-xl bg-neutral-800 text-white border border-white/20 flex items-center justify-center shrink-0 mt-0.5 shadow-md">
-                      <User className="w-4 h-4" />
-                    </div>
+                      <div className="flex-1 flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-full bg-black border border-white/20 focus-within:border-white focus-within:ring-2 focus-within:ring-white/20 transition-all duration-300 shadow-inner">
+                        <input
+                          type="text"
+                          value={inputText}
+                          onChange={(e) => setInputText(e.target.value)}
+                          placeholder="Ask about workout splits, macros, exercise form..."
+                          className="bg-transparent text-xs sm:text-sm text-white placeholder-gray-500 outline-none w-full font-medium"
+                        />
+                        <button
+                          type="submit"
+                          disabled={!inputText.trim() || isTyping}
+                          className="group w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white text-black disabled:bg-neutral-800 disabled:text-gray-600 flex items-center justify-center shrink-0 transition-all duration-300 shadow-lg cursor-pointer hover:scale-105 active:scale-95 disabled:cursor-not-allowed"
+                          aria-label="Send Message"
+                        >
+                          <ArrowUpRight className="w-4 h-4 stroke-[2.5] group-hover:rotate-45 transition-transform duration-300" />
+                        </button>
+                      </div>
+                    </form>
                   )}
-                </div>
-              ))}
-
-              {isTyping && (
-                <div className="flex items-center gap-3 text-gray-400 text-xs pl-1">
-                  <div className="w-7 h-7 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                  <div className="bg-neutral-900 border border-white/15 px-4 py-2.5 rounded-2xl rounded-tl-none flex items-center gap-2 shadow-md">
-                    <span className="w-2 h-2 bg-white rounded-full animate-bounce" />
-                    <span className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
-                    <span className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.4s]" />
-                    <span className="text-[11px] font-medium text-gray-300 ml-1">
-                      Analyzing fitness protocol...
-                    </span>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Quick Action Suggestion Chips Bar */}
-            <div className="px-3.5 py-2.5 bg-neutral-950/90 border-t border-white/10 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 shrink-0 flex items-center gap-1 pl-1">
-                <Sparkles className="w-3 h-3 text-white" /> Quick
-              </span>
-              {QUICK_SUGGESTIONS.map((sug, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  disabled={isTyping || isQuotaExhausted}
-                  onClick={() => handleSendMessage(sug.query)}
-                  className="px-3 py-1.5 rounded-full bg-white/5 hover:bg-white text-gray-300 hover:text-black border border-white/10 hover:border-white text-[11px] font-semibold whitespace-nowrap transition-all duration-300 cursor-pointer shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {sug.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Interactive Command Input Deck */}
-            {isQuotaExhausted ? (
-              <div className="p-3.5 sm:p-4 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 border-t border-white/20 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center shrink-0">
-                    <Lock className="w-4 h-4 text-amber-400" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black uppercase text-white">
-                      Daily Free Quota Reached
-                    </h4>
-                    <p className="text-[11px] text-gray-400 font-medium">
-                      You used {quota?.plansUsed}/{quota?.plansLimit} plans today. Upgrade to Pro for 10 daily plans!
-                    </p>
-                  </div>
-                </div>
-                <FitoraPillButton
-                  variant="white"
-                  size="sm"
-                  href="/pricing"
-                  onClick={() => setIsOpen(false)}
-                >
-                  UPGRADE TO PRO
-                </FitoraPillButton>
-              </div>
-            ) : (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSendMessage();
-                }}
-                className="p-3 sm:p-3.5 bg-neutral-900/95 border-t border-white/15 flex items-center gap-2 shrink-0"
-              >
-                <div className="flex-1 flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-full bg-black border border-white/20 focus-within:border-white focus-within:ring-2 focus-within:ring-white/20 transition-all duration-300 shadow-inner">
-                  <input
-                    type="text"
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Ask about workout splits, macros, exercise form..."
-                    className="bg-transparent text-xs sm:text-sm text-white placeholder-gray-500 outline-none w-full font-medium"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!inputText.trim() || isTyping}
-                    className="group w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white text-black disabled:bg-neutral-800 disabled:text-gray-600 flex items-center justify-center shrink-0 transition-all duration-300 shadow-lg cursor-pointer hover:scale-105 active:scale-95 disabled:cursor-not-allowed"
-                    aria-label="Send Message"
-                  >
-                    <ArrowUpRight className="w-4 h-4 stroke-[2.5] group-hover:rotate-45 transition-transform duration-300" />
-                  </button>
-                </div>
-              </form>
+                </motion.div>
+              </>
             )}
-          </motion.div>
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
 
-      {/* ─── 2. Morphing AI Trigger Button (Locked in Notch, Persistent & Click to Toggle) ─── */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen((prev) => !prev);
-        }}
-        className={`group flex items-center justify-center font-bold cursor-pointer transition-all duration-300 z-[45] pointer-events-auto select-none ${
-          isScrolled
-            ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full bg-black text-white border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95"
-            : "absolute bottom-[-2px] sm:bottom-[-2px] left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black border-[3px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] hover:scale-110 active:scale-95"
-        } ${
-          isOpen
-            ? "ring-2 ring-white/70 shadow-[0_0_25px_rgba(255,255,255,0.6)] scale-105"
-            : ""
-        }`}
-        aria-label="Toggle FITORA AI Studio"
+      {/* ─── 2. Morphing AI Trigger Button (Notch Locked in Hero, Persistent) ─── */}
+      <div
+        ref={widgetRef}
+        className="absolute inset-0 select-none pointer-events-none"
       >
-        {isScrolled ? (
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white stroke-none group-hover:rotate-12 transition-transform duration-300 drop-shadow-md" />
-            <span className="text-[11px] sm:text-xs tracking-wide">
-              {isOpen ? "Close AI" : "Ask AI"}
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center">
-            <Image
-              src="/gemini-logo.png"
-              alt="Google Gemini"
-              width={36}
-              height={36}
-              className={`w-6 h-6 sm:w-7 sm:h-7 object-contain transition-transform duration-300 drop-shadow-[0_0_10px_rgba(66,133,244,0.5)] ${
-                isOpen ? "rotate-45 scale-110" : "group-hover:rotate-12"
-              }`}
-              priority
-            />
-          </div>
-        )}
-      </button>
-    </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen((prev) => !prev);
+          }}
+          className={`group flex items-center justify-center font-bold cursor-pointer transition-all duration-300 pointer-events-auto select-none ${
+            isScrolled
+              ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full bg-black text-white border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95 z-[9999]"
+              : "absolute bottom-[-2px] sm:bottom-[-2px] left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black border-[3px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] hover:scale-110 active:scale-95 z-[45]"
+          } ${
+            isOpen
+              ? "ring-2 ring-white/70 shadow-[0_0_25px_rgba(255,255,255,0.6)] scale-105"
+              : ""
+          }`}
+          aria-label="Toggle FITORA AI Studio"
+        >
+          {isScrolled ? (
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white stroke-none group-hover:rotate-12 transition-transform duration-300 drop-shadow-md" />
+              <span className="text-[11px] sm:text-xs tracking-wide">
+                {isOpen ? "Close AI" : "Ask AI"}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center">
+              <Image
+                src="/gemini-logo.png"
+                alt="Google Gemini"
+                width={36}
+                height={36}
+                className={`w-6 h-6 sm:w-7 sm:h-7 object-contain transition-transform duration-300 drop-shadow-[0_0_10px_rgba(66,133,244,0.5)] ${
+                  isOpen ? "rotate-45 scale-110" : "group-hover:rotate-12"
+                }`}
+                priority
+              />
+            </div>
+          )}
+        </button>
+      </div>
+    </>
   );
 }
