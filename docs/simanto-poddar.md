@@ -206,3 +206,8 @@ Add dedicated SavedMealCard for saved daily meal plan
 - Create SavedMealCard component without "Add to Daily Plan" button
 - Provide "View Details" modal featuring recipe details and "Copy Recipe" action
 - Integrate SavedMealCard into SavedMealPlan
+
+Add responsive skeleton loader grid for meal catalog
+
+- Create MealSkeletonCard and MealSkeletonGrid matching MealCard
+- Adapt skeleton grid across mobile (1-col), tablet (2-col), and desktop (3-col)
