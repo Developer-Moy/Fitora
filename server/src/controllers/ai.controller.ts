@@ -9,6 +9,7 @@ import { User } from "../models/User.model";
 /**
  * High-performance Domain-Specific Fitness AI Reasoning Engine
  * Fitness Domain Keyword Checker to Guardrail Local Heuristic Fallbacks
+ * Fitness Domain Keyword Checker to Guardrail Heuristic Fallbacks
  */
 const generateIntelligentFitnessResponse = (
   prompt: string,
@@ -81,7 +82,16 @@ const OFF_TOPIC_REFUSAL =
  * High-performance Domain-Specific Fitness AI Reasoning Engine (Heuristic Fallback)
  */
 const generateIntelligentFitnessResponse = (prompt: string): string => {
+const generateIntelligentFitnessResponse = (
+  prompt: string,
+  mode: "chat" | "coach" = "chat"
+): string => {
   const lower = prompt.toLowerCase();
+
+  // Strict Scope Check: Reject off-topic questions immediately
+  if (!isFitnessRelatedQuery(lower)) {
+    return OFF_TOPIC_REFUSAL;
+  }
 
   if (mode === "coach") {
     if (
@@ -208,6 +218,7 @@ export const handleAiChat = async (req: Request, res: Response) => {
       | "chat"
       | "coach";
     const mode = req.body.mode === "coach" ? "coach" : "chat";
+    const mode: "chat" | "coach" = req.body.mode === "coach" ? "coach" : "chat";
     const sessionId = req.body.sessionId || `SESSION_${Date.now()}`;
     const userId = req.body.userId || (req as AuthRequest).user?.userId;
 
@@ -251,6 +262,7 @@ CRITICAL OPERATIONAL RULES:
                   {
                     text: `You are FITORA AI, a world-class certified fitness trainer, bodybuilding coach, and sports nutritionist for the FITORA gym network in Bangladesh. Mode: ${mode}. User query: "${cleanPrompt}". Provide a concise, highly motivating, structured, and actionable answer with bullet points if appropriate (max 4-5 sentences).`,
                     text: `${systemInstruction}\n\nUser Query: "${cleanPrompt}"\n\nProvide your coaching response:`,
+                    text: `${systemInstruction}\n\nUser Query (${mode} mode): "${cleanPrompt}"\n\nProvide your coaching response:`,
                   },
                 ],
               },
@@ -361,14 +373,10 @@ CRITICAL OPERATIONAL RULES:
 };
 
 /**
- * 2. Get AI Chat History (`GET /api/ai/history`)
  * 2. Get AI Daily Quota Status (`GET /api/ai/quota`)
  */
-export const getAiHistory = async (req: AuthRequest, res: Response) => {
 export const getAiQuotaStatus = async (req: Request, res: Response) => {
   try {
-    const { sessionId, limit = "30" } = req.query;
-    const userId = req.user?.userId;
     const authReq = req as AuthRequest;
     const userId = authReq.user?.userId || req.query.userId;
     const clientIp =
@@ -446,29 +454,24 @@ export const getAiHistory = async (req: Request, res: Response) => {
       return res.status(200).json(successResponse("Empty history.", []));
     }
 
-    const limitNum = parseInt(String(limit), 10) || 30;
+    const limit = req.query.limit;
+    const limitNum = parseInt(String(limit), 10) || 50;
 
-    const history = await AiMessage.find(query)
     const messages = await AiMessage.find(query)
       .sort({ createdAt: 1 })
-      .limit(limitNum);
-      .limit(50)
+      .limit(limitNum)
       .lean();
 
     return res.status(200).json(
-      successResponse("AI chat history retrieved successfully", {
-        count: history.length,
-        history,
+      successResponse("AI chat history retrieved successfully.", {
+        count: messages.length,
+        history: messages,
       })
     );
-    return res
-      .status(200)
-      .json(successResponse("AI history retrieved successfully.", messages));
   } catch (error: any) {
     console.error("Error fetching AI history:", error);
     return res.status(500).json(
       errorResponse(
-        "Internal server error while fetching AI history.",
         "Failed to load AI conversation history.",
         error.message,
         500
@@ -479,5 +482,6 @@ export const getAiHistory = async (req: Request, res: Response) => {
 
 export default {
   handleAiChat,
+  getAiQuotaStatus,
   getAiHistory,
 };

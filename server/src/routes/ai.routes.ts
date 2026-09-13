@@ -12,6 +12,7 @@ const router = Router();
 /**
  * @route POST /api/ai/chat
  * @desc Handle AI Trainer prompts and return AI responses (Supports 'chat' and 'coach' modes)
+ * @desc Handle AI Trainer prompts and return AI responses
  * @access Public / Protected with Daily Quota Check
  */
 router.post("/chat", checkAiQuota, handleAiChat);
