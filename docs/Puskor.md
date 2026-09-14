@@ -233,4 +233,25 @@ Completed full dynamic MongoDB integration for the Gym Stopwatch experience, eli
 
 ---
 
-<p align="right">Updated: 2026-09-09</p>
+---
+
+## 9. ExerciseTracker UI Enhancement — Reusable Components & Polish (2026-09-14)
+
+### New Reusable UI Components
+- **`client/src/components/ui/FitoraPillButton.tsx`** — Versatile pill-shaped button with variants (`primary`, `secondary`, `outline`, `ghost`, `danger`), size options (`sm`, `md`, `lg`), loading state with integrated spinner, full-width option, and `asChild` support for composition with `Link`/`RouterLink`.
+- **`client/src/components/ui/FitoraSpinner.tsx`** — Consistent loading spinner with size variants (`sm`, `md`, `lg`) and customizable color, used by `FitoraPillButton` and available for global use.
+
+### ExerciseTracker Improvements (`client/src/components/ExerciseTracker.tsx`)
+- Refactored action buttons to use `FitoraPillButton` for visual consistency
+- Added loading states on "Start Workout" and "Log Exercise" actions
+- Integrated `FitoraSpinner` for async operations
+- Improved accessibility with proper `disabled` and `aria-busy` handling
+- Cleaner component composition using `asChild` for navigation links
+
+### Build Status
+- `npm run build:client` — passes
+- All 14 routes statically/dynamically generated successfully
+
+---
+
+<p align="right">Updated: 2026-09-14</p>
