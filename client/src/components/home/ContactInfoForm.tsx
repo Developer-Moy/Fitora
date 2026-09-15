@@ -41,13 +41,21 @@ export default function ContactInfoForm() {
       toast.error("Please enter your name and email address.");
       return;
     }
+    if (!formData.selectedClass) {
+      toast.error("Please select a class.");
+      return;
+    }
+    if (!formData.comment || !formData.comment.trim()) {
+      toast.error("Please enter your message.");
+      return;
+    }
 
     setIsSubmitting(true);
     const result = await submitConsultationApi({
       fullName: formData.fullName,
       email: formData.email,
       phone: formData.phone,
-      selectedClass: formData.selectedClass || "General Fitness & Gym Access",
+      selectedClass: formData.selectedClass,
       comment: formData.comment,
     });
 
@@ -267,6 +275,7 @@ export default function ContactInfoForm() {
 
               <div>
                 <select
+                  required
                   value={formData.selectedClass}
                   onChange={(e) =>
                     setFormData({ ...formData, selectedClass: e.target.value })
@@ -285,6 +294,7 @@ export default function ContactInfoForm() {
 
               <div>
                 <textarea
+                  required
                   rows={5}
                   value={formData.comment}
                   onChange={(e) =>

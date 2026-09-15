@@ -348,45 +348,42 @@ const validatePassword = (pwd: string): string | null => {
   return null;
 };
 
-/**
- * Shared monochrome white Google button with icon + loading state.
- * Calls the existing Better Auth `signIn.social` flow via the parent handler.
- */
-function GoogleButton({
-  onClick,
-  loading = false,
-  disabled = false,
-  heightClass = "h-11",
-  textClass = "text-xs",
-  className = "",
-}: {
-  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  loading?: boolean;
-  disabled?: boolean;
-  heightClass?: string;
-  textClass?: string;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || loading}
-      aria-busy={loading}
-      className={`w-full ${heightClass} rounded-full bg-white text-black border border-white font-black ${textClass} uppercase flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-lg hover:bg-neutral-100 hover:scale-[1.01] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 ${className}`}
-    >
-      {loading ? (
-        <span
-          className="w-4 h-4 rounded-full border-[1.5px] border-black/20 border-t-black animate-spin"
-          aria-hidden="true"
-        />
-      ) : (
-        <GoogleIcon className="w-4 h-4 shrink-0" />
-      )}
-      <span>{loading ? "Connecting to Google..." : "Continue with Google"}</span>
-    </button>
-  );
-}
+// 💡 Inline Single-Line Dynamic Password Requirements Hint (Unmet rules only)
+const getPasswordHint = (pwd: string): string | null => {
+  if (!pwd) return null;
+
+  const hasLength = pwd.length >= 8 && pwd.length <= 16;
+  const hasUpper = /[A-Z]/.test(pwd);
+  const hasLower = /[a-z]/.test(pwd);
+  const hasDigit = /[0-9]/.test(pwd);
+  const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+
+  const missingList: string[] = [];
+  if (!hasUpper) missingList.push("an uppercase letter");
+  if (!hasLower) missingList.push("a lowercase letter");
+  if (!hasDigit) missingList.push("a number");
+  if (!hasSymbol) missingList.push("a special character");
+
+  if (hasLength && missingList.length === 0) {
+    return null;
+  }
+
+  const formatList = (items: string[]) => {
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} & ${items[1]}`;
+    return `${items.slice(0, -1).join(", ")} & ${items[items.length - 1]}`;
+  };
+
+  if (!hasLength && missingList.length > 0) {
+    return `Must be 8–16 characters, include ${formatList(missingList)}.`;
+  }
+
+  if (!hasLength) {
+    return "Must be 8–16 characters.";
+  }
+
+  return `Must include ${formatList(missingList)}.`;
+};
 
 export default function AuthFlowContainer({
   initialStep = "welcome",
@@ -406,18 +403,12 @@ export default function AuthFlowContainer({
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // Social Login Handler — reuses the existing Better Auth Google OAuth flow.
-  const handleGoogleSignIn = async (e?: React.MouseEvent<HTMLButtonElement>) => {
-    // Defensive: never let this button submit the surrounding auth form.
-    e?.preventDefault();
-    e?.stopPropagation();
+  // Dynamic Password Hint for Registration (derived state, UI-only)
+  const passwordHint = getPasswordHint(password);
 
-    console.log("Google OAuth button clicked"); // TEMP debug — remove after verifying
-
-    // 🛡️ Prevent double-click from firing multiple OAuth redirects
-    if (isGoogleLoading) return;
-
-    setIsGoogleLoading(true);
+  // Social Login Handler
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
     try {
       // NOTE: better-call returns { data, error } and does NOT throw on
       // failure, so the result must be inspected explicitly.
@@ -793,8 +784,26 @@ export default function AuthFlowContainer({
                       showPassword={showPassword}
                       onTogglePassword={() => setShowPassword(!showPassword)}
                     />
-                    <AuthGlassField
-                      isPassword
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 text-gray-400 hover:text-white transition-colors"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
+                  {passwordHint && (
+                    <p className="text-[10px] text-red-400 font-medium px-4 pt-0.5">
+                      {passwordHint}
+                    </p>
+                  )}
+                  <div className="relative flex items-center">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={setConfirmPassword}
                       placeholder="Confirm Password"
@@ -1194,60 +1203,57 @@ export default function AuthFlowContainer({
                   noValidate
                   className="space-y-2"
                 >
-                  <AuthGlassCard className="p-5 space-y-2">
-                    <div className="space-y-0.5 mb-2">
-                      <h2 className="text-xl font-black uppercase text-white drop-shadow">
-                        Create Account
-                      </h2>
-                      <p className="text-[11px] text-gray-300 font-medium drop-shadow">
-                        Start your fitness journey today
-                      </p>
-                    </div>
-                    <AuthGlassField
-                      type="text"
-                      value={fullName}
-                      onChange={setFullName}
-                      placeholder="Full Name"
-                      autoComplete="name"
-                      icon={<User className="w-4 h-4" />}
-                    />
-                    <AuthGlassField
-                      type="email"
-                      value={email}
-                      onChange={setEmail}
-                      placeholder="Email Address (e.g. user@domain.com)"
-                      autoComplete="email"
-                      icon={<Mail className="w-4 h-4" />}
-                    />
-                    <AuthGlassField
-                      isPassword
-                      value={password}
-                      onChange={setPassword}
-                      placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
-                      autoComplete="new-password"
-                      maxLength={16}
-                      icon={<Lock className="w-4 h-4" />}
-                      showPassword={showPassword}
-                      onTogglePassword={() => setShowPassword(!showPassword)}
-                    />
-                    <AuthGlassField
-                      isPassword
-                      value={confirmPassword}
-                      onChange={setConfirmPassword}
-                      placeholder="Confirm Password"
-                      autoComplete="new-password"
-                      maxLength={16}
-                      icon={<Lock className="w-4 h-4" />}
-                      showPassword={showConfirmPassword}
-                      onTogglePassword={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    />
-                    <AuthSubmitButton
-                      label="Create Account"
-                      loading={isLoading}
-                      className="mt-1"
-                    />
+                  <div className="space-y-0.5 mb-2">
+                    <h2 className="text-xl font-black uppercase text-white drop-shadow">
+                      Create Account
+                    </h2>
+                    <p className="text-[11px] text-gray-300 font-medium drop-shadow">
+                      Start your fitness journey today
+                    </p>
+                  </div>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Full Name"
+                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                  />
+                  <input
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email Address (e.g. user@domain.com)"
+                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                  />
+                  <input
+                    type="password"
+                    value={password}
+                    maxLength={16}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
+                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                  />
+                  {passwordHint && (
+                    <p className="text-[10px] text-gray-400 font-medium px-4 pt-0.5">
+                      {passwordHint}
+                    </p>
+                  )}
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    maxLength={16}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm Password"
+                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full h-11 rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 shadow-xl mt-1"
+                  >
+                    <span>Create Account</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
 
                     {/* ── Divider ── */}
                     <div className="flex items-center gap-3 pt-1">
@@ -1541,8 +1547,26 @@ export default function AuthFlowContainer({
                     showPassword={showPassword}
                     onTogglePassword={() => setShowPassword(!showPassword)}
                   />
-                  <AuthGlassField
-                    isPassword
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 text-gray-400 hover:text-white"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-3.5 h-3.5" />
+                    ) : (
+                      <Eye className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+                {passwordHint && (
+                  <p className="text-[9.5px] xs:text-[10px] text-gray-400 font-medium px-3.5 pt-0.5">
+                    {passwordHint}
+                  </p>
+                )}
+                <div className="relative flex items-center">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={setConfirmPassword}
                     placeholder="Confirm Password"

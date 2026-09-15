@@ -223,11 +223,9 @@ export const handleAiChat = async (req: Request, res: Response) => {
     let responseText = "";
 
     // ── Google Gemini Flash API Call with Strict Gym Guardrails ──
-    const geminiKey = process.env.GEMINI_API_KEY;
-    if (geminiKey && geminiKey.startsWith("AIzaSy")) {
+    const geminiKey = process.env.GEMINI_API_KEY?.trim();
+    if (geminiKey && geminiKey.length > 10) {
       try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
-
         const systemInstruction = `You are FITORA AI — the elite certified Gym Personal Trainer, Bodybuilding Coach, and Sports Nutritionist for the FITORA Fitness Network.
 CRITICAL OPERATIONAL RULES:
 1. SCOPE: You are STRICTLY RESTRICTED to fitness, gym workouts, bodybuilding, exercise mechanics, muscle recovery, sports nutrition, diet macros, and healthy fitness lifestyle.
@@ -235,28 +233,39 @@ CRITICAL OPERATIONAL RULES:
    "I am FITORA AI, your dedicated Gym Trainer & Nutrition Coach. I am strictly programmed to assist only with gym workouts, exercises, diet macros, and fitness goals. How can I assist your physical training today?"
 3. TONE & FORMAT: High-energy, motivating, scientifically accurate, concise (max 4-5 bullet points). Always emphasize proper lifting technique and progressive overload.`;
 
-        const geminiRes = await fetch(geminiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: `${systemInstruction}\n\nUser Query (${mode} mode): "${cleanPrompt}"\n\nProvide your coaching response:`,
-                  },
-                ],
-              },
-            ],
-          }),
-        });
+        // Modern Google AI Studio models with multi-version fallback
+        const models = [
+          "gemini-3.6-flash",
+          "gemini-2.5-flash",
+          "gemini-1.5-flash",
+        ];
+        for (const model of models) {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
 
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const candidateText =
-            geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (candidateText && candidateText.trim()) {
-            responseText = candidateText.trim();
+          const geminiRes = await fetch(geminiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: `${systemInstruction}\n\nUser Query (${mode} mode): "${cleanPrompt}"\n\nProvide your coaching response:`,
+                    },
+                  ],
+                },
+              ],
+            }),
+          });
+
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const candidateText =
+              geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (candidateText && candidateText.trim()) {
+              responseText = candidateText.trim();
+              break;
+            }
           }
         }
       } catch (geminiError) {
