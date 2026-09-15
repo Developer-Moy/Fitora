@@ -15,9 +15,10 @@ import PlanCard from "@/components/PlanCard";
 
 export default function PricingPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, isPending: isSessionPending } = useSession();
   const [isAnnual, setIsAnnual] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PlanItem | null>(null);
+  const [selectingId, setSelectingId] = useState<string | null>(null);
 
   // Single shared source of truth for plans (same data as the homepage).
   const plans = FITORA_PLANS;
@@ -25,15 +26,36 @@ export default function PricingPage() {
   // Auth state is resolved at click time (Better Auth session OR local
   // session) so the CTA always routes against the freshest session.
   const handlePlanSelect = (plan: PlanItem) => {
+    // 🛡️ Prevent duplicate checkout/selection requests from rapid clicks.
+    if (selectingId) return;
+
     const localSession = getAuthSession();
-    const loggedIn = !!(session?.user || localSession?.user);
+    const localLoggedIn = !!localSession?.user;
+
+    // Wait for Better Auth to resolve before deciding, mirroring the
+    // established project pattern (see profile/edit and payment/success),
+    // so a valid cookie session is never misrouted to /register.
+    if (isSessionPending && !localLoggedIn) {
+      toast.loading("Verifying your session…", {
+        id: "fitora-auth-check",
+        duration: 1500,
+      });
+      return;
+    }
+
+    const loggedIn = !!(session?.user || localLoggedIn);
 
     if (!loggedIn) {
+      setSelectingId(plan.id);
       router.push(
         `/register?plan=${plan.id}&billing=${isAnnual ? "annual" : "monthly"}`,
       );
       return;
     }
+
+    // Authenticated → open the existing checkout modal. The modal itself
+    // owns checkout loading ("Processing..."), failure toasts and its own
+    // duplicate-submit guards, so no extra request state is needed here.
     setSelectedPlan(plan);
   };
 
@@ -42,9 +64,18 @@ export default function PricingPage() {
     isAnnualPlan: boolean,
     paymentMethod: string,
   ) => {
-    await updateSessionAfterPayment(plan.name || plan.planKey, {
-      role: "premium_user",
-    });
+    try {
+      await updateSessionAfterPayment(plan.name || plan.planKey, {
+        role: "premium_user",
+      });
+    } catch (err: unknown) {
+      // Payment succeeded but the local session sync failed — never crash.
+      console.error("Post-payment session sync failed:", err);
+      toast.error(
+        "Payment succeeded, but we could not refresh your membership status. Please reload the page.",
+        { duration: 5000 },
+      );
+    }
 
     setSelectedPlan(null);
     toast.success(
@@ -124,6 +155,7 @@ export default function PricingPage() {
               plan={plan}
               isAnnual={isAnnual}
               onSelect={handlePlanSelect}
+              pending={selectingId === plan.id}
             />
           ))}
         </div>

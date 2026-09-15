@@ -8,6 +8,8 @@ interface PlanCardProps {
   plan: PlanItem;
   isAnnual: boolean;
   onSelect: (plan: PlanItem) => void;
+  /** CTA shows a spinner + locks while the selection is being processed. */
+  pending?: boolean;
 }
 
 /**
@@ -15,7 +17,12 @@ interface PlanCardProps {
  * Purely presentational — pricing data comes from the single shared
  * FITORA_PLANS source, and CTA behaviour is owned by the parent page.
  */
-export default function PlanCard({ plan, isAnnual, onSelect }: PlanCardProps) {
+export default function PlanCard({
+  plan,
+  isAnnual,
+  onSelect,
+  pending = false,
+}: PlanCardProps) {
   const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
   const yearlySavings = (plan.monthlyPrice - plan.annualPrice) * 12;
   const isPopular = plan.isPopular;
@@ -118,20 +125,33 @@ export default function PlanCard({ plan, isAnnual, onSelect }: PlanCardProps) {
         <button
           type="button"
           onClick={() => onSelect(plan)}
-          className={`group/btn inline-flex items-center justify-between w-full gap-2 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98] ${
+          disabled={pending}
+          aria-busy={pending}
+          className={`group/btn inline-flex items-center justify-between w-full gap-2 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 ${
             isPopular
               ? "bg-black text-white hover:bg-neutral-900 shadow-md"
               : "bg-white text-black border border-white hover:bg-neutral-100 shadow-lg"
           }`}
         >
-          <span>{plan.buttonText}</span>
-          <span
-            className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-transform duration-300 group-hover/btn:translate-x-0.5 ${
-              isPopular ? "bg-white text-black" : "bg-black text-white"
-            }`}
-          >
-            &rarr;
+          <span>
+            {pending ? "Preparing checkout…" : plan.buttonText}
           </span>
+          {pending ? (
+            <span
+              className="w-6 h-6 rounded-full flex items-center justify-center bg-black/10"
+              aria-hidden="true"
+            >
+              <span className="w-3.5 h-3.5 rounded-full border-2 border-black/20 border-t-black animate-spin" />
+            </span>
+          ) : (
+            <span
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition-transform duration-300 group-hover/btn:translate-x-0.5 ${
+                isPopular ? "bg-white text-black" : "bg-black text-white"
+              }`}
+            >
+              &rarr;
+            </span>
+          )}
         </button>
       </div>
     </div>
