@@ -87,9 +87,21 @@ export default function GymTimer({
   } | null>(null);
   const [inlineWeight, setInlineWeight] = useState<string>("");
   const [inlineReps, setInlineReps] = useState<string>("");
-
   const { data: authSession } = useSession();
-  const [localUserId, setLocalUserId] = useState<string | undefined>(undefined);
+  const [localUserId, setLocalUserId] = useState<string | undefined>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const userStr = localStorage.getItem("fitora_user");
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          if (u.id || u._id) return u.id || u._id;
+        }
+        const email = localStorage.getItem("fitora_user_email");
+        if (email) return email;
+      } catch {}
+    }
+    return undefined;
+  });
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const chimePlayedRef = useRef<Set<number>>(new Set());
@@ -145,22 +157,7 @@ export default function GymTimer({
     [soundEnabled, resumeAudioContext, getAudioContext],
   );
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const userStr = localStorage.getItem("fitora_user");
-        if (userStr) {
-          const u = JSON.parse(userStr);
-          if (u.id || u._id) {
-            setLocalUserId(u.id || u._id);
-            return;
-          }
-        }
-        const email = localStorage.getItem("fitora_user_email");
-        if (email) setLocalUserId(email);
-      } catch {}
-    }
-  }, []);
+
 
   const authUserId = useMemo(() => {
     const userRecord = authSession?.user as Record<string, any> | undefined;

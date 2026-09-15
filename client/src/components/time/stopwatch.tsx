@@ -39,7 +39,7 @@ export default function StopwatchPage({
           fetchUserPresets().catch(() => []),
         ]);
 
-        let combined = new Set<string>();
+        const combined = new Set<string>();
         if (globalRes && globalRes.length > 0) {
           globalRes.forEach((e) => combined.add(e.name));
         } else {

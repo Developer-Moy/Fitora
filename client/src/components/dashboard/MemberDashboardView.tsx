@@ -522,18 +522,31 @@ export default function MemberDashboardView({
 
   // ── Dynamic Workout Logs Fetch from MongoDB ──
   useEffect(() => {
-    setWorkoutLogsLoading(true);
-    const targetUserId = userId || userEmail;
-    if (!targetUserId) {
-      setWorkoutLogsLoading(false);
-      return;
-    }
-    getWorkoutLogs(targetUserId, 20)
-      .then((res) => {
-        setWorkoutLogsList(res.logs || []);
-      })
-      .catch(() => setWorkoutLogsList([]))
-      .finally(() => setWorkoutLogsLoading(false));
+    const fetchLogs = () => {
+      setWorkoutLogsLoading(true);
+      const targetUserId = userId || userEmail;
+      if (!targetUserId) {
+        setWorkoutLogsLoading(false);
+        return;
+      }
+      getWorkoutLogs(targetUserId, 20)
+        .then((res) => {
+          setWorkoutLogsList(res.logs || []);
+        })
+        .catch(() => setWorkoutLogsList([]))
+        .finally(() => setWorkoutLogsLoading(false));
+    };
+
+    fetchLogs();
+
+    const handleWorkoutLogged = () => {
+      fetchLogs();
+    };
+
+    window.addEventListener("fitora-workout-logged", handleWorkoutLogged);
+    return () => {
+      window.removeEventListener("fitora-workout-logged", handleWorkoutLogged);
+    };
   }, [userId, userEmail, normalizedTab]);
 
   return (
