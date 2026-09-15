@@ -76,6 +76,11 @@ export default function SubscriptionModal({
     setCardExpiry(raw);
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, "").slice(0, 11);
+    setPhone(raw);
+  };
+
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -84,8 +89,18 @@ export default function SubscriptionModal({
     let resolvedCardName = cardName.trim();
 
     if (paymentMethod === "bkash" || paymentMethod === "nagad") {
-      if (!phone || phone.length < 11) {
-        toast.error("Please enter a valid 11-digit mobile number.");
+      const cleanPhone = phone.trim();
+      const bdPhoneRegex = /^01\d{9}$/;
+
+      if (!cleanPhone) {
+        toast.error("Please enter your mobile number.");
+        return;
+      }
+
+      if (!bdPhoneRegex.test(cleanPhone)) {
+        toast.error(
+          "Please enter a valid 11-digit mobile number starting with 01 (e.g., 017XXXXXXXX).",
+        );
         return;
       }
     } else if (paymentMethod === "card") {
@@ -448,10 +463,12 @@ export default function SubscriptionModal({
                       </label>
                       <input
                         type="tel"
+                        inputMode="numeric"
                         required
+                        maxLength={11}
                         placeholder="017XXXXXXXX"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={handlePhoneChange}
                         className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
                       />
                     </div>
