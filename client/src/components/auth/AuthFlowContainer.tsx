@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
-import { loginApi, registerApi, saveAuthSession } from "@/services/authService";
+import { loginApi, registerApi } from "@/services/authService";
 
 // High-Contrast Google SVG Icon
 const GoogleIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -348,6 +348,46 @@ const validatePassword = (pwd: string): string | null => {
   return null;
 };
 
+/**
+ * Shared monochrome white Google button with icon + loading state.
+ * Calls the existing Better Auth `signIn.social` flow via the parent handler.
+ */
+function GoogleButton({
+  onClick,
+  loading = false,
+  disabled = false,
+  heightClass = "h-11",
+  textClass = "text-xs",
+  className = "",
+}: {
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  loading?: boolean;
+  disabled?: boolean;
+  heightClass?: string;
+  textClass?: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled || loading}
+      aria-busy={loading}
+      className={`w-full ${heightClass} rounded-full bg-white text-black border border-white font-black ${textClass} uppercase flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-lg hover:bg-neutral-100 hover:scale-[1.01] active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 ${className}`}
+    >
+      {loading ? (
+        <span
+          className="w-4 h-4 rounded-full border-[1.5px] border-black/20 border-t-black animate-spin"
+          aria-hidden="true"
+        />
+      ) : (
+        <GoogleIcon className="w-4 h-4 shrink-0" />
+      )}
+      <span>{loading ? "Connecting to Google..." : "Continue with Google"}</span>
+    </button>
+  );
+}
+
 export default function AuthFlowContainer({
   initialStep = "welcome",
 }: AuthFlowProps) {
@@ -364,49 +404,61 @@ export default function AuthFlowContainer({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // Social Login Handler
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
+  // Social Login Handler — reuses the existing Better Auth Google OAuth flow.
+  const handleGoogleSignIn = async (e?: React.MouseEvent<HTMLButtonElement>) => {
+    // Defensive: never let this button submit the surrounding auth form.
+    e?.preventDefault();
+    e?.stopPropagation();
+
+    console.log("Google OAuth button clicked"); // TEMP debug — remove after verifying
+
+    // 🛡️ Prevent double-click from firing multiple OAuth redirects
+    if (isGoogleLoading) return;
+
+    setIsGoogleLoading(true);
     try {
-      if (process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
-        await authClient.signIn.social({
-          provider: "google",
-          callbackURL: "/",
-        });
+      // NOTE: better-call returns { data, error } and does NOT throw on
+      // failure, so the result must be inspected explicitly.
+      const res = (await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      })) as
+        | {
+            data?: { url?: string; redirect?: boolean } | null;
+            error?: { message?: string; status?: number } | null;
+          }
+        | undefined;
+
+      // 1) Server/provider rejected the OAuth initiation.
+      if (res?.error) {
+        console.error("Google OAuth initiation failed:", res.error);
+        toast.error(
+          res.error.message ||
+            "Google Sign-In Failed: Could not start Google authentication.",
+        );
         return;
       }
 
-      // One-Click Fast Google Auth Simulator for Demo
-      saveAuthSession("fitora_google_auth_token", {
-        id: "google_user_01",
-        name: "Google Athlete",
-        email: "athlete.google@gmail.com",
-        role: "athlete",
-        plan: "Free Pass",
-        assignedBranch: "Dhaka - Gulshan-2 Branch (Flagship)",
-      });
-      toast.success("Signed in with Google! Welcome to FITORA.");
-      setTimeout(() => {
-        router.push("/");
-      }, 700);
+      // 2) Better Auth's redirect plugin usually navigates on its own.
+      //    Navigate explicitly as a fallback so OAuth always starts.
+      const oauthUrl = res?.data?.url;
+      if (oauthUrl) {
+        window.location.href = oauthUrl;
+        return;
+      }
+
+      // 3) No URL and no error — treat as an initiation failure.
+      toast.error(
+        "Google Sign-In Failed: No redirect received. Please try again.",
+      );
     } catch (err: unknown) {
-      // Fall back to the demo simulator so Google auth never blocks the user.
-      console.warn("Google sign-in failed, using demo session:", err);
-      saveAuthSession("fitora_google_auth_token", {
-        id: "google_user_01",
-        name: "Google Athlete",
-        email: "athlete.google@gmail.com",
-        role: "athlete",
-        plan: "Free Pass",
-        assignedBranch: "Dhaka - Gulshan-2 Branch (Flagship)",
-      });
-      toast.success("Signed in with Google! Welcome to FITORA.");
-      setTimeout(() => {
-        router.push("/");
-      }, 700);
+      // Surface the real OAuth failure instead of silently faking a session.
+      console.error("Google OAuth initiation failed:", err);
+      toast.error(classifyAuthError(err));
     } finally {
-      setIsLoading(false);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -780,6 +832,20 @@ export default function AuthFlowContainer({
                     loading={isLoading}
                     className="mt-1"
                   />
+
+                  {/* ── Divider ── */}
+                  <div className="flex items-center gap-3 pt-1">
+                    <span className="h-px flex-1 bg-white/15" />
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
+                      OR
+                    </span>
+                    <span className="h-px flex-1 bg-white/15" />
+                  </div>
+
+                  <GoogleButton
+                    onClick={handleGoogleSignIn}
+                    loading={isGoogleLoading}
+                  />
                 </AuthGlassCard>
               </motion.form>
             ) : (
@@ -845,25 +911,24 @@ export default function AuthFlowContainer({
                   </div>
 
                   <AuthSubmitButton label="Login" loading={isLoading} />
+
+                  {/* ── Divider ── */}
+                  <div className="flex items-center gap-3 pt-1">
+                    <span className="h-px flex-1 bg-white/15" />
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
+                      OR
+                    </span>
+                    <span className="h-px flex-1 bg-white/15" />
+                  </div>
+
+                  <GoogleButton
+                    onClick={handleGoogleSignIn}
+                    loading={isGoogleLoading}
+                  />
                 </AuthGlassCard>
               </motion.form>
             )}
           </AnimatePresence>
-
-          {/* Exclusive Google Login Option on PC */}
-          <div className="pt-4 text-center space-y-2 shrink-0 border-t border-neutral-900/60 mt-2">
-            <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
-              Or continue with
-            </span>
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              className="w-full h-11 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-white font-black text-xs uppercase flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-lg hover:scale-[1.01] active:scale-95"
-            >
-              <GoogleIcon className="w-4.5 h-4.5" />
-              <span>Continue with Google</span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -1049,20 +1114,22 @@ export default function AuthFlowContainer({
                       loading={isLoading}
                       className="mt-1"
                     />
+
+                    {/* ─ Divider ── */}
+                    <div className="flex items-center gap-3 pt-1">
+                      <span className="h-px flex-1 bg-white/15" />
+                      <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
+                        OR
+                      </span>
+                      <span className="h-px flex-1 bg-white/15" />
+                    </div>
+
+                    <GoogleButton
+                      onClick={handleGoogleSignIn}
+                      loading={isGoogleLoading}
+                    />
                   </AuthGlassCard>
                 </form>
-
-                {/* Tablet Google Login Button */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    className="w-full h-11 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-white font-bold text-xs uppercase flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
-                  >
-                    <GoogleIcon className="w-4 h-4" />
-                    <span>Continue with Google</span>
-                  </button>
-                </div>
 
                 {/* Tablet Universal Slide Pill */}
                 <div className="pt-1">
@@ -1181,20 +1248,22 @@ export default function AuthFlowContainer({
                       loading={isLoading}
                       className="mt-1"
                     />
+
+                    {/* ── Divider ── */}
+                    <div className="flex items-center gap-3 pt-1">
+                      <span className="h-px flex-1 bg-white/15" />
+                      <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-widest">
+                        OR
+                      </span>
+                      <span className="h-px flex-1 bg-white/15" />
+                    </div>
+
+                    <GoogleButton
+                      onClick={handleGoogleSignIn}
+                      loading={isGoogleLoading}
+                    />
                   </AuthGlassCard>
                 </form>
-
-                {/* Tablet Google Register Button */}
-                <div>
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    className="w-full h-11 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-white font-bold text-xs uppercase flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
-                  >
-                    <GoogleIcon className="w-4 h-4" />
-                    <span>Continue with Google</span>
-                  </button>
-                </div>
 
                 <div className="pt-1">
                   <UniversalSlidePill
@@ -1367,20 +1436,23 @@ export default function AuthFlowContainer({
                     heightClass="h-10 xs:h-11"
                     className="mt-1 [&>span:first-child]:tracking-wider"
                   />
+
+                  {/* ── Divider ── */}
+                  <div className="flex items-center gap-2.5 pt-0.5">
+                    <span className="h-px flex-1 bg-white/15" />
+                    <span className="text-[9px] text-gray-400 font-semibold uppercase tracking-widest">
+                      OR
+                    </span>
+                    <span className="h-px flex-1 bg-white/15" />
+                  </div>
+
+                  <GoogleButton
+                    onClick={handleGoogleSignIn}
+                    loading={isGoogleLoading}
+                    heightClass="h-10 xs:h-11"
+                  />
                 </AuthGlassCard>
               </form>
-
-              {/* Mobile Google Login Option */}
-              <div className="relative z-10 pt-2">
-                <button
-                  type="button"
-                  onClick={handleGoogleSignIn}
-                  className="w-full h-10 xs:h-11 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-white font-bold text-xs uppercase flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
-                >
-                  <GoogleIcon className="w-4 h-4" />
-                  <span>Continue with Google</span>
-                </button>
-              </div>
 
               {/* Universal Slide Pill inside Mobile Login */}
               <div className="relative z-10 pt-2.5">
@@ -1505,20 +1577,23 @@ export default function AuthFlowContainer({
                     heightClass="h-9 xs:h-10"
                     className="mt-1 px-4"
                   />
+
+                  {/* ── Divider ── */}
+                  <div className="flex items-center gap-2.5 pt-0.5">
+                    <span className="h-px flex-1 bg-white/15" />
+                    <span className="text-[9px] text-gray-400 font-semibold uppercase tracking-widest">
+                      OR
+                    </span>
+                    <span className="h-px flex-1 bg-white/15" />
+                  </div>
+
+                  <GoogleButton
+                    onClick={handleGoogleSignIn}
+                    loading={isGoogleLoading}
+                    heightClass="h-9 xs:h-10"
+                  />
                 </AuthGlassCard>
               </form>
-
-              {/* Mobile Google Register Option */}
-              <div className="relative z-10 pt-2">
-                <button
-                  type="button"
-                  onClick={handleGoogleSignIn}
-                  className="w-full h-9 xs:h-10 rounded-full bg-neutral-900 hover:bg-white hover:text-black text-white font-bold text-xs uppercase flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
-                >
-                  <GoogleIcon className="w-4 h-4" />
-                  <span>Continue with Google</span>
-                </button>
-              </div>
 
               {/* Universal Slide Pill inside Mobile Register */}
               <div className="relative z-10 pt-2.5">
