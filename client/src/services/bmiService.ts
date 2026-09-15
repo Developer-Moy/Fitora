@@ -28,6 +28,11 @@ function getAuthHeader(): Record<string, string> {
 export async function saveBmiHistory(payload: {
   heightCm: number;
   weightKg: number;
+  gender: string;
+  age: number;
+  bmr: number;
+  tdee: number;
+  activityLevel: string;
   bmiScore: number;
   statusCategory: string;
   userId?: string;

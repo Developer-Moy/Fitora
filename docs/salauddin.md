@@ -243,3 +243,9 @@ Monthly / Yearly billing toggle switch.
 
 ### 13-Sep-26
 * [Profile-Growth] Standardize User Profile UI Buttons, Integrate FitoraSpinner & Scaffold VIP Pass Modal.
+
+### 14-Sep-26
+* Bug bashing: finding the bug other projects.
+
+### 15-Sep-26
+* Metric & BMI Calculator Engine, Health Profiling & Fitness Goals
