@@ -257,6 +257,31 @@ Implemented a GitHub-style monochrome activity heatmap component representing tr
 - `npx tsc --noEmit` in `client/` — passed with 0 errors.
 - `npx next build` — compiled all 14 routes cleanly with Turbopack.
 
+## 10. End-to-End Athlete Training Execution Module (2026-09-15)
+
+Completed end-to-end integration and polish of the Athlete Training Execution Module across Exercise Library & Tracker, Live Workout Telemetry, and Gym Stopwatch HUD:
+
+### 1. Exercise Library & Tracker (`/exercises`)
+- **Dynamic Catalog**: Filterable catalog loaded directly via `GET /api/exercises` with case-insensitive category, muscle, equipment, difficulty, and search querying. Automatic local catalog fallback ensures resilience.
+- **Target Category Filters**: Added immediate category chips: *Chest, Back, Legs, Shoulders, Arms, Core, Cardio, Full Body, Functional, Mobility, Glutes*.
+- **VIP Badge Indicators**: Added prominent `VIP` and `VIP EXCLUSIVE` badges on advanced workouts, indicating premium access tier.
+- **Video Demonstration & Form Guidance**: YouTube embeds with direct "Watch in Full HD" link, alongside numbered step-by-step key technique form tips.
+
+### 2. Workout Telemetry & Logging (`/api/workouts/log` & `workoutService.ts`)
+- **API Endpoints**: Full CRUD endpoints (`POST /api/workouts/log`, `GET /api/workouts/log?userId=`, `DELETE /api/workouts/log/:id`).
+- **Telemetry Calculation**: Auto-computes estimated calories burned from volume or target catalog metrics if unspecified.
+- **Realtime Sync**: Emits `fitora-workout-logged` event to instantly refresh the athlete's Workout History and Activity Heatmap on the profile.
+
+### 3. Gym Rest Stopwatch & Rest Timer HUD (`/stopwatch`)
+- **Distraction-Free Stopwatch**: Fullscreen HUD mode with accurate countdown ring animations and status glow.
+- **Rest Target Presets**: Preset chips (`+30s`, `+60s`, `+90s`, `+120s`) and custom duration creator.
+- **Audio Alerts**: Web Audio chimes (523Hz, 659Hz, 784Hz countdown warning cues, and 1047Hz+1319Hz rest completion chord) with fallback speech synthesis.
+- **MongoDB Session Persistence**: Submits session telemetry to `POST /api/stopwatch/session-complete` and syncs daily gym time to `POST /api/stopwatch/sync-time`.
+
+### Build Verification
+- `npm run build:server` — passed (0 errors)
+- `npm run build --prefix client` — passed (all 14 routes compiled cleanly)
+
 ---
 
-<p align="right">Updated: 2026-09-10</p>
+<p align="right">Updated: 2026-09-15</p>

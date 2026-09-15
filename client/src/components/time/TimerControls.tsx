@@ -53,7 +53,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
         <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest flex items-center gap-1 mr-0.5">
           <Timer className="w-3.5 h-3.5 text-white" /> Rest Target
         </span>
-        {(quickTargets?.length ? quickTargets : [30, 60, 90]).map((amount) => {
+        {(quickTargets?.length ? quickTargets : [30, 60, 90, 120]).map((amount) => {
           const isActive = targetSeconds === amount;
           return (
             <button

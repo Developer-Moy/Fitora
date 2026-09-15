@@ -69,7 +69,9 @@ export default function GymTimer({
   // null = free-running stopwatch, number = target duration in seconds
   const [targetSeconds, setTargetSeconds] = useState<number | null>(null);
   const [isLoggerOpen, setIsLoggerOpen] = useState<boolean>(false);
-  const [quickTargets, setQuickTargets] = useState<number[]>([]);
+  const [quickTargets, setQuickTargets] = useState<number[]>([
+    30, 60, 90, 120,
+  ]);
 
   const [restPresets, setRestPresets] = useState<CustomRestPreset[]>([]);
   const [newPresetName, setNewPresetName] = useState("");

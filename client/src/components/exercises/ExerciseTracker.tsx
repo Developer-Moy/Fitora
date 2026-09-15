@@ -8,12 +8,14 @@ import {
   ChevronRight,
   Clock3,
   Dumbbell,
+  ExternalLink,
   Flame,
   Lock,
   Pause,
   Play,
   RotateCcw,
   Search,
+  Sparkles,
   Target,
   X,
   Zap,
@@ -40,14 +42,14 @@ const categories = [
   "CHEST",
   "BACK",
   "LEGS",
-  "ARMS",
   "SHOULDERS",
+  "ARMS",
   "CORE",
-  "GLUTES",
-  "FULL BODY",
   "CARDIO",
-  "MOBILITY",
+  "FULL BODY",
   "FUNCTIONAL",
+  "MOBILITY",
+  "GLUTES",
 ];
 
 export default function ExercisePage() {
@@ -473,15 +475,21 @@ function ExerciseCard({
         </div>
       )}
 
-      {/* Number */}
-      <div className="absolute top-4 left-4">
+      {/* Number and VIP Badge */}
+      <div className="absolute top-4 left-4 flex items-center gap-1.5 z-10">
         <span className="bg-white text-black px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider">
           {String(index + 1).padStart(2, "0")}
         </span>
+        {exercise.difficulty === "ADVANCED" && (
+          <span className="bg-amber-400 text-black px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider flex items-center gap-1 shadow-md">
+            <Sparkles className="w-2.5 h-2.5 fill-black" />
+            VIP
+          </span>
+        )}
       </div>
 
       {/* Play */}
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 z-10">
         <div className="relative w-9 h-9 rounded-full bg-white text-black flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-md">
           {/* Circular loader ring on hover */}
           <span className="absolute -inset-1 rounded-full border-2 border-transparent border-t-white border-r-white/60 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity duration-300 pointer-events-none" />
@@ -491,7 +499,7 @@ function ExerciseCard({
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 space-y-2">
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <span className="px-2.5 py-0.5 rounded-full border border-white/20 bg-black/60 text-[9px] font-bold tracking-wider">
             {exercise.category}
           </span>
@@ -499,6 +507,13 @@ function ExerciseCard({
           <span className="px-2.5 py-0.5 rounded-full border border-white/20 bg-black/60 text-[9px] font-bold tracking-wider">
             {exercise.difficulty}
           </span>
+
+          {exercise.difficulty === "ADVANCED" && (
+            <span className="px-2.5 py-0.5 rounded-full border border-amber-400/40 bg-amber-500/20 text-amber-300 text-[9px] font-black tracking-wider flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5 fill-amber-300" />
+              VIP EXCLUSIVE
+            </span>
+          )}
         </div>
 
         <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-tight line-clamp-1">
@@ -867,6 +882,22 @@ function ExerciseModal({
                   />
                 </div>
 
+                {/* External Video Demonstration Link */}
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                    Video Demonstration
+                  </span>
+                  <a
+                    href={`https://www.youtube.com/watch?v=${exercise.videoId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-white/70 hover:text-white transition uppercase tracking-wider hover:underline"
+                  >
+                    <span>Watch in Full HD</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+
                 {/* 3 Metadata Cards (Duration, Equipment, Target) under Video */}
                 <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
                   <InfoBox
@@ -1033,13 +1064,19 @@ function ExerciseModal({
               {/* 4. Badges, Title, Description, Tips -> order-4 on mobile, order-1 on desktop */}
               <div className="order-4 lg:order-1 space-y-5 w-full">
                 {/* Category & Difficulty Badges */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="px-3 py-1 rounded-full bg-white text-black text-[9px] font-black uppercase tracking-wider">
                     {exercise.category}
                   </span>
                   <span className="px-3 py-1 rounded-full border border-white/20 text-white/60 text-[9px] font-black uppercase tracking-wider">
                     {exercise.difficulty}
                   </span>
+                  {exercise.difficulty === "ADVANCED" && (
+                    <span className="px-3 py-1 rounded-full border border-amber-400/40 bg-amber-500/20 text-amber-300 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                      <Sparkles className="w-2.5 h-2.5 fill-amber-300" />
+                      VIP ACCESS
+                    </span>
+                  )}
                 </div>
 
                 {/* Exercise Title & Description */}

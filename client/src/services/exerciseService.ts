@@ -22,15 +22,19 @@ export interface APIExercise {
 }
 
 export async function fetchExercises(params?: {
+  category?: string;
   muscleGroup?: string;
   equipment?: string;
   difficulty?: string;
+  search?: string;
 }): Promise<APIExercise[] | null> {
   try {
     const query = new URLSearchParams();
+    if (params?.category && params.category !== "ALL") query.append("category", params.category);
     if (params?.muscleGroup) query.append("muscleGroup", params.muscleGroup);
     if (params?.equipment) query.append("equipment", params.equipment);
     if (params?.difficulty) query.append("difficulty", params.difficulty);
+    if (params?.search) query.append("search", params.search);
 
     const res = await fetch(`${API_URL}/exercises?${query.toString()}`);
     if (!res.ok) return null;
