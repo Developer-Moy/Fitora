@@ -211,3 +211,18 @@ Add responsive skeleton loader grid for meal catalog
 
 - Create MealSkeletonCard and MealSkeletonGrid matching MealCard
 - Adapt skeleton grid across mobile (1-col), tablet (2-col), and desktop (3-col)
+
+## 14-Sep-26
+
+Participate in the Cross-Team Bug Bashing Challenge.
+
+## 15-Sep-26
+
+Redesign Personalized Nutrition Plan with backend-driven rule engine and AI simulation, avoid real AI APIs to save AI credits and reduce cost.
+
+- Create PersonalizedNutritionPlan Mongoose model and schema indexed by userId
+- Implement metabolic rule engine combining WHO BMI categories and fitness goals for daily target calculations
+- Enforce target-based nutrition system without hardcoded food items or fixed recipes
+- Add backend controller and routes (/api/personalized-nutrition-plan) for fetching, generating, and recalibrating plans
+- Build frontend service for API communication with JWT authorization
+- Create simulated AI generation modal with progressive step telemetry and synchronized progress bar
