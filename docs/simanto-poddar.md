@@ -46,6 +46,7 @@ _(Previous temporary homepage sections — `Coaches / Meet Our Trainers` (`Train
 ### Meal Chart API Implementation
 
 - Implemented the Meal Chart API endpoints:
+
   - `GET /api/meal-charts/getMealCharts?userId={userId}` — Fetch meal charts for a specific user.
   - `POST /api/meal-charts/createMealChart` — Create and save a meal plan.
 
@@ -84,11 +85,13 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ## 25-Aug-26
 
 - `Fitora\client\src\app\meals\page.tsx`
+
   - Built and structured the Meals page.
   - Integrated meal data with the page layout.
   - Added a responsive listing structure for meal cards.
 
 - `Fitora\client\src\components\Meal\MealCard.tsx`
+
   - Created the reusable Meal Card component.
   - Displays essential meal information.
   - Added a **View Details** interaction for opening the meal details modal.
@@ -226,3 +229,10 @@ Redesign Personalized Nutrition Plan with backend-driven rule engine and AI simu
 - Add backend controller and routes (/api/personalized-nutrition-plan) for fetching, generating, and recalibrating plans
 - Build frontend service for API communication with JWT authorization
 - Create simulated AI generation modal with progressive step telemetry and synchronized progress bar
+
+Issues Resolved Today
+
+- **#171** — Added Terms of Use and Privacy Policy pages.
+- **#170** — Improved Sign-Up form validation and user feedback.
+- **#169** — Added bKash mobile number format and length validation.
+- **#175** — Added required field validation to the Contact Form.
