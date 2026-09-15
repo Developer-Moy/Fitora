@@ -143,6 +143,43 @@ const validatePassword = (pwd: string): string | null => {
   return null;
 };
 
+// 💡 Inline Single-Line Dynamic Password Requirements Hint (Unmet rules only)
+const getPasswordHint = (pwd: string): string | null => {
+  if (!pwd) return null;
+
+  const hasLength = pwd.length >= 8 && pwd.length <= 16;
+  const hasUpper = /[A-Z]/.test(pwd);
+  const hasLower = /[a-z]/.test(pwd);
+  const hasDigit = /[0-9]/.test(pwd);
+  const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+
+  const missingList: string[] = [];
+  if (!hasUpper) missingList.push("an uppercase letter");
+  if (!hasLower) missingList.push("a lowercase letter");
+  if (!hasDigit) missingList.push("a number");
+  if (!hasSymbol) missingList.push("a special character");
+
+  if (hasLength && missingList.length === 0) {
+    return null;
+  }
+
+  const formatList = (items: string[]) => {
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} & ${items[1]}`;
+    return `${items.slice(0, -1).join(", ")} & ${items[items.length - 1]}`;
+  };
+
+  if (!hasLength && missingList.length > 0) {
+    return `Must be 8–16 characters, include ${formatList(missingList)}.`;
+  }
+
+  if (!hasLength) {
+    return "Must be 8–16 characters.";
+  }
+
+  return `Must include ${formatList(missingList)}.`;
+};
+
 export default function AuthFlowContainer({
   initialStep = "welcome",
 }: AuthFlowProps) {
@@ -159,6 +196,9 @@ export default function AuthFlowContainer({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Dynamic Password Hint for Registration (derived state, UI-only)
+  const passwordHint = getPasswordHint(password);
 
   // Social Login Handler
   const handleGoogleSignIn = async () => {
@@ -524,6 +564,11 @@ export default function AuthFlowContainer({
                       )}
                     </button>
                   </div>
+                  {passwordHint && (
+                    <p className="text-[10px] text-red-400 font-medium px-4 pt-0.5">
+                      {passwordHint}
+                    </p>
+                  )}
                   <div className="relative flex items-center">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
@@ -963,6 +1008,11 @@ export default function AuthFlowContainer({
                     placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
                     className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
                   />
+                  {passwordHint && (
+                    <p className="text-[10px] text-gray-400 font-medium px-4 pt-0.5">
+                      {passwordHint}
+                    </p>
+                  )}
                   <input
                     type="password"
                     value={confirmPassword}
@@ -1274,6 +1324,11 @@ export default function AuthFlowContainer({
                     )}
                   </button>
                 </div>
+                {passwordHint && (
+                  <p className="text-[9.5px] xs:text-[10px] text-gray-400 font-medium px-3.5 pt-0.5">
+                    {passwordHint}
+                  </p>
+                )}
                 <div className="relative flex items-center">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
