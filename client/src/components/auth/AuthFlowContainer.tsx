@@ -17,7 +17,7 @@ import {
   Sparkles,
   CheckCircle2,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { loginApi, registerApi, saveAuthSession } from "@/services/authService";
 
@@ -244,6 +244,84 @@ const validateEmail = (emailStr: string): string | null => {
   return null;
 };
 
+// 🧑 Dedicated Full Name Validation (register only)
+const validateName = (nameStr: string): string | null => {
+  const trimmed = nameStr.trim();
+  if (!trimmed) {
+    return "Full Name Required: Please enter your full name.";
+  }
+  if (trimmed.length < 2) {
+    return "Invalid Name: Must be at least 2 characters long.";
+  }
+  if (!/[a-zA-Z]/.test(trimmed)) {
+    return "Invalid Name: Must contain at least one letter.";
+  }
+  return null;
+};
+
+// 🔐 Login-only password check: presence + minimum length policy.
+// (Login must NOT enforce the full complexity policy — legacy accounts may
+// predate it. Only the register flow enforces complexity.)
+const validateLoginPassword = (pwd: string): string | null => {
+  if (!pwd) {
+    return "Password Required: Please enter your password.";
+  }
+  if (pwd.length < 8) {
+    return "Password Too Short: Minimum 8 characters required.";
+  }
+  if (pwd.length > 16) {
+    return "Password Too Long: Maximum 16 characters allowed.";
+  }
+  return null;
+};
+
+// 🔁 Confirm-password validation (register only)
+const validateConfirmPassword = (
+  pwd: string,
+  confirmPwd: string,
+): string | null => {
+  if (!confirmPwd) {
+    return "Confirm Password Required: Please re-enter your password.";
+  }
+  if (pwd !== confirmPwd) {
+    return "Passwords Do Not Match: Confirm password does not match.";
+  }
+  return null;
+};
+
+/**
+ * Classify a thrown/rejected auth error into a safe, user-facing toast message.
+ * Never throws — always returns a displayable string so the page cannot crash.
+ */
+const classifyAuthError = (error: unknown): string => {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return "Network Error: You appear to be offline. Check your connection.";
+  }
+
+  const err = error as { name?: string; code?: string; message?: string } | null;
+  const name = err?.name || "";
+  const code = err?.code || "";
+  const rawMessage = typeof err?.message === "string" ? err.message : "";
+  const haystack = `${name} ${code} ${rawMessage}`.toLowerCase();
+
+  if (name === "AbortError" || haystack.includes("timeout")) {
+    return "Network Timeout: The server took too long to respond. Please retry.";
+  }
+  if (
+    name === "TypeError" ||
+    haystack.includes("failed to fetch") ||
+    haystack.includes("networkerror") ||
+    haystack.includes("network request failed") ||
+    haystack.includes("load failed")
+  ) {
+    return "Server Unavailable: Could not reach FITORA servers. Please retry.";
+  }
+  if (rawMessage.trim()) {
+    return rawMessage;
+  }
+  return "Something Went Wrong: An unexpected error occurred. Please try again.";
+};
+
 // 🔒 Dedicated Password Validation with Specific Distinct Toast Messages
 const validatePassword = (pwd: string): string | null => {
   if (!pwd) {
@@ -312,7 +390,9 @@ export default function AuthFlowContainer({
       setTimeout(() => {
         router.push("/");
       }, 700);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      // Fall back to the demo simulator so Google auth never blocks the user.
+      console.warn("Google sign-in failed, using demo session:", err);
       saveAuthSession("fitora_google_auth_token", {
         id: "google_user_01",
         name: "Google Athlete",
@@ -334,6 +414,9 @@ export default function AuthFlowContainer({
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 🛡️ Prevent double submit while a request is already pending
+    if (isLoading) return;
+
     // Distinct Email Validation Toast
     const emailError = validateEmail(email);
     if (emailError) {
@@ -341,9 +424,10 @@ export default function AuthFlowContainer({
       return;
     }
 
-    // Distinct Password Validation Toast
-    if (!password) {
-      toast.error("Password Required: Please enter your password.");
+    // Distinct Password Validation Toast (presence + minimum length)
+    const passwordError = validateLoginPassword(password);
+    if (passwordError) {
+      toast.error(passwordError);
       return;
     }
 
@@ -369,7 +453,7 @@ export default function AuthFlowContainer({
         toast.error(
           apiRes.message ||
             error.message ||
-            "Invalid email or password credentials.",
+            "Invalid Credentials: Email or password is incorrect.",
         );
         setIsLoading(false);
         return;
@@ -379,20 +463,26 @@ export default function AuthFlowContainer({
         localStorage.setItem("fitora_auth_session", "true");
         localStorage.setItem("fitora_active_role", "free_user");
       }
-      toast.success("Welcome back to FITORA!");
+      toast.success("Login successful! Welcome back to FITORA.");
       setTimeout(() => {
         router.push("/");
       }, 800);
-    } catch (err: any) {
-      toast.error(err?.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      toast.error(classifyAuthError(err));
       setIsLoading(false);
     }
   };
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim()) {
-      toast.error("Full Name Required: Please enter your full name.");
+
+    // 🛡️ Prevent double submit while a request is already pending
+    if (isLoading) return;
+
+    // Distinct Full Name Validation Toast
+    const nameError = validateName(fullName);
+    if (nameError) {
+      toast.error(nameError);
       return;
     }
 
@@ -410,8 +500,10 @@ export default function AuthFlowContainer({
       return;
     }
 
-    if (password !== confirmPassword) {
-      toast.error("Password Mismatch: Confirm password does not match.");
+    // Distinct Confirm-Password Validation Toast (required + match)
+    const confirmError = validateConfirmPassword(password, confirmPassword);
+    if (confirmError) {
+      toast.error(confirmError);
       return;
     }
 
@@ -451,12 +543,12 @@ export default function AuthFlowContainer({
         return;
       }
 
-      toast.success("Account created! Welcome to FITORA.");
+      toast.success("Account created successfully! Welcome to FITORA.");
       setTimeout(() => {
         router.push("/");
       }, 800);
-    } catch (err: any) {
-      toast.error(err?.message || "An error occurred.");
+    } catch (err: unknown) {
+      toast.error(classifyAuthError(err));
       setIsLoading(false);
     }
   };
