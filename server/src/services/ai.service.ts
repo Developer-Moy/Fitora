@@ -3,7 +3,9 @@ dotenv.config();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
-export async function generateAiFitnessResponse(prompt: string): Promise<string> {
+export async function generateAiFitnessResponse(
+  prompt: string,
+): Promise<string> {
   if (!GEMINI_API_KEY) {
     return "Fitora AI Coach: Please configure your GEMINI_API_KEY in server/.env.";
   }
@@ -27,7 +29,7 @@ export async function generateAiFitnessResponse(prompt: string): Promise<string>
               },
             ],
           }),
-        }
+        },
       );
 
       if (response.ok) {
