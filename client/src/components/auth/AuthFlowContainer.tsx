@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
   Lock,
+  User,
   Eye,
   EyeOff,
   ArrowRight,
@@ -102,6 +103,132 @@ type Step = "welcome" | "login" | "register";
 
 interface AuthFlowProps {
   initialStep?: Step;
+}
+
+/**
+ * Reusable Fitora glassmorphism card wrapper for auth forms.
+ * Pure black surface, soft white border, heavy backdrop blur.
+ */
+function AuthGlassCard({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`relative rounded-3xl border border-white/15 bg-white/[0.07] backdrop-blur-xl shadow-[0_8px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.12)] ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+
+interface AuthGlassFieldProps {
+  /** "text" | "email" | "password" input type */
+  type?: "text" | "email" | "password";
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  icon?: React.ReactNode;
+  /** Enables the password visibility toggle and shows the lock/eye affordances */
+  isPassword?: boolean;
+  showPassword?: boolean;
+  onTogglePassword?: () => void;
+  autoComplete?: string;
+  maxLength?: number;
+  /** Tailwind height class so each breakpoint can keep its existing sizing */
+  heightClass?: string;
+  /** Tailwind text size class so each breakpoint can keep its existing sizing */
+  textClass?: string;
+}
+
+/**
+ * Reusable monochrome glassmorphism input used by the desktop, tablet and
+ * mobile login/register forms. Purely presentational — the parent form keeps
+ * owning all state and submit behaviour.
+ */
+function AuthGlassField({
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  icon,
+  isPassword = false,
+  showPassword = false,
+  onTogglePassword,
+  autoComplete,
+  maxLength,
+  heightClass = "h-11",
+  textClass = "text-xs",
+}: AuthGlassFieldProps) {
+  return (
+    <div className="relative flex items-center">
+      {icon && (
+        <span className="absolute left-4 flex items-center text-gray-400 pointer-events-none">
+          {icon}
+        </span>
+      )}
+      <input
+        type={isPassword ? (showPassword ? "text" : "password") : type}
+        value={value}
+        maxLength={maxLength}
+        autoComplete={autoComplete}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`w-full ${heightClass} ${
+          icon ? "pl-11" : "px-4"
+        } pr-11 rounded-full border border-white/10 bg-neutral-900/70 backdrop-blur-xl ${textClass} text-white placeholder-gray-500 outline-none font-medium shadow-inner transition-colors focus:border-white/30`}
+      />
+      {isPassword && onTogglePassword && (
+        <button
+          type="button"
+          onClick={onTogglePassword}
+          aria-label={showPassword ? "Hide password" : "Show password"}
+          className="absolute right-4 text-gray-400 hover:text-white transition-colors cursor-pointer"
+        >
+          {showPassword ? (
+            <EyeOff className="w-3.5 h-3.5" />
+          ) : (
+            <Eye className="w-3.5 h-3.5" />
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Shared monochrome glassmorphism submit button with inline loading feedback.
+ */
+function AuthSubmitButton({
+  label,
+  loading = false,
+  disabled = false,
+  heightClass = "h-11",
+  className = "",
+}: {
+  label: string;
+  loading?: boolean;
+  disabled?: boolean;
+  heightClass?: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="submit"
+      disabled={disabled || loading}
+      className={`w-full ${heightClass} rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 border border-white hover:bg-neutral-100 transition-all shadow-xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${className}`}
+    >
+      <span>{label}</span>
+      {loading ? (
+        <span className="w-4 h-4 rounded-full border-[1.5px] border-black/20 border-t-black animate-spin" />
+      ) : (
+        <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+      )}
+    </button>
+  );
 }
 
 // 📧 Dedicated Email Validation with Specific Distinct Toast Messages
@@ -443,8 +570,13 @@ export default function AuthFlowContainer({
         </div>
 
         {/* Right 5 Columns: Desktop Auth Form Container (Zero Border, noValidate to block browser popups) */}
-        <div className="col-span-5 relative bg-neutral-950 p-8 xl:p-10 flex flex-col justify-between overflow-hidden">
-          <div className="flex items-center justify-between pb-4 shrink-0">
+        <div className="col-span-5 relative p-8 xl:p-10 flex flex-col justify-between overflow-hidden">
+          {/* Frosted glass backplate + monochrome ambient glow behind the auth card */}
+          <div className="absolute inset-0 z-0 bg-white/[0.04] backdrop-blur-2xl" />
+          <div className="absolute -top-24 -right-16 z-0 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-16 z-0 w-72 h-72 rounded-full bg-white/[0.07] blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex items-center justify-between pb-4 shrink-0">
             <button
               onClick={() => setStep("login")}
               className={`text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
@@ -477,105 +609,86 @@ export default function AuthFlowContainer({
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 onSubmit={handleRegisterSubmit}
                 noValidate
-                className="space-y-3 my-auto py-2"
+                className="relative z-10 my-auto py-2"
               >
-                <div className="space-y-0.5 mb-2">
-                  <h2 className="text-xl xl:text-2xl font-black text-white uppercase tracking-tight">
-                    Create Account
-                  </h2>
-                  <p className="text-[11px] text-gray-400 font-medium">
-                    Start your personalized fitness journey today
-                  </p>
-                </div>
-
-                <div className="space-y-2.5">
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Full Name"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                  />
-                  <input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email Address (e.g. name@domain.com)"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                  />
-                  <div className="relative flex items-center">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      maxLength={16}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
-                      className="w-full h-11 px-4 pr-10 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-3.5 h-3.5" />
-                      ) : (
-                        <Eye className="w-3.5 h-3.5" />
-                      )}
-                    </button>
+                <AuthGlassCard className="p-6 xl:p-7 space-y-3">
+                  <div className="space-y-0.5 mb-2">
+                    <h2 className="text-xl xl:text-2xl font-black text-white uppercase tracking-tight">
+                      Create Account
+                    </h2>
+                    <p className="text-[11px] text-gray-400 font-medium">
+                      Start your personalized fitness journey today
+                    </p>
                   </div>
-                  <div className="relative flex items-center">
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      maxLength={16}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm Password"
-                      className="w-full h-11 px-4 pr-10 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+
+                  <div className="space-y-2.5">
+                    <AuthGlassField
+                      type="text"
+                      value={fullName}
+                      onChange={setFullName}
+                      placeholder="Full Name"
+                      autoComplete="name"
+                      icon={<User className="w-4 h-4" />}
                     />
-                    <button
-                      type="button"
-                      onClick={() =>
+                    <AuthGlassField
+                      type="email"
+                      value={email}
+                      onChange={setEmail}
+                      placeholder="Email Address (e.g. name@domain.com)"
+                      autoComplete="email"
+                      icon={<Mail className="w-4 h-4" />}
+                    />
+                    <AuthGlassField
+                      isPassword
+                      value={password}
+                      onChange={setPassword}
+                      placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
+                      autoComplete="new-password"
+                      maxLength={16}
+                      icon={<Lock className="w-4 h-4" />}
+                      showPassword={showPassword}
+                      onTogglePassword={() => setShowPassword(!showPassword)}
+                    />
+                    <AuthGlassField
+                      isPassword
+                      value={confirmPassword}
+                      onChange={setConfirmPassword}
+                      placeholder="Confirm Password"
+                      autoComplete="new-password"
+                      maxLength={16}
+                      icon={<Lock className="w-4 h-4" />}
+                      showPassword={showConfirmPassword}
+                      onTogglePassword={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-4 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="w-3.5 h-3.5" />
-                      ) : (
-                        <Eye className="w-3.5 h-3.5" />
-                      )}
-                    </button>
+                    />
                   </div>
-                </div>
 
-                <p className="text-[10px] text-gray-400 font-medium px-2 pt-0.5">
-                  Must be 8–16 chars with 1 uppercase, 1 lowercase, 1 number & 1
-                  symbol.
-                </p>
+                  <p className="text-[10px] text-gray-400 font-medium px-2 pt-0.5">
+                    Must be 8–16 chars with 1 uppercase, 1 lowercase, 1 number &
+                    1 symbol.
+                  </p>
 
-                <div className="flex items-center gap-2 text-[10px] xl:text-[11px] text-gray-400 font-medium px-2 pt-0.5">
-                  <input
-                    type="checkbox"
-                    checked={agreeTerms}
-                    onChange={(e) => setAgreeTerms(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
+                  <div className="flex items-center gap-2 text-[10px] xl:text-[11px] text-gray-400 font-medium px-2 pt-0.5">
+                    <input
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
+                    />
+                    <span>
+                      Agree to{" "}
+                      <span className="text-white underline">Terms</span> &{" "}
+                      <span className="text-white underline">Privacy Policy</span>
+                    </span>
+                  </div>
+
+                  <AuthSubmitButton
+                    label="Create Account"
+                    loading={isLoading}
+                    className="mt-1"
                   />
-                  <span>
-                    Agree to <span className="text-white underline">Terms</span>{" "}
-                    &{" "}
-                    <span className="text-white underline">Privacy Policy</span>
-                  </span>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-11 rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 hover:bg-gray-100 transition-all shadow-2xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50 mt-2"
-                >
-                  <span>Create Account</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
+                </AuthGlassCard>
               </motion.form>
             ) : (
               <motion.form
@@ -586,78 +699,61 @@ export default function AuthFlowContainer({
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 onSubmit={handleLoginSubmit}
                 noValidate
-                className="space-y-4 my-auto py-2"
+                className="relative z-10 my-auto py-2"
               >
-                <div className="space-y-0.5 mb-2">
-                  <h2 className="text-xl xl:text-2xl font-black text-white uppercase tracking-tight">
-                    Welcome Back
-                  </h2>
-                  <p className="text-[11px] text-gray-400 font-medium">
-                    Log in to access your personalized training dashboard
-                  </p>
-                </div>
+                <AuthGlassCard className="p-6 xl:p-7 space-y-4">
+                  <div className="space-y-0.5">
+                    <h2 className="text-xl xl:text-2xl font-black text-white uppercase tracking-tight">
+                      Welcome Back
+                    </h2>
+                    <p className="text-[11px] text-gray-400 font-medium">
+                      Log in to access your personalized training dashboard
+                    </p>
+                  </div>
 
-                <div className="space-y-3">
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
+                  <div className="space-y-3">
+                    <AuthGlassField
+                      type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={setEmail}
                       placeholder="Email Address"
-                      className="w-full h-11 px-4 pr-10 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+                      autoComplete="email"
+                      icon={<Mail className="w-4 h-4" />}
                     />
-                    <Mail className="absolute right-4 w-4 h-4 text-gray-400" />
-                  </div>
 
-                  <div className="relative flex items-center">
-                    <input
-                      type={showPassword ? "text" : "password"}
+                    <AuthGlassField
+                      isPassword
                       value={password}
-                      maxLength={16}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={setPassword}
                       placeholder="Password"
-                      className="w-full h-11 px-4 pr-10 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+                      autoComplete="current-password"
+                      maxLength={16}
+                      icon={<Lock className="w-4 h-4" />}
+                      showPassword={showPassword}
+                      onTogglePassword={() => setShowPassword(!showPassword)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between text-xs px-2 text-gray-300 font-medium pt-0.5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
-                    />
-                    <span>Remember Me</span>
-                  </label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-gray-400 hover:text-white underline"
-                  >
-                    Forget Password?
-                  </Link>
-                </div>
+                  <div className="flex items-center justify-between text-xs px-1 text-gray-300 font-medium">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
+                      />
+                      <span>Remember Me</span>
+                    </label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-gray-400 hover:text-white underline"
+                    >
+                      Forget Password?
+                    </Link>
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-11 rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 hover:bg-gray-100 transition-all shadow-2xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50 mt-2"
-                >
-                  <span>Login</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
+                  <AuthSubmitButton label="Login" loading={isLoading} />
+                </AuthGlassCard>
               </motion.form>
             )}
           </AnimatePresence>
@@ -682,7 +778,9 @@ export default function AuthFlowContainer({
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 2: TABLET (11/12 Screen Width max-w-xl)
           ════════════════════════════════════════════════════════════ */}
-      <div className="hidden md:flex lg:hidden relative w-11/12 max-w-xl h-full max-h-[660px] min-h-[500px] bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col justify-between p-7">
+      <div className="hidden md:flex lg:hidden relative w-11/12 max-w-xl h-full max-h-[660px] min-h-[500px] rounded-[2.5rem] border border-white/15 shadow-2xl overflow-hidden flex-col justify-between p-7 bg-neutral-950">
+        {/* Frosted glass backplate layered above the step hero images */}
+        <div className="absolute inset-0 z-[1] bg-white/[0.05] backdrop-blur-2xl pointer-events-none" />
         <AnimatePresence mode="wait">
           {/* Tablet STEP 1: Welcome Onboarding Screen */}
           {step === "welcome" && (
@@ -809,53 +907,57 @@ export default function AuthFlowContainer({
                   noValidate
                   className="space-y-2.5"
                 >
-                  <div className="space-y-0.5 mb-2">
-                    <h2 className="text-xl font-black uppercase text-white drop-shadow">
-                      Welcome Back
-                    </h2>
-                    <p className="text-[11px] text-gray-300 font-medium drop-shadow">
-                      Log in to continue your fitness journey
-                    </p>
-                  </div>
-                  <input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email Address"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
-                  />
-                  <input
-                    type="password"
-                    value={password}
-                    maxLength={16}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
-                  />
-                  <div className="flex items-center justify-between text-xs px-1 text-gray-300 font-medium">
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
-                      />
-                      <span>Remember Me</span>
-                    </label>
-                    <Link
-                      href="/forgot-password"
-                      className="text-gray-400 hover:text-white underline"
-                    >
-                      Forget Password
-                    </Link>
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full h-11 rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 shadow-xl mt-1"
-                  >
-                    <span>Login</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  <AuthGlassCard className="p-5 space-y-2.5">
+                    <div className="space-y-0.5 mb-2">
+                      <h2 className="text-xl font-black uppercase text-white drop-shadow">
+                        Welcome Back
+                      </h2>
+                      <p className="text-[11px] text-gray-300 font-medium drop-shadow">
+                        Log in to continue your fitness journey
+                      </p>
+                    </div>
+                    <AuthGlassField
+                      type="email"
+                      value={email}
+                      onChange={setEmail}
+                      placeholder="Email Address"
+                      autoComplete="email"
+                      icon={<Mail className="w-4 h-4" />}
+                    />
+                    <AuthGlassField
+                      isPassword
+                      value={password}
+                      onChange={setPassword}
+                      placeholder="Password"
+                      autoComplete="current-password"
+                      maxLength={16}
+                      icon={<Lock className="w-4 h-4" />}
+                      showPassword={showPassword}
+                      onTogglePassword={() => setShowPassword(!showPassword)}
+                    />
+                    <div className="flex items-center justify-between text-xs px-1 text-gray-300 font-medium">
+                      <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
+                        />
+                        <span>Remember Me</span>
+                      </label>
+                      <Link
+                        href="/forgot-password"
+                        className="text-gray-400 hover:text-white underline"
+                      >
+                        Forget Password
+                      </Link>
+                    </div>
+                    <AuthSubmitButton
+                      label="Login"
+                      loading={isLoading}
+                      className="mt-1"
+                    />
+                  </AuthGlassCard>
                 </form>
 
                 {/* Tablet Google Login Button */}
@@ -933,51 +1035,61 @@ export default function AuthFlowContainer({
                   noValidate
                   className="space-y-2"
                 >
-                  <div className="space-y-0.5 mb-2">
-                    <h2 className="text-xl font-black uppercase text-white drop-shadow">
-                      Create Account
-                    </h2>
-                    <p className="text-[11px] text-gray-300 font-medium drop-shadow">
-                      Start your fitness journey today
-                    </p>
-                  </div>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Full Name"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
-                  />
-                  <input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email Address (e.g. user@domain.com)"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
-                  />
-                  <input
-                    type="password"
-                    value={password}
-                    maxLength={16}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
-                  />
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    maxLength={16}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm Password"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full h-11 rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 shadow-xl mt-1"
-                  >
-                    <span>Create Account</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  <AuthGlassCard className="p-5 space-y-2">
+                    <div className="space-y-0.5 mb-2">
+                      <h2 className="text-xl font-black uppercase text-white drop-shadow">
+                        Create Account
+                      </h2>
+                      <p className="text-[11px] text-gray-300 font-medium drop-shadow">
+                        Start your fitness journey today
+                      </p>
+                    </div>
+                    <AuthGlassField
+                      type="text"
+                      value={fullName}
+                      onChange={setFullName}
+                      placeholder="Full Name"
+                      autoComplete="name"
+                      icon={<User className="w-4 h-4" />}
+                    />
+                    <AuthGlassField
+                      type="email"
+                      value={email}
+                      onChange={setEmail}
+                      placeholder="Email Address (e.g. user@domain.com)"
+                      autoComplete="email"
+                      icon={<Mail className="w-4 h-4" />}
+                    />
+                    <AuthGlassField
+                      isPassword
+                      value={password}
+                      onChange={setPassword}
+                      placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
+                      autoComplete="new-password"
+                      maxLength={16}
+                      icon={<Lock className="w-4 h-4" />}
+                      showPassword={showPassword}
+                      onTogglePassword={() => setShowPassword(!showPassword)}
+                    />
+                    <AuthGlassField
+                      isPassword
+                      value={confirmPassword}
+                      onChange={setConfirmPassword}
+                      placeholder="Confirm Password"
+                      autoComplete="new-password"
+                      maxLength={16}
+                      icon={<Lock className="w-4 h-4" />}
+                      showPassword={showConfirmPassword}
+                      onTogglePassword={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    />
+                    <AuthSubmitButton
+                      label="Create Account"
+                      loading={isLoading}
+                      className="mt-1"
+                    />
+                  </AuthGlassCard>
                 </form>
 
                 {/* Tablet Google Register Button */}
@@ -1007,7 +1119,9 @@ export default function AuthFlowContainer({
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 3: MOBILE (11/12 Screen Width max-w-[410px] < 768px)
           ════════════════════════════════════════════════════════════ */}
-      <div className="block md:hidden relative w-11/12 max-w-[410px] h-full max-h-[750px] min-h-[500px] bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col">
+      <div className="block md:hidden relative w-11/12 max-w-[410px] h-full max-h-[750px] min-h-[500px] bg-neutral-950 rounded-[2.5rem] border border-white/15 shadow-2xl overflow-hidden flex-col">
+        {/* Frosted glass backplate layered above the step hero images */}
+        <div className="absolute inset-0 z-[1] bg-white/[0.05] backdrop-blur-2xl pointer-events-none" />
         <AnimatePresence mode="wait">
           {/* Mobile STEP 1: Welcome Onboarding Screen */}
           {step === "welcome" && (
@@ -1078,7 +1192,7 @@ export default function AuthFlowContainer({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.3 }}
-              className="relative w-full h-full flex flex-col justify-between p-5 xs:p-6 bg-neutral-950"
+              className="relative w-full h-full flex flex-col justify-between p-5 xs:p-6"
             >
               {/* Full Mobile Login Background Image */}
               <div className="absolute inset-0 z-0">
@@ -1111,67 +1225,57 @@ export default function AuthFlowContainer({
               <form
                 onSubmit={handleLoginSubmit}
                 noValidate
-                className="relative z-10 space-y-2.5 my-auto"
+                className="relative z-10 my-auto"
               >
-                <div className="relative flex items-center">
-                  <input
-                    type="text"
+                <AuthGlassCard className="p-4 xs:p-5 space-y-2.5">
+                  <AuthGlassField
+                    type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={setEmail}
                     placeholder="Email"
-                    className="w-full h-10 xs:h-11 px-4 pr-10 rounded-full bg-neutral-900/90 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+                    autoComplete="email"
+                    heightClass="h-10 xs:h-11"
+                    icon={<Mail className="w-4 h-4" />}
                   />
-                  <Mail className="absolute right-4 w-4 h-4 text-gray-400" />
-                </div>
 
-                <div className="relative flex items-center">
-                  <input
-                    type={showPassword ? "text" : "password"}
+                  <AuthGlassField
+                    isPassword
                     value={password}
-                    maxLength={16}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={setPassword}
                     placeholder="Password"
-                    className="w-full h-10 xs:h-11 px-4 pr-10 rounded-full bg-neutral-900/90 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+                    autoComplete="current-password"
+                    maxLength={16}
+                    heightClass="h-10 xs:h-11"
+                    icon={<Lock className="w-4 h-4" />}
+                    showPassword={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 text-gray-400 hover:text-white"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
 
-                <div className="flex items-center justify-between text-[10px] px-1 text-gray-300 font-medium">
-                  <label className="flex items-center gap-1.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
-                    />
-                    <span>Remember Me</span>
-                  </label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-gray-400 hover:text-white underline"
-                  >
-                    Forget Password
-                  </Link>
-                </div>
+                  <div className="flex items-center justify-between text-[10px] px-1 text-gray-300 font-medium">
+                    <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
+                      />
+                      <span>Remember Me</span>
+                    </label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-gray-400 hover:text-white underline"
+                    >
+                      Forget Password
+                    </Link>
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-10 xs:h-11 rounded-full bg-white text-black font-black text-xs flex items-center justify-between px-5 hover:bg-gray-100 transition-all shadow-xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50 mt-1"
-                >
-                  <span className="uppercase tracking-wider">Login</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
+                  <AuthSubmitButton
+                    label="Login"
+                    loading={isLoading}
+                    heightClass="h-10 xs:h-11"
+                    className="mt-1 [&>span:first-child]:tracking-wider"
+                  />
+                </AuthGlassCard>
               </form>
 
               {/* Mobile Google Login Option */}
@@ -1204,7 +1308,7 @@ export default function AuthFlowContainer({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.3 }}
-              className="relative w-full h-full flex flex-col justify-between p-5 xs:p-6 bg-neutral-950 overflow-hidden"
+              className="relative w-full h-full flex flex-col justify-between p-5 xs:p-6 overflow-hidden"
             >
               {/* Full Mobile Register Background Image */}
               <div className="absolute inset-0 z-0">
@@ -1237,87 +1341,79 @@ export default function AuthFlowContainer({
               <form
                 onSubmit={handleRegisterSubmit}
                 noValidate
-                className="relative z-10 space-y-2 my-auto"
+                className="relative z-10 my-auto"
               >
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Full Name"
-                  className="w-full h-9 xs:h-10 px-3.5 rounded-full bg-neutral-900/90 text-[11px] text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                />
-                <input
-                  type="text"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email Address (e.g. user@domain.com)"
-                  className="w-full h-9 xs:h-10 px-3.5 rounded-full bg-neutral-900/90 text-[11px] text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                />
-                <div className="relative flex items-center">
-                  <input
-                    type={showPassword ? "text" : "password"}
+                <AuthGlassCard className="p-3.5 xs:p-4 space-y-2">
+                  <AuthGlassField
+                    type="text"
+                    value={fullName}
+                    onChange={setFullName}
+                    placeholder="Full Name"
+                    autoComplete="name"
+                    heightClass="h-9 xs:h-10"
+                    textClass="text-[11px]"
+                    icon={<User className="w-3.5 h-3.5" />}
+                  />
+                  <AuthGlassField
+                    type="email"
+                    value={email}
+                    onChange={setEmail}
+                    placeholder="Email Address (e.g. user@domain.com)"
+                    autoComplete="email"
+                    heightClass="h-9 xs:h-10"
+                    textClass="text-[11px]"
+                    icon={<Mail className="w-3.5 h-3.5" />}
+                  />
+                  <AuthGlassField
+                    isPassword
                     value={password}
-                    maxLength={16}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={setPassword}
                     placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
-                    className="w-full h-9 xs:h-10 px-3.5 pr-9 rounded-full bg-neutral-900/90 text-[11px] text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 text-gray-400 hover:text-white"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-3.5 h-3.5" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
-                <div className="relative flex items-center">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
+                    autoComplete="new-password"
                     maxLength={16}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    heightClass="h-9 xs:h-10"
+                    textClass="text-[11px]"
+                    icon={<Lock className="w-3.5 h-3.5" />}
+                    showPassword={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
+                  />
+                  <AuthGlassField
+                    isPassword
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
                     placeholder="Confirm Password"
-                    className="w-full h-9 xs:h-10 px-3.5 pr-9 rounded-full bg-neutral-900/90 text-[11px] text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+                    autoComplete="new-password"
+                    maxLength={16}
+                    heightClass="h-9 xs:h-10"
+                    textClass="text-[11px]"
+                    icon={<Lock className="w-3.5 h-3.5" />}
+                    showPassword={showConfirmPassword}
+                    onTogglePassword={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 text-gray-400 hover:text-white"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-3.5 h-3.5" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
 
-                <div className="flex items-center gap-1.5 text-[9.5px] text-gray-400 font-medium px-1">
-                  <input
-                    type="checkbox"
-                    checked={agreeTerms}
-                    onChange={(e) => setAgreeTerms(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
+                  <div className="flex items-center gap-1.5 text-[9.5px] text-gray-400 font-medium px-1">
+                    <input
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
+                    />
+                    <span>
+                      Agree to{" "}
+                      <span className="text-white underline">Terms</span> &{" "}
+                      <span className="text-white underline">Privacy Policy</span>
+                    </span>
+                  </div>
+
+                  <AuthSubmitButton
+                    label="Create Account"
+                    loading={isLoading}
+                    heightClass="h-9 xs:h-10"
+                    className="mt-1 px-4"
                   />
-                  <span>
-                    Agree to <span className="text-white underline">Terms</span>{" "}
-                    &{" "}
-                    <span className="text-white underline">Privacy Policy</span>
-                  </span>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-9 xs:h-10 rounded-full bg-white text-black font-black text-xs flex items-center justify-between px-4 hover:bg-gray-100 transition-all shadow-xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50 mt-1"
-                >
-                  <span>Create Account</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
+                </AuthGlassCard>
               </form>
 
               {/* Mobile Google Register Option */}
