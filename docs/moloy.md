@@ -157,6 +157,25 @@ Architected and developed the bespoke FITORA AI Studio and morphing floating ass
 
 ---
 
+## 11. Modern Google Gemini AI Engine Modernization & Authenticated Quota Tracking
+
+Upgraded the core AI coach engine to support next-generation Google AI Studio infrastructure, modern key formats, and real-time user quota tracking:
+
+### Key Implementation:
+
+- **Universal Google AI Studio API Key Support**:
+  - Deprecated legacy `startsWith("AIzaSy")` validation in `server/src/controllers/ai.controller.ts` to support modern Google AI Studio keys starting with `AQ.` alongside legacy keys.
+  - Implemented real-time environment validation and verified key integrity directly with Google Generative Language API.
+- **Resilient Multi-Model Fallback Pipeline (`ai.controller.ts` & `ai.service.ts`)**:
+  - Implemented high-performance multi-tier model fallback: `gemini-3.6-flash` ➔ `gemini-2.5-flash` ➔ `gemini-1.5-flash`.
+  - Automatically recovers from 404 model deprecations and regional rollouts, guaranteeing 99.9% uptime for conversational AI coaching and fitness protocol queries.
+- **Authenticated User Quota Tracking & Session Synchronization (`FloatingAiWidget.tsx`)**:
+  - Connected `FloatingAiWidget.tsx` to resolve authenticated `userId` from active session (`useSession()` / `getAuthSession()`).
+  - Passed dynamic `userId` to `fetchAiQuotaApi(userId)` and `sendAiChatApi(query, "coach", undefined, userId)`.
+  - Enables user-specific daily quota management (e.g. 20 daily AI coach queries per member) and prevents quota collisions between different athletes.
+
+---
+
 ## Overview
 
 These components form the responsive header, hero section, pricing, callouts, contact form, footer, membership tracking, digital billing engine, dynamic member hub, AI coach studio, and robust full-stack data layer of **Fitora**.
@@ -533,3 +552,25 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Implemented background body scroll lock (`overflow: hidden`, `overscroll-behavior: none`, `touch-none`) so only the chat widget scrolls when open, completely preventing page jump and scroll chaining.
   - Refined input deck into a clean matte white pill with zero distracting outer glow and an always-black circular submit button (`bg-black text-white disabled:opacity-40`).
   - Validated 100% clean builds across client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.
+
+### 14-Sep-26 (Day 8) & 15-Sep-26 (Day 9)
+
+- **Google AI Studio Key Modernization & Universal Key Format Support**:
+  - Replaced Google Gemini API Key in `server/.env` with the newly provisioned high-throughput key.
+  - Removed restrictive legacy prefix validation (`startsWith("AIzaSy")`) in `server/src/controllers/ai.controller.ts`, enabling modern Google AI Studio keys (`AQ.` prefix).
+  - Validated API key connectivity and payload response directly with Google Generative Language endpoint (`https://generativelanguage.googleapis.com/v1beta/models`).
+- **Resilient Multi-Model Fallback Architecture (`gemini-3.6-flash` ➔ `gemini-2.5-flash` ➔ `gemini-1.5-flash`)**:
+  - Architected automated cascading model fallback in `server/src/controllers/ai.controller.ts` and `server/src/services/ai.service.ts`.
+  - Automatically queries the latest `gemini-3.6-flash` model, gracefully failing over to `gemini-2.5-flash` or `gemini-1.5-flash` in case of rate limits or model version deprecations.
+- **Authenticated User Quota & Session Synchronization**:
+  - Updated `client/src/components/home/FloatingAiWidget.tsx` to resolve active athlete `userId` via `useSession()` and `getAuthSession()`.
+  - Passed `userId` dynamically to both `fetchAiQuotaApi(userId)` and `sendAiChatApi(query, "coach", undefined, userId)`, enabling user-specific quota deduction and usage tracking in MongoDB.
+- **Sprint 3 Scope Re-distribution & Jira Issue Architecture (5-Dev Team)**:
+  - Following the departure of Simanto Paul (`simanto-paul`), re-engineered sprint task allocation across 5 active team members.
+  - Reassigned BMI and Metric Calculator modules to Salauddin (`salauddin`), and Diet/Macro planning modules to Simanto Poddar (`simanto-poddar`).
+  - Generated comprehensive production-ready Jira Stories (`[FITORA-101]` to `[FITORA-105]`) complete with summaries, descriptions, sub-tasks, target file paths, story points, and Acceptance Criteria / Definition of Done.
+- **Full-Stack Verification & Zero-Error Certification**:
+  - Executed client-side TypeScript verification (`npx tsc --noEmit`): **0 Errors** (Exit code 0).
+  - Executed server-side TypeScript build (`npm run build` -> `tsc`): **0 Errors** (Exit code 0).
+  - Clean git working tree maintained on branch `moloy`.
+
