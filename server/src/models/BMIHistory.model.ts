@@ -2,7 +2,6 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IBMIHistory extends Document {
   userId: mongoose.Types.ObjectId;
-
   age: number;
   gender: "male" | "female";
   height: number;
