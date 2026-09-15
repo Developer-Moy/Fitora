@@ -4,12 +4,15 @@ import {
   createOrUpdateGoal,
   getGoal,
   updateGoal,
+  getGoalPresets,
   deleteGoal,
    getActiveGoals,
   getArchivedGoals,
 } from "../controllers/goal.controller";
 
 const router = Router();
+
+router.get("/presets", getGoalPresets);
 
 router.get("/active/:userId", getActiveGoals);
 
