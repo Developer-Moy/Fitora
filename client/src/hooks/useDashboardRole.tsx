@@ -11,11 +11,7 @@ import React, {
 } from "react";
 import { AUTH_SESSION_UPDATED } from "@/services/authService";
 
-export type DashboardRole =
-  | "master_admin"
-  | "branch_admin"
-  | "premium_user"
-  | "free_user";
+export type DashboardRole = "master_admin" | "branch_admin";
 
 export interface DashboardUserContextType {
   role: DashboardRole;
@@ -38,12 +34,7 @@ const STORAGE_KEY_ROLE = "fitora_active_role";
 const STORAGE_KEY_BRANCH = "fitora_active_branch";
 const STORAGE_KEY_AUTH = "fitora_auth_session";
 
-const VALID_DASHBOARD_ROLES: DashboardRole[] = [
-  "master_admin",
-  "branch_admin",
-  "premium_user",
-  "free_user",
-];
+const VALID_DASHBOARD_ROLES: DashboardRole[] = ["master_admin", "branch_admin"];
 
 const DashboardRoleContext = createContext<
   DashboardUserContextType | undefined
@@ -111,18 +102,13 @@ export function DashboardRoleProvider({
       localStorage.getItem(STORAGE_KEY_BRANCH) ||
       localStorage.getItem("fitora_active_branch");
 
-    if (isAuth && savedRole) {
+    const isStaffAdmin =
+      savedRole === "master_admin" || savedRole === "branch_admin";
+
+    if (isAuth && isStaffAdmin) {
       // eslint-disable-next-line
       setIsAuthenticated(true);
-      if (
-        ["master_admin", "branch_admin", "premium_user", "free_user"].includes(
-          savedRole,
-        )
-      ) {
-        setRoleState(savedRole);
-      } else {
-        setRoleState("master_admin");
-      }
+      setRoleState(savedRole);
       if (savedBranch) {
         setAssignedBranchState(savedBranch);
       }
@@ -147,6 +133,7 @@ export function DashboardRoleProvider({
   }, [syncSessionFromStorage]);
 
   const setRole = (newRole: DashboardRole) => {
+    if (newRole !== "master_admin" && newRole !== "branch_admin") return;
     setRoleState(newRole);
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY_ROLE, newRole);
@@ -181,44 +168,30 @@ export function DashboardRoleProvider({
           localUser = JSON.parse(stored);
           if (localUser.plan) userPlan = localUser.plan;
         }
-      } catch (e) { }
+      } catch (e) {}
+    }
+
+    if (role === "master_admin") {
+      return {
+        name: "Master Admin",
+        email: "master@fitora.com",
+        plan: "VIP Ultimate",
+      };
     }
 
     if (localUser && localUser.name && localUser.email) {
       return {
         name: localUser.name,
         email: localUser.email,
-        plan: userPlan || (role === "premium_user" ? "VIP Ultimate" : "Free Pass"),
+        plan: userPlan || "Staff Access",
       };
     }
 
-    switch (role) {
-      case "master_admin":
-        return {
-          name: "Master",
-          email: "master@fitora.com",
-          plan: "VIP Ultimate",
-        };
-      case "branch_admin":
-        return {
-          name: "Rahim Ahmed (Branch Admin)",
-          email: "gulshan.admin@fitora.com.bd",
-          plan: "VIP Ultimate",
-        };
-      case "premium_user":
-        return {
-          name: "Tanvir Hasan (VIP Athlete)",
-          email: "tanvir.athlete@gmail.com",
-          plan: userPlan || "Pro Athlete",
-        };
-      case "free_user":
-      default:
-        return {
-          name: "Sabbir Hossain (Free Member)",
-          email: "sabbir.member@gmail.com",
-          plan: userPlan || "Free Pass",
-        };
-    }
+    return {
+      name: "Branch Admin",
+      email: "gulshan.admin@fitora.com.bd",
+      plan: "Staff Access",
+    };
   }, [role]);
 
   const user = useMemo(
@@ -236,8 +209,8 @@ export function DashboardRoleProvider({
     userPlan: user.plan,
     isMasterAdmin: role === "master_admin",
     isBranchAdmin: role === "branch_admin",
-    isPremium: role === "premium_user",
-    isFreeUser: role === "free_user",
+    isPremium: false,
+    isFreeUser: false,
     isAuthenticated,
     isLoading,
     logout,
@@ -255,10 +228,10 @@ export function useDashboardRole(): DashboardUserContextType {
   if (!context) {
     return {
       role: "master_admin",
-      setRole: () => { },
+      setRole: () => {},
       assignedBranch: "Dhaka - Gulshan-2 Branch (Flagship)",
-      setAssignedBranch: () => { },
-      userName: "Master",
+      setAssignedBranch: () => {},
+      userName: "Master Admin",
       userEmail: "master@fitora.com",
       userPlan: "VIP Ultimate",
       isMasterAdmin: true,
@@ -267,7 +240,7 @@ export function useDashboardRole(): DashboardUserContextType {
       isFreeUser: false,
       isAuthenticated: false,
       isLoading: false,
-      logout: () => { },
+      logout: () => {},
     };
   }
   return context;

@@ -130,9 +130,14 @@ export async function fetchBranchOccupancy(
 
 export async function fetchBranchCheckins(
   branchId: string,
+  search?: string,
 ): Promise<BranchAttendance> {
-  const response = await fetch(`${API_URL}/branches/${branchId}/checkins`, {
+  const url = search
+    ? `${API_URL}/branches/${branchId}/checkins?search=${encodeURIComponent(search)}`
+    : `${API_URL}/branches/${branchId}/checkins`;
+  const response = await fetch(url, {
     headers: authHeaders(),
+    cache: "no-store",
   });
   return readResponse<BranchAttendance>(
     response,

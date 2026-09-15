@@ -1,49 +1,127 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+import FitoraSpinner from "./FitoraSpinner";
 
-type FitoraPillButtonProps = {
-  variant: "black" | "white";
+export interface FitoraPillButtonProps {
   children: React.ReactNode;
+  variant?: "black" | "white";
+  size?: "sm" | "md" | "lg";
+  href?: string;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void;
   disabled?: boolean;
   loading?: boolean;
-  type?: "button" | "submit" | "reset";
-  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  icon?: React.ReactNode;
+  showIcon?: boolean;
   className?: string;
-  "aria-label"?: string;
-};
+  type?: "button" | "submit" | "reset";
+  target?: string;
+  rel?: string;
+  title?: string;
+}
 
-export function FitoraPillButton({
-  variant,
+export default function FitoraPillButton({
   children,
+  variant = "black",
+  size = "md",
+  href,
+  onClick,
   disabled = false,
   loading = false,
-  type = "button",
-  onClick,
+  icon,
+  showIcon = true,
   className = "",
-  "aria-label": ariaLabel,
+  type = "button",
+  target,
+  rel,
+  title,
 }: FitoraPillButtonProps) {
-  const isDisabled = disabled || loading;
+  const sizeClasses = {
+    sm: "px-4 py-2 text-xs gap-2",
+    md: "px-5 py-2.5 text-xs sm:text-sm gap-2.5",
+    lg: "px-6 py-3.5 text-sm sm:text-base gap-3",
+  }[size];
 
-  const base =
-    "inline-flex items-center justify-center gap-2 font-extrabold text-xs uppercase tracking-wider px-5 py-3 rounded-full transition-all duration-300 shadow-md cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed select-none";
+  const badgeSizeClasses = {
+    sm: "w-5 h-5",
+    md: "w-6 h-6",
+    lg: "w-7 h-7",
+  }[size];
 
-  const variants: Record<"black" | "white", string> = {
-    black:
-      "bg-neutral-950 border border-white/15 text-white hover:border-white/40",
-    white:
-      "bg-white text-black hover:bg-gray-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] shadow-xl",
-  };
+  const iconSizeClasses = {
+    sm: "w-2.5 h-2.5",
+    md: "w-3 h-3",
+    lg: "w-3.5 h-3.5",
+  }[size];
+
+  const isBlack = variant === "black";
+
+  const baseStyles =
+    "group inline-flex items-center justify-center font-extrabold uppercase tracking-wider rounded-full transition-all duration-300 shadow-xl cursor-pointer select-none leading-none";
+
+  const variantStyles = isBlack
+    ? "bg-black text-white border border-white/25 hover:bg-black hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] hover:scale-[1.03] active:scale-[0.97]"
+    : "bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97]";
+
+  const badgeStyles = isBlack
+    ? "bg-white text-black group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md"
+    : "bg-black text-white group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md";
+
+  const disabledStyles =
+    "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:scale-100";
+
+  const combinedClasses =
+    `${baseStyles} ${sizeClasses} ${variantStyles} ${disabledStyles} ${className}`.trim();
+
+  const renderedIcon = icon || (
+    <ArrowUpRight className={`${iconSizeClasses} stroke-[2.5]`} />
+  );
+
+  const content = (
+    <>
+      <span className="truncate">{children}</span>
+
+      {showIcon && (
+        <span
+          className={`${badgeSizeClasses} rounded-full flex items-center justify-center shrink-0 ${badgeStyles}`}
+          aria-hidden="true"
+        >
+          {loading ? (
+            <FitoraSpinner size="sm" />
+          ) : (
+            renderedIcon
+          )}
+        </span>
+      )}
+    </>
+  );
+
+  if (href && !disabled && !loading) {
+    return (
+      <Link
+        href={href}
+        onClick={onClick}
+        className={combinedClasses}
+        target={target}
+        rel={rel}
+        title={title}
+      >
+        {content}
+      </Link>
+    );
+  }
 
   return (
     <button
       type={type}
-      disabled={isDisabled}
       onClick={onClick}
-      aria-label={ariaLabel}
-      className={`${base} ${variants[variant]} ${className}`}
+      disabled={disabled || loading}
+      className={combinedClasses}
+      title={title}
     >
-      {children}
+      {content}
     </button>
   );
 }

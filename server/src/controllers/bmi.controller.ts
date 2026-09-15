@@ -52,7 +52,12 @@ export const createBMIHistory = async (req: Request, res: Response) => {
         : Math.round(numBmr * 1.375);
 
     const authUser = (req as any).user;
-    const finalUserId = userId || authUser?._id || authUser?.id || "guest_user";
+    const finalUserId =
+      userId ||
+      authUser?.userId ||
+      authUser?._id ||
+      authUser?.id ||
+      "guest_user";
 
     const history = await BMI.create({
       userId: finalUserId,
@@ -61,6 +66,7 @@ export const createBMIHistory = async (req: Request, res: Response) => {
       bmi: numBmi,
       bmr: numBmr,
       tdee: numTdee,
+      statusCategory: req.body.statusCategory || req.body.status,
     });
 
     return res

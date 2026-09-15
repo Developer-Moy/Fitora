@@ -4,6 +4,7 @@ import Notification, {
   NotificationType,
 } from "../models/Notification.model.js";
 import Payment from "../models/Payment.model.js";
+import User from "../models/User.model.js";
 import { successResponse, errorResponse } from "../utils/apiResponse.js";
 
 /**
@@ -37,14 +38,31 @@ export async function createNotificationHelper(
  */
 export async function getMyNotifications(req: AuthRequest, res: Response) {
   try {
-    const userId = req.user?.userId || (req as any).user?.id;
-    if (!userId) {
+    let userId = req.user?.userId || (req as any).user?.id;
+    const userEmail = req.user?.email || (req.query.email as string);
+
+    if (!userId && userEmail) {
+      const foundUser = await User.findOne({
+        email: userEmail.toLowerCase().trim(),
+      })
+        .select("_id")
+        .lean();
+      if (foundUser) {
+        userId = foundUser._id.toString();
+      }
+    }
+
+    if (!userId && !userEmail) {
       return res
         .status(401)
         .json(errorResponse("Authentication required", "Unauthorized", 401));
     }
 
-    let notifications = await Notification.find({ userId })
+    const userFilters = [userId, userEmail].filter(Boolean) as string[];
+
+    let notifications = await Notification.find({
+      userId: { $in: userFilters },
+    })
       .sort({ createdAt: -1 })
       .limit(30)
       .lean();
@@ -84,7 +102,7 @@ export async function getMyNotifications(req: AuthRequest, res: Response) {
         );
       }
 
-      notifications = await Notification.find({ userId })
+      notifications = await Notification.find({ userId: { $in: userFilters } })
         .sort({ createdAt: -1 })
         .limit(30)
         .lean();
@@ -118,17 +136,31 @@ export async function getMyNotifications(req: AuthRequest, res: Response) {
  */
 export async function markNotificationAsRead(req: AuthRequest, res: Response) {
   try {
-    const userId = req.user?.userId || (req as any).user?.id;
+    let userId = req.user?.userId || (req as any).user?.id;
+    const userEmail = req.user?.email || (req.query.email as string);
     const { id } = req.params;
 
-    if (!userId) {
+    if (!userId && userEmail) {
+      const foundUser = await User.findOne({
+        email: userEmail.toLowerCase().trim(),
+      })
+        .select("_id")
+        .lean();
+      if (foundUser) {
+        userId = foundUser._id.toString();
+      }
+    }
+
+    if (!userId && !userEmail) {
       return res
         .status(401)
         .json(errorResponse("Authentication required", "Unauthorized", 401));
     }
 
+    const userFilters = [userId, userEmail].filter(Boolean) as string[];
+
     const notification = await Notification.findOneAndUpdate(
-      { _id: id, userId },
+      { _id: id, userId: { $in: userFilters } },
       { $set: { isRead: true } },
       { new: true },
     );
@@ -140,7 +172,7 @@ export async function markNotificationAsRead(req: AuthRequest, res: Response) {
     }
 
     const unreadCount = await Notification.countDocuments({
-      userId,
+      userId: { $in: userFilters },
       isRead: false,
     });
 
@@ -176,15 +208,30 @@ export async function markAllNotificationsAsRead(
   res: Response,
 ) {
   try {
-    const userId = req.user?.userId || (req as any).user?.id;
-    if (!userId) {
+    let userId = req.user?.userId || (req as any).user?.id;
+    const userEmail = req.user?.email || (req.query.email as string);
+
+    if (!userId && userEmail) {
+      const foundUser = await User.findOne({
+        email: userEmail.toLowerCase().trim(),
+      })
+        .select("_id")
+        .lean();
+      if (foundUser) {
+        userId = foundUser._id.toString();
+      }
+    }
+
+    if (!userId && !userEmail) {
       return res
         .status(401)
         .json(errorResponse("Authentication required", "Unauthorized", 401));
     }
 
+    const userFilters = [userId, userEmail].filter(Boolean) as string[];
+
     await Notification.updateMany(
-      { userId, isRead: false },
+      { userId: { $in: userFilters }, isRead: false },
       { $set: { isRead: true } },
     );
 

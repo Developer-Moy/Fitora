@@ -21,17 +21,34 @@ import {
   SearchResponseData,
 } from "@/services/searchService";
 
-export default function GlobalSearchBar() {
+interface GlobalSearchBarProps {
+  compact?: boolean;
+  className?: string;
+  onActiveChange?: (isActive: boolean) => void;
+}
+
+export default function GlobalSearchBar({
+  compact = false,
+  className = "",
+  onActiveChange,
+}: GlobalSearchBarProps = {}) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [results, setResults] = useState<SearchResponseData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState<boolean>(false);
   const [activeCategory, setActiveCategory] = useState<
     "all" | "athletes" | "branches" | "financials" | "telemetry"
   >("all");
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const isSearchActive = isFocused || isOpen || searchQuery.trim().length > 0;
+
+  useEffect(() => {
+    onActiveChange?.(isSearchActive);
+  }, [isSearchActive, onActiveChange]);
 
   // Debounced Search API Call
   useEffect(() => {
@@ -68,6 +85,7 @@ export default function GlobalSearchBar() {
         !containerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+        setIsFocused(false);
       }
     };
 
@@ -80,6 +98,7 @@ export default function GlobalSearchBar() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setIsOpen(false);
+        setIsFocused(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -88,6 +107,7 @@ export default function GlobalSearchBar() {
 
   const handleSelectResult = (item: SearchResultItem) => {
     setIsOpen(false);
+    setIsFocused(false);
     if (item.path) {
       router.push(item.path);
     }
@@ -97,6 +117,7 @@ export default function GlobalSearchBar() {
     setSearchQuery("");
     setResults(null);
     setIsOpen(false);
+    setIsFocused(false);
   };
 
   const totalResults = results?.totalCount ?? 0;
@@ -108,24 +129,49 @@ export default function GlobalSearchBar() {
   const telemetry = results?.telemetry || [];
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-lg z-40">
+    <div
+      ref={containerRef}
+      className={`relative z-40 transition-all duration-300 ease-in-out ${
+        compact
+          ? isSearchActive
+            ? "w-48 sm:w-64 md:w-72 lg:w-80"
+            : "w-24 sm:w-28 md:w-32"
+          : "w-full max-w-lg"
+      } ${className}`}
+    >
       {/* ── Search Input Field ── */}
       <div className="relative w-full">
-        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40 pointer-events-none" />
+        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40 pointer-events-none" />
 
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => {
+            setIsFocused(true);
             if (searchQuery.trim().length > 0) setIsOpen(true);
           }}
-          placeholder="Search athletes, branches, financials, telemetry..."
-          className="w-full rounded-full border border-white/15 bg-neutral-900/90 py-2 pl-10 pr-10 text-xs font-medium text-white placeholder:text-white/40 outline-none transition-all focus:border-white focus:ring-1 focus:ring-white shadow-inner"
+          onBlur={() => {
+            if (!searchQuery.trim()) {
+              setIsFocused(false);
+            }
+          }}
+          placeholder={
+            compact
+              ? isSearchActive
+                ? "Search athletes, branches, telemetry..."
+                : "Search..."
+              : "Search athletes, branches, financials, telemetry..."
+          }
+          className={`w-full rounded-full border border-white/15 bg-black/90 font-medium text-white placeholder:text-white/40 outline-none transition-all focus:border-white focus:ring-1 focus:ring-white shadow-inner ${
+            compact
+              ? "py-1.5 pl-8 pr-7 text-[11px]"
+              : "py-2 pl-10 pr-10 text-xs"
+          }`}
         />
 
         {/* Clear Button or Spinner */}
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
           {isLoading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin text-white/60" />
           ) : searchQuery.length > 0 ? (
@@ -143,9 +189,15 @@ export default function GlobalSearchBar() {
 
       {/* ── Dropdown Results Panel ── */}
       {isOpen && searchQuery.trim().length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-2 bg-neutral-950/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden text-white animate-in fade-in slide-in-from-top-2 duration-150 max-h-[75vh] flex flex-col">
+        <div
+          className={`absolute top-full mt-2 bg-black/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden text-white animate-in fade-in slide-in-from-top-2 duration-150 max-h-[75vh] flex flex-col ${
+            compact
+              ? "right-0 w-[320px] sm:w-[420px] md:w-[460px]"
+              : "left-0 right-0"
+          }`}
+        >
           {/* Header Bar */}
-          <div className="p-3 border-b border-white/10 flex items-center justify-between bg-black/40 text-[11px]">
+          <div className="p-3 border-b border-white/10 flex items-center justify-between bg-white/[0.02] text-[11px]">
             <div className="flex items-center gap-1.5 font-bold">
               <span className="text-white/50 uppercase tracking-wider">
                 Results for:
@@ -161,7 +213,7 @@ export default function GlobalSearchBar() {
 
           {/* Category Filter Pills (if results found) */}
           {totalResults > 0 && !isLoading && (
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/10 overflow-x-auto text-[10px] font-bold uppercase no-scrollbar bg-neutral-900/40">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/10 overflow-x-auto text-[10px] font-bold uppercase no-scrollbar bg-white/[0.03]">
               <button
                 type="button"
                 onClick={() => setActiveCategory("all")}
@@ -269,7 +321,7 @@ export default function GlobalSearchBar() {
                           className="group flex items-center justify-between p-2.5 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/15 transition-all cursor-pointer"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-white/15 flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/40 shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/15 flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/40 shrink-0">
                               <Users className="w-3.5 h-3.5" />
                             </div>
                             <div className="min-w-0">
@@ -309,7 +361,7 @@ export default function GlobalSearchBar() {
                           className="group flex items-center justify-between p-2.5 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/15 transition-all cursor-pointer"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-white/15 flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/40 shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/15 flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/40 shrink-0">
                               <Building2 className="w-3.5 h-3.5" />
                             </div>
                             <div className="min-w-0">
@@ -341,7 +393,9 @@ export default function GlobalSearchBar() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white/40">
                         <DollarSign className="w-3 h-3" />
-                        <span>Financials &amp; Packages ({financials.length})</span>
+                        <span>
+                          Financials &amp; Packages ({financials.length})
+                        </span>
                       </div>
                       {financials.map((item) => (
                         <div
@@ -350,7 +404,7 @@ export default function GlobalSearchBar() {
                           className="group flex items-center justify-between p-2.5 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/15 transition-all cursor-pointer"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-white/15 flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/40 shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/15 flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/40 shrink-0">
                               <DollarSign className="w-3.5 h-3.5" />
                             </div>
                             <div className="min-w-0">
@@ -369,8 +423,7 @@ export default function GlobalSearchBar() {
                   )}
 
                 {/* 4. Telemetry */}
-                {(activeCategory === "all" ||
-                  activeCategory === "telemetry") &&
+                {(activeCategory === "all" || activeCategory === "telemetry") &&
                   telemetry.length > 0 && (
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-white/40">
@@ -384,7 +437,7 @@ export default function GlobalSearchBar() {
                           className="group flex items-center justify-between p-2.5 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/15 transition-all cursor-pointer"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-white/15 flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/40 shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/15 flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/40 shrink-0">
                               <Zap className="w-3.5 h-3.5 text-white" />
                             </div>
                             <div className="min-w-0">

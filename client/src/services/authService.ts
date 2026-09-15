@@ -42,6 +42,22 @@ export interface AuthUser {
   updatedAt?: string;
   membershipExpiresAt?: string | Date | null;
   subscriptionExpiryDate?: string | Date | null;
+  attendanceStreakDays?: number;
+  hydrationTargetLiters?: number;
+  // Trial engine
+  trialExpiresAt?: string | null;
+  isTrialActive?: boolean;
+  // Card retention
+  hasSavedCard?: boolean;
+  bonusMonthsAwarded?: number;
+  savedCard?: {
+    last4: string;
+    brand: string;
+    expiryMonth: string;
+    expiryYear: string;
+    cardHolder: string;
+    savedAt: string;
+  } | null;
 }
 
 export interface AuthResponse {
@@ -49,6 +65,44 @@ export interface AuthResponse {
   message: string;
   token?: string;
   user?: AuthUser;
+}
+
+/**
+ * Standardized user-facing authentication error messages.
+ */
+export const AUTH_ERROR_MESSAGES = Object.freeze({
+  INVALID_CREDENTIALS: "Invalid email or password.",
+  NETWORK_ERROR: "Network error. Please check your internet connection.",
+  SESSION_EXPIRED: "Your session has expired. Please sign in again.",
+  UNEXPECTED: "Something went wrong. Please try again.",
+});
+
+/**
+ * Build a standardized failed AuthResponse for an authentication/request call.
+ *
+ * Classification:
+ * - A thrown `error` (fetch/network failure) => network error.
+ * - `status === 401` on an already-authenticated request => session expired.
+ * - A rejected credential attempt (login/register) => invalid credentials.
+ * - Anything else (e.g. 5xx, malformed payload) => unexpected server error.
+ */
+function authErrorResponse(
+  error?: unknown,
+  status?: number,
+  isCredentialAttempt = true,
+): AuthResponse {
+  if (error) {
+    return { success: false, message: AUTH_ERROR_MESSAGES.NETWORK_ERROR };
+  }
+  if (status === 401 && !isCredentialAttempt) {
+    return { success: false, message: AUTH_ERROR_MESSAGES.SESSION_EXPIRED };
+  }
+  return {
+    success: false,
+    message: isCredentialAttempt
+      ? AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS
+      : AUTH_ERROR_MESSAGES.UNEXPECTED,
+  };
 }
 
 /**
@@ -68,11 +122,7 @@ export async function dashboardLoginApi(
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return {
-        success: false,
-        message:
-          data?.message || "Invalid credentials or unauthorized clearance",
-      };
+      return authErrorResponse(undefined, res.status);
     }
 
     const authData = data.data;
@@ -87,10 +137,7 @@ export async function dashboardLoginApi(
       user: authData?.user,
     };
   } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-    return {
-      success: false,
-      message: "Network error — Could not connect to authentication gateway",
-    };
+    return authErrorResponse(error);
   }
 }
 
@@ -111,10 +158,7 @@ export async function loginApi(
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return {
-        success: false,
-        message: data?.message || "Invalid email or password",
-      };
+      return authErrorResponse(undefined, res.status);
     }
 
     const authData = data.data;
@@ -129,10 +173,7 @@ export async function loginApi(
       user: authData?.user,
     };
   } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-    return {
-      success: false,
-      message: "Network error — Could not reach login server",
-    };
+    return authErrorResponse(error);
   }
 }
 
@@ -156,10 +197,7 @@ export async function registerApi(payload: {
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return {
-        success: false,
-        message: data?.message || "Registration failed. Please try again.",
-      };
+      return authErrorResponse(undefined, res.status);
     }
 
     const authData = data.data;
@@ -174,10 +212,7 @@ export async function registerApi(payload: {
       user: authData?.user,
     };
   } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-    return {
-      success: false,
-      message: "Network error — Could not complete registration",
-    };
+    return authErrorResponse(error);
   }
 }
 
@@ -189,12 +224,15 @@ export async function registerApi(payload: {
 export async function getCurrentUserApi(params?: {
   userId?: string;
   email?: string;
+  name?: string;
+  image?: string;
+  avatarUrl?: string;
 }): Promise<AuthResponse> {
   try {
     const token =
       typeof window !== "undefined"
         ? localStorage.getItem("fitora_token") ||
-        localStorage.getItem("fitora_auth_token")
+          localStorage.getItem("fitora_auth_token")
         : null;
 
     if (!token && !params?.userId && !params?.email) {
@@ -207,6 +245,9 @@ export async function getCurrentUserApi(params?: {
     const query = new URLSearchParams();
     if (params?.userId) query.append("userId", params.userId);
     if (params?.email) query.append("email", params.email);
+    if (params?.name) query.append("name", params.name);
+    if (params?.image) query.append("image", params.image);
+    if (params?.avatarUrl) query.append("avatarUrl", params.avatarUrl);
     const queryString = query.toString() ? `?${query.toString()}` : "";
 
     const headers: Record<string, string> = {
@@ -214,6 +255,9 @@ export async function getCurrentUserApi(params?: {
     };
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (params?.email) {
+      headers["x-user-email"] = params.email;
     }
 
     const res = await fetch(`${API_URL}/auth/me${queryString}`, {
@@ -224,10 +268,7 @@ export async function getCurrentUserApi(params?: {
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return {
-        success: false,
-        message: data?.message || "Could not retrieve user profile",
-      };
+      return authErrorResponse(undefined, res.status, false);
     }
 
     return {
@@ -237,7 +278,7 @@ export async function getCurrentUserApi(params?: {
       token: token || undefined,
     };
   } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-    return { success: false, message: "Could not fetch user claims" };
+    return authErrorResponse(error);
   }
 }
 
@@ -248,6 +289,7 @@ export function saveAuthSession(token: string, user?: AuthUser) {
   if (typeof window === "undefined") return;
   localStorage.setItem("fitora_token", token);
   localStorage.setItem("fitora_auth_token", token);
+  localStorage.setItem("fitora_auth_session", "true");
   if (user) {
     localStorage.setItem("fitora_user", JSON.stringify(user));
     if (user.role) {
@@ -366,13 +408,13 @@ export function clearAuthSession() {
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-  } catch { }
+  } catch {}
 }
 
 export async function logoutUser(): Promise<void> {
   try {
     await authClient.signOut().catch(() => null);
-  } catch { }
+  } catch {}
   clearAuthSession();
 }
 

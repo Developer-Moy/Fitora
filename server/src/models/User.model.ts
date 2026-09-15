@@ -64,6 +64,19 @@ export interface IUser extends Document {
   qrCodeId: string;
   isMasterProtected: boolean;
 
+  // 3-Day Free Trial & Card Retention Engine
+  trialExpiresAt?: Date;
+  bonusMonthsAwarded?: number;
+  savedCard?: {
+    last4: string;
+    brand: string;
+    expiryMonth: string;
+    expiryYear: string;
+    cardHolder: string;
+    token?: string;
+    savedAt: Date;
+  };
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -225,11 +238,44 @@ const userSchema = new Schema<IUser>(
     membershipExpiresAt: {
       type: Date,
     },
+
+    // 3-Day Free Trial & Card Retention Engine
+    trialExpiresAt: {
+      type: Date,
+    },
+    bonusMonthsAwarded: {
+      type: Number,
+      default: 0,
+    },
+    savedCard: {
+      last4: { type: String, trim: true },
+      brand: { type: String, trim: true },
+      expiryMonth: { type: String, trim: true },
+      expiryYear: { type: String, trim: true },
+      cardHolder: { type: String, trim: true },
+      token: { type: String, trim: true },
+      savedAt: { type: Date, default: Date.now },
+    },
   },
   {
     timestamps: true,
   },
 );
+
+// Enforce single Master Admin
+userSchema.pre("save", function (next) {
+  if (this.role === "master_admin") {
+    const cleanEmail = (this.email || "").toLowerCase().trim();
+    if (cleanEmail !== "master@fitora.com") {
+      return next(
+        new Error(
+          "Only master@fitora.com can be Master Admin. Multiple master admins are strictly prohibited.",
+        ),
+      );
+    }
+  }
+  next();
+});
 
 // Indexes
 userSchema.index({ role: 1 });
@@ -238,4 +284,6 @@ userSchema.index({ status: 1 });
 
 const User = mongoose.model<IUser>("User", userSchema);
 
+export { User };
 export default User;
+

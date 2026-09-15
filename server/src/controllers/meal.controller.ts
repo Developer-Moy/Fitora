@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { Meal } from "../models/Meal.model";
 import { DEFAULT_MEALS } from "../data/meals.data";
 import { successResponse, errorResponse } from "../utils/apiResponse";
@@ -87,10 +88,11 @@ export const getMealById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
+    const query = mongoose.isValidObjectId(id)
+      ? { $or: [{ id }, { _id: id }] }
+      : { id };
 
-    const meal = await Meal.findOne({
-      $or: [{ id }, { _id: id }],
-    }).lean();
+    const meal = await Meal.findOne(query).lean();
 
     if (!meal) {
       res.status(404).json(errorResponse("Meal not found", "NOT_FOUND", 404));

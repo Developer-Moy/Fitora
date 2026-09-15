@@ -35,9 +35,15 @@ export async function fetchActiveAdsApi(
       return { success: false, data: [] };
     }
 
+    const raw = data.data;
+    const adsList = Array.isArray(raw?.ads)
+      ? raw.ads
+      : Array.isArray(raw)
+        ? raw
+        : [];
     return {
       success: true,
-      data: data.data || [],
+      data: adsList,
     };
   } catch (error) {
     return { success: false, data: [] };

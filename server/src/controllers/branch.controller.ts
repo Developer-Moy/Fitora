@@ -467,7 +467,7 @@ export const getPublicBranches = async (req: Request, res: Response) => {
 
     let filtered = branches;
 
-    if (division && division !== "All") {
+    if (division && String(division).toLowerCase() !== "all") {
       filtered = filtered.filter(
         (b) => b.division.toLowerCase() === String(division).toLowerCase(),
       );
@@ -480,7 +480,8 @@ export const getPublicBranches = async (req: Request, res: Response) => {
           b.name.toLowerCase().includes(q) ||
           b.district.toLowerCase().includes(q) ||
           b.division.toLowerCase().includes(q) ||
-          b.address.toLowerCase().includes(q),
+          b.address.toLowerCase().includes(q) ||
+          (b.adminName || "").toLowerCase().includes(q),
       );
     }
 
@@ -652,7 +653,7 @@ export const getBranchCheckins = async (req: AuthRequest, res: Response) => {
         );
     }
 
-    const { date } = req.query;
+    const { date, search } = req.query;
     const targetDate = typeof date === "string" ? date : getTodayKey();
 
     let branchCheckins = await BranchCheckin.find({
@@ -687,6 +688,17 @@ export const getBranchCheckins = async (req: AuthRequest, res: Response) => {
       } catch {
         // non-fatal
       }
+    }
+
+    if (search) {
+      const q = String(search).toLowerCase();
+      branchCheckins = branchCheckins.filter(
+        (c) =>
+          c.memberName?.toLowerCase().includes(q) ||
+          c.memberEmail?.toLowerCase().includes(q) ||
+          c.branchName?.toLowerCase().includes(q) ||
+          c.source?.toLowerCase().includes(q),
+      );
     }
 
     const activeCount = branchCheckins.filter(

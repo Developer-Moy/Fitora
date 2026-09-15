@@ -6,7 +6,6 @@ import {
   CreditCard,
   Printer,
   FileText,
-  Loader2,
   ArrowUpRight,
   ShieldCheck,
   RefreshCw,
@@ -28,6 +27,8 @@ import {
   AUTH_SESSION_UPDATED,
 } from "@/services/authService";
 import InvoiceModal from "@/components/InvoiceModal";
+import FitoraPillButton from "../ui/FitoraPillButton";
+import FitoraSpinner from "../ui/FitoraSpinner";
 
 /**
  * Payment status → badge style mapping.
@@ -65,9 +66,16 @@ export default function BillingSection() {
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const [userInfo, setUserInfo] = useState<{ name: string; email: string }>({
+  const [userInfo, setUserInfo] = useState<{
+    name: string;
+    email: string;
+    phone?: string;
+    branch?: string;
+  }>({
     name: "",
     email: "",
+    phone: "",
+    branch: "",
   });
 
   // Subscription management state
@@ -90,7 +98,18 @@ export default function BillingSection() {
       setError("");
 
       if (user) {
-        setUserInfo({ name: user.name || "", email: user.email || "" });
+        setUserInfo({
+          name: user.name || "",
+          email: user.email || "",
+          phone:
+            (user as any).phone ||
+            (user as any).phoneNumber ||
+            "+880 1700-000000",
+          branch:
+            (user as any).assignedBranch ||
+            (user as any).branch ||
+            "Gulshan-2 Flagship Branch",
+        });
         setCurrentPlan(user.plan || "Free Pass");
         setAutoRenew((user as any).autoRenew ?? true);
         setCancelAtPeriodEnd((user as any).cancelAtPeriodEnd ?? false);
@@ -216,6 +235,7 @@ export default function BillingSection() {
     setModalOpen(true);
     setTimeout(() => {
       if (typeof window !== "undefined") {
+        document.body.classList.add("printing-invoice");
         window.print();
       }
     }, 300);
@@ -287,7 +307,7 @@ export default function BillingSection() {
                 className="px-4 py-2.5 rounded-full border border-white/20 bg-neutral-900 text-white text-xs font-bold uppercase tracking-wider hover:border-white/40 hover:bg-neutral-800 transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50"
               >
                 {isTogglingAutoRenew ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <FitoraSpinner size="sm" />
                 ) : cancelAtPeriodEnd ? (
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 ) : (
@@ -395,7 +415,7 @@ export default function BillingSection() {
                       }`}
                     >
                       {isChangingPlan ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <FitoraSpinner size="sm" />
                       ) : isCurrent ? (
                         <span>Active Tier</span>
                       ) : (
@@ -431,7 +451,7 @@ export default function BillingSection() {
       {/* ── Loading state ── */}
       {loading ? (
         <div className="bg-black border border-white/20 rounded-2xl p-10 flex items-center justify-center">
-          <Loader2 className="w-7 h-7 animate-spin text-white/60" />
+          <FitoraSpinner size="sm" />
         </div>
       ) : error ? (
         <div className="bg-black border border-red-500/20 rounded-2xl p-6 text-center">
@@ -525,17 +545,17 @@ export default function BillingSection() {
                       </td>
                       <td className="px-4 sm:px-5 py-4 text-right">
                         <div className="flex items-center gap-2 justify-end">
-                          <button
+                          <FitoraPillButton
                             type="button"
                             onClick={() => openInvoice(payment)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 text-white hover:bg-white/10 hover:border-white/40 transition-all text-[10px] sm:text-xs font-bold cursor-pointer"
                           >
-                            <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                            
                             <span className="hidden md:inline">
                               View Invoice
                             </span>
                             <span className="md:hidden">Invoice</span>
-                          </button>
+                          </FitoraPillButton>
                           <button
                             type="button"
                             onClick={() => handlePrint(payment)}
@@ -559,6 +579,10 @@ export default function BillingSection() {
       <InvoiceModal
         payment={selectedPayment as Payment}
         userInfo={userInfo}
+        athleteName={userInfo.name}
+        athleteEmail={userInfo.email}
+        athletePhone={userInfo.phone}
+        assignedBranch={userInfo.branch}
         isOpen={modalOpen && !!selectedPayment}
         onClose={closeInvoice}
       />

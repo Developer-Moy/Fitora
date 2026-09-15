@@ -92,10 +92,74 @@ Architected and developed the full dynamic membership lifecycle tracking and dig
 
 ---
 
+## 8. Single-Screen Portal Invoice Engine, Unified Print System & Vector PDF Architecture (`InvoiceModal.tsx`)
+
+Architected and re-engineered the complete invoice rendering, print styling, and vector PDF generation pipeline:
+
+### Key Implementation:
+
+- **React Portal Mounting (`createPortal`)**: Mounted modal directly to `document.body` via `#invoice-modal-portal` at `z-[99999]`, breaking free from parent container overflow clipping, z-index stacking conflicts, and sticky navigation headers.
+- **Single-Screen 100% Viewport View**: Engineered a zero-scroll compact desktop layout (`max-w-2xl max-h-[90vh]`) featuring pinned luxury action toolbar and sleek itemized breakdowns that fit on one screen without cropping on standard 1080p displays.
+- **Cross-Browser Print Isolation (`globals.css`)**: Implemented dual-layer print CSS using `body:has(#invoice-modal-portal) > *:not(#invoice-modal-portal)` and `body.printing-invoice > *:not(#invoice-modal-portal)` with `display: none !important;`, guaranteeing crisp 1-page A4 print output without blank pages or header/footer bleed.
+- **Complete Vector PDF Generation (`jspdf`)**: Client-side vector PDF engine (`handleDownloadPDF`) producing high-definition documents with athlete name, verified email, phone number, assigned branch, athlete ID, TRX ID, payment method, line item tables, verification seal, and legal disclaimer.
+- **Athlete Metadata Propagation**: Integrated live session hydration across `BillingSection.tsx` and `BillingPaymentHistory.tsx` to automatically inject athlete contact and branch information into invoice modals.
+
+---
+
+## 9. Full-Stack Bug Remediation, Model Integrity & Dynamic Data Audit
+
+Conducted an end-to-end full-stack codebase audit to enforce 100% dynamic MongoDB connectivity and eliminate system crashes:
+
+### Key Implementation:
+
+- **Mongoose Model Collision Resolution**: Resolved fatal `OverwriteModelError` between `MealChart.model.ts` and `MealPlan.model.ts` by strictly scoping `MealChart` model registration.
+- **Non-ObjectId MongoDB CastError Protection**: Wrapped `_id` queries in `meal.controller.ts:getMealById` with `mongoose.isValidObjectId(id)` check, preventing 500 crashes when querying meals by slug strings.
+- **Goal Creation Validation & Enum Casing Normalization**: Implemented casing-tolerant enum mapping (`Bulking`, `Cutting`, `Recomp`, `Maintenance`) and automated fallback defaults in `goal.controller.ts`, eliminating Mongoose `ValidationError` on dashboard and calculator goals.
+- **Stopwatch Preset Duration Aliasing**: Unified `warmup` / `warmupDuration` and `cooldown` / `cooldownDuration` parameters and ensured `type`, `isPublic`, and `userId` are properly populated in `stopwatch.controller.ts`.
+- **Telemetry & Stats Field Alignment**: Standardized `caloriesBurned` alongside `burnedCalories` in `user.controller.ts` and mapped client interfaces in `dashboardService.ts`.
+- **BMI Route Authentication & Identity Protection**: Added `optionalAuth` middleware to `/api/bmi/history`, corrected `authUser.userId` resolution, and added `statusCategory` to `bmi.model.ts`.
+- **Response Envelope Normalization**: Fixed array extraction crashes in `ExerciseTracker.tsx` (`json?.data?.logs || json?.data || []`), `adService.ts`, and `consultationService.ts`.
+- **Mock Data Elimination**: Removed all 140+ lines of hardcoded mock athletes, branches, and financials from `searchService.ts` and eliminated fabricated multi-million revenue and member fallbacks in `dashboard/page.tsx`. Search and analytics now strictly reflect authentic MongoDB data.
+- **Canonical Currency Alignment**: Standardized BDT plan pricing across `SubscriptionModal.tsx` and connected member dashboard upgrade flow to live `changeMembershipPlanApi`.
+
+---
+
+## 10. AI Studio & Floating Fitness Intelligence Engine (`FloatingAiWidget.tsx`)
+
+Architected and developed the bespoke FITORA AI Studio and morphing floating assistant widget:
+
+### Key Implementation:
+
+- **React Portal Viewport Architecture (`createPortal`)**: Mounted the AI Studio modal directly to `document.body` at `z-[9999]`, breaking free of `HeroSection`'s `overflow: hidden` bounding box and sticky navigation stacking context to guarantee unclipped viewport rendering.
+- **Symmetrical Viewport Centering**: Centered the studio console horizontally (`left-1/2 -translate-x-1/2`) above the notch launcher with responsive geometry (`w-[calc(100vw-1.5rem)] sm:w-[620px] md:w-[680px] max-w-[680px] h-[560px] max-h-[calc(100vh-120px)]`), ensuring optimal layout on mobile and desktop displays.
+- **Persistent Morphing Launcher Trigger**:
+  - Locked into the hero bottom notch on page entry (`bottom-[-2px] sm:bottom-[-2px]`) with Google Gemini branding.
+  - Dynamically morphs into a fixed floating pill (`Ask AI` / `Close AI` at `bottom-5 sm:bottom-6`) once scrolled past the hero (`window.scrollY > 60`), remaining permanently accessible and non-disappearing when the studio modal is toggled.
+- **Luxury Bespoke Fitness Protocol Cards Grid**:
+  - Replaced generic emoji prompt strips with a 2x2 high-contrast grid of bespoke coaching protocols (`HYPERTROPHY`, `NUTRITION`, `FAT LOSS`, `RECOVERY`) during welcome state.
+  - Styled with deep obsidian glass cards, micro category pills, typography hierarchy, rotating circular `ArrowUpRight` (`↗`) badges, and 1-click execution.
+- **Protocols Horizontal Rail with Dedicated Scroll Controls (`<` and `>`)**:
+  - Integrated circular scroll navigation buttons (`ChevronLeft` and `ChevronRight`) on both ends of the active conversation protocol ribbon.
+  - Smooth horizontal scrolling (`scrollBy({ behavior: "smooth" })`) enables effortless desktop and mobile prompt selection without click-dragging.
+- **High-Contrast Brand Emblem & Visible AI Avatar**:
+  - Fixed white-on-white SVG vector invisibility in `/logo.svg` by applying CSS `brightness-0` across header emblems, welcome cards, message bubbles, and typing status.
+  - Presents the iconic Fitora "F" mark in jet black on pure white badge tiles.
+- **Authenticated Real User Profile Avatar**:
+  - Integrated `useSession()` from `@/lib/auth-client` and `getAuthSession()` from `@/services/authService`.
+  - Automatically loads and displays authenticated athlete profile images (`user.image` / `user.avatarUrl`) with graceful initial monogram fallback.
+- **Strict Background Body Scroll Lock**:
+  - When the AI Studio modal opens, `document.body` scroll is completely locked (`overflow: hidden` and `overscroll-behavior: none`) with dynamic padding-right compensation for scrollbar width.
+  - Applied `overscroll-contain` to modal and chat canvas to eliminate scroll chaining.
+  - Added touch and wheel interception (`touch-none`, `preventDefault()`) on the backdrop blur.
+- **Refined Matte White Command Deck & Always-Black Action Button**:
+  - Clean matte white input pill (`border border-neutral-200`) without distracting outer glow.
+  - Circular action button remains permanently solid black (`bg-black text-white disabled:opacity-40`), ensuring tactile luxury aesthetics.
+
+---
+
 ## Overview
 
-These components form the responsive header, hero section, pricing, callouts, contact form, and footer of **Fitora**.
-These components form the responsive header, hero section, pricing, callouts, contact form, footer, membership tracking, and digital billing engine of **Fitora**.
+These components form the responsive header, hero section, pricing, callouts, contact form, footer, membership tracking, digital billing engine, dynamic member hub, AI coach studio, and robust full-stack data layer of **Fitora**.
 
 ---
 
@@ -377,3 +441,95 @@ These components form the responsive header, hero section, pricing, callouts, co
     - Enhanced `client/src/services/branchService.ts` and `client/src/services/dashboardService.ts` with robust session token parsing and `x-user-email` fallback headers.
     - Connected `client/src/components/dashboard/HydrationTracker.tsx` to dynamically sync the athlete's hydration target from their MongoDB user profile via `getCurrentUserApi`.
     - Verified 100% clean builds across client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.
+  - Verified 100% clean builds across client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.
+
+### 10-Sep-26 (Day 5)
+
+- **Authoritative Dynamic Workout Consistency Streak & Activity Engine**:
+  - Architected and implemented `getUserActivityStreak` in `server/src/controllers/user.controller.ts`:
+    - Aggregates all user activity streams from MongoDB across `WorkoutLog`, `BranchCheckin` (gym QR check-ins), and `StopwatchSession` (gym timer logs).
+    - Groups activity by calendar day (`YYYY-MM-DD`) and computes calendar-accurate `currentStreak` (verifying active workout today or yesterday to maintain unbroken continuity; resets if gap > 1 day).
+    - Calculates all-time `longestStreak`, `totalActiveDays`, `totalWorkouts`, `totalMinutes`, and 30-day `consistencyScore`.
+    - Generates 180-day dynamic activity history array with activity intensity levels (`0 | 1 | 2 | 3`) for the GitHub-style contribution heatmap.
+    - Evaluates progressive consistency milestone badges (👟 First Step, 🔥 3-Day Fire, ⚡ Weekly Warrior, 🏆 Fortnight Beast, 👑 Monthly Master, 🛡️ 60-Day Titan, 💎 Century Legend) and next milestone countdown.
+    - Persists computed `currentStreak` automatically into `user.attendanceStreakDays` in MongoDB `User` model with `validateModifiedOnly: true`, ensuring permanent real-time synchronization across all user management tables and dashboard views.
+  - Mounted dynamic endpoints in `server/src/routes/user.routes.ts`:
+    - `GET /api/users/activity/streak`
+    - `GET /api/users/activity-streak`
+  - Created client API service `client/src/services/activityService.ts` (`fetchUserActivityStreakApi`) with seamless JWT token and session email resolution.
+  - Built luxury Pure B&W **Workout Consistency Streak & Milestone Badges** cockpit in `client/src/app/profile/page.tsx`:
+    - Real-time current streak pill badge with live `active today` indicator.
+    - 4-column KPI strip (Current Streak, Best Record, Total Active Days, 30-Day Consistency progress bar).
+    - Interactive horizontal milestone badge strip highlighting achieved badges.
+  - Upgraded `getDashboardStats` in `user.controller.ts` to dynamically calculate calendar streak if not already persisted, ensuring member dashboard check-in streak is 100% dynamic.
+  - Verified 100% clean builds across both server (`npm run build`) and client (`npx tsc --noEmit`) with 0 errors.
+
+### 11-Sep-26 (Day 6)
+
+- **Single Master Admin Protection & Schema Enforcement**:
+  - Enforced single master admin rule at Mongoose schema level (`server/src/models/User.model.ts`): only `master@fitora.com` can hold `role: "master_admin"`.
+  - Pre-save Mongoose hook strictly rejects any registration or user update attempting to assign `master_admin` to any email other than `master@fitora.com`.
+  - Purged redundant mock master admin accounts and normalized the Master Admin profile name.
+- **Strict Dashboard Access Policy (Admin-Only)**:
+  - Restricted `/dashboard` access strictly to authorized administrators (`master_admin` and `branch_admin`).
+  - Completely blocked free and premium athletes from dashboard administrative routes, directing them to the newly architected Member Hub (`/profile`).
+- **Dynamic Button-Triggered Search with Explicit Clear Buttons**:
+  - Removed search input from global Navbar (`client/src/components/Navbar.tsx`) and moved search into dedicated contextual sections.
+  - Replaced input-on-change search with deliberate button-triggered search (clicking "Search" button or pressing `Enter`) to eliminate unnecessary API requests.
+  - Added dedicated, visible "Clear" buttons that reset the search input, clear active filters, and query MongoDB directly for the full unfiltered dataset.
+  - Eliminated all client-side array filtering (`.filter()`, `.slice()`) in favor of direct MongoDB database queries across User Management, Branch Management, and Attendance Feeds.
+- **3-Day Free Premium Trial Engine**:
+  - Extended `User.model.ts` and `userSchema` with `trialExpiresAt?: Date`, `bonusMonthsAwarded?: number`, and `savedCard?: object`.
+  - Updated `registerUser` in `server/src/controllers/auth.controller.ts`: automatically initializes `trialExpiresAt = Date.now() + 3 days` (72 hours) upon registration.
+  - Updated `loginUser`, `dashboardLogin`, and `getCurrentUser` (`/api/auth/me`) to return `trialExpiresAt`, `isTrialActive`, and `hasSavedCard`.
+  - Implemented dynamic `TrialCountdownBanner` in `client/src/app/profile/page.tsx` displaying real-time countdown (days, hours, minutes, seconds) for active trials.
+- **Saved Card & 2 Bonus Months Retention Engine**:
+  - Integrated card retention incentive into `server/src/controllers/payment.controller.ts` (`checkoutPayment`):
+    - When a user purchases a monthly subscription with `saveCard = true`, the server automatically overrides the expiration date to **90 days** (1 month purchase + 2 bonus months FREE), granting 3 months total access.
+    - Sets `bonusMonthsAwarded = 2` and persists masked card details (`last4`, `brand`, `expiryMonth`, `expiryYear`, `cardHolder`, `savedAt`) to the MongoDB user document.
+  - Added authenticated REST endpoints in `server/src/controllers/user.controller.ts` and `server/src/routes/user.routes.ts`:
+    - `POST /api/users/saved-card`: Securely saves or updates masked payment card metadata.
+    - `DELETE /api/users/saved-card`: Removes saved card from user profile.
+  - Added client API methods `saveCardApi()` and `deleteSavedCardApi()` in `client/src/services/dashboardService.ts`.
+  - Extended `AuthUser` interface in `client/src/services/authService.ts` with trial and saved card fields.
+- **Complete `/profile` Transformation into All-in-One Member Hub**:
+  - Architected and fully rewrote `client/src/app/profile/page.tsx` into a high-performance, 4-tab luxury monochrome Member Hub (`bg-black border border-white/15`):
+    1. **Overview / My Fitness**: Live activity streak counter, hydration daily target, quick profile summary, 365-day dynamic `ActivityHeatmap`, and real-time BMI history table with one-click record deletion.
+    2. **Gym Pass & QR**: Digital luxury membership pass for contactless check-in, high-contrast QR code generated from `user.qrCodeId`, branch details, and live validity status.
+    3. **Workouts & Nutrition**: Live workout logs from MongoDB with duration & calories burned, `PersonalizedNutritionPlan` tailored to fitness goals, and `SavedMealPlan` schedule.
+    4. **Subscription & Card**: `MembershipStatusCard`, renewal modal, complete invoice billing history (`BillingSection`), and Saved Card Manager (view masked card, delete card, or save a card to unlock 2 bonus months free).
+- **Single-Screen Portal Invoice Engine & Unified Print System (`InvoiceModal.tsx`)**:
+  - Re-architected `InvoiceModal.tsx` using React Portals (`createPortal(content, document.body)`) mounted at `#invoice-modal-portal` with `z-[99999]`, breaking free from parent z-index and overflow boundaries.
+  - Designed single-page compact 1080p desktop layout with zero vertical viewport cropping and pinned action toolbar (Copy No, Raw JSON, Download PDF, Print, Close).
+  - Unified `@media print` CSS in `globals.css` with dual-layer targeting (`body:has(#invoice-modal-portal) > *:not(#invoice-modal-portal)` and `body.printing-invoice > *:not(#invoice-modal-portal)`), resolving blank-page print artifacts across all modern browsers.
+  - Enhanced client-side `jspdf` vector invoice generator with complete athlete credentials (name, email, phone, assigned branch, ID, TRX ID, payment method, itemized lines, totals, verification seal, and disclaimer).
+  - Propagated athlete phone and branch dynamically from session user via `BillingSection.tsx`.
+- **Comprehensive Full-Project Scan & Dynamic Data Audit (100% MongoDB Dynamism)**:
+  - **Mongoose Model Namespace Safety**: Renamed model compilation in `server/src/models/MealChart.model.ts` to `"MealChart"`, resolving fatal `OverwriteModelError` collision with `MealPlan.model.ts`.
+  - **MongoDB ObjectId CastError Guard**: Added `mongoose.isValidObjectId(id)` in `meal.controller.ts:getMealById` before checking `_id`, preventing 500 crashes when querying meals by string slugs.
+  - **Goal Schema Validation & Enum Casing Normalization**: Implemented casing-tolerant enum mapping (`Bulking`, `Cutting`, `Recomp`, `Maintenance`) and automated fallback defaults in `goal.controller.ts`, eliminating Mongoose `ValidationError` on dashboard and calculator goals.
+  - **Stopwatch Preset Parameter Alignment**: Supported `warmup` / `warmupDuration` and `cooldown` / `cooldownDuration` aliases and returned `type` and `isPublic` in `stopwatch.controller.ts`.
+  - **User Stats Alignment**: Added `caloriesBurned: burnedCalories` in `user.controller.ts` and mapped client interfaces in `dashboardService.ts`.
+  - **BMI History Auth & Persistence**: Added `optionalAuth` to `/api/bmi/history`, corrected `authUser.userId` resolution, and added `statusCategory` to `bmi.model.ts`.
+  - **Response Envelope Fixes**: Fixed array extraction crashes in `ExerciseTracker.tsx` (`json?.data?.logs || json?.data || []`), `adService.ts`, and `consultationService.ts`.
+  - **Total Mock Data Purge**: Removed all 140+ lines of hardcoded mock athletes, branches, and financials from `searchService.ts` and purged fabricated multi-million revenue and member fallbacks in `dashboard/page.tsx`. Search and analytics now strictly reflect authentic MongoDB data.
+  - **Currency Alignment**: Standardized canonical BDT plan pricing across `SubscriptionModal.tsx` and wired member dashboard upgrade flow to `changeMembershipPlanApi`.
+- **100% Zero-Error Compilation & Verification**:
+  - Server TypeScript build (`cd server && npm run build` -> `tsc`): **0 Errors** (Exit 0).
+  - Client TypeScript validation (`cd client && npx tsc --noEmit`): **0 Errors** (Exit 0).
+
+### 13-Sep-26 (Day 7)
+
+- **AI Studio & Floating Fitness Intelligence Engine Architecture**:
+  - Resolved complex git merge conflicts across `client/src/app/loading.tsx`, `client/src/components/home/FloatingAiWidget.tsx`, `server/src/controllers/ai.controller.ts`, and `server/src/routes/ai.routes.ts`.
+  - Merged PR #157 into `development` on GitHub; validated clean Vercel and Render cloud deployments.
+  - Re-architected `FloatingAiWidget.tsx` with React Portal (`createPortal(..., document.body)`) at `z-[9999]`, breaking free of `HeroSection`'s `overflow: hidden` bounding box and eliminating UI clipping.
+  - Symmetrically positioned the AI Studio console in the horizontal center of the viewport (`left-1/2 -translate-x-1/2`) above the launcher button with responsive sizing (`w-[calc(100vw-1.5rem)] sm:w-[620px] md:w-[680px]`).
+  - Replaced disappearing trigger with a persistent morphing button: locked in hero notch on load, morphs to floating pill (`Ask AI` / `Close AI`) when scrolled past hero (`window.scrollY > 60`), remaining permanently interactive and clickable to toggle.
+  - Replaced generic emoji prompt strip with a 2x2 luxury protocol card grid matching Fitora's homepage theme (`HYPERTROPHY`, `NUTRITION`, `FAT LOSS`, `RECOVERY`) with signature `ArrowUpRight` rotating badges and 1-click execution.
+  - Added dedicated two-sided circular scroll navigation buttons (`ChevronLeft` and `ChevronRight`) on the active conversation protocol rail for effortless smooth horizontal scrolling on desktop and mobile.
+  - Fixed white-on-white SVG vector invisibility on `/logo.svg` using CSS `brightness-0`, rendering the sharp black Fitora "F" mark on pure white badge tiles in the header, welcome card, AI chat bubbles, and typing indicator.
+  - Integrated real athlete profile picture resolution via `useSession()` and `getAuthSession()` with monogram fallback badge for authenticated members.
+  - Implemented background body scroll lock (`overflow: hidden`, `overscroll-behavior: none`, `touch-none`) so only the chat widget scrolls when open, completely preventing page jump and scroll chaining.
+  - Refined input deck into a clean matte white pill with zero distracting outer glow and an always-black circular submit button (`bg-black text-white disabled:opacity-40`).
+  - Validated 100% clean builds across client (`npx tsc --noEmit`) and server (`npm run build`) with zero errors.

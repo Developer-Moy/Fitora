@@ -237,3 +237,9 @@ Monthly / Yearly billing toggle switch.
 
 ### 09-Sep-26
 * 1RM PR Calculator & Interactive Workout Set Logging
+
+### 10-Sep-26
+* create attendance and revenew backend response data.
+
+### 13-Sep-26
+* [Profile-Growth] Standardize User Profile UI Buttons, Integrate FitoraSpinner & Scaffold VIP Pass Modal.

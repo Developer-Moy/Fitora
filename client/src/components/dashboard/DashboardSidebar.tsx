@@ -29,6 +29,7 @@ import {
   ChevronsUpDown,
   HeartPulse,
   LogOut,
+  MessageSquare,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -60,9 +61,34 @@ interface NavGroup {
   items: NavItem[];
 }
 
+const isTabActive = (itemTabKey?: string, currentTab?: string) => {
+  if (!itemTabKey || !currentTab) return false;
+  if (itemTabKey === currentTab) return true;
+  if (
+    itemTabKey === "overview" &&
+    (currentTab === "attendance" || currentTab === "entry-pass")
+  )
+    return true;
+  if (
+    itemTabKey === "finances" &&
+    (currentTab === "revenue" ||
+      currentTab === "payments" ||
+      currentTab === "packages")
+  )
+    return true;
+  if (
+    itemTabKey === "workouts" &&
+    (currentTab === "workout-log" || currentTab === "goals-log")
+  )
+    return true;
+  if (itemTabKey === "hydration" && currentTab === "nutrition-log") return true;
+  if (itemTabKey === "users" && currentTab === "athletes") return true;
+  return false;
+};
+
 const adminNavGroups: NavGroup[] = [
   {
-    category: "CORE",
+    category: "MANAGEMENT",
     items: [
       {
         name: "Executive Overview",
@@ -70,67 +96,27 @@ const adminNavGroups: NavGroup[] = [
         icon: LayoutDashboard,
         tabKey: "overview",
       },
-    ],
-  },
-  {
-    category: "OPERATIONS",
-    items: [
       {
-        name: "Gym Management",
+        name: "User Management",
+        href: "/dashboard?tab=users",
+        icon: Users,
+        tabKey: "users",
+      },
+      {
+        name: "64 Branches Directory",
+        href: "/dashboard?tab=branches",
         icon: Building2,
-        subItems: [
-          {
-            name: "User Management",
-            href: "/dashboard?tab=users",
-            tabKey: "users",
-            icon: Users,
-          },
-          {
-            name: "64 Branches Directory",
-            href: "/dashboard?tab=branches",
-            tabKey: "branches",
-            icon: Building2,
-            masterOnly: true,
-          },
-          {
-            name: "Live QR Attendance",
-            href: "/dashboard?tab=attendance",
-            tabKey: "attendance",
-            icon: QrCode,
-          },
-        ],
+        tabKey: "branches",
+        masterOnly: true,
       },
       {
-        name: "Finance & Growth",
+        name: "Financial Analytics",
+        href: "/dashboard?tab=finances",
         icon: TrendingUp,
-        subItems: [
-          {
-            name: "Income & MRR Growth",
-            href: "/dashboard?tab=revenue",
-            tabKey: "revenue",
-            icon: TrendingUp,
-          },
-          {
-            name: "bKash & Nagad Gateways",
-            href: "/dashboard?tab=payments",
-            tabKey: "payments",
-            icon: CreditCard,
-          },
-          {
-            name: "Membership Packages",
-            href: "/dashboard?tab=packages",
-            tabKey: "packages",
-            icon: Layers,
-          },
-        ],
+        tabKey: "finances",
       },
-    ],
-  },
-  {
-    category: "SYSTEM & TELEMETRY",
-    items: [
       {
-        name: "Platform Telemetry",
+        name: "System Telemetry",
         href: "/dashboard?tab=ai-telemetry",
         icon: Activity,
         tabKey: "ai-telemetry",
@@ -141,53 +127,30 @@ const adminNavGroups: NavGroup[] = [
 
 const memberNavGroups: NavGroup[] = [
   {
-    category: "CORE",
+    category: "MY FITNESS",
     items: [
       {
-        name: "Member Dashboard",
+        name: "Overview",
         href: "/dashboard?tab=overview",
         icon: LayoutDashboard,
         tabKey: "overview",
       },
-    ],
-  },
-  {
-    category: "FITNESS & LIFESTYLE",
-    items: [
       {
-        name: "Training Routine",
+        name: "Workouts & Routines",
+        href: "/dashboard?tab=workouts",
         icon: Dumbbell,
-        subItems: [
-          {
-            name: "Digital QR Pass",
-            href: "/dashboard?tab=entry-pass",
-            tabKey: "entry-pass",
-            icon: QrCode,
-          },
-          {
-            name: "Workout Session Log",
-            href: "/dashboard?tab=workout-log",
-            tabKey: "workout-log",
-            icon: Dumbbell,
-          },
-          {
-            name: "Nutrition & Hydration",
-            href: "/dashboard?tab=nutrition-log",
-            tabKey: "nutrition-log",
-            icon: Utensils,
-          },
-          {
-            name: "PR Goals & Records",
-            href: "/dashboard?tab=goals-log",
-            tabKey: "goals-log",
-            icon: Target,
-          },
-        ],
+        tabKey: "workouts",
       },
       {
-        name: "Personal Training Studio",
-        href: "/dashboard?tab=ai-coach",
+        name: "Daily Hydration",
+        href: "/dashboard?tab=hydration",
         icon: HeartPulse,
+        tabKey: "hydration",
+      },
+      {
+        name: "AI Coach Studio",
+        href: "/dashboard?tab=ai-coach",
+        icon: MessageSquare,
         tabKey: "ai-coach",
       },
       {
@@ -199,7 +162,7 @@ const memberNavGroups: NavGroup[] = [
     ],
   },
   {
-    category: "ACCOUNT & SETTINGS",
+    category: "ACCOUNT",
     items: [
       {
         name: "Profile & Settings",
@@ -208,7 +171,7 @@ const memberNavGroups: NavGroup[] = [
         tabKey: "profile",
       },
       {
-        name: "Upgrade to Pro Athlete",
+        name: "Upgrade to Pro",
         href: "/dashboard?tab=upgrade",
         icon: Crown,
         tabKey: "upgrade",
@@ -282,7 +245,7 @@ export default function DashboardSidebar({
 
       {/* Aside Sidebar Container — Strict Homepage Luxury Dark Theme */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-white/10 bg-neutral-950 text-white transition-all duration-300 ease-in-out select-none ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col border-r border-white/10 bg-black text-white transition-all duration-300 ease-in-out select-none ${
           isCollapsed ? "w-20" : "w-64"
         } ${
           isMobileOpen
@@ -332,7 +295,7 @@ export default function DashboardSidebar({
 
               <button
                 onClick={() => setIsCollapsed(true)}
-                className="hidden lg:flex h-8 w-8 rounded-full border border-white/15 bg-neutral-900 text-white/70 hover:text-white hover:bg-neutral-800 items-center justify-center transition cursor-pointer"
+                className="hidden lg:flex h-8 w-8 rounded-full border border-white/15 bg-white/5 text-white/70 hover:text-white hover:bg-white/15 items-center justify-center transition cursor-pointer"
                 title="Collapse Sidebar"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -351,7 +314,7 @@ export default function DashboardSidebar({
           {isCollapsed && (
             <button
               onClick={() => setIsCollapsed(false)}
-              className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-neutral-900 text-white/80 hover:text-white hover:bg-white hover:text-black shadow-2xl transition z-50 cursor-pointer"
+              className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-black text-white/80 hover:text-black hover:bg-white shadow-2xl transition z-50 cursor-pointer"
               title="Expand Sidebar"
             >
               <ChevronRight className="h-3.5 w-3.5" />
@@ -386,7 +349,7 @@ export default function DashboardSidebar({
                 const isDirectActive =
                   !hasSubItems &&
                   pathname === "/dashboard" &&
-                  currentTab === item.tabKey;
+                  isTabActive(item.tabKey, currentTab);
                 const isOpen = openAccordions[item.name] ?? false;
 
                 // ── CASE 1: ACCORDION ITEM WITH SUB-MENUS ──
@@ -403,7 +366,7 @@ export default function DashboardSidebar({
                         className={`w-full group relative flex items-center transition-all duration-200 cursor-pointer ${
                           isSubItemActive
                             ? "text-white font-bold bg-white/5"
-                            : "text-neutral-300 hover:bg-neutral-900 hover:text-white font-medium"
+                            : "text-neutral-300 hover:bg-white/10 hover:text-white font-medium"
                         } ${
                           isCollapsed && !isMobileOpen
                             ? "justify-center h-10 w-10 mx-auto rounded-full"
@@ -487,7 +450,7 @@ export default function DashboardSidebar({
                     className={`group relative flex items-center transition-all duration-200 ${
                       isDirectActive
                         ? "bg-white text-black font-bold shadow-lg"
-                        : "text-neutral-300 hover:bg-neutral-900 hover:text-white font-medium"
+                        : "text-neutral-300 hover:bg-white/10 hover:text-white font-medium"
                     } ${
                       isCollapsed && !isMobileOpen
                         ? "justify-center h-10 w-10 mx-auto rounded-full p-0"
@@ -527,7 +490,7 @@ export default function DashboardSidebar({
           {/* Role Switcher Popover Menu */}
           {showRoleMenu && (
             <div
-              className={`absolute bottom-full mb-2 bg-neutral-900 border border-white/15 rounded-2xl p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 ${
+              className={`absolute bottom-full mb-2 bg-black border border-white/15 rounded-2xl p-2 shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2 duration-200 ${
                 isCollapsed && !isMobileOpen ? "left-2 w-56" : "left-3 right-3"
               }`}
             >
@@ -552,7 +515,7 @@ export default function DashboardSidebar({
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                     role === "master_admin"
                       ? "bg-white text-black font-bold"
-                      : "text-neutral-200 hover:bg-neutral-800 hover:text-white"
+                      : "text-neutral-200 hover:bg-white/10 hover:text-white"
                   }`}
                 >
                   <Shield className="w-4 h-4" />
@@ -568,43 +531,11 @@ export default function DashboardSidebar({
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                     role === "branch_admin"
                       ? "bg-white text-black font-bold"
-                      : "text-neutral-200 hover:bg-neutral-800 hover:text-white"
+                      : "text-neutral-200 hover:bg-white/10 hover:text-white"
                   }`}
                 >
                   <Building2 className="w-4 h-4" />
                   <span>Branch Admin</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRole("premium_user");
-                    setShowRoleMenu(false);
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                    role === "premium_user"
-                      ? "bg-white text-black font-bold"
-                      : "text-neutral-200 hover:bg-neutral-800 hover:text-white"
-                  }`}
-                >
-                  <Crown className="w-4 h-4" />
-                  <span>Premium Athlete</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRole("free_user");
-                    setShowRoleMenu(false);
-                  }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                    role === "free_user"
-                      ? "bg-white text-black font-bold"
-                      : "text-neutral-200 hover:bg-neutral-800 hover:text-white"
-                  }`}
-                >
-                  <User className="w-4 h-4" />
-                  <span>Free Member</span>
                 </button>
 
                 <div className="pt-2 mt-2 border-t border-white/10">
@@ -636,7 +567,7 @@ export default function DashboardSidebar({
             className={`w-full flex items-center transition-all duration-200 cursor-pointer ${
               isCollapsed && !isMobileOpen
                 ? "justify-center"
-                : "gap-3 p-2.5 rounded-2xl bg-neutral-900 border border-white/10 hover:border-white/30 text-left"
+                : "gap-3 p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-white/30 text-left"
             }`}
             title="Click to Switch Role Preview"
           >

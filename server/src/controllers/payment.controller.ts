@@ -14,69 +14,16 @@ import PaymentTransaction from "../models/PaymentTransaction.model.js";
 import Payment from "../models/Payment.model.js";
 import { createNotificationHelper } from "./notification.controller.js";
 
-/**
- * Server-authoritative Membership Plan Definitions
- * Pricing is strictly calculated server-side; client prices are NEVER trusted.
- */
-export interface PlanDetails {
-  id: string;
-  name: string;
-  monthlyPrice: number;
-  annualMonthlyPrice: number;
-  description: string;
-}
+import {
+  PlanDetails,
+  MEMBERSHIP_PLANS,
+  resolvePlan,
+  generateInvoiceNumber,
+  calculateSubscriptionDetails,
+  calculateRetentionExpiry,
+} from "../services/payment.service.js";
 
-export const MEMBERSHIP_PLANS: Record<string, PlanDetails> = {
-  basic_pass: {
-    id: "basic_pass",
-    name: "Basic Pass",
-    monthlyPrice: 25,
-    annualMonthlyPrice: 19,
-    description: "Essential gym access for fitness starters & casual trainers.",
-  },
-
-  pro_athlete: {
-    id: "pro_athlete",
-    name: "Pro Athlete",
-    monthlyPrice: 49,
-    annualMonthlyPrice: 39,
-    description: "Complete fitness package with AI coach studio & full access.",
-  },
-
-  vip_ultimate: {
-    id: "vip_ultimate",
-    name: "VIP Ultimate",
-    monthlyPrice: 99,
-    annualMonthlyPrice: 79,
-    description: "Dedicated 1-on-1 coaching, custom nutrition & VIP perks.",
-  },
-};
-
-/**
- * Normalizes client plan identifier to internal server key
- */
-export function resolvePlan(identifier?: string): PlanDetails | null {
-  if (!identifier) return null;
-
-  const cleaned = identifier
-    .toLowerCase()
-    .trim()
-    .replace(/[\s-]+/g, "_");
-
-  if (cleaned === "basic_pass" || cleaned === "basic") {
-    return MEMBERSHIP_PLANS.basic_pass;
-  }
-
-  if (cleaned === "pro_athlete" || cleaned === "pro") {
-    return MEMBERSHIP_PLANS.pro_athlete;
-  }
-
-  if (cleaned === "vip_ultimate" || cleaned === "vip") {
-    return MEMBERSHIP_PLANS.vip_ultimate;
-  }
-
-  return null;
-}
+export { PlanDetails, MEMBERSHIP_PLANS, resolvePlan };
 
 /**
  * Helper to initialize Stripe instance
@@ -983,39 +930,6 @@ async function generateUniqueInvoiceNumber(): Promise<string> {
   throw new Error("Failed to generate unique invoice number");
 }
 
-function generateInvoiceNumber(): string {
-  const year = new Date().getFullYear();
-  const randomNum = Math.floor(100000 + Math.random() * 900000);
-  return `INV-${year}-${randomNum}`;
-}
-
-// Helper: Calculate subscription expiry and remaining days
-function calculateSubscriptionDetails(startDate: Date, billingCycle: string) {
-  const expiryDate = new Date(startDate);
-
-  if (billingCycle === "yearly" || billingCycle === "annual") {
-    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-  } else {
-    expiryDate.setMonth(expiryDate.getMonth() + 1);
-  }
-
-  const now = new Date();
-
-  const remainingMs = expiryDate.getTime() - now.getTime();
-
-  const remainingDays = Math.max(
-    0,
-    Math.ceil(remainingMs / (1000 * 60 * 60 * 24)),
-  );
-
-  return {
-    startDate,
-    expiryDate,
-    remainingDays,
-    isExpired: remainingMs <= 0,
-  };
-}
-
 /**
  * POST /api/payments/checkout
  */
@@ -1035,6 +949,8 @@ export async function checkoutPayment(
       userId: bodyUserId,
       userName: bodyUserName,
       userEmail: bodyUserEmail,
+      saveCard = false,
+      cardDetails,
     } = req.body;
 
     // Authoritative plan
@@ -1212,12 +1128,20 @@ export async function checkoutPayment(
           cycle,
         );
 
+        // BONUS MONTHS: If user saves card on a monthly plan, grant 3 months total (buy 1 get 2 free)
+        const { appliedExpiryDate } = calculateRetentionExpiry(
+          Boolean(saveCard),
+          cycle,
+          effectiveStartDate,
+          finalExpiryDate,
+        );
+
         // CRITICAL: Ensure paymentPayload.userId is assigned the actual targetUser._id
         paymentPayload.userId = targetUser._id;
         paymentPayload.userName = targetUser.name || resolvedName;
         paymentPayload.userEmail = targetUser.email || resolvedEmail;
         paymentPayload.subscriptionStartDate = now;
-        paymentPayload.subscriptionExpiryDate = finalExpiryDate;
+        paymentPayload.subscriptionExpiryDate = appliedExpiryDate;
 
         // Create payment document
         createdPayment = await Payment.create(paymentPayload);
@@ -1232,10 +1156,24 @@ export async function checkoutPayment(
 
         targetUser.totalPaidBDT = (targetUser.totalPaidBDT || 0) + amount;
         targetUser.paymentMethod = validGateway;
-        targetUser.subscriptionExpiryDate = finalExpiryDate;
-        targetUser.membershipExpiresAt = finalExpiryDate;
+        targetUser.subscriptionExpiryDate = appliedExpiryDate;
+        targetUser.membershipExpiresAt = appliedExpiryDate;
         targetUser.status = "active";
         targetUser.role = "premium_user";
+
+        // Save card if requested
+        if (saveCard && cardDetails?.last4) {
+          targetUser.savedCard = {
+            last4: cardDetails.last4,
+            brand: cardDetails.brand || "Card",
+            expiryMonth: cardDetails.expiryMonth || "12",
+            expiryYear: cardDetails.expiryYear || "2029",
+            cardHolder: cardDetails.cardHolder || targetUser.name,
+            token: cardDetails.token,
+            savedAt: new Date(),
+          };
+          targetUser.bonusMonthsAwarded = 2;
+        }
 
         if (!targetUser.assignedBranch) {
           targetUser.assignedBranch = "Gulshan Premium Branch";

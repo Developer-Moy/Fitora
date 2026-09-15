@@ -157,12 +157,12 @@ export const fetchMyPaymentsApi = async (
     let queryParams = "";
     if (typeof window !== "undefined") {
       const email = localStorage.getItem("fitora_user_email");
-      const sessionStr = localStorage.getItem("fitora_auth_session");
+      const userStr = localStorage.getItem("fitora_user");
       let userId: string | undefined;
-      if (sessionStr) {
+      if (userStr) {
         try {
-          const parsed = JSON.parse(sessionStr);
-          userId = parsed?.user?.id || parsed?.user?._id;
+          const parsed = JSON.parse(userStr);
+          userId = parsed?._id || parsed?.id;
         } catch {}
       }
       const params = new URLSearchParams();

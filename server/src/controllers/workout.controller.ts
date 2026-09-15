@@ -8,6 +8,11 @@ import {
 import { successResponse, errorResponse } from "../utils/apiResponse";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import UserTier from "../models/UserTier.model";
+import User from "../models/User.model";
+import {
+  recordHeatmapActivityHelper,
+  syncHeatmapOnWorkoutDeleted,
+} from "./heatmap.controller";
 
 /**
  * GET /api/workouts
@@ -228,10 +233,14 @@ export const getWorkoutLogs = async (
   res: Response,
 ): Promise<Response> => {
   try {
-    const { userId, limit } = req.query;
+    const { userId, email, limit } = req.query;
     const authUser = (req as any).user;
+
     const targetUserId =
-      (userId as string) || authUser?.userId || authUser?.id || "guest_user";
+      (userId as string) ||
+      authUser?.userId ||
+      authUser?.id ||
+      "guest_user";
 
     let logs: any[] = [];
     const isDbConnected = mongoose.connection.readyState === 1;
@@ -240,14 +249,53 @@ export const getWorkoutLogs = async (
       try {
         const query: any = {};
         if (targetUserId && targetUserId !== "all") {
-          const conditions: any[] = [
-            { userId: targetUserId },
-            { userId: "guest_user" },
-          ];
-          if (mongoose.Types.ObjectId.isValid(targetUserId)) {
-            conditions.push({
-              userId: new mongoose.Types.ObjectId(targetUserId),
-            });
+          const conditions: any[] = [{ userId: targetUserId }];
+          if (targetUserId !== "guest_user") {
+            if (mongoose.Types.ObjectId.isValid(targetUserId)) {
+              conditions.push({
+                userId: new mongoose.Types.ObjectId(targetUserId),
+              });
+            }
+            try {
+              let userDoc = null;
+              if (mongoose.Types.ObjectId.isValid(targetUserId)) {
+                userDoc = await User.findById(targetUserId).select("_id email");
+              } else if (targetUserId.includes("@")) {
+                userDoc = await User.findOne({
+                  email: targetUserId.toLowerCase(),
+                }).select("_id email");
+              } else {
+                userDoc = await User.findOne({
+                  $or: [
+                    { email: targetUserId },
+                    { phone: targetUserId },
+                  ],
+                }).select("_id email");
+              }
+
+              if (userDoc) {
+                if (
+                  userDoc.email &&
+                  !conditions.some((c) => c.userId === userDoc.email)
+                ) {
+                  conditions.push({ userId: userDoc.email });
+                }
+                const docIdStr = userDoc._id.toString();
+                if (!conditions.some((c) => c.userId === docIdStr)) {
+                  conditions.push({ userId: docIdStr });
+                  conditions.push({ userId: userDoc._id });
+                }
+              }
+            } catch {}
+
+            const queryEmail =
+              (email as string) || authUser?.email;
+            if (
+              queryEmail &&
+              !conditions.some((c) => c.userId === queryEmail)
+            ) {
+              conditions.push({ userId: queryEmail });
+            }
           }
           query.$or = conditions;
         }
@@ -379,7 +427,10 @@ export const createWorkoutLog = async (
 
     const authUser = (req as any).user;
     const finalUserId =
-      userId || authUser?.userId || authUser?.id || "guest_user";
+      userId ||
+      authUser?.userId ||
+      authUser?.id ||
+      "guest_user";
     const logDate = date ? new Date(date) : new Date();
 
     // Auto-calculate estimated calories if not provided
@@ -441,6 +492,23 @@ export const createWorkoutLog = async (
         );
     }
 
+    // Synchronize with dedicated Heatmap collection (fail-safe)
+    try {
+      await recordHeatmapActivityHelper({
+        userId: createdLog.userId || finalUserId,
+        exerciseName: createdLog.exerciseName,
+        date: createdLog.date || logDate,
+        durationMinutes: createdLog.durationMinutes,
+        caloriesBurned: createdLog.caloriesBurned,
+      });
+    } catch (heatmapSyncErr) {
+      console.error(
+        "[Workout Controller] Heatmap sync failed after workout log saved:",
+        heatmapSyncErr,
+      );
+      // Heatmap sync failure must never cause workout logging to fail
+    }
+
     return res
       .status(201)
       .json(successResponse("Workout logged successfully", createdLog));
@@ -495,6 +563,21 @@ export const deleteWorkoutLog = async (
       return res
         .status(404)
         .json(errorResponse("Workout log not found", "NOT_FOUND", 404));
+    }
+
+    // Synchronize with dedicated Heatmap collection (fail-safe)
+    try {
+      await syncHeatmapOnWorkoutDeleted({
+        userId: deleted.userId,
+        date: deleted.date || (deleted as any).createdAt,
+        exerciseName: deleted.exerciseName,
+      });
+    } catch (heatmapDeleteSyncErr) {
+      console.error(
+        "[Workout Controller] Heatmap delete sync failed:",
+        heatmapDeleteSyncErr,
+      );
+      // Heatmap sync failure must never cause workout deletion to fail
     }
 
     return res

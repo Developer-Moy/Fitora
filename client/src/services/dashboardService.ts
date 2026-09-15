@@ -39,14 +39,22 @@ export interface UserRecord {
   name: string;
   email: string;
   phone: string;
-  role: "master_admin" | "branch_admin" | "premium_user" | "free_user";
+  role:
+    | "master_admin"
+    | "branch_admin"
+    | "athlete"
+    | "user"
+    | "admin"
+    | "premium_user"
+    | "free_user"
+    | string;
   assignedBranch: string;
-  plan: "Free Pass" | "Basic Pass" | "Pro Athlete" | "VIP Ultimate";
-  status: "active" | "suspended" | "pending";
+  plan: "Free Pass" | "Basic Pass" | "Pro Athlete" | "VIP Ultimate" | string;
+  status: "active" | "suspended" | "pending" | string;
   joinDate: string;
   expiryDate: string;
   totalPaidBDT: number;
-  paymentMethod: "bKash" | "Nagad" | "Card" | "None";
+  paymentMethod: "bKash" | "Nagad" | "Card" | "Bank Transfer" | "None" | string;
   attendanceStreakDays: number;
   lastCheckIn: string;
   qrCodeId: string;
@@ -401,7 +409,7 @@ export async function fetchPublicBranches(params?: {
 }): Promise<BranchInfo[] | null> {
   try {
     const query = new URLSearchParams();
-    if (params?.division && params.division !== "All")
+    if (params?.division && params.division.toLowerCase() !== "all")
       query.append("division", params.division);
     if (params?.search) query.append("search", params.search);
 
@@ -450,7 +458,15 @@ export async function fetchMemberStats(): Promise<MemberStatsResponse | null> {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data.data;
+    const raw = data?.data;
+    if (!raw) return null;
+    return {
+      workoutsThisMonth: raw.workoutsThisMonth ?? raw.workoutCount ?? 0,
+      caloriesBurned: raw.caloriesBurned ?? raw.burnedCalories ?? 0,
+      streakDays: raw.streakDays ?? 0,
+      targetWorkouts: raw.targetWorkouts ?? 0,
+      consistencyScore: raw.consistencyScore ?? 0,
+    };
   } catch {
     return null;
   }
@@ -499,5 +515,58 @@ export async function updateUserHydrationTargetApi(
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Save a payment card to the authenticated user's profile.
+ * POST /api/users/saved-card
+ */
+export async function saveCardApi(cardDetails: {
+  last4: string;
+  brand: string;
+  expiryMonth: string;
+  expiryYear: string;
+  cardHolder: string;
+  token?: string;
+}): Promise<{ success: boolean; message: string; savedCard?: object }> {
+  try {
+    const res = await fetch(`${API_URL}/users/saved-card`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeader() },
+      body: JSON.stringify(cardDetails),
+    });
+    const data = await res.json().catch(() => null);
+    return {
+      success: res.ok && !!data?.success,
+      message: data?.message || (res.ok ? "Card saved" : "Failed to save card"),
+      savedCard: data?.data?.savedCard,
+    };
+  } catch {
+    return { success: false, message: "Network error saving card" };
+  }
+}
+
+/**
+ * Remove the saved card from the authenticated user's profile.
+ * DELETE /api/users/saved-card
+ */
+export async function deleteSavedCardApi(): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  try {
+    const res = await fetch(`${API_URL}/users/saved-card`, {
+      method: "DELETE",
+      headers: { ...getAuthHeader() },
+    });
+    const data = await res.json().catch(() => null);
+    return {
+      success: res.ok && !!data?.success,
+      message:
+        data?.message || (res.ok ? "Card removed" : "Failed to remove card"),
+    };
+  } catch {
+    return { success: false, message: "Network error removing card" };
   }
 }

@@ -66,6 +66,8 @@ export const createCustomPreset = async (
       restDuration,
       warmupDuration,
       cooldownDuration,
+      warmup: bodyWarmup,
+      cooldown: bodyCooldown,
       rounds,
     } = req.body;
 
@@ -155,7 +157,9 @@ export const createCustomPreset = async (
     }
 
     // Validate warmupDuration
-    const warmup = warmupDuration !== undefined ? warmupDuration : 0;
+    const effectiveWarmup =
+      warmupDuration !== undefined ? warmupDuration : bodyWarmup;
+    const warmup = effectiveWarmup !== undefined ? effectiveWarmup : 0;
     if (typeof warmup !== "number" || warmup < 0) {
       return res
         .status(400)
@@ -181,7 +185,9 @@ export const createCustomPreset = async (
     }
 
     // Validate cooldownDuration
-    const cooldown = cooldownDuration !== undefined ? cooldownDuration : 0;
+    const effectiveCooldown =
+      cooldownDuration !== undefined ? cooldownDuration : bodyCooldown;
+    const cooldown = effectiveCooldown !== undefined ? effectiveCooldown : 0;
     if (typeof cooldown !== "number" || cooldown < 0) {
       return res
         .status(400)
@@ -237,6 +243,7 @@ export const createCustomPreset = async (
         );
     }
 
+    // Insert new custom preset into database
     const newPreset = await StopwatchPreset.create({
       userId: req.user.userId,
       name: name.trim(),
@@ -259,6 +266,8 @@ export const createCustomPreset = async (
         rounds: newPreset.rounds,
         warmupDuration: newPreset.warmupDuration,
         cooldownDuration: newPreset.cooldownDuration,
+        type: newPreset.type || "Custom",
+        isPublic: newPreset.isPublic ?? false,
         createdAt: newPreset.createdAt,
         updatedAt: newPreset.updatedAt,
       }),

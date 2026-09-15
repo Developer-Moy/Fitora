@@ -19,7 +19,12 @@ import {
   markAllNotificationsAsReadApi,
   type AppNotification,
 } from "@/services/notificationService";
-import { getAuthSession, AUTH_SESSION_UPDATED } from "@/services/authService";
+import {
+  getAuthSession,
+  AUTH_SESSION_UPDATED,
+  type AuthUser,
+} from "@/services/authService";
+import { useSession } from "@/lib/auth-client";
 
 function formatRelativeTime(dateStr?: string): string {
   if (!dateStr) return "Just now";
@@ -36,26 +41,81 @@ function formatRelativeTime(dateStr?: string): string {
   return `${diffDay}d ago`;
 }
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  isLoggedIn?: boolean;
+  userEmail?: string;
+  token?: string;
+}
+
+export default function NotificationBell({
+  isLoggedIn: propIsLoggedIn,
+  userEmail: propUserEmail,
+  token: propToken,
+}: NotificationBellProps = {}) {
   const router = useRouter();
+  const { data: authSession } = useSession();
+  const [localUser, setLocalUser] = useState<AuthUser | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setMounted(true);
+    const syncLocal = () => {
+      const session = getAuthSession();
+      if (session.user) {
+        setLocalUser(session.user);
+      }
+    };
+    syncLocal();
+
+    window.addEventListener(AUTH_SESSION_UPDATED, syncLocal);
+    window.addEventListener("storage", syncLocal);
+
+    return () => {
+      window.removeEventListener(AUTH_SESSION_UPDATED, syncLocal);
+      window.removeEventListener("storage", syncLocal);
+    };
+  }, []);
+
+  const activeUser = authSession?.user || localUser;
+  const isUserLoggedIn =
+    propIsLoggedIn ??
+    Boolean(
+      activeUser ||
+      (mounted &&
+        typeof window !== "undefined" &&
+        (localStorage.getItem("fitora_user") ||
+          localStorage.getItem("fitora_token") ||
+          localStorage.getItem("fitora_user_email"))),
+    );
+
+  const resolvedEmail =
+    propUserEmail ||
+    activeUser?.email ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_user_email") || ""
+      : "");
+
+  const resolvedToken =
+    propToken ||
+    (typeof window !== "undefined"
+      ? localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token") ||
+        ""
+      : "");
+
   const loadNotifications = async () => {
-    const session = getAuthSession();
-    if (!session?.token) {
-      setIsLoggedIn(false);
+    if (!isUserLoggedIn && !resolvedEmail && !resolvedToken) {
       setNotifications([]);
       setUnreadCount(0);
       return;
     }
 
-    setIsLoggedIn(true);
-    const data = await fetchNotificationsApi(session.token);
+    const data = await fetchNotificationsApi(resolvedToken, resolvedEmail);
     if (data.success) {
       setNotifications(data.notifications);
       setUnreadCount(data.unreadCount);
@@ -63,7 +123,9 @@ export default function NotificationBell() {
   };
 
   useEffect(() => {
-    loadNotifications();
+    if (isUserLoggedIn || resolvedEmail || resolvedToken) {
+      loadNotifications();
+    }
 
     const handleSessionUpdate = () => {
       loadNotifications();
@@ -73,14 +135,18 @@ export default function NotificationBell() {
     window.addEventListener("storage", handleSessionUpdate);
 
     // Subtle 45s interval to check for updates
-    const interval = setInterval(loadNotifications, 45000);
+    const interval = setInterval(() => {
+      if (isUserLoggedIn || resolvedEmail || resolvedToken) {
+        loadNotifications();
+      }
+    }, 45000);
 
     return () => {
       window.removeEventListener(AUTH_SESSION_UPDATED, handleSessionUpdate);
       window.removeEventListener("storage", handleSessionUpdate);
       clearInterval(interval);
     };
-  }, []);
+  }, [isUserLoggedIn, resolvedEmail, resolvedToken]);
 
   // Close when clicking outside
   useEffect(() => {
@@ -100,17 +166,14 @@ export default function NotificationBell() {
     };
   }, [isOpen]);
 
-  if (!isLoggedIn) return null;
+  if (!isUserLoggedIn) return null;
 
   const handleMarkAsRead = async (id: string, link?: string) => {
-    const session = getAuthSession();
-    if (session?.token) {
-      await markNotificationAsReadApi(session.token, id);
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)),
-      );
-      setUnreadCount((c) => Math.max(0, c - 1));
-    }
+    await markNotificationAsReadApi(resolvedToken, id, resolvedEmail);
+    setNotifications((prev) =>
+      prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)),
+    );
+    setUnreadCount((c) => Math.max(0, c - 1));
     setIsOpen(false);
     if (link) {
       router.push(link);
@@ -118,10 +181,8 @@ export default function NotificationBell() {
   };
 
   const handleMarkAllAsRead = async () => {
-    const session = getAuthSession();
-    if (!session?.token) return;
     setLoading(true);
-    await markAllNotificationsAsReadApi(session.token);
+    await markAllNotificationsAsReadApi(resolvedToken, resolvedEmail);
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     setUnreadCount(0);
     setLoading(false);

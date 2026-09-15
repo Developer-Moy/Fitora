@@ -2,7 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Utensils, ArrowUpRight, Lock, Crown, Copy, Check } from "lucide-react";
+import {
+  Utensils,
+  ArrowUpRight,
+  Lock,
+  Crown,
+  Copy,
+  Check,
+  Sun,
+  Flame,
+  Moon,
+  Sparkles,
+  Layers,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -307,6 +319,8 @@ export default function PersonalizedNutritionPlan({
   const { data: authSession } = useSession();
   const [localUser, setLocalUser] = useState<AuthUser | null>(propUser || null);
   const [copiedMealIndex, setCopiedMealIndex] = useState<number | null>(null);
+  const [selectedMealIndex, setSelectedMealIndex] = useState<number>(0);
+  const [viewMode, setViewMode] = useState<"tabbed" | "all">("tabbed");
 
   useEffect(() => {
     const syncLocalUser = () => {
@@ -645,83 +659,319 @@ export default function PersonalizedNutritionPlan({
           </div>
         </div>
 
-        {/* Curated Daily Meal Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2">
-          {goalData.meals.map((meal, index) => (
-            <div
-              key={index}
-              className="bg-black border border-white/20 hover:border-white/25 rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-4 transition-all shadow-md"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                    {meal.type}
+        {/* Meal Selector & View Switcher Bar */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
+          {/* Meal Tabs */}
+          <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
+            {goalData.meals.map((m, idx) => {
+              const isSelected =
+                selectedMealIndex === idx && viewMode === "tabbed";
+              const mealIcon =
+                idx === 0 ? (
+                  <Sun className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                ) : idx === 1 ? (
+                  <Flame className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                ) : (
+                  <Moon className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
+                );
+
+              const shortLabel =
+                idx === 0 ? "Breakfast" : idx === 1 ? "Lunch" : "Dinner";
+
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setSelectedMealIndex(idx);
+                    setViewMode("tabbed");
+                  }}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-white text-black shadow-lg shadow-white/10"
+                      : "bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border border-white/10"
+                  }`}
+                >
+                  {mealIcon}
+                  <span>{shortLabel}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                      isSelected
+                        ? "bg-black/10 text-black font-bold"
+                        : "bg-white/10 text-white/60"
+                    }`}
+                  >
+                    {m.calories} kcal
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white text-black">
-                    {meal.calories} kcal
-                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* View Mode Toggle */}
+          <button
+            type="button"
+            onClick={() =>
+              setViewMode((prev) => (prev === "tabbed" ? "all" : "tabbed"))
+            }
+            className="flex items-center gap-1.5 text-xs font-bold text-white/60 hover:text-white transition-colors px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 cursor-pointer shrink-0 ml-auto sm:ml-0"
+          >
+            <Layers className="w-3.5 h-3.5 text-white/80" />
+            <span>
+              {viewMode === "tabbed" ? "View All 3 Meals" : "Tabbed View"}
+            </span>
+          </button>
+        </div>
+
+        {/* ── View 1: Focused Tabbed Meal Card (Default) ── */}
+        {viewMode === "tabbed" &&
+          (() => {
+            const meal = goalData.meals[selectedMealIndex] || goalData.meals[0];
+            const mealIcon =
+              selectedMealIndex === 0 ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : selectedMealIndex === 1 ? (
+                <Flame className="w-4 h-4 text-orange-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-indigo-300" />
+              );
+
+            return (
+              <div className="space-y-4">
+                {/* Active Meal Hero Card */}
+                <div className="bg-black border border-white/20 rounded-2xl p-5 sm:p-6 space-y-4 shadow-xl">
+                  {/* Header Row */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-white text-[11px] font-black uppercase tracking-wider border border-white/10">
+                        {mealIcon}
+                        {meal.type}
+                      </span>
+                      <span className="px-3 py-1 rounded-full text-xs font-black bg-white text-black shadow-md">
+                        {meal.calories} kcal
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCopyMeal(meal, selectedMealIndex)}
+                      className="inline-flex items-center justify-center gap-2 bg-white text-black border border-white font-extrabold text-xs px-4 py-2 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all cursor-pointer shrink-0"
+                    >
+                      {copiedMealIndex === selectedMealIndex ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="text-emerald-600 font-extrabold">
+                            Copied!
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy Recipe & Macros</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="space-y-1.5">
+                    <h3 className="text-base sm:text-lg font-black text-white leading-snug">
+                      {meal.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
+                      {meal.description}
+                    </p>
+                  </div>
+
+                  {/* Macro Split Boxes */}
+                  <div className="grid grid-cols-3 gap-2.5 pt-1">
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
+                      <span className="text-[10px] font-bold text-white/60 block uppercase">
+                        Protein
+                      </span>
+                      <span className="text-sm font-black text-white">
+                        {meal.protein}
+                      </span>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
+                      <span className="text-[10px] font-bold text-white/60 block uppercase">
+                        Carbs
+                      </span>
+                      <span className="text-sm font-black text-white">
+                        {meal.carbs}
+                      </span>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-center">
+                      <span className="text-[10px] font-bold text-white/60 block uppercase">
+                        Fats
+                      </span>
+                      <span className="text-sm font-black text-white">
+                        {meal.fats}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Ingredients 2-Column Grid */}
+                  <div className="space-y-2 pt-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-white/60">
+                        Ingredients & Portions
+                      </span>
+                      <span className="text-[10px] text-white/40">
+                        {meal.ingredients.length} items
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {meal.ingredients.map((ing, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white/90"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-white/80 shrink-0" />
+                          <span className="leading-tight">{ing}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <h4 className="text-sm font-extrabold text-white leading-snug">
-                    {meal.name}
-                  </h4>
-                  <p className="text-xs text-white/60 mt-1 line-clamp-2">
-                    {meal.description}
-                  </p>
-                </div>
-
-                {/* Macro Split Badge */}
-                <div className="flex items-center gap-2 text-[11px] font-bold text-white/80">
-                  <span className="bg-black/60 px-2 py-1 rounded-lg border border-white/5">
-                    P: {meal.protein}
+                {/* Day at a Glance Quick-Select Strip */}
+                <div className="space-y-2 pt-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-white/50 block">
+                    Quick Switch Meal
                   </span>
-                  <span className="bg-black/60 px-2 py-1 rounded-lg border border-white/5">
-                    C: {meal.carbs}
-                  </span>
-                  <span className="bg-black/60 px-2 py-1 rounded-lg border border-white/5">
-                    F: {meal.fats}
-                  </span>
-                </div>
-
-                {/* Ingredients List */}
-                <div className="space-y-1 pt-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/60 block">
-                    Ingredients:
-                  </span>
-                  <ul className="text-xs text-white/60 space-y-0.5 list-disc list-inside">
-                    {meal.ingredients.map((ing, i) => (
-                      <li key={i} className="truncate">
-                        {ing}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="grid grid-cols-3 gap-2">
+                    {goalData.meals.map((m, idx) => {
+                      const isActive = idx === selectedMealIndex;
+                      const label =
+                        idx === 0
+                          ? "Breakfast"
+                          : idx === 1
+                            ? "Lunch"
+                            : "Dinner";
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setSelectedMealIndex(idx)}
+                          className={`text-left p-2.5 rounded-xl border transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-white/15 border-white text-white shadow-md"
+                              : "bg-black/40 border-white/10 text-white/60 hover:text-white hover:bg-white/5 hover:border-white/20"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1 mb-1">
+                            <span className="text-[10px] font-extrabold uppercase tracking-wide">
+                              {label}
+                            </span>
+                            <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-white/10">
+                              {m.calories}
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-bold text-white/90 truncate">
+                            {m.name}
+                          </p>
+                          <p className="text-[9px] text-white/50 mt-0.5">
+                            P: {m.protein} • C: {m.carbs}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
+            );
+          })()}
 
-              {/* Copy Recipe Button */}
-              <button
-                type="button"
-                onClick={() => handleCopyMeal(meal, index)}
-                className="group w-full flex items-center justify-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
-              >
-                {copiedMealIndex === index ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
-                    <span className="text-emerald-600 font-extrabold">
-                      Copied!
-                    </span>
-                  </>
+        {/* ── View 2: Stacked All Meals (Non-Cramped 1-Column) ── */}
+        {viewMode === "all" && (
+          <div className="space-y-4 pt-1">
+            {goalData.meals.map((meal, index) => {
+              const mealIcon =
+                index === 0 ? (
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                ) : index === 1 ? (
+                  <Flame className="w-3.5 h-3.5 text-orange-400" />
                 ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>Copy Recipe & Macros</span>
-                  </>
-                )}
-              </button>
-            </div>
-          ))}
-        </div>
+                  <Moon className="w-3.5 h-3.5 text-indigo-300" />
+                );
+
+              return (
+                <div
+                  key={index}
+                  className="bg-black border border-white/20 hover:border-white/30 rounded-2xl p-5 space-y-3.5 transition-all shadow-md"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-black uppercase tracking-wider">
+                        {mealIcon}
+                        {meal.type}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white text-black">
+                        {meal.calories} kcal
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCopyMeal(meal, index)}
+                      className="inline-flex items-center justify-center gap-1.5 bg-white text-black font-extrabold text-xs px-3.5 py-1.5 rounded-full hover:bg-neutral-100 transition-all cursor-pointer self-start sm:self-auto"
+                    >
+                      {copiedMealIndex === index ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-600" />
+                          <span className="text-emerald-600 font-extrabold text-[11px]">
+                            Copied!
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span className="text-[11px]">Copy Recipe</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm sm:text-base font-black text-white">
+                      {meal.name}
+                    </h4>
+                    <p className="text-xs text-white/70 mt-0.5 leading-relaxed">
+                      {meal.description}
+                    </p>
+                  </div>
+
+                  {/* Macro Split Badge */}
+                  <div className="flex items-center gap-2 text-xs font-bold text-white/90">
+                    <span className="bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                      Protein: {meal.protein}
+                    </span>
+                    <span className="bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                      Carbs: {meal.carbs}
+                    </span>
+                    <span className="bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                      Fats: {meal.fats}
+                    </span>
+                  </div>
+
+                  {/* Ingredients */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                    {meal.ingredients.map((ing, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 bg-white/5 rounded-lg px-2.5 py-1.5 text-xs text-white/80"
+                      >
+                        <span className="w-1 h-1 rounded-full bg-white/70 shrink-0" />
+                        <span>{ing}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

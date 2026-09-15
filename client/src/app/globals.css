@@ -51,66 +51,128 @@ body {
   animation: fadeInOverlay 0.25s ease-out forwards;
 }
 
-/* ── Print Styles: print only the open InvoiceModal document ── */
+/* ── Unified Print Styles: 1-page A4 print optimization ── */
 @media print {
-  /* Hide everything that is not the invoice or one of its ancestors.
-     Ancestors are kept in the layout (so the invoice stays reachable)
-     but are visually reset below. */
-  body *:not(.print-area):not(:has(.print-area)) {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .no-print {
     display: none !important;
   }
 
-  /* Neutralise the fixed overlay + scrollable card so the invoice
-     flows naturally from the top of the printed page. */
-  .print-modal-backdrop,
-  .print-modal-card {
+  /* ── 1. Printing Invoice Modal via Portal ── */
+  body:has(#invoice-modal-portal) > *:not(#invoice-modal-portal),
+  body.printing-invoice > *:not(#invoice-modal-portal) {
+    display: none !important;
+  }
+
+  #invoice-modal-portal {
+    display: block !important;
     position: static !important;
-    max-height: none !important;
-    max-width: none !important;
-    overflow: visible !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
     padding: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  #invoice-modal-portal .invoice-modal-backdrop {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
     backdrop-filter: none !important;
   }
 
-  /* Force a clean, printer-friendly black-on-white document. */
-  .print-area,
-  .print-area * {
-    visibility: visible;
-    color: #111111 !important;
-    background: transparent !important;
-    border-color: #dddddd !important;
+  #invoice-modal-portal .invoice-modal-card {
+    position: static !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    border: none !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .print-hide {
-    display: none !important;
+  #invoice-modal-portal #printable-invoice-container {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 6px 12px !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    border: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    overflow: visible !important;
   }
-}
 
-@media print {
-  @page {
-    size: A4;
-    margin: 12mm;
+  #invoice-modal-portal .print-light-card {
+    background: #f9fafb !important;
+    border: 1px solid #d1d5db !important;
+    color: #111827 !important;
   }
 
-  body {
-    background: white !important;
+  #invoice-modal-portal .print-light-card * {
+    color: #111827 !important;
   }
 
-  body * {
+  #invoice-modal-portal .print-light-table-header {
+    background: #f3f4f6 !important;
+    color: #1f2937 !important;
+  }
+
+  #invoice-modal-portal table {
+    border-color: #d1d5db !important;
+    width: 100% !important;
+  }
+
+  #invoice-modal-portal th,
+  #invoice-modal-portal td {
+    border-color: #d1d5db !important;
+    color: #111827 !important;
+  }
+
+  /* ── 2. Printing Athlete Health Assessment Card ── */
+  body:has(#athlete-health-assessment-card):not(:has(#invoice-modal-portal)) * {
     visibility: hidden !important;
   }
 
-  #athlete-health-assessment-card,
-  #athlete-health-assessment-card * {
+  body:has(#athlete-health-assessment-card):not(:has(#invoice-modal-portal))
+    #athlete-health-assessment-card,
+  body:has(#athlete-health-assessment-card):not(:has(#invoice-modal-portal))
+    #athlete-health-assessment-card
+    * {
     visibility: visible !important;
   }
 
-  #athlete-health-assessment-card {
+  body:has(#athlete-health-assessment-card):not(:has(#invoice-modal-portal))
+    #athlete-health-assessment-card {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;
@@ -120,10 +182,8 @@ body {
     border-radius: 0 !important;
     box-shadow: none !important;
     overflow: visible !important;
-
     background: #0a0a0a !important;
     color: white !important;
-
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
   }

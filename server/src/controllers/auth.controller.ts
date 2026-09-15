@@ -83,13 +83,15 @@ export const registerUser = async (req: Request, res: Response) => {
     const passwordHash = await bcrypt.hash(password, 12);
 
     const validRole: UserRole =
-      role && ["master_admin", "branch_admin", "athlete", "user"].includes(role)
+      role && ["branch_admin", "athlete", "user"].includes(role)
         ? role
         : "athlete";
 
     const branch = assignedBranch || "Dhanmondi, Dhaka";
     const branchSlug = branch.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const qrCode = `FIT-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    const trialExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 
     const user = await User.create({
       name: name.trim(),
@@ -107,6 +109,8 @@ export const registerUser = async (req: Request, res: Response) => {
       paymentMethod: "None",
       qrCodeId: qrCode,
       isMasterProtected: cleanEmail === "master@fitora.com",
+      trialExpiresAt,
+      bonusMonthsAwarded: 0,
     });
 
     const token = signUserToken(user);
@@ -126,6 +130,15 @@ export const registerUser = async (req: Request, res: Response) => {
           attendanceStreakDays: user.attendanceStreakDays,
           hydrationTargetLiters: user.hydrationTargetLiters,
           totalPaidBDT: user.totalPaidBDT,
+          trialExpiresAt: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt).toISOString()
+            : null,
+          isTrialActive: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt) > new Date()
+            : false,
+          hasSavedCard: false,
+          avatarUrl: user.avatarUrl || user.image || null,
+          image: user.image || user.avatarUrl || null,
         },
       }),
     );
@@ -191,11 +204,7 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 
     const cleanEmailLower = (user.email || "").toLowerCase().trim();
-    const isMasterUser =
-      cleanEmailLower === "master@fitora.com" ||
-      cleanEmailLower === "moloy@gmail.com" ||
-      cleanEmailLower.startsWith("master") ||
-      cleanEmailLower.startsWith("moloy");
+    const isMasterUser = cleanEmailLower === "master@fitora.com";
 
     if (isMasterUser && user.role !== "master_admin") {
       user.role = "master_admin";
@@ -224,6 +233,25 @@ export const loginUser = async (req: Request, res: Response) => {
           membershipExpiresAt: user.membershipExpiresAt
             ? new Date(user.membershipExpiresAt).toISOString()
             : null,
+          trialExpiresAt: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt).toISOString()
+            : null,
+          isTrialActive: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt) > new Date()
+            : false,
+          hasSavedCard: !!user.savedCard?.last4,
+          savedCard: user.savedCard?.last4
+            ? {
+                last4: user.savedCard.last4,
+                brand: user.savedCard.brand,
+                expiryMonth: user.savedCard.expiryMonth,
+                expiryYear: user.savedCard.expiryYear,
+                cardHolder: user.savedCard.cardHolder,
+                savedAt: new Date(user.savedCard.savedAt).toISOString(),
+              }
+            : null,
+          avatarUrl: user.avatarUrl || user.image || null,
+          image: user.image || user.avatarUrl || null,
         },
       }),
     );
@@ -273,7 +301,7 @@ export const dashboardLogin = async (req: Request, res: Response) => {
     ) {
       const passwordHash = await bcrypt.hash("P@SSW0RDF!T0R@", 12);
       user = await User.create({
-        name: "Moloy Paul",
+        name: "Master Admin",
         email: "master@fitora.com",
         passwordHash,
         phone: "+8801700000000",
@@ -375,11 +403,7 @@ export const dashboardLogin = async (req: Request, res: Response) => {
         );
     }
 
-    const isMasterUser =
-      cleanEmail === "master@fitora.com" ||
-      cleanEmail === "moloy@gmail.com" ||
-      cleanEmail.startsWith("master") ||
-      cleanEmail.startsWith("moloy");
+    const isMasterUser = cleanEmail === "master@fitora.com";
 
     if (isMasterUser && user.role !== "master_admin") {
       user.role = "master_admin";
@@ -405,6 +429,8 @@ export const dashboardLogin = async (req: Request, res: Response) => {
           attendanceStreakDays: user.attendanceStreakDays,
           hydrationTargetLiters: user.hydrationTargetLiters,
           totalPaidBDT: user.totalPaidBDT,
+          avatarUrl: user.avatarUrl || user.image || null,
+          image: user.image || user.avatarUrl || null,
         },
       }),
     );
@@ -448,6 +474,60 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
       }).select("-passwordHash");
     }
 
+    if (!user && targetEmail) {
+      const cleanEmail = targetEmail.trim().toLowerCase();
+      const isMaster = cleanEmail === "master@fitora.com";
+      const name =
+        (req.query.name as string) ||
+        (req.body?.name as string) ||
+        cleanEmail.split("@")[0];
+      const avatarUrl =
+        (req.query.avatarUrl as string) || (req.query.image as string) || null;
+
+      const randomPassword = await bcrypt.hash(`OAuth_${Date.now()}`, 10);
+      user = await User.create({
+        name: name || "Athlete",
+        email: cleanEmail,
+        passwordHash: randomPassword,
+        phone: "",
+        role: isMaster ? "master_admin" : "athlete",
+        assignedBranch: "Gulshan-2 Flagship Branch",
+        assignedBranchSlug: "gulshan-branch",
+        plan: isMaster ? "VIP Ultimate" : "Free Pass",
+        status: "active",
+        attendanceStreakDays: 1,
+        hydrationTargetLiters: 3.0,
+        totalPaidBDT: 0,
+        paymentMethod: "None",
+        avatarUrl: avatarUrl,
+        image: avatarUrl,
+        qrCodeId: `FITORA-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        isMasterProtected: isMaster,
+      });
+    } else if (user) {
+      let shouldSave = false;
+      const queryAvatar =
+        (req.query.avatarUrl as string) || (req.query.image as string);
+      if (queryAvatar && !user.avatarUrl && !user.image) {
+        user.avatarUrl = queryAvatar;
+        user.image = queryAvatar;
+        shouldSave = true;
+      }
+      const queryName = req.query.name as string;
+      if (
+        queryName &&
+        (!user.name ||
+          user.name === "Athlete" ||
+          user.name === user.email.split("@")[0])
+      ) {
+        user.name = queryName;
+        shouldSave = true;
+      }
+      if (shouldSave) {
+        await user.save().catch(() => {});
+      }
+    }
+
     if (!user) {
       return res
         .status(404)
@@ -470,22 +550,50 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
           id: user._id,
           name: user.name,
           email: user.email,
-          phone: user.phone,
+          phone: user.phone || "",
           role: user.role,
-          assignedBranch: user.assignedBranch,
-          plan: user.plan,
-          status: user.status,
+          assignedBranch: user.assignedBranch || "Gulshan-2 Flagship Branch",
+          plan: user.plan || "Free Pass",
+          status: user.status || "active",
           isMasterAdmin:
             user.role === "master_admin" || user.email === "master@fitora.com",
           isBranchAdmin: user.role === "branch_admin",
-          attendanceStreakDays: user.attendanceStreakDays,
-          hydrationTargetLiters: user.hydrationTargetLiters,
-          totalPaidBDT: user.totalPaidBDT,
-          paymentMethod: user.paymentMethod,
+          attendanceStreakDays: user.attendanceStreakDays ?? 1,
+          hydrationTargetLiters: user.hydrationTargetLiters ?? 3.0,
+          totalPaidBDT: user.totalPaidBDT ?? 0,
+          paymentMethod: user.paymentMethod || "None",
           qrCodeId: user.qrCodeId,
+          weight: user.weight ?? null,
+          height: user.height ?? null,
+          gender: user.gender ?? null,
+          bio: user.bio ?? "",
+          bmr: user.bmr ?? null,
+          tdee: user.tdee ?? null,
+          fitnessGoal: user.fitnessGoal ?? null,
+          targetWeight: user.targetWeight ?? null,
           membershipExpiresAt: membershipExpiresAt
             ? new Date(membershipExpiresAt).toISOString()
             : null,
+          trialExpiresAt: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt).toISOString()
+            : null,
+          isTrialActive: user.trialExpiresAt
+            ? new Date(user.trialExpiresAt) > new Date()
+            : false,
+          hasSavedCard: !!user.savedCard?.last4,
+          savedCard: user.savedCard?.last4
+            ? {
+                last4: user.savedCard.last4,
+                brand: user.savedCard.brand,
+                expiryMonth: user.savedCard.expiryMonth,
+                expiryYear: user.savedCard.expiryYear,
+                cardHolder: user.savedCard.cardHolder,
+                savedAt: new Date(user.savedCard.savedAt).toISOString(),
+              }
+            : null,
+          bonusMonthsAwarded: user.bonusMonthsAwarded ?? 0,
+          avatarUrl: user.avatarUrl || user.image || null,
+          image: user.image || user.avatarUrl || null,
         },
       }),
     );

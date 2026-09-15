@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import mongoose, { Schema, model, Document } from "mongoose";
 
 export type Gender = "Male" | "Female" | "Other";
 
@@ -56,7 +56,7 @@ const UserProfileSchema = new Schema<IUserProfileData>(
     },
     weight: { type: Number, required: true, min: 1, max: 500 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const GoalsLifestyleSchema = new Schema<IGoalsLifestyleData>(
@@ -65,7 +65,7 @@ const GoalsLifestyleSchema = new Schema<IGoalsLifestyleData>(
     customGoal: { type: String, default: "", maxlength: 100 },
     activityLevel: { type: String, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const DietaryPreferencesSchema = new Schema<IDietaryPreferencesData>(
@@ -86,7 +86,7 @@ const DietaryPreferencesSchema = new Schema<IDietaryPreferencesData>(
     },
     allergies: { type: String, required: true, maxlength: 250 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const MealStructureSchema = new Schema<IMealStructureData>(
@@ -95,7 +95,7 @@ const MealStructureSchema = new Schema<IMealStructureData>(
     dislikes: { type: String, required: true, maxlength: 150 },
     preferredCuisine: { type: String, required: true, maxlength: 50 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 export const MealPlanSchema = new Schema<IMealPlanDocument>(
@@ -123,10 +123,12 @@ export const MealPlanSchema = new Schema<IMealPlanDocument>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export const MealPlan = model<IMealPlanDocument>("MealPlan", MealPlanSchema);
-export const MealChart = MealPlan;
+export const MealChart =
+  mongoose.models.MealChart ||
+  model<IMealPlanDocument>("MealChart", MealPlanSchema);
+export const MealPlan = MealChart;
 
-export default MealPlan;
+export default MealChart;

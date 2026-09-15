@@ -84,10 +84,16 @@ export async function fetchPublicBranchesApi(
       return { success: false, count: 0, data: [] };
     }
 
+    const raw = data.data;
+    const branches = Array.isArray(raw?.branches)
+      ? raw.branches
+      : Array.isArray(raw)
+        ? raw
+        : [];
     return {
       success: true,
-      count: data.count || data.data?.length || 0,
-      data: data.data || [],
+      count: data.count || raw?.count || branches.length,
+      data: branches,
     };
   } catch (error) {
     return { success: false, count: 0, data: [] };
