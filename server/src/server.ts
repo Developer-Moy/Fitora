@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
 import cors from "cors";
+import helmet from "helmet";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 import { setupSocketHandlers } from "./sockets/index.js";
@@ -37,6 +38,43 @@ app.use(
       return callback(null, true);
     },
     credentials: true,
+  }),
+);
+
+// Helmet Security Headers
+// Registered as the first header-setting middleware so that every response
+// (including the Stripe webhook and error responses) is hardened.
+//
+// IMPORTANT: this backend is a JSON API consumed by a browser app on a
+// DIFFERENT origin (client :3000 -> server :5000). Helmet's strict
+// cross-origin isolation defaults are designed for same-origin rendered HTML
+// apps and would break that split-origin setup, so three defaults are relaxed
+// while every other protection is kept:
+//   - crossOriginResourcePolicy "cross-origin": the frontend loads remote
+//     images (Unsplash, avatars) and reads API responses cross-origin.
+//   - crossOriginOpenerPolicy false: avoids breaking OAuth / better-auth
+//     redirect + popup flows that rely on window.opener.
+//   - crossOriginEmbedderPolicy false: avoids breaking third-party embeds.
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        // This server returns JSON, never HTML pages, so no inline
+        // script or stylesheet execution is required.
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        // Allow the API + realtime (Socket.IO) traffic to the client origin.
+        connectSrc: ["'self'", "https:", "wss:", ...allowedOrigins],
+        frameAncestors: ["'none'"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+      },
+    },
   }),
 );
 
