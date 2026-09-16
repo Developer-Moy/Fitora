@@ -1522,7 +1522,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                             setTargetWeightSaved(false);
                           }}
                           placeholder="65"
-                          className="w-18 px-2.5 py-1 text-center rounded-xl bg-white border-2 border-neutral-300 text-black placeholder:text-neutral-500 placeholder:font-medium font-black text-xs outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition-all shadow-sm"
+                          className="w-18 px-2.5 py-1 text-center rounded-xl bg-white border-2 border-neutral-300 text-black placeholder:text-neutral-500 placeholder:font-medium font-black text-xs outline-none focus:border-black transition-all"
                         />
                         <span className="text-xs font-bold text-gray-400">
                           KG
@@ -1534,7 +1534,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       type="button"
                       onClick={handleSaveTargetWeight}
                       disabled={isSavingTargetWeight}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[10px] font-extrabold text-black transition-all duration-300 hover:bg-neutral-100 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 shadow-md cursor-pointer shrink-0"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-black border border-white/20 px-3.5 py-1.5 text-[10px] font-extrabold text-white transition-all duration-300 hover:bg-neutral-900 hover:border-white/40 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shrink-0"
                     >
                       <span>
                         {isSavingTargetWeight
