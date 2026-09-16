@@ -38,7 +38,7 @@ export const EXERCISE_DATABASE = [
       "Lower the dumbbells slowly.",
       "Press without locking your elbows aggressively.",
     ],
-    videoId: "8iPEnn-ltC8",
+    videoId: "0GZmCGDCSBc",
     image:
       "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=80",
   },
