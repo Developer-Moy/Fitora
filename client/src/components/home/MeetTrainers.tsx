@@ -22,7 +22,7 @@ export default function MeetTrainers() {
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
 
   useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_API_URL + "/api/v1/trainers")
+    fetch((process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api") + "/trainers")
       .then(res => res.json())
       .then(data => {
         if (data.success) setTrainers(data.data);
