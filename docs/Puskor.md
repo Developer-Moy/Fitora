@@ -284,4 +284,61 @@ Completed end-to-end integration and polish of the Athlete Training Execution Mo
 
 ---
 
-<p align="right">Updated: 2026-09-15</p>
+## 11. Offline-First Telemetry Caching & Synchronization Queue (2026-09-16)
+
+Architected and implemented a comprehensive offline-first telemetry caching and synchronization queue using IndexedDB with LocalStorage fallback, ensuring athlete workout tracking never fails during network drops:
+
+### 1. Offline Storage & Synchronization Engine (`client/src/services/offlineQueueService.ts`)
+- **IndexedDB Storage with LocalStorage Fallback**:
+  - Database: `fitora_offline_db` (version 1) with object store `telemetry_queue` keyed by unique timestamp IDs.
+  - Transparent fallback to `localStorage` (`fitora_offline_telemetry_queue`) for private browsing or restricted environments.
+  - Queue operations: `enqueueTelemetry()`, `getPendingQueue()`, `getPendingCount()`, `deleteQueueItem()`, and `updateQueueItem()`.
+- **Sync Execution Engine (`syncPendingTelemetry`)**:
+  - Concurrency lock (`isSyncing`) prevents race conditions or duplicate payload submissions.
+  - Drains queued workout logs (`POST /api/workouts/log`) and stopwatch sessions (`POST /api/stopwatch/session-complete`) in FIFO order.
+  - Automatically discards unrecoverable 4xx client errors to prevent queue poisoning; retries transient network errors with attempt counter.
+- **Automatic Reconnection Triggers**:
+  - Listens to browser `window.addEventListener("online")` for instant auto-drain upon network restoration.
+  - Listens to `document.addEventListener("visibilitychange")` to sync when athletes return to the active tab.
+  - Periodic background polling (30s interval) if pending items exist and `navigator.onLine` is active.
+- **Custom Reactive Events**:
+  - `fitora-offline-queue-change`: Emits `{ pendingCount, isSyncing }` to keep all UI badges synchronized in real time.
+  - `fitora-offline-synced`: Emits `{ syncedCount }` triggering celebratory sync completion toasts.
+
+### 2. Service Layer Integration (`workoutService.ts` & `stopwatchService.ts`)
+- **`createWorkoutLog`**:
+  - Intercepts offline state (`!navigator.onLine`) and network fetch rejections.
+  - Safely enqueues the payload to `offlineQueueService` and returns an optimistic `WorkoutLog` (`offline_${Date.now()}_...`).
+  - Dispatches `fitora-workout-logged` with `isOffline: true`, so the user profile workout table, activity heatmap, and dashboard immediately reflect the completed workout without blocking training.
+- **`completeStopwatchSession`**:
+  - Intercepts offline state or server unreachable errors, safely queueing the session telemetry.
+- **`CreateWorkoutLogPayload` (`types/workout.ts`)**:
+  - Added optional `caloriesBurned?: number;` to payload interface.
+
+### 3. UI & Gym Stopwatch HUD Integration
+- **`GymSessionCard.tsx`**:
+  - Dynamic status indicator with 3 distinct operational modes:
+    - **Cloud Synced**: Pulsing white/green dot + `"Realtime Sync"`.
+    - **Offline Mode**: Amber status indicator + `"Offline (X queued)"`.
+    - **Syncing**: Rotating spinner + `"Syncing to cloud..."`.
+  - Total Gym Time card displays subtle badge indicating offline queued items.
+- **`GymTimer.tsx`**:
+  - Listens to online/offline state, queue changes, and sync events.
+  - Shows contextual feedback toasts when logging workouts in offline mode.
+  - Clicking sync pill triggers immediate manual queue drain when offline items exist.
+- **`ExerciseTracker.tsx`**:
+  - Routed all workout submissions through `createWorkoutLog` to inherit offline queueing.
+  - Contextual toast feedback: `"Offline Mode: {exercise} saved locally! Will sync to MongoDB once online 📶"`.
+
+### 4. Upstream Merge & Syntax Fixes (Post-Development Pull)
+- **`goal.controller.ts`**: Moved `normalizeGoalType` to module-level scope to resolve compile error in `updateGoalById`.
+- **`AuthFlowContainer.tsx`**: Created missing `GoogleButton` component and cleaned up malformed JSX input/button tags in desktop and mobile register forms.
+
+### 5. Verification & Testing
+- **Automated Integration Test**: Ran `test_offline_queue.ts` simulating offline workout logging (`navigator.onLine = false`), verifying optimistic return, checking storage queue, restoring connection, and validating successful persistence to MongoDB via `POST /api/workouts/log`.
+- **Client Build**: `next build` compiled cleanly with **0 errors** across all 16 routes.
+- **Server Build**: `tsc` compiled cleanly with **0 errors**.
+
+---
+
+<p align="right">Updated: 2026-09-16</p>
