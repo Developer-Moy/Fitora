@@ -266,10 +266,19 @@ CRITICAL OPERATIONAL RULES:
               responseText = candidateText.trim();
               break;
             }
+          } else {
+            const errorData = await geminiRes.text();
+            if (geminiRes.status === 403 || geminiRes.status === 401 || geminiRes.status === 400) {
+              throw new Error(`AUTH_ERROR: Google API responded with ${geminiRes.status}. Check your API key. Details: ${errorData}`);
+            }
           }
         }
-      } catch (geminiError) {
-        // Fall back gracefully to local reasoning engine
+      } catch (geminiError: any) {
+        console.error("Gemini API Error:", geminiError.message);
+        if (geminiError.message.includes("AUTH_ERROR")) {
+          return res.status(403).json(errorResponse("AI Service API Key is invalid or blocked. Please update the API key in the server configuration.", "API_KEY_ERROR", 403));
+        }
+        // Otherwise fall back gracefully to local reasoning engine for rate limits/timeouts
       }
     }
 

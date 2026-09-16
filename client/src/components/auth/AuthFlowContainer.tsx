@@ -919,7 +919,27 @@ export default function AuthFlowContainer({
                     </Link>
                   </div>
 
-                  <AuthSubmitButton label="Login" loading={isLoading} />
+                <div className="flex items-center justify-between text-xs px-2 text-gray-300 font-medium pt-0.5">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
+                    />
+                    <span>Remember Me</span>
+                  </label>
+                  <Link
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toast("Password reset is coming soon!", { icon: "🔒" });
+                    }}
+                    className="text-gray-400 hover:text-white underline"
+                  >
+                    Forget Password?
+                  </Link>
+                </div>
 
                   {/* ── Divider ── */}
                   <div className="flex items-center gap-3 pt-1">

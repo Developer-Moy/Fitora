@@ -274,7 +274,7 @@ export default function FloatingAiWidget() {
           setQuota(res.data.quota);
         }
       } else {
-        toast.error(res.message || "Failed to generate response.");
+        toast.error(res.error || res.message || "Failed to generate response.");
       }
     } catch (err: any) {
       toast.error(err.message || "Connection error. Please try again.");
