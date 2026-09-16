@@ -20,6 +20,7 @@ import { calculateNutritionApi } from "@/services/nutritionService";
 import MacroAdjuster from "@/components/calculator/MacroAdjuster";
 import AthleteHealthAssessmentCard from "@/components/calculator/AthleteHealthAssessmentCard";
 import FitoraPillButton from "@/components/ui/FitoraPillButton";
+import Image from "next/image";
 
 type Gender = "male" | "female";
 type Goal = "bulking" | "cutting" | "maintenance";
@@ -743,9 +744,10 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                 {/* Full Color Image Banner (Positioned in the Middle, Object-Top to avoid cutting head) */}
                 <div className="group relative h-40 sm:h-48 lg:h-52 my-auto overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
-                  <img
+                  <Image
                     src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1400&q=80"
                     alt="BMI fitness banner"
+                    fill
                     className="w-full h-full object-cover object-top transition duration-700 group-hover:scale-105 brightness-100 contrast-105"
                   />
 
