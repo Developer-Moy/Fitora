@@ -248,4 +248,7 @@ Monthly / Yearly billing toggle switch.
 * Bug bashing: finding the bug other projects.
 
 ### 15-Sep-26
-* Metric & BMI Calculator Engine, Health Profiling & Fitness Goals
+* Metric & BMI Calculator Engine, Health Profiling & Fitness Goals.
+
+### 16-Sep-26
+* Build Wikipedia-style Trainer Details Modal & VIP Pass Component.
