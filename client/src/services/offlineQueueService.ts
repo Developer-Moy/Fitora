@@ -321,18 +321,20 @@ export async function syncPendingTelemetry(): Promise<{
 
 // ── Auto-Sync Listeners & Background Timer ───────────────────────────────────
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
   // 1. Sync on network connection restored
   window.addEventListener("online", () => {
     syncPendingTelemetry();
   });
 
   // 2. Sync on tab refocus
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && navigator.onLine) {
-      syncPendingTelemetry();
-    }
-  });
+  if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && navigator.onLine) {
+        syncPendingTelemetry();
+      }
+    });
+  }
 
   // 3. Periodic fallback poll every 30s when online
   setInterval(() => {
