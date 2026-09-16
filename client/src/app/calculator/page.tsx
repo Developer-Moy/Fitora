@@ -1580,7 +1580,9 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </div>
 
                     <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
-                      {targetWeight === weight ? "MAINTENANCE" : `500 KCAL ${targetWeight < weight ? "DEFICIT" : "SURPLUS"}`}
+                      {targetWeight === weight
+                        ? "MAINTENANCE"
+                        : `500 KCAL ${targetWeight < weight ? "DEFICIT" : "SURPLUS"}`}
                     </span>
                   </div>
 

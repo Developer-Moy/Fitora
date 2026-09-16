@@ -573,4 +573,3 @@ These components form the responsive header, hero section, pricing, callouts, co
   - Executed client-side TypeScript verification (`npx tsc --noEmit`): **0 Errors** (Exit code 0).
   - Executed server-side TypeScript build (`npm run build` -> `tsc`): **0 Errors** (Exit code 0).
   - Clean git working tree maintained on branch `moloy`.
-
