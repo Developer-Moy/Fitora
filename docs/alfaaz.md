@@ -609,9 +609,110 @@ Updated the homepage contact section and added a reusable WhatsApp link helper.
 
 ---
 
-## 16-Sep-26 (planned / ongoing)
+## 16-Sep-26
 
-*(to be updated)*
+### Trainer Module: Schema, CRUD, Validation & Public API
+
+Built the complete **Trainer Management** module end-to-end — Mongoose model, CRUD controller, validation layer, slug generation, and RBAC-protected Express routes.
+
+- Created `server/src/models/trainer.model.ts` with a full **Trainer schema and biography fields**:
+  * Basic info: `name`, `slug`, `designation`, `bio`, `about`.
+  * Images: `photo`, `coverImage`.
+  * Professional data: `experienceYears`, `specializations`, `certifications`, `achievements`, `education`, `languages`.
+  * Social links: `facebook`, `instagram`, `linkedin`, `youtube`.
+  * Branch linkage: `branchId`, `branchName`, `city`.
+  * Availability: nested `availabilitySlotSchema` array (`day`, `startTime`, `endTime`).
+  * Status & ratings: `featured`, `status` (`active` | `inactive`), `rating`, `totalReviews`.
+  * Added a unique index on `slug` (avoiding a duplicate index alongside the model-level `unique` option) and automatic `timestamps`.
+- Implemented `server/src/controllers/trainer.controller.ts` with the full trainer **CRUD controller**:
+  * `createTrainer` — creates a trainer with auto-generated slug and uniqueness retry.
+  * `getAllTrainers` — public listing of active trainers.
+  * `getTrainerBySlug` — public lookup by slug (used by public trainer profile pages).
+  * `getTrainerById` — public lookup by MongoDB `_id`.
+  * `updateTrainer` — partial update with field whitelisting and slug regeneration when the name changes.
+  * `deleteTrainer` — **soft delete** (sets `status = "inactive"` instead of removing the record).
+- Added the trainer **validation and slug generation** layer:
+  * `generateSlug()` — lowercases, strips non-alphanumeric characters, and collapses whitespace into hyphens for URL-friendly slugs.
+  * `isValidStatus()` — validates against the `active` / `inactive` enum mirroring the model.
+  * `validateNumericRange()` — reusable min/max numeric guard (e.g. `experienceYears`, `rating`).
+  * Field-level validation returns the project's standard `errorResponse()` envelope so the frontend handles trainer errors like every other API error.
+- Registered `server/src/routes/trainer.routes.ts` and wired it into `server/src/routes/index.ts`:
+  * Public: `GET /api/trainers`, `GET /api/trainers/slug/:slug`, `GET /api/trainers/id/:id`.
+  * Protected (RBAC): `POST /api/trainers`, `PATCH /api/trainers/:id`, `DELETE /api/trainers/:id` guarded by `authMiddleware` + `requireAdminOrBranchAdmin` (master admin / branch admin only).
+
+### Security Hardening: Helmet Security Headers
+
+Added hardened HTTP security headers to the Express app via **Helmet**, registered as the first header-setting middleware so every response — including the raw-body Stripe webhook route and all error responses — is covered.
+
+- Configured `helmet()` inside `server/src/server.ts`.
+- Kept cross-origin isolation relaxed deliberately, because Fitora is a split-origin setup (client `:3000` → server `:5000`) and Helmet's same-origin defaults would break it:
+  * `crossOriginResourcePolicy: "cross-origin"` — the frontend loads remote images (Unsplash, avatars) and reads API responses cross-origin.
+  * `crossOriginOpenerPolicy: false` — prevents breaking the Better Auth OAuth redirect/popup flows that rely on `window.opener`.
+  * `crossOriginEmbedderPolicy: false` — prevents breaking third-party embeds.
+- Added a tuned `contentSecurityPolicy` that matches a JSON-only API: `script-src 'self'`, `img-src` allowing `data:`/`blob:`/`https:`, `connect-src` allowing the client origin + `wss:` for Socket.IO, `frame-ancestors 'none'`, `object-src 'none'`, `base-uri 'self'`.
+- Added the `helmet` dependency to `server/package.json` and `package-lock.json`.
+
+### Security Hardening: API & Auth Rate Limiting
+
+Created `server/src/middlewares/rateLimit.middleware.ts` — a reusable, envelope-consistent rate-limiting layer protecting the production API from brute-force, credential-stuffing, scraping, and general abuse.
+
+- Built a shared `createLimiter()` factory that returns a configured `express-rate-limit` handler replying with the project's standard `errorResponse()` shape, so the frontend handles a `429` exactly like any other API error.
+- Two independent budgets with separate, non-overlapping scopes:
+  * **`apiLimiter`** — general API protection: **100 requests / IP / 15 minutes**, applied to all `/api/*` routes except `/api/auth`.
+  * **`authLimiter`** — credential-issuing protection: **5 requests / IP / 15 minutes** on `/api/auth`, with `skipSuccessfulRequests: true` so a legitimate user signing in is never penalised; only failed attempts burn the quota.
+- Hardened the limiter configuration itself:
+  * `ipKeyGenerator()` is used as the key generator so **IPv6 clients are grouped by subnet**, preventing a client from cycling through an address block to bypass the limiter.
+  * `standardHeaders: "draft-7"` with `legacyHeaders: false`, emitting modern `RateLimit-*` headers so clients can back off gracefully.
+  * `skip` predicates bypass `OPTIONS` preflight requests and health probes.
+- Added `EXEMPT_PATHS` (`/api/health`, `/health`) so uptime/monitoring probes never consume a client's budget and never produce false outages.
+- Added `isAuthPath()` so the general limiter hands auth traffic over to `authLimiter` exclusively — the two budgets stay independent, meaning a busy API session cannot lock a user out of signing in.
+- Mounted both limiters in `server/src/server.ts` against their specific paths; Socket.IO and health-check endpoints are deliberately left unmetered.
+- Added the `express-rate-limit` dependency to `server/package.json` and `package-lock.json`.
+
+### Production Error Handling: Better Auth, OAuth, Mongoose & JWT Normalization
+
+Rebuilt `server/src/middlewares/error.middleware.ts` (previously an empty stub) and registered a global 404 + error handler in `server/src/server.ts`.
+
+> **Critical fix:** the file was an empty `export {};` stub and **no error middleware was registered at all**. Every unhandled error therefore fell through to Express's default handler, which returns **HTML pages containing full stack traces and the framework version banner in production**.
+
+- Implemented `normalizeError()` — a single ordered detection engine that converts any thrown value into a normalized `{ statusCode, errorCode, message, logDetail, isOperational }` object, plus an exported `AppError` class for future controller use.
+- Added `notFoundHandler` for unmatched routes, returning the standard Fitora envelope instead of Express's default HTML page.
+- Added `errorHandler` as a four-argument Express error handler, registered **last**, after `app.use("/api", apiRouter)`.
+- Error coverage, all mapped to the existing Fitora response structure:
+
+| Error Category | Detection | Status | `error` Code |
+| --- | --- | --- | --- |
+| Mongoose `ValidationError` | `error.name === "ValidationError"` | **400** | `VALIDATION_ERROR` (all failed paths aggregated) |
+| Mongoose `CastError` | `error.name === "CastError"` | **400** | `INVALID_IDENTIFIER` |
+| Duplicate Key (E11000) | `error.code === 11000` | **409** | `DUPLICATE_KEY_ERROR` |
+| Missing token | `No token` / auth-header guards | **401** | `TOKEN_MISSING` |
+| Invalid token | `JsonWebTokenError` | **401** | `TOKEN_INVALID` |
+| Expired token | `TokenExpiredError` | **401** | `TOKEN_EXPIRED` |
+| OAuth login cancelled | `access_denied` | **401** | `OAUTH_LOGIN_CANCELLED` |
+| OAuth callback failed | callback failure shape/match | **401** | `OAUTH_CALLBACK_FAILED` |
+| OAuth account missing email | missing-email match | **401** | `OAUTH_EMAIL_MISSING` |
+| Malformed JSON body | `SyntaxError` + `body` | **400** | `INVALID_JSON` |
+| Mongo network / `ECONNREFUSED` | connection error shape | **503** | `SERVICE_UNAVAILABLE` |
+| Unknown errors | fallback | **500** | `INTERNAL_SERVER_ERROR` |
+
+- **Production behavior:** stack traces are hidden and no internals leak. Verified with `NODE_ENV=production` that a failing request returns exactly:
+  ```json
+  {"success":false,"message":"Internal server error.","error":"INTERNAL_SERVER_ERROR","statusCode":500}
+  ```
+  Confirmed no `stack` key, and that secrets and internal file paths are not leaked to the client — while the server log still retains the full structured detail + stack for triage.
+- **Development behavior preserved:** in non-production the `stack` field is still returned, so existing local debugging behavior is unchanged. The field is purely additive, so existing clients parsing the envelope are unaffected.
+- **Reused the existing response structure** — all errors go through `errorResponse()` from `server/src/utils/apiResponse.ts` rather than introducing a new response shape. The spec's required `{ success: false, message: "Internal server error." }` is a strict subset of the Fitora envelope, so both are satisfied simultaneously.
+- **Did not modify** the Better Auth configuration, OAuth provider configuration, or JWT verification logic. OAuth detection is intentionally string/shape-based (`error.name`, `error.code`, message matching) rather than importing Better Auth internals, which guarantees those layers stay untouched.
+- Validation performed:
+  * **15/15 error cases pass in development** and **15/15 pass in production** (30/30 total) against a live server.
+  * A real-server regression suite confirmed root `/`, `/api/health`, `/api/auth/me` 401s, and the auth rate limiter (`429`) all still behave correctly.
+  * `tsc --noEmit` clean for both changed files; only the two allowed files were modified. All temporary test harnesses were removed.
+
+**Files changed (this task):**
+- `server/src/middlewares/error.middleware.ts` — full implementation (~707 lines added).
+- `server/src/server.ts` — registered `notFoundHandler` and `errorHandler` after the API router.
+
+> **Known pre-existing issue (out of scope for this task):** `server/src/controllers/goal.controller.ts(255,15)` references an undefined `normalizeGoalType` (`TS2304`). This is a leftover from the earlier goals work and is unrelated to the error-handling changes. It currently blocks `npm run build` and should be addressed separately.
 
 ---
 
@@ -652,6 +753,10 @@ Updated the homepage contact section and added a reusable WhatsApp link helper.
 - Live check-in and checkout APIs.
 - Branch occupancy and capacity API integration.
 - Athlete dashboard stats and goal management APIs.
+- Trainer Management module — `trainer.model.ts` schema with biography fields, full CRUD controller with soft delete, validation + slug generation layer, and RBAC-protected public/admin routes (`/api/trainers`).
+- Helmet security header middleware configuration (`server.ts`), tuned for the split-origin client/server and OAuth redirect flows.
+- Reusable API & auth rate limiting middleware (`rateLimit.middleware.ts`) — 100 req/15 min general API budget and 5 req/15 min auth budget, with health-check exemptions and RateLimit-* headers.
+- Global error handling middleware normalizing Mongoose (`ValidationError`, `CastError`, duplicate key), JWT (missing/invalid/expired), OAuth (cancelled, callback failed, missing email) and unknown errors into the Fitora error envelope, with 404 handling and stack-trace hiding in production.
 
 ### Seed & Data Work
 - Curated 50+ Bangladesh branch records.
@@ -671,6 +776,8 @@ Updated the homepage contact section and added a reusable WhatsApp link helper.
 - `UserManagementTable.tsx` — live subscription status/expiry columns and membership extend/plan/audit action modals.
 - Dashboard **Export CSV** check-in report generator.
 - `csvExporter.ts` — reusable object-array → downloadable CSV utility powering the admin export actions.
+- `rateLimit.middleware.ts` — reusable express-rate-limit factory returning the shared error envelope for all 429 responses.
+- `error.middleware.ts` — single normalization engine handling Mongoose, JWT, OAuth/Better-Auth, malformed-JSON and unknown errors plus `notFoundHandler` and `AppError`.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.
