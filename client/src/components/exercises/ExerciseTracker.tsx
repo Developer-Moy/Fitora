@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { fetchExercises } from "@/services/exerciseService";
+import { createWorkoutLog } from "@/services/workoutService";
 
 type Exercise = {
   id: string;
@@ -723,40 +724,12 @@ function ExerciseModal({
     };
 
     try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("fitora_token") ||
-            localStorage.getItem("fitora_auth_token")
-          : null;
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const response = await fetch(`${API_BASE_URL}/workouts/log`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        let message = `Request failed with status ${response.status}`;
-        try {
-          const data = await response.json();
-          message = (data && (data.message || data.error)) || message;
-        } catch {
-          // ignore non-JSON response
-        }
-        throw new Error(message);
-      }
-
-      const result = await response.json();
-      const created: WorkoutLog = (result?.data ||
-        result?.payload ||
-        result) as WorkoutLog;
+      const created = await createWorkoutLog(payload);
+      const safeId = created._id ?? `offline_${Date.now()}`;
+      const isOfflineItem = safeId.startsWith("offline_");
 
       const normalized: WorkoutLog = {
-        _id: created._id ?? `local-${Date.now()}`,
+        _id: safeId,
         exerciseName: created.exerciseName ?? exercise.name,
         setsCount: Number(created.setsCount ?? payload.setsCount),
         repsCount: Number(created.repsCount ?? payload.repsCount),
@@ -768,10 +741,17 @@ function ExerciseModal({
 
       setHistory((prev) => [normalized, ...prev]);
       setNotes("");
-      toast.success(
-        `${exercise.name} logged: ${normalized.setsCount} × ${normalized.repsCount} @ ${normalized.weight}kg`,
-        { duration: 3000 },
-      );
+      if (isOfflineItem) {
+        toast.success(
+          `Offline Mode: ${exercise.name} saved locally! Will sync to MongoDB once online 📶`,
+          { duration: 4000, icon: "💾" },
+        );
+      } else {
+        toast.success(
+          `${exercise.name} logged: ${normalized.setsCount} × ${normalized.repsCount} @ ${normalized.weight}kg`,
+          { duration: 3000 },
+        );
+      }
 
       // Notify active Heatmap and workout listeners of newly saved activity
       if (typeof window !== "undefined") {

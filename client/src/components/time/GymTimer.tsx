@@ -31,6 +31,11 @@ import { TimeDisplay } from "./TimeDisplay";
 import { TimerControls } from "./TimerControls";
 import QuickSetLogger from "./QuickSetLogger";
 
+import {
+  getPendingCount,
+  syncPendingTelemetry,
+} from "@/services/offlineQueueService";
+
 export interface GymTimerProps {
   exerciseName?: string;
   defaultSets?: number;
@@ -57,6 +62,11 @@ export default function GymTimer({
   const [totalSets, setTotalSets] = useState<number>(defaultSets);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [isSynced, setIsSynced] = useState<boolean>(true);
+  const [isOnline, setIsOnline] = useState<boolean>(() =>
+    typeof window !== "undefined" ? navigator.onLine : true,
+  );
+  const [pendingQueueCount, setPendingQueueCount] = useState<number>(0);
+  const [isQueueSyncing, setIsQueueSyncing] = useState<boolean>(false);
   const [completedSets, setCompletedSets] = useState<
     Array<{
       set: number;
@@ -287,6 +297,63 @@ export default function GymTimer({
           .finally(() => setIsLoadingPresets(false));
       }
     }
+  }, []);
+
+  // ── Offline-First Network & Queue Sync Listeners ──
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateOnline = () => {
+      setIsOnline(true);
+      syncPendingTelemetry();
+    };
+
+    const updateOffline = () => {
+      setIsOnline(false);
+      setIsSynced(false);
+      toast("Offline Mode: Telemetry will be queued locally", {
+        icon: "⚡",
+        id: "network-status",
+      });
+    };
+
+    const handleQueueChange = (e: any) => {
+      if (e.detail) {
+        setPendingQueueCount(e.detail.pendingCount ?? 0);
+        setIsQueueSyncing(!!e.detail.isSyncing);
+        if ((e.detail.pendingCount ?? 0) === 0 && navigator.onLine) {
+          setIsSynced(true);
+        }
+      }
+    };
+
+    const handleOfflineSynced = (e: any) => {
+      const count = e.detail?.syncedCount;
+      if (count && count > 0) {
+        setIsSynced(true);
+        toast.success(
+          `Cloud Synced: ${count} offline workout${count > 1 ? "s" : ""} uploaded to MongoDB! 💪`,
+          { id: "offline-synced-toast" },
+        );
+      }
+    };
+
+    window.addEventListener("online", updateOnline);
+    window.addEventListener("offline", updateOffline);
+    window.addEventListener("fitora-offline-queue-change", handleQueueChange);
+    window.addEventListener("fitora-offline-synced", handleOfflineSynced);
+
+    getPendingCount().then((cnt) => {
+      setPendingQueueCount(cnt);
+      if (cnt > 0) setIsSynced(false);
+    });
+
+    return () => {
+      window.removeEventListener("online", updateOnline);
+      window.removeEventListener("offline", updateOffline);
+      window.removeEventListener("fitora-offline-queue-change", handleQueueChange);
+      window.removeEventListener("fitora-offline-synced", handleOfflineSynced);
+    };
   }, []);
 
   // Save today's accumulated gym time to localStorage and MongoDB
@@ -593,7 +660,9 @@ export default function GymTimer({
       const loadingToastId = "workout-log-save";
       toast.loading("Saving workout...", { id: loadingToastId });
       try {
-        await createWorkoutLog(payload);
+        const savedLog = await createWorkoutLog(payload);
+        const isOfflineSave = Boolean(savedLog._id?.startsWith("offline_"));
+
         // Also mark session complete in stopwatch API for calorie tracking and persistence in MongoDB
         await completeStopwatchSession({
           workoutType: exerciseName,
@@ -607,11 +676,20 @@ export default function GymTimer({
           weightKg: maxWeight > 0 ? maxWeight : undefined,
           notes: loggedSetsNotes,
         }).catch(() => {});
-        setIsSynced(true);
-        toast.success("Workout saved to your history 💪", {
-          id: loadingToastId,
-          duration: 4000,
-        });
+
+        if (isOfflineSave || !navigator.onLine) {
+          setIsSynced(false);
+          toast.success(
+            "Offline: Workout queued locally! Will sync automatically when online 📶",
+            { id: loadingToastId, duration: 4000, icon: "💾" },
+          );
+        } else {
+          setIsSynced(true);
+          toast.success("Workout saved to your history 💪", {
+            id: loadingToastId,
+            duration: 4000,
+          });
+        }
 
         // Notify active Heatmap or workout listeners of newly saved activity
         if (typeof window !== "undefined") {
@@ -912,6 +990,24 @@ export default function GymTimer({
   };
 
   const handleToggleSync = async () => {
+    if (pendingQueueCount > 0) {
+      toast.loading(`Syncing ${pendingQueueCount} offline items to MongoDB...`, {
+        id: "sync-status",
+      });
+      const res = await syncPendingTelemetry();
+      if (res.synced > 0) {
+        setIsSynced(true);
+        toast.success(`Successfully uploaded ${res.synced} items to MongoDB!`, {
+          id: "sync-status",
+        });
+      } else if (res.failed > 0) {
+        toast.error(`Sync failed: could not reach server. Will retry automatically.`, {
+          id: "sync-status",
+        });
+      }
+      return;
+    }
+
     if (!isSynced) {
       setIsSynced(true);
       const ok = await syncDailyGymTime(totalGymSeconds);
@@ -994,6 +1090,9 @@ export default function GymTimer({
                 <GymSessionCard
                   totalSeconds={totalGymSeconds}
                   isSynced={isSynced}
+                  isOffline={!isOnline}
+                  pendingCount={pendingQueueCount}
+                  isSyncing={isQueueSyncing}
                   onClearGymTime={handleResetDailyGymTime}
                   formatGymTime={formatGymTime}
                   variant="left"
@@ -1003,6 +1102,9 @@ export default function GymTimer({
                 <GymSessionCard
                   totalSeconds={totalGymSeconds}
                   isSynced={isSynced}
+                  isOffline={!isOnline}
+                  pendingCount={pendingQueueCount}
+                  isSyncing={isQueueSyncing}
                   onToggleSync={handleToggleSync}
                   formatGymTime={formatGymTime}
                   variant="right"
