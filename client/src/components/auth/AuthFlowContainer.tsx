@@ -231,6 +231,36 @@ function AuthSubmitButton({
   );
 }
 
+function GoogleButton({
+  onClick,
+  loading = false,
+  heightClass = "h-11",
+  className = "",
+}: {
+  onClick: () => void;
+  loading?: boolean;
+  heightClass?: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={loading}
+      className={`w-full ${heightClass} rounded-full bg-neutral-900/90 hover:bg-white hover:text-black text-white font-bold text-xs uppercase flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-md hover:scale-[1.01] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+    >
+      {loading ? (
+        <span className="w-4 h-4 rounded-full border-[1.5px] border-white/20 border-t-white animate-spin" />
+      ) : (
+        <>
+          <GoogleIcon className="w-4.5 h-4.5" />
+          <span>Continue with Google</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 // 📧 Dedicated Email Validation with Specific Distinct Toast Messages
 const validateEmail = (emailStr: string): string | null => {
   const trimmed = emailStr.trim();
@@ -784,26 +814,13 @@ export default function AuthFlowContainer({
                       showPassword={showPassword}
                       onTogglePassword={() => setShowPassword(!showPassword)}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-3.5 h-3.5" />
-                      ) : (
-                        <Eye className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                  {passwordHint && (
-                    <p className="text-[10px] text-red-400 font-medium px-4 pt-0.5">
-                      {passwordHint}
-                    </p>
-                  )}
-                  <div className="relative flex items-center">
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
+                    {passwordHint && (
+                      <p className="text-[10px] text-red-400 font-medium px-4 pt-0.5">
+                        {passwordHint}
+                      </p>
+                    )}
+                    <AuthGlassField
+                      isPassword
                       value={confirmPassword}
                       onChange={setConfirmPassword}
                       placeholder="Confirm Password"
@@ -901,8 +918,8 @@ export default function AuthFlowContainer({
                     />
                   </div>
 
-                  <div className="flex items-center justify-between text-xs px-1 text-gray-300 font-medium">
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <div className="flex items-center justify-between text-xs px-2 text-gray-300 font-medium pt-0.5">
+                    <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={rememberMe}
@@ -912,34 +929,18 @@ export default function AuthFlowContainer({
                       <span>Remember Me</span>
                     </label>
                     <Link
-                      href="/forgot-password"
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toast("Password reset is coming soon!", { icon: "🔒" });
+                      }}
                       className="text-gray-400 hover:text-white underline"
                     >
                       Forget Password?
                     </Link>
                   </div>
 
-                <div className="flex items-center justify-between text-xs px-2 text-gray-300 font-medium pt-0.5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-3.5 h-3.5 rounded bg-neutral-800 text-white accent-white"
-                    />
-                    <span>Remember Me</span>
-                  </label>
-                  <Link
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toast("Password reset is coming soon!", { icon: "🔒" });
-                    }}
-                    className="text-gray-400 hover:text-white underline"
-                  >
-                    Forget Password?
-                  </Link>
-                </div>
+                  <AuthSubmitButton label="Login" loading={isLoading} />
 
                   {/* ── Divider ── */}
                   <div className="flex items-center gap-3 pt-1">
@@ -1288,8 +1289,6 @@ export default function AuthFlowContainer({
                       onClick={handleGoogleSignIn}
                       loading={isGoogleLoading}
                     />
-                  </AuthGlassCard>
-                </form>
 
                 <div className="pt-1">
                   <UniversalSlidePill
@@ -1567,26 +1566,13 @@ export default function AuthFlowContainer({
                     showPassword={showPassword}
                     onTogglePassword={() => setShowPassword(!showPassword)}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 text-gray-400 hover:text-white"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-3.5 h-3.5" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
-                {passwordHint && (
-                  <p className="text-[9.5px] xs:text-[10px] text-gray-400 font-medium px-3.5 pt-0.5">
-                    {passwordHint}
-                  </p>
-                )}
-                <div className="relative flex items-center">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
+                  {passwordHint && (
+                    <p className="text-[9.5px] xs:text-[10px] text-gray-400 font-medium px-3.5 pt-0.5">
+                      {passwordHint}
+                    </p>
+                  )}
+                  <AuthGlassField
+                    isPassword
                     value={confirmPassword}
                     onChange={setConfirmPassword}
                     placeholder="Confirm Password"

@@ -22,6 +22,16 @@ const applyGoalCompletion = (goal: any) => {
   return goal;
 };
 
+const normalizeGoalType = (gt?: string) => {
+  if (!gt) return undefined;
+  const lower = gt.toLowerCase();
+  if (lower === "bulking") return "Bulking";
+  if (lower === "cutting") return "Cutting";
+  if (lower === "recomp") return "Recomp";
+  if (lower === "maintenance") return "Maintenance";
+  return gt;
+};
+
 export const createOrUpdateGoal = async (req: Request, res: Response) => {
   try {
     const {
@@ -44,16 +54,6 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
     }
 
     const existingGoal = await Goal.findOne({ userId });
-
-    const normalizeGoalType = (gt?: string) => {
-      if (!gt) return undefined;
-      const lower = gt.toLowerCase();
-      if (lower === "bulking") return "Bulking";
-      if (lower === "cutting") return "Cutting";
-      if (lower === "recomp") return "Recomp";
-      if (lower === "maintenance") return "Maintenance";
-      return gt;
-    };
 
     const goalData: any = {
       userId,
