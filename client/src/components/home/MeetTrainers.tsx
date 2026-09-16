@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import React from "react";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, X, Award, Dumbbell, Clock, User } from "lucide-react";
 
@@ -179,22 +181,21 @@ export default function MeetTrainers() {
               className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform"
               aria-label="Close trainer details"
             >
-              <X size={19} />
-            </button>
+              <Image
+                fill
+                src={trainer.image}
+                alt={trainer.name}
+                className="w-full h-full object-cover object-top filter brightness-90 contrast-105 group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity" />
 
-            {/* Hero */}
-            <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] border-b border-white/10">
-              <div className="h-[320px] md:h-full min-h-[320px]">
-                <img
-                  src={selectedTrainer.image}
-                  alt={selectedTrainer.name}
-                  className="w-full h-full object-cover object-top"
-                />
-              </div>
-
-              <div className="p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
-                <p className="text-[10px] uppercase tracking-[0.25em] text-white/50 mb-3">
-                  Fitora Expert Trainer
+              {/* Trainer Info Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-5 space-y-0.5">
+                <h4 className="text-base sm:text-lg font-black text-white uppercase tracking-wider">
+                  {trainer.name}
+                </h4>
+                <p className="text-xs font-semibold text-white/80">
+                  {trainer.role}
                 </p>
 
                 <h3 className="text-3xl sm:text-4xl font-black uppercase tracking-tight">

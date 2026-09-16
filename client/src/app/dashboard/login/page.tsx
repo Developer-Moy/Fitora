@@ -14,6 +14,7 @@ import {
   Shield,
   UserCheck,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -108,9 +109,11 @@ export default function DashboardLoginPage() {
       {/* Top Bar */}
       <header className="max-w-5xl mx-auto w-full flex items-center justify-between py-2 shrink-0">
         <Link href="/" className="flex items-center gap-2.5 group select-none">
-          <img
+          <Image
             src="/logo.svg"
             alt="FITORA logo"
+            width={28}
+            height={28}
             className="w-7 h-7 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform"
           />
           <div className="flex flex-col">
