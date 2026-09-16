@@ -9,6 +9,8 @@ export interface ITrainer extends Document {
   certifications: string[];
   specialties: string[];
   philosophy: string;
+  earlyLife?: string;
+  careerHighlights?: string[];
 }
 
 const trainerSchema = new Schema<ITrainer>({
@@ -19,7 +21,9 @@ const trainerSchema = new Schema<ITrainer>({
   experience: { type: Number, required: true },
   certifications: [{ type: String }],
   specialties: [{ type: String }],
-  philosophy: { type: String, required: true }
+  philosophy: { type: String, required: true },
+  earlyLife: { type: String },
+  careerHighlights: [{ type: String }]
 }, {
   timestamps: true,
   collection: 'trainers'
