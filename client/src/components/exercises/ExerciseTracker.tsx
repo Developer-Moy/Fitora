@@ -9,18 +9,22 @@ import {
   ChevronRight,
   Clock3,
   Dumbbell,
+  ExternalLink,
   Flame,
   Lock,
   Pause,
   Play,
   RotateCcw,
   Search,
+  Sparkles,
   Target,
   X,
   Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { fetchExercises } from "@/services/exerciseService";
+import { createWorkoutLog } from "@/services/workoutService";
+import Image from "next/image";
 
 type Exercise = {
   id: string;
@@ -41,14 +45,14 @@ const categories = [
   "CHEST",
   "BACK",
   "LEGS",
-  "ARMS",
   "SHOULDERS",
+  "ARMS",
   "CORE",
-  "GLUTES",
-  "FULL BODY",
   "CARDIO",
-  "MOBILITY",
+  "FULL BODY",
   "FUNCTIONAL",
+  "MOBILITY",
+  "GLUTES",
 ];
 
 export default function ExercisePage() {
@@ -439,9 +443,10 @@ function ExerciseCard({
       }`}
     >
       {/* Image */}
-      <img
+      <Image
         src={imgSrc}
         alt=""
+        fill
         aria-hidden="true"
         onError={() => {
           if (imgSrc !== defaultFallback) {
@@ -474,15 +479,21 @@ function ExerciseCard({
         </div>
       )}
 
-      {/* Number */}
-      <div className="absolute top-4 left-4">
+      {/* Number and VIP Badge */}
+      <div className="absolute top-4 left-4 flex items-center gap-1.5 z-10">
         <span className="bg-white text-black px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider">
           {String(index + 1).padStart(2, "0")}
         </span>
+        {exercise.difficulty === "ADVANCED" && (
+          <span className="bg-amber-400 text-black px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider flex items-center gap-1 shadow-md">
+            <Sparkles className="w-2.5 h-2.5 fill-black" />
+            VIP
+          </span>
+        )}
       </div>
 
       {/* Play */}
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 z-10">
         <div className="relative w-9 h-9 rounded-full bg-white text-black flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-md">
           {/* Circular loader ring on hover */}
           <span className="absolute -inset-1 rounded-full border-2 border-transparent border-t-white border-r-white/60 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity duration-300 pointer-events-none" />
@@ -492,7 +503,7 @@ function ExerciseCard({
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 space-y-2">
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <span className="px-2.5 py-0.5 rounded-full border border-white/20 bg-black/60 text-[9px] font-bold tracking-wider">
             {exercise.category}
           </span>
@@ -500,6 +511,13 @@ function ExerciseCard({
           <span className="px-2.5 py-0.5 rounded-full border border-white/20 bg-black/60 text-[9px] font-bold tracking-wider">
             {exercise.difficulty}
           </span>
+
+          {exercise.difficulty === "ADVANCED" && (
+            <span className="px-2.5 py-0.5 rounded-full border border-amber-400/40 bg-amber-500/20 text-amber-300 text-[9px] font-black tracking-wider flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5 fill-amber-300" />
+              VIP EXCLUSIVE
+            </span>
+          )}
         </div>
 
         <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-tight line-clamp-1">
@@ -709,40 +727,12 @@ function ExerciseModal({
     };
 
     try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("fitora_token") ||
-            localStorage.getItem("fitora_auth_token")
-          : null;
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const response = await fetch(`${API_BASE_URL}/workouts/log`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        let message = `Request failed with status ${response.status}`;
-        try {
-          const data = await response.json();
-          message = (data && (data.message || data.error)) || message;
-        } catch {
-          // ignore non-JSON response
-        }
-        throw new Error(message);
-      }
-
-      const result = await response.json();
-      const created: WorkoutLog = (result?.data ||
-        result?.payload ||
-        result) as WorkoutLog;
+      const created = await createWorkoutLog(payload);
+      const safeId = created._id ?? `offline_${Date.now()}`;
+      const isOfflineItem = safeId.startsWith("offline_");
 
       const normalized: WorkoutLog = {
-        _id: created._id ?? `local-${Date.now()}`,
+        _id: safeId,
         exerciseName: created.exerciseName ?? exercise.name,
         setsCount: Number(created.setsCount ?? payload.setsCount),
         repsCount: Number(created.repsCount ?? payload.repsCount),
@@ -754,10 +744,17 @@ function ExerciseModal({
 
       setHistory((prev) => [normalized, ...prev]);
       setNotes("");
-      toast.success(
-        `${exercise.name} logged: ${normalized.setsCount} × ${normalized.repsCount} @ ${normalized.weight}kg`,
-        { duration: 3000 },
-      );
+      if (isOfflineItem) {
+        toast.success(
+          `Offline Mode: ${exercise.name} saved locally! Will sync to MongoDB once online 📶`,
+          { duration: 4000, icon: "💾" },
+        );
+      } else {
+        toast.success(
+          `${exercise.name} logged: ${normalized.setsCount} × ${normalized.repsCount} @ ${normalized.weight}kg`,
+          { duration: 3000 },
+        );
+      }
 
       // Notify active Heatmap and workout listeners of newly saved activity
       if (typeof window !== "undefined") {
@@ -866,6 +863,22 @@ function ExerciseModal({
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                   />
+                </div>
+
+                {/* External Video Demonstration Link */}
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                    Video Demonstration
+                  </span>
+                  <a
+                    href={`https://www.youtube.com/watch?v=${exercise.videoId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-white/70 hover:text-white transition uppercase tracking-wider hover:underline"
+                  >
+                    <span>Watch in Full HD</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
 
                 {/* 3 Metadata Cards (Duration, Equipment, Target) under Video */}
@@ -1035,13 +1048,19 @@ function ExerciseModal({
               {/* 4. Badges, Title, Description, Tips -> order-4 on mobile, order-1 on desktop */}
               <div className="order-4 lg:order-1 space-y-5 w-full">
                 {/* Category & Difficulty Badges */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="px-3 py-1 rounded-full bg-white text-black text-[9px] font-black uppercase tracking-wider">
                     {exercise.category}
                   </span>
                   <span className="px-3 py-1 rounded-full border border-white/20 text-white/60 text-[9px] font-black uppercase tracking-wider">
                     {exercise.difficulty}
                   </span>
+                  {exercise.difficulty === "ADVANCED" && (
+                    <span className="px-3 py-1 rounded-full border border-amber-400/40 bg-amber-500/20 text-amber-300 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                      <Sparkles className="w-2.5 h-2.5 fill-amber-300" />
+                      VIP ACCESS
+                    </span>
+                  )}
                 </div>
 
                 {/* Exercise Title & Description */}

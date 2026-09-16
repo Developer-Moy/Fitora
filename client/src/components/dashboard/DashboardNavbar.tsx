@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useDashboardRole, DashboardRole } from "@/hooks/useDashboardRole";
 import NotificationDropdown from "./NotificationDropdown";
+import Image from "next/image";
 
 const isTabActive = (itemTabKey?: string, currentTab?: string) => {
   if (!itemTabKey) return false;
@@ -148,9 +149,11 @@ export default function DashboardNavbar() {
             href="/dashboard"
             className="flex items-center gap-3 group select-none shrink-0 cursor-pointer"
           >
-            <img
+            <Image
               src="/logo.svg"
               alt="FITORA logo"
+              width={32}
+              height={32}
               className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
             />
             <div className="flex flex-col">

@@ -60,6 +60,7 @@ import { saveCardApi, deleteSavedCardApi } from "@/services/dashboardService";
 import FitoraPillButton from "@/components/ui/FitoraPillButton";
 import FitoraSpinner from "@/components/ui/FitoraSpinner";
 import VipPassModal from "@/components/home/VipPassModal";
+import Image from "next/image";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -806,9 +807,11 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/25 flex items-center justify-center text-2xl font-black overflow-hidden shrink-0 shadow-inner">
               {userAvatar && !avatarError ? (
-                <img
+                <Image
                   src={userAvatar}
                   alt={userName}
+                  width={64}
+                  height={64}
                   onError={() => setAvatarError(true)}
                   className="w-full h-full object-cover"
                 />
@@ -1300,9 +1303,11 @@ export default function ProfilePage() {
 
                   <div className="flex justify-center p-2">
                     {qrDataUrl ? (
-                      <img
+                      <Image
                         src={qrDataUrl}
                         alt="Gym turnstile entry QR"
+                        width={160}
+                        height={160}
                         className="w-40 h-40 rounded-xl border border-white/20 bg-white p-1.5 shadow-md"
                       />
                     ) : (

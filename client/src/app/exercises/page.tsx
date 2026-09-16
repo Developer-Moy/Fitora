@@ -1,7 +1,7 @@
 "use client";
 
+import ExerciseTracker from "@/components/exercises/ExerciseTracker";
 import React from "react";
-import ExerciseTracker from "@/components/ExerciseTracker";
 
 export default function ExercisesPage() {
   return (

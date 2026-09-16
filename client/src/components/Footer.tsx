@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { subscribeNewsletterApi } from "@/services/adService";
+import Image from "next/image";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -320,9 +321,11 @@ export default function Footer() {
             href="/"
             className="flex items-center gap-2 group select-none shrink-0"
           >
-            <img
+            <Image
               src="/logo.svg"
               alt="Fitora logo"
+              width={20}
+              height={20}
               className="w-4 h-4 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
             />
             <span className="font-black text-xs tracking-wider uppercase text-white font-sans">

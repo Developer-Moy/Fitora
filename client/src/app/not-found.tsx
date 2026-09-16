@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowUpRight, ArrowLeft, Home, Activity, Clock } from "lucide-react";
+import Image from "next/image";
 
 export default function NotFound() {
   return (
@@ -12,9 +13,11 @@ export default function NotFound() {
       {/* ── Top Header Bar ── */}
       <div className="relative z-10 flex items-center justify-between w-full max-w-6xl mx-auto">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <img
+          <Image
             src="/logo.svg"
             alt="Fitora logo"
+            width={28}
+            height={28}
             className="w-7 h-7 object-contain filter brightness-0 invert"
           />
           <span className="font-black text-base tracking-wider uppercase">
