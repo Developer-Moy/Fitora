@@ -30,6 +30,7 @@ import {
   getCurrentUserApi,
 } from "@/services/authService";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import Image from "next/image";
 
 /* ── Navigation Links (Exact Match Between PC & Mobile Hamburger) ── */
 const NAV_LINKS = [
@@ -233,9 +234,11 @@ export default function Navbar() {
             }}
             className="flex items-center gap-3 group select-none shrink-0"
           >
-            <img
+            <Image
               src="/logo.svg"
               alt="Fitora logo"
+              width={32}
+              height={32}
               className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
             />
             <div className="flex flex-col">
@@ -319,15 +322,6 @@ export default function Navbar() {
               </Link>
             ) : (
               <div className="hidden lg:flex items-center gap-3">
-                {/* If user is not yet PRO, show a PRO upgrade button matching other buttons */}
-                {isMounted && !isPremium && (
-                  <Link
-                    href="#pricing"
-                    className="group inline-flex items-center justify-center bg-white text-black border border-white font-extrabold text-xs sm:text-sm px-4 py-2 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
-                  >
-                    <span>PRO</span>
-                  </Link>
-                )}
 
                 <NotificationBell
                   isLoggedIn={isLoggedIn}
@@ -347,7 +341,9 @@ export default function Navbar() {
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-7 h-7 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-sm border border-black/10">
                         {userAvatar ? (
-                          <img
+                          <Image
+                            width={28}
+                            height={28}
                             src={userAvatar}
                             alt={userName}
                             className="w-full h-full object-cover"
@@ -504,7 +500,9 @@ export default function Navbar() {
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-7 h-7 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-sm border border-white/20">
                         {userAvatar ? (
-                          <img
+                          <Image
+                            width={28}
+                            height={28}
                             src={userAvatar}
                             alt={userName}
                             className="w-full h-full object-cover"

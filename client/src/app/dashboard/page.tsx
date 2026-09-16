@@ -2,6 +2,7 @@
 
 import BranchManagementView from "@/components/dashboard/BranchManagementView";
 import UserManagementTable from "@/components/dashboard/UserManagementTable";
+import ReferralRewardCard from "@/components/dashboard/ReferralRewardCard";
 import { useDashboardRole } from "@/hooks/useDashboardRole";
 import {
   fetchBranchCheckins,
@@ -616,6 +617,13 @@ export default function MasterDashboardPage() {
                     <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
                     <span>+3.5% Boost</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Referral Reward Card */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                <div className="lg:col-span-5">
+                  <ReferralRewardCard />
                 </div>
               </div>
 

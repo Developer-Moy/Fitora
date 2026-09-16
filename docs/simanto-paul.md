@@ -490,6 +490,14 @@ https://github.com/Developer-Moy/Fitora/tree/simanto-paul
 * Improved calculator UI consistency using Fitora design components.
 * Completed testing and verification of the updated calculator features.
 
+### 16-Sep-26
+
+* Worked on performance optimization across the Fitora application.
+* Replaced native image handling with Next.js `Image` for improved performance.
+* Reviewed and optimized minor UI components for better loading performance.
+* Completed testing and verification of the performance improvements.
+
+
 ---
 
 # Current Status

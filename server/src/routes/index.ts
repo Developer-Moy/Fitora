@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import mongoose from "mongoose";
 import workoutRoutes from "./workout.routes";
+import trainerRoutes from "./trainer.routes";
 import aiRoutes from "./ai.routes";
 import authRoutes from "./auth.routes";
 import goalRoutes from "./goal.routes";

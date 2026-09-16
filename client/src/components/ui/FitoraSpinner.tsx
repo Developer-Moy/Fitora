@@ -63,9 +63,11 @@ export default function FitoraSpinner({
         {/* Center Official FITORA Vector Brand Logo (/logo.svg) */}
         {showLogo && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <img
+            <Image
               src="/logo.svg"
               alt="FITORA emblem"
+              width={24}
+              height={24}
               className={`${dimensions.logo} object-contain filter brightness-0 invert animate-pulse drop-shadow-[0_0_8px_rgba(255,255,255,0.7)]`}
             />
           </div>

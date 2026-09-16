@@ -113,25 +113,44 @@ export interface RecentSessionsData {
   todaySetsCount: number;
 }
 
-export async function completeStopwatchSession(payload: {
-  workoutType?: string;
-  durationMinutes?: number;
-  durationSeconds?: number;
-  setsCount?: number;
-  repsCount?: number;
-  weightKg?: number;
-  caloriesBurned?: number;
-  presetId?: string;
-  notes?: string;
-}): Promise<boolean> {
+import { enqueueTelemetry } from "./offlineQueueService";
+
+export async function completeStopwatchSession(
+  payload: {
+    workoutType?: string;
+    durationMinutes?: number;
+    durationSeconds?: number;
+    setsCount?: number;
+    repsCount?: number;
+    weightKg?: number;
+    caloriesBurned?: number;
+    presetId?: string;
+    notes?: string;
+  },
+  options?: { skipOfflineQueue?: boolean },
+): Promise<boolean> {
+  const isOffline = typeof window !== "undefined" && !navigator.onLine;
+  if (isOffline && !options?.skipOfflineQueue) {
+    await enqueueTelemetry("STOPWATCH_SESSION", payload);
+    return true;
+  }
+
   try {
     const res = await fetch(`${API_URL}/stopwatch/session-complete`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...getAuthHeader() },
       body: JSON.stringify(payload),
     });
+    if (!res.ok && !options?.skipOfflineQueue && (res.status >= 500 || res.status === 0)) {
+      await enqueueTelemetry("STOPWATCH_SESSION", payload);
+      return true;
+    }
     return res.ok;
   } catch {
+    if (!options?.skipOfflineQueue) {
+      await enqueueTelemetry("STOPWATCH_SESSION", payload);
+      return true;
+    }
     return false;
   }
 }

@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Phone, ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 
 interface TrainerCalloutBannerProps {
   title?: string;
@@ -33,7 +34,8 @@ export default function TrainerCalloutBanner({
     >
       {/* Background Image Container */}
       <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[70%] md:w-[60%] lg:w-[50%] h-full flex justify-end pointer-events-none z-0">
-        <img
+        <Image
+          fill
           src={backgroundImage}
           alt="Fitness Trainer"
           className="h-full w-full object-cover sm:object-cover object-right"
