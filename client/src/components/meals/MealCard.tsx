@@ -90,9 +90,11 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
       <div className="group relative bg-neutral-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:border-white/30 transition-all duration-500 flex flex-col h-full select-none">
         {/* Meal Image */}
         <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-neutral-900">
-          <img
+          <Image
             src={displayImage}
             alt={meal.name}
+            width={400}
+            height={300}
             className="w-full h-full object-cover brightness-95 contrast-105 group-hover:scale-105 transition-transform duration-700 ease-out"
             onError={() => setImageError(true)}
           />

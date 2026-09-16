@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { fetchExercises } from "@/services/exerciseService";
+import Image from "next/image";
 
 type Exercise = {
   id: string;
@@ -438,9 +439,10 @@ function ExerciseCard({
       }`}
     >
       {/* Image */}
-      <img
+      <Image
         src={imgSrc}
         alt=""
+        fill
         aria-hidden="true"
         onError={() => {
           if (imgSrc !== defaultFallback) {

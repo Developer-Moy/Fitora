@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 
 function ExerciseCard({
   exercise,
@@ -49,9 +51,11 @@ function ExerciseCard({
       }`}
     >
       {/* Image */}
-      <img
+      <Image
         src={imgSrc}
         alt=""
+        width={400}
+        height={300}
         aria-hidden="true"
         onError={() => {
           if (imgSrc !== defaultFallback) {
