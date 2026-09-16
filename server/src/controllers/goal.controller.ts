@@ -29,7 +29,7 @@ const normalizeGoalType = (gt?: string) => {
   if (lower === "cutting") return "Cutting";
   if (lower === "recomp") return "Recomp";
   if (lower === "maintenance") return "Maintenance";
-  return gt;
+  return undefined;
 };
 
 export const createOrUpdateGoal = async (req: Request, res: Response) => {
@@ -54,6 +54,7 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
     }
 
     const existingGoal = await Goal.findOne({ userId });
+
 
     const goalData: any = {
       userId,

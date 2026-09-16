@@ -1,3 +1,4 @@
+import { sendWelcomeEmail } from "../utils/mailer";
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
@@ -114,6 +115,9 @@ export const registerUser = async (req: Request, res: Response) => {
     });
 
     const token = signUserToken(user);
+
+    // Send welcome email asynchronously without blocking response
+    sendWelcomeEmail(user.email, user.name).catch(console.error);
 
     return res.status(201).json(
       successResponse("User registered successfully", {
