@@ -1496,7 +1496,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </div>
 
                     <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
-                      500 KCAL {goal === "cutting" ? "DEFICIT" : "SURPLUS"}
+                      {targetWeight === weight ? "MAINTENANCE" : `500 KCAL ${targetWeight < weight ? "DEFICIT" : "SURPLUS"}`}
                     </span>
                   </div>
 
@@ -1622,7 +1622,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       </p>
                       <p className="mt-0.5 text-[11px] leading-relaxed text-gray-400">
                         {timeline && timeline.weeks > 0
-                          ? `At 500 kcal daily ${goal === "cutting" ? "deficit" : "surplus"}, estimated to reach ${targetWeight} kg in ${timeline.weeks} weeks.`
+                          ? `At 500 kcal daily ${targetWeight < weight ? "deficit" : "surplus"}, estimated to reach ${targetWeight} kg in ${timeline.weeks} weeks.`
                           : "Your target weight matches your current weight. Adjust your target weight above to project a transformation timeline."}
                       </p>
                       <p className="mt-1 text-[8px] font-black uppercase tracking-widest text-gray-500">
