@@ -371,7 +371,7 @@ export default function ExercisePage() {
                 type="button"
                 onClick={() => {
                   setShowPremiumMessage(false);
-                  window.location.href = "/pricing";
+                  window.location.href = "/#pricing";
                 }}
                 className="group flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] transition cursor-pointer shadow-lg"
               >

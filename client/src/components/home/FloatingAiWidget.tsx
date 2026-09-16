@@ -151,6 +151,11 @@ export default function FloatingAiWidget() {
   }, []);
 
   const activeUser = authSession?.user || localUser;
+  const userId =
+    (activeUser as any)?.id ||
+    (activeUser as any)?._id ||
+    (localUser as any)?._id ||
+    "";
   const userAvatar =
     localUser?.avatarUrl ||
     (activeUser as any)?.image ||
@@ -220,13 +225,13 @@ export default function FloatingAiWidget() {
   // Load live quota when widget opens
   useEffect(() => {
     if (isOpen) {
-      fetchAiQuotaApi().then((res) => {
+      fetchAiQuotaApi(userId).then((res) => {
         if (res.success && res.data) {
           setQuota(res.data);
         }
       });
     }
-  }, [isOpen]);
+  }, [isOpen, userId]);
 
   const handleSendMessage = async (textToSend?: string) => {
     const query = (textToSend || inputText).trim();
@@ -252,7 +257,7 @@ export default function FloatingAiWidget() {
     setIsTyping(true);
 
     try {
-      const res = await sendAiChatApi(query, "coach");
+      const res = await sendAiChatApi(query, "coach", undefined, userId);
       if (res.success && res.data) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -269,7 +274,7 @@ export default function FloatingAiWidget() {
           setQuota(res.data.quota);
         }
       } else {
-        toast.error(res.message || "Failed to generate response.");
+        toast.error(res.error || res.message || "Failed to generate response.");
       }
     } catch (err: any) {
       toast.error(err.message || "Connection error. Please try again.");

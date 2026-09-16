@@ -1580,7 +1580,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </div>
 
                     <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
-                      500 KCAL {goal === "cutting" ? "DEFICIT" : "SURPLUS"}
+                      {targetWeight === weight ? "MAINTENANCE" : `500 KCAL ${targetWeight < weight ? "DEFICIT" : "SURPLUS"}`}
                     </span>
                   </div>
 
@@ -1606,7 +1606,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                             setTargetWeightSaved(false);
                           }}
                           placeholder="65"
-                          className="w-18 px-2.5 py-1 text-center rounded-xl bg-white border-2 border-neutral-300 text-black placeholder:text-neutral-500 placeholder:font-medium font-black text-xs outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition-all shadow-sm"
+                          className="w-18 px-2.5 py-1 text-center rounded-xl bg-white border-2 border-neutral-300 text-black placeholder:text-neutral-500 placeholder:font-medium font-black text-xs outline-none focus:border-black transition-all"
                         />
                         <span className="text-xs font-bold text-gray-400">
                           KG
@@ -1620,6 +1620,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       onClick={handleSaveTargetWeight}
                       loading={isSavingTargetWeight}
                       disabled={isSavingTargetWeight}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-black border border-white/20 px-3.5 py-1.5 text-[10px] font-extrabold text-white transition-all duration-300 hover:bg-neutral-900 hover:border-white/40 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shrink-0"
                     >
                       Save Target Weight
                     </FitoraPillButton>
@@ -1700,7 +1701,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       </p>
                       <p className="mt-0.5 text-[11px] leading-relaxed text-gray-400">
                         {timeline && timeline.weeks > 0
-                          ? `At 500 kcal daily ${goal === "cutting" ? "deficit" : "surplus"}, estimated to reach ${targetWeight} kg in ${timeline.weeks} weeks.`
+                          ? `At 500 kcal daily ${targetWeight < weight ? "deficit" : "surplus"}, estimated to reach ${targetWeight} kg in ${timeline.weeks} weeks.`
                           : "Your target weight matches your current weight. Adjust your target weight above to project a transformation timeline."}
                       </p>
                       <p className="mt-1 text-[8px] font-black uppercase tracking-widest text-gray-500">

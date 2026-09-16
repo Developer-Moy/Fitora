@@ -599,6 +599,20 @@ Updated the homepage contact section and added a reusable WhatsApp link helper.
   * Added a WhatsApp contact link (shows the number) using the shared helper.
   * Appended a WhatsApp social icon to the **Follow Us** row using the same styling as the existing icons.
 
+## 15-Sep-26
+
+- Upgraded the authentication pages with a polished **glassmorphism UI**, rebuilt in `client/src/components/auth/AuthFlowContainer.tsx`.
+- Added **client-side validation and toast feedback** to the auth flow, including email format checks and inline success/error notifications.
+- Connected the **Google OAuth login button** to the existing Better Auth social sign-in flow with loading, error, and redirect handling.
+- Added dedicated `/pricing` page with **monthly & annual membership pricing** using the reusable `PlanCard` component.
+- Connected the pricing CTA to the **checkout flow** so plan selection opens the subscription checkout modal and refreshes the user session after success.
+
+---
+
+## 16-Sep-26 (planned / ongoing)
+
+*(to be updated)*
+
 ---
 
 ## Summary of My Contributions

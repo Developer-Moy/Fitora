@@ -122,6 +122,7 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
   }
 };
 
+// Get api
 export const getGoal = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
@@ -235,6 +236,27 @@ export const updateGoal = async (req: Request, res: Response) => {
     // Update only supplied fields
     Object.assign(goal, req.body);
 
+    const allowedFields = [
+      "targetWeight",
+      "weeklyWorkoutFrequency",
+      "currentValue",
+      "targetValue",
+      "goalType",
+      "bmr",
+      "tdee",
+      "targetCalories",
+      "macros",
+    ];
+
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        (goal as any)[field] =
+          field === "goalType"
+            ? normalizeGoalType(req.body[field])
+            : req.body[field];
+      }
+    }
+
     // Normalize numeric values
     if (req.body.currentValue !== undefined) {
       goal.currentValue = Number(req.body.currentValue);
@@ -247,6 +269,12 @@ export const updateGoal = async (req: Request, res: Response) => {
     // Auto-complete / archive
     applyGoalCompletion(goal);
 
+    if (goal.status !== "completed" &&
+      goal.targetValue > 0 &&
+      goal.currentValue < goal.targetValue
+    ) {
+      goal.status = "active"; goal.archivedAt = undefined;
+    }
     await goal.save();
 
     return res
@@ -272,11 +300,24 @@ export const updateGoal = async (req: Request, res: Response) => {
   }
 };
 
+// Delete api
 export const deleteGoal = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const goal = await Goal.findByIdAndDelete(id);
+    const authUser = (req as any).user;
+    const userId = authUser?.userId;
+    if (!userId) {
+      return res.status(401).json(
+        errorResponse(
+          "Authentication required", "AUTHENTICATION_REQUIRED",
+          401
+        )
+      );
+
+    }
+
+    const goal = await Goal.findByIdAndDelete({ _id: id, userId, });
 
     if (!goal) {
       return res
@@ -359,5 +400,64 @@ export const getArchivedGoals = async (req: Request, res: Response) => {
           500,
         ),
       );
+  }
+};
+
+/** * GET /api/goals/presets * * Predefined fitness goal options. */
+export const getGoalPresets = async (req: Request, res: Response) => {
+  try {
+    const presets = [
+      {
+        id: "bulking",
+        goalType: "Bulking",
+        label: "Build Muscle",
+        description: "Increase body weight and muscle mass.",
+        calorieAdjustment: 500,
+        recommendedWorkoutFrequency: 5,
+      },
+      {
+        id: "cutting",
+        goalType: "Cutting",
+        label: "Lose Fat",
+        description: "Reduce body weight while preserving muscle.",
+        calorieAdjustment: -500,
+        recommendedWorkoutFrequency: 4,
+      },
+      {
+        id: "recomp",
+        goalType: "Recomp",
+        label: "Body Recomposition",
+        description: "Build muscle while gradually reducing body fat.",
+        calorieAdjustment: 0,
+        recommendedWorkoutFrequency: 4,
+      },
+      {
+        id: "maintenance",
+        goalType: "Maintenance",
+        label: "Maintain Weight",
+        description: "Maintain your current body weight and fitness.",
+        calorieAdjustment: 0,
+        recommendedWorkoutFrequency: 3,
+      },
+    ];
+    return res.status(200).json(
+      successResponse(
+        "Goal presets retrieved successfully",
+        {
+          presets,
+          count: presets.length,
+        }
+      )
+    );
+  } catch (error) {
+    console.error("Get goal presets error:", error);
+    return res.status(500).json(
+      errorResponse("Failed to get goal presets",
+        error instanceof Error
+          ? error.message
+          : "Internal Server Error",
+        500
+      )
+    );
   }
 };
