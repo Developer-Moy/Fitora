@@ -17,6 +17,47 @@ const generateSlug = (name: string): string => {
 };
 
 /**
+ * Allowed trainer status values (mirrors the model enum).
+ */
+const ALLOWED_STATUSES = ["active", "inactive"] as const;
+
+/**
+ * Helper: Validate a trainer status value.
+ */
+const isValidStatus = (status: unknown): boolean => {
+  return ALLOWED_STATUSES.includes(status as any);
+};
+
+/**
+ * Helper: Validate a numeric field against an optional min/max range.
+ * Returns an error message when invalid, or `null` when valid.
+ */
+const validateNumericRange = (
+  label: string,
+  value: unknown,
+  min?: number,
+  max?: number,
+): string | null => {
+  if (value === undefined || value === null || value === "") return null;
+
+  const num = Number(value);
+
+  if (Number.isNaN(num)) {
+    return `${label} must be a valid number.`;
+  }
+
+  if (min !== undefined && num < min) {
+    return `${label} must be greater than or equal to ${min}.`;
+  }
+
+  if (max !== undefined && num > max) {
+    return `${label} must be less than or equal to ${max}.`;
+  }
+
+  return null;
+};
+
+/**
  * 1. Create Trainer (`POST /api/trainers`)
  */
 export const createTrainer = async (req: AuthRequest, res: Response) => {
@@ -45,6 +86,8 @@ export const createTrainer = async (req: AuthRequest, res: Response) => {
       availability,
       featured,
       status,
+      rating,
+      totalReviews,
     } = req.body;
 
     // Validate required fields
@@ -62,6 +105,29 @@ export const createTrainer = async (req: AuthRequest, res: Response) => {
       return res.status(400).json(
         errorResponse(
           "Experience years is a required field.",
+          "VALIDATION_ERROR",
+          400,
+        ),
+      );
+    }
+
+    // Validate numeric ranges
+    const numericError =
+      validateNumericRange("Experience years", experienceYears, 0) ||
+      validateNumericRange("Rating", rating, 0, 5) ||
+      validateNumericRange("Total reviews", totalReviews, 0);
+
+    if (numericError) {
+      return res
+        .status(400)
+        .json(errorResponse(numericError, "VALIDATION_ERROR", 400));
+    }
+
+    // Validate status enum
+    if (status !== undefined && status !== null && !isValidStatus(status)) {
+      return res.status(400).json(
+        errorResponse(
+          `Status must be one of: ${ALLOWED_STATUSES.join(", ")}.`,
           "VALIDATION_ERROR",
           400,
         ),
@@ -112,6 +178,8 @@ export const createTrainer = async (req: AuthRequest, res: Response) => {
       availability: availability || [],
       featured: featured !== undefined ? featured : false,
       status: status || "active",
+      rating: rating !== undefined ? Number(rating) : 0,
+      totalReviews: totalReviews !== undefined ? Number(totalReviews) : 0,
     });
 
     return res
@@ -250,6 +318,8 @@ export const updateTrainer = async (req: AuthRequest, res: Response) => {
       availability,
       featured,
       status,
+      rating,
+      totalReviews,
     } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(String(id))) {
@@ -264,6 +334,29 @@ export const updateTrainer = async (req: AuthRequest, res: Response) => {
       return res
         .status(404)
         .json(errorResponse("Trainer not found.", "TRAINER_NOT_FOUND", 404));
+    }
+
+    // Validate numeric ranges
+    const numericError =
+      validateNumericRange("Experience years", experienceYears, 0) ||
+      validateNumericRange("Rating", rating, 0, 5) ||
+      validateNumericRange("Total reviews", totalReviews, 0);
+
+    if (numericError) {
+      return res
+        .status(400)
+        .json(errorResponse(numericError, "VALIDATION_ERROR", 400));
+    }
+
+    // Validate status enum
+    if (status !== undefined && status !== null && !isValidStatus(status)) {
+      return res.status(400).json(
+        errorResponse(
+          `Status must be one of: ${ALLOWED_STATUSES.join(", ")}.`,
+          "VALIDATION_ERROR",
+          400,
+        ),
+      );
     }
 
     // If name changes and slug isn't manually provided, regenerate slug
@@ -346,6 +439,9 @@ export const updateTrainer = async (req: AuthRequest, res: Response) => {
     if (availability !== undefined) existingTrainer.availability = availability;
     if (featured !== undefined) existingTrainer.featured = featured;
     if (status !== undefined) existingTrainer.status = status;
+    if (rating !== undefined) existingTrainer.rating = Number(rating);
+    if (totalReviews !== undefined)
+      existingTrainer.totalReviews = Number(totalReviews);
 
     const updatedTrainer = await existingTrainer.save();
 

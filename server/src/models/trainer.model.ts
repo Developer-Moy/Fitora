@@ -124,7 +124,7 @@ const trainerSchema = new Schema<ITrainer>(
     experienceYears: {
       type: Number,
       required: [true, "Experience years is required"],
-      min: 0,
+      min: [0, "Experience years cannot be negative"],
     },
     specializations: {
       type: [String],
@@ -210,12 +210,13 @@ const trainerSchema = new Schema<ITrainer>(
     rating: {
       type: Number,
       default: 0,
-      min: 0,
+      min: [0, "Rating cannot be less than 0"],
+      max: [5, "Rating cannot be greater than 5"],
     },
     totalReviews: {
       type: Number,
       default: 0,
-      min: 0,
+      min: [0, "Total reviews cannot be negative"],
     },
   },
   {
@@ -225,7 +226,8 @@ const trainerSchema = new Schema<ITrainer>(
 );
 
 // Indexes
-trainerSchema.index({ slug: 1 }, { unique: true });
+// NOTE: `slug` already gets a unique index from the `unique: true` option on the
+// field definition above; declaring it again here caused a duplicate-index warning.
 trainerSchema.index({ name: 1 });
 trainerSchema.index({ status: 1 });
 trainerSchema.index({ featured: 1 });
