@@ -211,8 +211,9 @@ export default function GymTimer({
       const saved = localStorage.getItem(`fitora_daily_gym_time_${today}`);
       if (saved) {
         const parsed = parseInt(saved, 10);
-        // eslint-disable-next-line
-        if (!isNaN(parsed)) setTotalGymSeconds(parsed);
+        if (!isNaN(parsed)) {
+          setTimeout(() => setTotalGymSeconds(parsed), 0);
+        }
       }
     } catch {
       // ignore
@@ -502,9 +503,10 @@ export default function GymTimer({
 
     // Target reached -> multi-beep alarm & auto-stop
     if (seconds >= targetSeconds) {
-      // eslint-disable-next-line
-      setIsRunning(false);
-      setTargetSeconds(null);
+      setTimeout(() => {
+        setIsRunning(false);
+        setTargetSeconds(null);
+      }, 0);
 
       // Completion chime at 0 (once per session)
       if (!chimePlayedRef.current.has(0)) {
@@ -553,7 +555,7 @@ export default function GymTimer({
         duration: 4000,
         id: "target-alarm",
       });
-      setSeconds(0);
+      setTimeout(() => setSeconds(0), 0);
     }
     // eslint-disable-next-line
   }, [

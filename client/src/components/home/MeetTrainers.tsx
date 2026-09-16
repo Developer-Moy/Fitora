@@ -7,15 +7,21 @@ import { X, Award, Target, BookOpen, Quote, Info, ChevronRight, User, Star, Cloc
 interface Trainer {
   _id: string;
   name: string;
-  role: string;
-  image: string;
+  role?: string; // Old schema
+  designation?: string; // New schema
+  image?: string; // Old schema
+  photo?: string; // New schema
   bio: string;
-  experience: number;
+  experience?: number; // Old schema
+  experienceYears?: number; // New schema
   certifications: string[];
-  specialties: string[];
-  philosophy: string;
+  specialties?: string[]; // Old schema
+  specializations?: string[]; // New schema
+  philosophy?: string; // Old schema
+  about?: string; // New schema
   earlyLife?: string;
-  careerHighlights?: string[];
+  careerHighlights?: string[]; // Old schema
+  achievements?: string[]; // New schema
 }
 
 export default function MeetTrainers() {
@@ -65,7 +71,7 @@ export default function MeetTrainers() {
                 className="group relative h-[270px] sm:h-[300px] rounded-2xl overflow-hidden border border-white/15 bg-black shadow-2xl hover:shadow-[0_20px_40px_rgba(255,255,255,0.15)] cursor-pointer transition-all duration-300"
               >
                 <img
-                  src={trainer.image}
+                  src={trainer.photo || trainer.image}
                   alt={trainer.name}
                   className="w-full h-full object-cover object-top filter brightness-90 contrast-105 group-hover:scale-105 transition-transform duration-500"
                 />
@@ -76,7 +82,7 @@ export default function MeetTrainers() {
                       {trainer.name}
                     </h4>
                     <p className="text-xs font-semibold text-white/80 line-clamp-1">
-                      {trainer.role}
+                      {trainer.designation || trainer.role}
                     </p>
                   </div>
                   
@@ -161,7 +167,7 @@ export default function MeetTrainers() {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 text-[10px] uppercase font-bold flex items-center gap-1.5"><Star className="w-3 h-3"/> Specialty</span>
-                        <span className="text-white text-[10px] font-semibold">{selectedTrainer.specialties[0]}</span>
+                        <span className="text-white text-[10px] font-semibold">{(selectedTrainer.specializations?.[0] || selectedTrainer.specialties?.[0] || "Trainer")}</span>
                       </div>
                     </div>
                   </div>
@@ -245,7 +251,7 @@ export default function MeetTrainers() {
                         <Target className="w-3 h-3 text-white" /> Core Specialties
                       </h3>
                       <ul className="space-y-1.5">
-                        {selectedTrainer.specialties.map((s, i) => (
+                        {(selectedTrainer.specializations || selectedTrainer.specialties || []).map((s, i) => (
                           <li key={i} className="text-xs text-gray-400 flex items-center gap-2 font-medium">
                             <div className="w-1.5 h-1.5 bg-white/40 rounded-full shrink-0" /> {s}
                           </li>

@@ -62,6 +62,7 @@ apiRouter.get("/health", (req: Request, res: Response) => {
 
 // Mounted Central API Routes across all 6 Team Members
 apiRouter.use("/workouts", workoutRoutes);
+apiRouter.use("/trainers", trainerRoutes);
 apiRouter.use("/exercises", exerciseRoutes);
 apiRouter.use("/ai", aiRoutes);
 apiRouter.use("/auth", authRoutes);

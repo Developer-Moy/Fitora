@@ -190,7 +190,9 @@ export default function PersonalizedNutritionPlan({
 
   useEffect(() => {
     if (isMounted) {
-      loadSavedPlan();
+      setTimeout(() => {
+        loadSavedPlan();
+      }, 0);
     }
   }, [isMounted, loadSavedPlan]);
 
