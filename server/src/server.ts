@@ -10,6 +10,7 @@ import apiRouter from "./routes/index.js";
 import { seedStopwatchPresets } from "./data/stopwatch.seed.js";
 
 import { handleStripeWebhook } from "./controllers/payment.controller.js";
+import { apiLimiter, authLimiter } from "./middlewares/rateLimit.middleware.js";
 
 dotenv.config();
 
@@ -87,6 +88,21 @@ app.post(
 
 // Standard JSON body parser for all subsequent API endpoints
 app.use(express.json());
+
+// Rate Limiting (abuse protection)
+// Mounted per-path rather than globally so that Socket.IO (which upgrades the
+// same HTTP server on /socket.io) is never metered.
+//
+//   /api/auth/*  -> authLimiter only   (5 req / 15 min per IP)
+//   /api/*       -> apiLimiter         (100 req / 15 min per IP)
+//   /api/health  -> unmetered (probe-friendly)
+//
+// `apiLimiter` internally skips `/api/auth` (see `isAuthPath`) so the two
+// budgets stay independent: the stricter auth quota is never silently drained
+// by ordinary API traffic, and a busy API client is never locked out of
+// signing in. Each limiter's `skip` also bypasses CORS preflight and health.
+app.use("/api/auth", authLimiter);
+app.use("/api", apiLimiter);
 
 // Root Health Check Route
 app.get("/", (req: Request, res: Response) => {
