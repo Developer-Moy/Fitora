@@ -11,6 +11,7 @@ import { seedStopwatchPresets } from "./data/stopwatch.seed.js";
 
 import { handleStripeWebhook } from "./controllers/payment.controller.js";
 import { apiLimiter, authLimiter } from "./middlewares/rateLimit.middleware.js";
+import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
 
 dotenv.config();
 
@@ -118,6 +119,18 @@ app.get("/", (req: Request, res: Response) => {
 
 // Mounted Central API Router (/api/workouts, /api/ai, /api/auth, /api/goals, /api/meal-charts, /api/bmi, /api/dashboard, /api/ads, /api/health)
 app.use("/api", apiRouter);
+
+// 404 Handler: any request that reached this point matched no route.
+// Registered AFTER all routes but BEFORE the error handler so unmatched
+// URLs return the standard Fitora error envelope instead of Express's
+// default HTML page (which leaks the framework banner in production).
+app.use(notFoundHandler);
+
+// Global Error Handler: MUST be registered last, and MUST keep its
+// four-argument signature for Express to treat it as an error handler.
+// Converts Mongoose, JWT, OAuth/Better-Auth and unknown errors into the
+// single Fitora error envelope, hiding stack traces in production.
+app.use(errorHandler);
 
 // Initialize Socket.IO handlers
 setupSocketHandlers(io);
