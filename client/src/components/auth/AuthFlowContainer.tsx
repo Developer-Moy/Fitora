@@ -643,7 +643,11 @@ export default function AuthFlowContainer({
                     <span>Remember Me</span>
                   </label>
                   <Link
-                    href="/forgot-password"
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toast("Password reset is coming soon!", { icon: "🔒" });
+                    }}
                     className="text-gray-400 hover:text-white underline"
                   >
                     Forget Password?
