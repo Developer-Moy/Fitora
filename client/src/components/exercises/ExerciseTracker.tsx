@@ -1,5 +1,6 @@
 "use client";
 
+import FitoraPillButton from "@/components/ui/FitoraPillButton";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
   ArrowUpRight,
@@ -255,20 +256,20 @@ export default function ExercisePage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 pt-12 pb-4 select-none">
                   {/* Previous Button */}
-                  <button
-                    type="button"
+                  <FitoraPillButton
+                    variant="black"
                     onClick={() => {
                       setCurrentPage((p) => Math.max(p - 1, 1));
                       document
-                        .getElementById("exercise-library")
+                        .getElementById("exercises-catalog")
                         ?.scrollIntoView({ behavior: "smooth" });
                     }}
                     disabled={currentPage === 1}
-                    className="inline-flex items-center gap-1 px-4 py-2.5 rounded-full border border-white/20 bg-neutral-900 text-xs font-bold text-white hover:bg-white hover:text-black transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer shadow-md"
+                    className="gap-1 px-4 py-2.5 text-xs"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     <span>Prev</span>
-                  </button>
+                  </FitoraPillButton>
 
                   {/* Page Number Buttons */}
                   <div className="flex items-center gap-1.5 px-2">
@@ -296,20 +297,20 @@ export default function ExercisePage() {
                   </div>
 
                   {/* Next Button */}
-                  <button
-                    type="button"
+                  <FitoraPillButton
+                    variant="black"
                     onClick={() => {
                       setCurrentPage((p) => Math.min(p + 1, totalPages));
                       document
-                        .getElementById("exercise-library")
+                        .getElementById("exercises-catalog")
                         ?.scrollIntoView({ behavior: "smooth" });
                     }}
                     disabled={currentPage === totalPages}
-                    className="inline-flex items-center gap-1 px-4 py-2.5 rounded-full border border-white/20 bg-neutral-900 text-xs font-bold text-white hover:bg-white hover:text-black transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer shadow-md"
+                    className="gap-1 px-4 py-2.5 text-xs"
                   >
                     <span>Next</span>
                     <ChevronRight className="w-4 h-4" />
-                  </button>
+                  </FitoraPillButton>
                 </div>
               )}
             </>
@@ -357,27 +358,27 @@ export default function ExercisePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-2 mt-6">
-              <button
-                type="button"
+              <FitoraPillButton
+                variant="black"
                 onClick={() => setShowPremiumMessage(false)}
-                className="flex-1 px-5 py-3 rounded-full border border-white/15 bg-neutral-900 text-white text-xs font-black uppercase tracking-wider hover:border-white/40 transition"
+                className="flex-1"
               >
                 Maybe Later
-              </button>
+              </FitoraPillButton>
 
-              <button
-                type="button"
+              <FitoraPillButton
+                variant="white"
                 onClick={() => {
                   setShowPremiumMessage(false);
                   window.location.href = "/#pricing";
                 }}
-                className="group flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] transition cursor-pointer shadow-lg"
+                className="group flex-1"
               >
                 <span>Upgrade Now</span>
                 <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-sm">
                   <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
                 </span>
-              </button>
+              </FitoraPillButton>
             </div>
           </div>
         </div>
@@ -920,33 +921,33 @@ function ExerciseModal({
 
                 <div className="grid grid-cols-3 gap-2">
                   {!swRunning ? (
-                    <button
-                      type="button"
+                    <FitoraPillButton
+                      variant="white"
                       onClick={startStopwatch}
-                      className="col-span-2 inline-flex items-center justify-center gap-1.5 bg-white text-black font-extrabold text-[10px] uppercase tracking-wider px-3 py-2 rounded-full hover:bg-gray-100 transition shadow-md cursor-pointer"
+                      className="col-span-2 gap-1.5 text-[10px] px-3 py-2"
                     >
                       <Play className="w-3 h-3 fill-black" />
                       <span>{swElapsedMs > 0 ? "Resume" : "Start"}</span>
-                    </button>
+                    </FitoraPillButton>
                   ) : (
-                    <button
-                      type="button"
+                    <FitoraPillButton
+                      variant="white"
                       onClick={pauseStopwatch}
-                      className="col-span-2 inline-flex items-center justify-center gap-1.5 bg-white text-black font-extrabold text-[10px] uppercase tracking-wider px-3 py-2 rounded-full hover:bg-gray-100 transition shadow-md cursor-pointer"
+                      className="col-span-2 gap-1.5 text-[10px] px-3 py-2"
                     >
                       <Pause className="w-3 h-3 fill-black" />
                       <span>Pause</span>
-                    </button>
+                    </FitoraPillButton>
                   )}
-                  <button
-                    type="button"
+                  <FitoraPillButton
+                    variant="black"
                     onClick={resetStopwatch}
                     disabled={swElapsedMs === 0 && !swRunning}
-                    className="inline-flex items-center justify-center gap-1.5 bg-neutral-950 border border-white/15 text-white font-extrabold text-[10px] uppercase tracking-wider px-3 py-2 rounded-full hover:border-white/40 transition shadow-md cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="gap-1.5 text-[10px] px-3 py-2"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>Reset</span>
-                  </button>
+                  </FitoraPillButton>
                 </div>
               </div>
 
@@ -1015,10 +1016,11 @@ function ExerciseModal({
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <button
+                  <FitoraPillButton
+                    variant="white"
                     type="submit"
                     disabled={submitting}
-                    className="group flex-1 inline-flex items-center justify-center gap-2.5 bg-white text-black font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="group flex-1 gap-2.5 text-xs sm:text-sm px-5 py-3.5"
                   >
                     <span>
                       {submitting ? "LOGGING..." : "FINISH & LOG SET"}
@@ -1026,7 +1028,7 @@ function ExerciseModal({
                     <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
                       <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                     </span>
-                  </button>
+                  </FitoraPillButton>
                 </div>
               </form>
 
@@ -1130,6 +1132,18 @@ function NumberField({
 ============================================================ */
 
 function HistoryList({ logs }: { logs: WorkoutLog[] }) {
+  const [animatingId, setAnimatingId] = useState<string | null>(null);
+  const prevLenRef = useRef(logs.length);
+
+  useEffect(() => {
+    if (logs.length > prevLenRef.current && logs[0]) {
+      setAnimatingId(logs[0]._id);
+      const timer = setTimeout(() => setAnimatingId(null), 500);
+      return () => clearTimeout(timer);
+    }
+    prevLenRef.current = logs.length;
+  }, [logs.length, logs]);
+
   if (logs.length === 0) {
     return (
       <div className="border border-dashed border-white/10 rounded-2xl p-5 text-center">
@@ -1157,7 +1171,15 @@ function HistoryList({ logs }: { logs: WorkoutLog[] }) {
             key={log._id}
             className="flex items-center justify-between gap-3 border border-white/10 bg-neutral-950 rounded-xl px-3 py-2.5"
           >
-            <div className="min-w-0">
+            {/* Success checkmark with pulse micro-interaction */}
+            <div
+              className={`shrink-0 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center ${
+                animatingId === log._id ? "animate-[setPulse_400ms_ease-out]" : ""
+              }`}
+            >
+              <CheckCircle2 className="w-3 h-3 text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-black text-white truncate">
                 {log.setsCount} × {log.repsCount} @ {log.weight}kg
               </p>
@@ -1181,6 +1203,15 @@ function HistoryList({ logs }: { logs: WorkoutLog[] }) {
           </li>
         ))}
       </ul>
+
+      {/* Set completion pulse keyframes */}
+      <style>{`
+        @keyframes setPulse {
+          0% { transform: scale(0.9); opacity: 0.7; }
+          50% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
