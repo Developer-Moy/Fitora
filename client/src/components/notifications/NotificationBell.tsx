@@ -7,6 +7,7 @@ import {
   CheckCheck,
   CreditCard,
   FileText,
+  PartyPopper,
   Sparkles,
   RefreshCw,
   AlertCircle,
@@ -166,6 +167,18 @@ export default function NotificationBell({
     };
   }, [isOpen]);
 
+  // Close on Escape (mirrors the GlobalSearchBar keyboard pattern)
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
   if (!isUserLoggedIn) return null;
 
   const handleMarkAsRead = async (id: string, link?: string) => {
@@ -198,6 +211,12 @@ export default function NotificationBell({
         return <RefreshCw className="w-3.5 h-3.5 text-white" />;
       case "payment":
         return <CreditCard className="w-3.5 h-3.5 text-white" />;
+      case "welcome":
+      case "system":
+        // The server bootstraps the "Welcome to Fitora" notification as
+        // type "system" (see notification.controller), so both share the
+        // friendly welcome icon instead of the generic alert icon.
+        return <PartyPopper className="w-3.5 h-3.5 text-white" />;
       default:
         return <AlertCircle className="w-3.5 h-3.5 text-white" />;
     }

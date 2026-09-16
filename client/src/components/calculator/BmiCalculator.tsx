@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { BookmarkCheck } from "lucide-react";
 import { saveBmiHistory } from "@/services/bmiService";
+import FitoraPillButton from "../ui/FitoraPillButton";
 
 interface BmiCalculatorProps {
   onBmiChange?: (bmi: number) => void;
@@ -16,6 +17,14 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
   const [heightUnit, setHeightUnit] = useState<"cm" | "ft">("cm");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Health calculation inputs
+  const [age, setAge] = useState(25);
+  const [gender, setGender] = useState<"male" | "female">("male");
+
+  const [activityLevel, setActivityLevel] = useState<
+    "sedentary" | "light" | "moderate" | "active" | "veryActive"
+  >("moderate");
+
   const heightInMeters = height / 100;
 
   const bmi = Number((weight / (heightInMeters * heightInMeters)).toFixed(1));
@@ -25,20 +34,80 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
   }, [bmi, onBmiChange]);
 
   const handleSaveBmi = async () => {
-    setIsSaving(true);
+  setIsSaving(true);
+
+  try {
+    // 1. Save BMI history
     const success = await saveBmiHistory({
       heightCm: Math.round(height),
       weightKg: Number(weight.toFixed(1)),
       bmiScore: bmi,
       statusCategory: bmiStatus,
+      age,
+      gender,
+      bmr: Math.round(bmr),
+      tdee,
+      activityLevel,
     });
-    setIsSaving(false);
-    if (success) {
-      toast.success("BMI score saved to your profile history!");
-    } else {
+
+    if (!success) {
       toast.error("Please login to save your BMI record.");
+      return;
     }
-  };
+
+    // 2. Sync health metrics to User profile
+    const token =
+      localStorage.getItem("fitora_token") ||
+      localStorage.getItem("fitora_auth_token");
+
+    if (!token) {
+      toast.error("Please login to sync your health metrics.");
+      return;
+    }
+
+    const API_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+    const response = await fetch(
+      `${API_URL}/users/profile/health-metrics`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          age,
+          gender,
+          height: Math.round(height),
+          weight: Number(weight.toFixed(1)),
+          bmr: Math.round(bmr),
+          tdee,
+          activityLevel,
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data?.message || "Failed to sync health metrics",
+      );
+    }
+
+    toast.success("BMI and health metrics saved successfully!");
+  } catch (error) {
+    console.error("Health metrics sync error:", error);
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Failed to save health metrics.",
+    );
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   const getBmiStatus = () => {
     if (bmi < 18.5) return "Underweight";
@@ -51,6 +120,32 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
 
   const bmiProgress = Math.min((bmi / 40) * 100, 100);
 
+  // BMI Gauge Needle Angle
+  const bmiNeedleAngle = Math.max(
+    -90,
+    Math.min(90, (bmi / 40) * 180 - 90),
+  );
+
+
+  const bmr =
+    gender === "male"
+      ? 10 * weight + 6.25 * height - 5 * age + 5
+      : 10 * weight + 6.25 * height - 5 * age - 161;
+
+  // Activity multipliers for TDEE
+  const activityMultipliers = {
+    sedentary: 1.2,
+    light: 1.375,
+    moderate: 1.55,
+    active: 1.725,
+    veryActive: 1.9,
+  };
+
+  const tdee = Math.round(
+    bmr * activityMultipliers[activityLevel]
+  );
+
+
   // Height feet & inches calculation
   const totalInches = Math.max(20, Math.round(height / 2.54));
   const feet = Math.floor(totalInches / 12);
@@ -62,18 +157,27 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
   // Slider progress percentages
   const weightProgress =
     weightUnit === "kg"
-      ? Math.min(100, Math.max(0, ((weight - 20) / (300 - 20)) * 100))
+      ? Math.min(
+        100,
+        Math.max(0, ((weight - 20) / (300 - 20)) * 100),
+      )
       : Math.min(
-          100,
-          Math.max(0, ((displayWeightLbs - 44) / (660 - 44)) * 100),
-        );
+        100,
+        Math.max(0, ((displayWeightLbs - 44) / (660 - 44)) * 100),
+      );
 
   const heightProgress =
     heightUnit === "cm"
-      ? Math.min(100, Math.max(0, ((height - 50) / (250 - 50)) * 100))
-      : Math.min(100, Math.max(0, ((totalInches - 20) / (98 - 20)) * 100));
+      ? Math.min(
+        100,
+        Math.max(0, ((height - 50) / (250 - 50)) * 100),
+      )
+      : Math.min(
+        100,
+        Math.max(0, ((totalInches - 20) / (98 - 20)) * 100),
+      );
 
-  // 100% FITORA Signature Dynamic Monochrome Status Theme (Restored)
+  // FITORA Signature Dynamic Monochrome Status Theme
   const getStatusTheme = () => {
     switch (bmiStatus) {
       case "Underweight":
@@ -83,7 +187,13 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
           textColor: "text-gray-300",
           subTextColor: "text-black/80",
           dotColor: "text-gray-400",
+
+          // Speedometer colors
+          gaugeColor: "rgba(0,0,0,0.45)",
+          needleColor: "bg-black",
+          centerColor: "bg-black",
         };
+
       case "Healthy":
         return {
           cardBg:
@@ -92,7 +202,13 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
           textColor: "text-white",
           subTextColor: "text-black/90",
           dotColor: "text-white",
+
+          // Speedometer colors
+          gaugeColor: "rgba(0,0,0,0.35)",
+          needleColor: "bg-black",
+          centerColor: "bg-black",
         };
+
       case "Overweight":
         return {
           cardBg: "bg-neutral-800 text-white shadow-md border-white/20",
@@ -100,15 +216,27 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
           textColor: "text-gray-300",
           subTextColor: "text-gray-300",
           dotColor: "text-gray-400",
+
+          // Speedometer colors
+          gaugeColor: "rgba(255,255,255,0.25)",
+          needleColor: "bg-white",
+          centerColor: "bg-white",
         };
+
       case "Obesity":
       default:
         return {
-          cardBg: "bg-black text-white shadow-xl border-2 border-white/80",
+          cardBg:
+            "bg-black text-white shadow-xl border-2 border-white/80",
           barBg: "bg-white",
           textColor: "text-white",
           subTextColor: "text-gray-300",
           dotColor: "text-white",
+
+          // Speedometer colors
+          gaugeColor: "rgba(255,255,255,0.35)",
+          needleColor: "bg-white",
+          centerColor: "bg-white",
         };
     }
   };
@@ -117,42 +245,152 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
 
   return (
     <div className="flex w-full flex-col gap-4 select-none">
-      {/* Dynamic Status Output Card (Restored previous background style) */}
+      {/* BMI Result + Speedometer Card */}
       <div
-        className={`rounded-2xl border px-4 py-3.5 sm:py-4 text-center transition-all duration-500 ${statusTheme.cardBg}`}
+        className={`rounded-2xl border px-4 py-4 transition-all duration-500 ${statusTheme.cardBg}`}
       >
-        <p
-          className={`text-[9px] font-black uppercase tracking-[0.2em] ${statusTheme.subTextColor}`}
-        >
-          Your BMI
-        </p>
+        <div className="grid grid-cols-2 items-center gap-3">
+          {/* Left - BMI Result */}
+          <div className="text-center">
+            <p
+              className={`text-[9px] font-black uppercase tracking-[0.2em] ${statusTheme.subTextColor}`}
+            >
+              Your BMI
+            </p>
 
-        <p className="mt-1 text-3xl sm:text-4xl font-black leading-none tracking-tight font-sans">
-          {bmi}
-        </p>
+            <p className="mt-1 text-3xl sm:text-4xl font-black leading-none tracking-tight font-sans">
+              {bmi}
+            </p>
 
-        <p
-          className={`mt-1.5 text-xs font-black uppercase tracking-widest ${statusTheme.subTextColor}`}
-        >
-          {bmiStatus}
-        </p>
+            <p
+              className={`mt-1.5 text-xs font-black uppercase tracking-widest ${statusTheme.subTextColor}`}
+            >
+              {bmiStatus}
+            </p>
+          </div>
+
+          {/* Right - Spring Animated Speedometer */}
+          <div className="relative mx-auto h-28 w-full max-w-[160px]">
+            {/* Half Circle Gauge */}
+            <svg
+              viewBox="0 0 160 90"
+              className="absolute inset-x-0 top-2 h-auto w-full"
+            >
+              <path
+                d="M 10 80 A 70 70 0 0 1 150 80"
+                fill="none"
+                stroke={statusTheme.gaugeColor}
+                strokeWidth="10"
+                strokeLinecap="butt"
+              />
+            </svg>
+
+            {/* Needle */}
+            <motion.div
+              className={`absolute bottom-7 left-1/2 h-14 w-1.5 origin-bottom -translate-x-1/2 rounded-full shadow-md ${statusTheme.needleColor}`}
+              animate={{
+                rotate: bmiNeedleAngle,
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 120,
+                damping: 14,
+                mass: 0.8,
+              }}
+            >
+              {/* Center Dot */}
+              <span
+                className={`absolute -bottom-2 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full shadow-md ${statusTheme.centerColor}`}
+              />
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* Health Calculation Controls */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {/* Age */}
+        <div>
+          <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-wider text-white"> Age </label>
+          <input type="number" min="1" max="120" value={age} onChange={(event) => {
+            const value = Number(event.target.value);
+            if (value >= 1 && value <= 120) {
+              setAge(value);
+            }
+          }} className="w-full rounded-xl border border-white/20 bg-black px-3 py-2.5 text-sm font-bold text-white outline-none transition focus:border-white" />
+        </div>
+
+        {/* Gender */}
+        <div>
+          <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-wider text-white"> Gender </label>
+          <select value={gender}
+            onChange={(event) => setGender(event.target.value as "male" | "female")} className="w-full rounded-xl border border-white/20 bg-black px-3 py-2.5 text-sm font-bold text-white outline-none transition focus:border-white" >
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+
+        {/* Activity Level */} <div>
+          <label className="mb-2 block text-[10px] font-extrabold uppercase tracking-wider text-white"> Activity Level </label>
+          <select value={activityLevel}
+            onChange={(event) =>
+              setActivityLevel(
+                event.target.value as | "sedentary" | "light" | "moderate" | "active" | "veryActive",
+              )}
+            className="w-full rounded-xl border border-white/20 bg-black px-3 py-2.5 text-sm font-bold text-white outline-none transition focus:border-white" >
+            <option value="sedentary">Sedentary</option>
+            <option value="light">Lightly Active</option>
+            <option value="moderate">Moderately Active</option>
+            <option value="active">Very Active</option>
+            <option value="veryActive">Extra Active</option>
+          </select>
+        </div>
+      </div>
+
+      {/* BMR + TDEE Information */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-500"> BMR </p>
+          <p className="mt-1 text-lg font-black text-white"> {Math.round(bmr)}
+            <span className="ml-1 text-[10px] font-bold text-gray-500"> kcal/day </span>
+          </p>
+        </div>
+        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-500"> TDEE </p>
+          <p className="mt-1 text-lg font-black text-white"> {tdee}
+            <span className="ml-1 text-[10px] font-bold text-gray-500"> kcal/day </span>
+          </p>
+        </div>
       </div>
 
       {/* Information Row */}
       <div className="space-y-1.5 text-[12px] leading-tight text-gray-400 font-medium px-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className={`mt-0.5 shrink-0 ${statusTheme.dotColor}`}>●</span>
+            <span
+              className={`mt-0.5 shrink-0 ${statusTheme.dotColor}`}
+            >
+              ●
+            </span>
+
             <span>
               BMI Score:{" "}
-              <strong className="text-white font-bold">{bmi} kg/m²</strong>
+              <strong className="text-white font-bold">
+                {bmi} kg/m²
+              </strong>
             </span>
           </div>
+
           <div className="flex items-center gap-2">
-            <span className="mt-0.5 shrink-0 text-gray-500">●</span>
+            <span className="mt-0.5 shrink-0 text-gray-500">
+              ●
+            </span>
+
             <span className="text-[11px] text-gray-400">
               Category:{" "}
-              <strong className={`font-extrabold ${statusTheme.textColor}`}>
+              <strong
+                className={`font-extrabold ${statusTheme.textColor}`}
+              >
                 {bmiStatus}
               </strong>
             </span>
@@ -169,27 +407,27 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-white">
                 Weight
               </span>
+
               {/* KG / LBS Toggle Switch */}
               <div className="flex items-center gap-0.5 bg-black border border-white/20 p-0.5 rounded-lg">
                 <button
                   type="button"
                   onClick={() => setWeightUnit("kg")}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${
-                    weightUnit === "kg"
-                      ? "bg-white text-black shadow-sm"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
+                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${weightUnit === "kg"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                    }`}
                 >
                   KG
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setWeightUnit("lbs")}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${
-                    weightUnit === "lbs"
-                      ? "bg-white text-black shadow-sm"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
+                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${weightUnit === "lbs"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                    }`}
                 >
                   LBS
                 </button>
@@ -205,14 +443,17 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
 
           <div className="relative h-4 w-full">
             <div className="absolute top-1/2 h-1.5 w-full -translate-y-1/2 rounded-full bg-white/10" />
+
             <div
               className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white transition-all duration-150"
               style={{ width: `${weightProgress}%` }}
             />
+
             <div
               className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md transition-all duration-150"
               style={{ left: `${weightProgress}%` }}
             />
+
             {weightUnit === "kg" ? (
               <input
                 type="range"
@@ -220,7 +461,9 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
                 max="300"
                 step="1"
                 value={Math.round(weight)}
-                onChange={(event) => setWeight(Number(event.target.value))}
+                onChange={(event) =>
+                  setWeight(Number(event.target.value))
+                }
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
               />
             ) : (
@@ -232,7 +475,11 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
                 value={displayWeightLbs}
                 onChange={(event) =>
                   setWeight(
-                    Number((Number(event.target.value) / 2.20462).toFixed(1)),
+                    Number(
+                      (
+                        Number(event.target.value) / 2.20462
+                      ).toFixed(1),
+                    ),
                   )
                 }
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
@@ -248,27 +495,27 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-white">
                 Height
               </span>
+
               {/* CM / FT.IN Toggle Switch */}
               <div className="flex items-center gap-0.5 bg-black border border-white/20 p-0.5 rounded-lg">
                 <button
                   type="button"
                   onClick={() => setHeightUnit("cm")}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${
-                    heightUnit === "cm"
-                      ? "bg-white text-black shadow-sm"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
+                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${heightUnit === "cm"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                    }`}
                 >
                   CM
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setHeightUnit("ft")}
-                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${
-                    heightUnit === "ft"
-                      ? "bg-white text-black shadow-sm"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
+                  className={`px-2 py-0.5 rounded-md text-[9px] font-black transition-all cursor-pointer ${heightUnit === "ft"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-zinc-400 hover:text-white"
+                    }`}
                 >
                   FT.IN
                 </button>
@@ -284,14 +531,17 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
 
           <div className="relative h-4 w-full">
             <div className="absolute top-1/2 h-1.5 w-full -translate-y-1/2 rounded-full bg-white/10" />
+
             <div
               className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white transition-all duration-150"
               style={{ width: `${heightProgress}%` }}
             />
+
             <div
               className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-md transition-all duration-150"
               style={{ left: `${heightProgress}%` }}
             />
+
             {heightUnit === "cm" ? (
               <input
                 type="range"
@@ -299,7 +549,9 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
                 max="250"
                 step="1"
                 value={Math.round(height)}
-                onChange={(event) => setHeight(Number(event.target.value))}
+                onChange={(event) =>
+                  setHeight(Number(event.target.value))
+                }
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
               />
             ) : (
@@ -310,7 +562,11 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
                 step="1"
                 value={totalInches}
                 onChange={(event) =>
-                  setHeight(Math.round(Number(event.target.value) * 2.54))
+                  setHeight(
+                    Math.round(
+                      Number(event.target.value) * 2.54,
+                    ),
+                  )
                 }
                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
               />
@@ -324,6 +580,7 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-white">
               BMI Scale Progress
             </span>
+
             <span className="text-xs font-bold text-gray-300 font-mono">
               {bmi} ·{" "}
               <span className="text-white font-black uppercase font-sans">
@@ -342,15 +599,16 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
 
         {/* Save BMI to Profile Button */}
         <div className="pt-2">
-          <button
-            type="button"
+          <FitoraPillButton
+            variant="white"
+            size="md"
             onClick={handleSaveBmi}
+            loading={isSaving}
             disabled={isSaving}
-            className="w-full inline-flex items-center justify-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-3 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all cursor-pointer shadow-xl active:scale-[0.98] disabled:opacity-60 uppercase tracking-wide"
+            className="w-full"
           >
-            <BookmarkCheck className="w-4 h-4 text-black" />
-            <span>{isSaving ? "Saving..." : "Save BMI to Profile"}</span>
-          </button>
+            Save BMI to Profile
+          </FitoraPillButton>
         </div>
       </div>
     </div>

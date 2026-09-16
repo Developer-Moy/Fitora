@@ -529,6 +529,92 @@ Built the **brand-new branch-admin attendance dashboard** on the dashboard page,
 
 ---
 
+## 10-Sep-26
+
+### Reusable CSV Export Utility
+
+Created a shared, reusable client-side utility for converting an array of JavaScript objects into a downloadable CSV file, used by the admin dashboard's export actions.
+
+#### Key Implementation:
+* New file `client/src/utils/csvExporter.ts` exporting a single **`exportToCSV(rows, filename)`** function (plus private helpers).
+* `escapeCSV(value)` safely serializes cells: wraps a value in quotes when it contains a comma, quote, or newline, and converts `null`/`undefined` into an empty string.
+* `buildCsv(rows)` auto-derives the header row from the first object's keys (preserving key order) and maps each object into a data row, joined with `\r\n`; returns an empty string when the array is empty.
+* `triggerDownload(csv, filename)` creates a UTF-8 `text/csv` `Blob`, uses `URL.createObjectURL()`, triggers the download via a temporary `<a>` element, cleans up the node, and revokes the object URL.
+* `exportToCSV()` guards against an empty/invalid array (no-op) and simply builds + downloads the CSV.
+
+### Admin Dashboard: Attendance CSV Export Action
+
+Added an **"Export Attendance (CSV)"** action to the admin dashboard that exports the **live attendance data** already shown on the page.
+
+#### Key Implementation:
+* Imported `exportToCSV` from the new utility into `client/src/app/dashboard/page.tsx`.
+* Added `exportAttendanceCSV()` which no-ops when there are no records, maps the existing `displayCheckins` (the real `BranchCheckin` data) into rows with columns **Member Name**, **Date**, **Branch**, **Status** (Checked In / Checked Out), **Source**, and **Check-in Time**.
+* Parses `checkInTime` into a locale date and time (falling back to the attendance date / raw timestamp when parsing fails).
+* Builds a **dynamic filename** `fitora-attendance-YYYY-MM-DD.csv` from the current date (zero-padded, not hardcoded).
+* Passed the rows + filename to `exportToCSV()` to trigger the browser download.
+* Added the button with a lucide `Download` icon to the **Today's Check-ins** action area, styled to match the existing Fitora admin UI (no mock data, no new API, no backend changes).
+
+### Admin Dashboard: Monthly Revenue CSV Export Action
+
+Added an **"Export Monthly Revenue (CSV)"** action that exports the **real monthly revenue data** already rendered in the revenue chart.
+
+#### Key Implementation:
+* Added `exportMonthlyRevenueCSV()` in `client/src/app/dashboard/page.tsx`.
+* No-ops when `monthlyRevenueChart` is empty, otherwise maps the existing chart data into rows with columns **Month**, **Revenue (BDT)**, and **Payments** — preserving the existing data fields (no recalculation).
+* Builds a **dynamic filename** `fitora-monthly-revenue-YYYY-MM-DD.csv` from the current date.
+* Passed the rows + filename to `exportToCSV()` to trigger the download.
+* Added the button with a `Download` icon to the **Monthly Revenue Progression** chart header, matched to the existing Fitora admin styling.
+
+---
+
+## 13-Sep-26
+
+### Authentication Session & JWT Storage Audit
+
+Completed an audit of the `/login` and `/register` authentication flow to keep Better Auth session handling consistent and secure.
+
+#### Key Implementation:
+* Audited login, register, and logout flows for session and JWT/storage consistency.
+* Removed duplicate JWT token persistence (the same token was stored under two localStorage keys), consolidating reads/writes to a single canonical `fitora_token` key while preserving existing function names, exports, and API signatures.
+* Preserved the Better Auth session-cookie flow (`client/src/lib/auth-client.ts`) unchanged — no new auth library introduced.
+
+### Authentication Error Handling
+
+Standardized authentication error handling across login, register, logout, and authenticated requests.
+
+#### Key Implementation:
+* Added a reusable `authErrorResponse()` helper and a shared `AUTH_ERROR_MESSAGES` map in `client/src/services/authService.ts`.
+* Normalized user-facing messages for invalid credentials, network failures, session expiry (401), and unexpected server errors.
+* Routed `dashboardLoginApi`, `loginApi`, `registerApi`, and `getCurrentUserApi` through the shared helper, avoiding duplicated error-handling logic.
+
+### WhatsApp & Contact Information Update
+
+Updated the homepage contact section and added a reusable WhatsApp link helper.
+
+#### Key Implementation:
+* Added `client/src/utils/whatsappHelper.ts` exporting a single pure `getWhatsAppUrl(phone)` helper that builds an international `https://wa.me/...` URL with the pre-filled FITORA inquiry message (URL-encoded).
+* Updated `client/src/components/home/ContactInfoForm.tsx`:
+  * Made the Information phone number a clickable `tel:+8801700000000` link with a call icon.
+  * Converted the support email into a clickable `mailto:` link.
+  * Added a WhatsApp contact link (shows the number) using the shared helper.
+  * Appended a WhatsApp social icon to the **Follow Us** row using the same styling as the existing icons.
+
+## 15-Sep-26
+
+- Upgraded the authentication pages with a polished **glassmorphism UI**, rebuilt in `client/src/components/auth/AuthFlowContainer.tsx`.
+- Added **client-side validation and toast feedback** to the auth flow, including email format checks and inline success/error notifications.
+- Connected the **Google OAuth login button** to the existing Better Auth social sign-in flow with loading, error, and redirect handling.
+- Added dedicated `/pricing` page with **monthly & annual membership pricing** using the reusable `PlanCard` component.
+- Connected the pricing CTA to the **checkout flow** so plan selection opens the subscription checkout modal and refreshes the user session after success.
+
+---
+
+## 16-Sep-26 (planned / ongoing)
+
+*(to be updated)*
+
+---
+
 ## Summary of My Contributions
 
 ### Frontend
@@ -550,6 +636,9 @@ Built the **brand-new branch-admin attendance dashboard** on the dashboard page,
 - CSV export for today's check-in reports (`fitora-check-in-report.csv`).
 - Branch occupancy warning banner ("Near Capacity >90%") in the branch management view.
 - Branch-admin live attendance & occupancy dashboard (live check-ins, occupancy meter, pagination).
+- Reusable client-side CSV exporter utility (`client/src/utils/csvExporter.ts`).
+- **Export Attendance (CSV)** action (`fitora-attendance-YYYY-MM-DD.csv`).
+- **Export Monthly Revenue (CSV)** action (`fitora-monthly-revenue-YYYY-MM-DD.csv`).
 
 ### Backend
 - Dashboard Statistics Controller.
@@ -581,6 +670,7 @@ Built the **brand-new branch-admin attendance dashboard** on the dashboard page,
 - `InvoiceModal.tsx` — reusable invoice modal with print support.
 - `UserManagementTable.tsx` — live subscription status/expiry columns and membership extend/plan/audit action modals.
 - Dashboard **Export CSV** check-in report generator.
+- `csvExporter.ts` — reusable object-array → downloadable CSV utility powering the admin export actions.
 
 ### Git Workflow
 - Worked exclusively on the `alfaaz` branch.

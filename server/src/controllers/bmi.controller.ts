@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import BMI from "../models/bmi.model";
 import { successResponse, errorResponse } from "../utils/apiResponse";
+import {
+  createBMIHistory as createBMIHistoryService,
+  getUserBMIHistory,
+  deleteUserBMIHistory,
+} from "../services/bmiService";
 
 // POST /api/bmi/history
 export const createBMIHistory = async (req: Request, res: Response) => {
@@ -8,6 +14,7 @@ export const createBMIHistory = async (req: Request, res: Response) => {
     const {
       userId,
       height,
+      age,
       heightCm,
       weight,
       weightKg,
@@ -15,6 +22,8 @@ export const createBMIHistory = async (req: Request, res: Response) => {
       bmiScore,
       bmr,
       tdee,
+      activityLevel, 
+      goalType,
     } = req.body;
 
     const numHeight = Number(height ?? heightCm);
@@ -58,6 +67,26 @@ export const createBMIHistory = async (req: Request, res: Response) => {
       authUser?._id ||
       authUser?.id ||
       "guest_user";
+
+      if (!finalUserId) {
+      return res.status(401).json(
+        errorResponse(
+          "Authentication required",
+          "AUTHENTICATION_REQUIRED",
+          401,
+        ),
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(finalUserId)) {
+      return res.status(400).json(
+        errorResponse(
+          "Invalid user ID",
+          "INVALID_USER_ID",
+          400,
+        ),
+      );
+    }
 
     const history = await BMI.create({
       userId: finalUserId,

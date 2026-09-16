@@ -304,12 +304,12 @@ export default function Footer() {
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 font-semibold">
             <span>FITORA GYM © 2026</span>
             <Link
-              href="/privacy"
+              href="/legal"
               className="hover:text-white transition-colors"
             >
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-white transition-colors">
+            <Link href="/legal#TermsAndConditions" className="hover:text-white transition-colors">
               Terms of Use
             </Link>
             <span>Design and Developed by DeveloperMoy</span>

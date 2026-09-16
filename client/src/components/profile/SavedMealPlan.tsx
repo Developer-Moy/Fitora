@@ -12,8 +12,8 @@ import {
   Flame,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import MealCard from "@/components/meals/MealCard";
 import type { SavedMealPlanItem } from "@/services/dailyMealPlanService";
+import SavedMealCard from "../meals/SavedMealCard";
 
 export interface SavedMealPlanProps {
   dailyPlanMeals?: SavedMealPlanItem[];
@@ -148,9 +148,9 @@ export default function SavedMealPlan({
           </span>
         </div>
       ) : items.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {items.map((item) => (
-            <MealCard
+            <SavedMealCard
               key={item._id}
               id={item.mealId || item._id}
               name={item.name}

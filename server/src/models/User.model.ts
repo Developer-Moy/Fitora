@@ -51,6 +51,13 @@ export interface IUser extends Document {
   weight?: number;
   height?: number;
   gender?: string;
+  age?: number;
+  activityLevel?:
+  | "sedentary"
+  | "light"
+  | "moderate"
+  | "active"
+  | "veryActive";
   bio?: string;
   avatarUrl?: string;
   image?: string;
@@ -208,6 +215,17 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: false,
     },
+    age: {
+      type: Number,
+      required: false,
+      min: 1,
+      max: 120,
+    },
+    activityLevel: {
+      type: String,
+      required: false,
+      enum: ["sedentary", "light", "moderate", "active", "veryActive"],
+    },
     bio: {
       type: String,
       required: false,
@@ -286,4 +304,3 @@ const User = mongoose.model<IUser>("User", userSchema);
 
 export { User };
 export default User;
-

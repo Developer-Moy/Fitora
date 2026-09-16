@@ -2,7 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowUpRight, Loader2 } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import FitoraSpinner from "./FitoraSpinner";
 
 export interface FitoraPillButtonProps {
   children: React.ReactNode;
@@ -37,7 +38,6 @@ export default function FitoraPillButton({
   rel,
   title,
 }: FitoraPillButtonProps) {
-  // Size Configurations
   const sizeClasses = {
     sm: "px-4 py-2 text-xs gap-2",
     md: "px-5 py-2.5 text-xs sm:text-sm gap-2.5",
@@ -56,7 +56,6 @@ export default function FitoraPillButton({
     lg: "w-3.5 h-3.5",
   }[size];
 
-  // Variant Configurations
   const isBlack = variant === "black";
 
   const baseStyles =
@@ -73,7 +72,8 @@ export default function FitoraPillButton({
   const disabledStyles =
     "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none disabled:hover:scale-100";
 
-  const combinedClasses = `${baseStyles} ${sizeClasses} ${variantStyles} ${disabledStyles} ${className}`.trim();
+  const combinedClasses =
+    `${baseStyles} ${sizeClasses} ${variantStyles} ${disabledStyles} ${className}`.trim();
 
   const renderedIcon = icon || (
     <ArrowUpRight className={`${iconSizeClasses} stroke-[2.5]`} />
@@ -82,13 +82,14 @@ export default function FitoraPillButton({
   const content = (
     <>
       <span className="truncate">{children}</span>
+
       {showIcon && (
         <span
           className={`${badgeSizeClasses} rounded-full flex items-center justify-center shrink-0 ${badgeStyles}`}
           aria-hidden="true"
         >
           {loading ? (
-            <Loader2 className={`${iconSizeClasses} animate-spin`} />
+            <FitoraSpinner size="sm" />
           ) : (
             renderedIcon
           )}
@@ -124,4 +125,3 @@ export default function FitoraPillButton({
     </button>
   );
 }
-

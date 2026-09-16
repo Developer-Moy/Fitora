@@ -483,6 +483,13 @@ https://github.com/Developer-Moy/Fitora/tree/simanto-paul
 * Added calculateStreak() date helper.
 * Verified types and streak logic.
 
+### 13-Sep-26
+* Integrated FitoraPillButton into calculator components for consistent UI.
+* Updated premium macro adjustment controls with proper button styling and interactions.
+* Added target weight save button with loading and disabled states.
+* Improved calculator UI consistency using Fitora design components.
+* Completed testing and verification of the updated calculator features.
+
 ---
 
 # Current Status
