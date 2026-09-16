@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
 
 export default function MeetTrainers() {
@@ -63,7 +64,8 @@ export default function MeetTrainers() {
               key={index}
               className="group relative h-[270px] sm:h-[300px] rounded-2xl overflow-hidden border border-white/15 bg-black shadow-xl cursor-pointer"
             >
-              <img
+              <Image
+                fill
                 src={trainer.image}
                 alt={trainer.name}
                 className="w-full h-full object-cover object-top filter brightness-90 contrast-105 group-hover:scale-105 transition-transform duration-500"

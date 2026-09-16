@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 
 export default function CoachesBanner() {
   return (
@@ -14,16 +15,20 @@ export default function CoachesBanner() {
         {/* Left Side: 2 Rounded Coach Photos from Public Folder */}
         <div className="lg:col-span-6 grid grid-cols-2 gap-4">
           <div className="aspect-[4/5] rounded-2xl overflow-hidden border border-gray-200 shadow-md group">
-            <img
+            <Image
               src="/coache1.jpg.jpeg"
               alt="Fitness Coach Mentor 1"
+              width={500}
+              height={500}
               className="w-full h-full object-cover filter brightness-95 contrast-105 group-hover:scale-105 transition-transform duration-500"
             />
           </div>
           <div className="aspect-[4/5] rounded-2xl overflow-hidden border border-gray-200 shadow-md group">
-            <img
+            <Image
               src="/choach2.jpg.jpeg"
               alt="Fitness Coach Mentor 2"
+              width={500}
+              height={500}
               className="w-full h-full object-cover filter brightness-95 contrast-105 group-hover:scale-105 transition-transform duration-500"
             />
           </div>
