@@ -12,6 +12,7 @@ import adRoutes from "./ad.routes";
 import userRoutes from "./user.routes";
 import consultationRoutes from "./consultation.routes";
 import branchRoutes from "./branch.routes";
+import trainerRoutes from "./trainer.routes";
 import newsletterRoutes from "./newsletter.routes";
 import stopwatchRoutes from "./stopwatch.routes";
 import exerciseRoutes from "./exercise.routes";
@@ -61,6 +62,7 @@ apiRouter.get("/health", (req: Request, res: Response) => {
 
 // Mounted Central API Routes across all 6 Team Members
 apiRouter.use("/workouts", workoutRoutes);
+apiRouter.use("/trainers", trainerRoutes);
 apiRouter.use("/exercises", exerciseRoutes);
 apiRouter.use("/ai", aiRoutes);
 apiRouter.use("/auth", authRoutes);
@@ -76,6 +78,7 @@ apiRouter.use("/users", userRoutes);
 apiRouter.use("/dashboard/master", masterRoutes);
 apiRouter.use("/consultations", consultationRoutes);
 apiRouter.use("/branches", branchRoutes);
+apiRouter.use("/trainers", trainerRoutes);
 apiRouter.use("/newsletter", newsletterRoutes);
 apiRouter.use("/daily-plan", dailyMealPlanRoutes);
 apiRouter.use("/search", searchRoutes);

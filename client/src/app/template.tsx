@@ -9,7 +9,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="flex flex-col min-h-screen"
+      className="w-full h-full"
     >
       {children}
     </motion.div>
