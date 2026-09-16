@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { motion, type Variants } from "framer-motion";
 import { fetchMealsApi, MealItem } from "@/services/mealService";
 import { MealsData } from "@/data/MealsData";
 import MealCard from "@/components/meals/MealCard";
@@ -11,6 +12,17 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+
+const mealGridVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+};
 
 export default function MealsPage() {
   const [meals, setMeals] = useState<MealItem[]>([]);
@@ -169,7 +181,13 @@ export default function MealsPage() {
           <MealSkeletonGrid count={ITEMS_PER_PAGE} />
         ) : paginatedMeals.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <motion.div
+              key={`meals-grid-${currentPage}-${selectedCategory}`}
+              variants={mealGridVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+            >
               {paginatedMeals.map((meal) => (
                 <MealCard
                   key={meal.id}
@@ -181,7 +199,7 @@ export default function MealsPage() {
                   img={meal.img}
                 />
               ))}
-            </div>
+            </motion.div>
 
             {/* Pagination Controls */}
             {totalPages > 1 && (

@@ -236,3 +236,7 @@ Issues Resolved Today
 - **#170** — Improved Sign-Up form validation and user feedback.
 - **#169** — Added bKash mobile number format and length validation.
 - **#175** — Added required field validation to the Contact Form.
+
+## 16-Sep-26
+
+- Integrate Framer Motion into the meals catalog and apply sequential stagger fade-up animations to the meal cards.
