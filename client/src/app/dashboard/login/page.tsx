@@ -136,7 +136,7 @@ export default function DashboardLoginPage() {
       </header>
 
       {/* Main Login Card */}
-      <main className="max-w-[440px] w-full mx-auto my-auto shrink-0 space-y-5 py-6">
+      <main className="max-w-110 w-full mx-auto my-auto shrink-0 space-y-5 py-6">
         {/* Title */}
         <div className="text-center space-y-1.5">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/15 text-[10px] font-bold uppercase tracking-widest text-white/70">

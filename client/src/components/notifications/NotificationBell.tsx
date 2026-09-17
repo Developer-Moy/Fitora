@@ -233,7 +233,7 @@ export default function NotificationBell({
       >
         <Bell className="w-4 h-4 text-black stroke-[2.5]" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-black text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border border-white animate-pulse">
+          <span className="absolute -top-1 -right-1 min-w-4.5 h-4.5 px-1 bg-black text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border border-white animate-pulse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -242,7 +242,7 @@ export default function NotificationBell({
       {/* ── Mobile/Tablet Backdrop (tap anywhere outside to dismiss) ── */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[92] sm:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-92 sm:hidden"
           onClick={() => setIsOpen(false)}
           aria-hidden="true"
         />
@@ -250,7 +250,7 @@ export default function NotificationBell({
 
       {/* ── Dropdown Panel ── */}
       {isOpen && (
-        <div className="fixed inset-x-3 top-18 z-[95] sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-sm sm:max-w-md mx-auto sm:mx-0 rounded-2xl bg-neutral-950/95 backdrop-blur-xl border border-white/20 shadow-[0_15px_50px_rgba(0,0,0,0.9)] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-x-3 top-18 z-95 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-sm sm:max-w-md mx-auto sm:mx-0 rounded-2xl bg-neutral-950/95 backdrop-blur-xl border border-white/20 shadow-[0_15px_50px_rgba(0,0,0,0.9)] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-black/70">
             <div className="flex items-center gap-2">
@@ -304,7 +304,7 @@ export default function NotificationBell({
                   key={n._id}
                   onClick={() => handleMarkAsRead(n._id, n.link)}
                   className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer select-none hover:bg-neutral-900/80 ${
-                    !n.isRead ? "bg-white/[0.04]" : "opacity-80"
+                    !n.isRead ? "bg-white/4" : "opacity-80"
                   }`}
                 >
                   <div className="w-7 h-7 rounded-full bg-neutral-900 border border-white/15 flex items-center justify-center shrink-0 mt-0.5">

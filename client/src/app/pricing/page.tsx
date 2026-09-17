@@ -89,9 +89,9 @@ export default function PricingPage() {
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden select-none">
       {/* Luxury ambient glows behind the glass cards */}
-      <div className="absolute -top-32 -left-24 z-0 w-96 h-96 rounded-full bg-white/[0.05] blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 -right-24 z-0 w-96 h-96 rounded-full bg-white/[0.04] blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 z-0 w-80 h-80 rounded-full bg-white/[0.03] blur-3xl pointer-events-none" />
+      <div className="absolute -top-32 -left-24 z-0 w-96 h-96 rounded-full bg-white/5 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 -right-24 z-0 w-96 h-96 rounded-full bg-white/4 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 z-0 w-80 h-80 rounded-full bg-white/3 blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 py-14 sm:py-20 space-y-12">
         {/* Header */}

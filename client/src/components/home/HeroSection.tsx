@@ -59,7 +59,7 @@ const CountUp = ({
           }, intervalTime);
         }
       },
-      { threshold: 0.2 },
+      { threshold: 0.2 }
     );
     if (countRef.current) observer.observe(countRef.current);
     return () => observer.disconnect();
@@ -74,9 +74,9 @@ export default function HeroSection() {
       {/* ════════════════════════════════════════════════════════════
           HERO CONTAINER — Locked Centered Layout (Zoom & Ultrawide Proof)
           ════════════════════════════════════════════════════════════ */}
-      <div className="relative w-full bg-black text-white overflow-x-clip min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
+      <div className="relative w-full bg-black text-white overflow-x-clip min-h-120 sm:min-h-130 md:min-h-140 lg:min-h-155">
         {/* ─── Centered max-w-7xl container to lock relative positions on Zoom & UltraWide ─── */}
-        <div className="relative w-full max-w-7xl mx-auto h-full min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
+        <div className="relative w-full max-w-7xl mx-auto h-full min-h-120 sm:min-h-130 md:min-h-140 lg:min-h-155">
           {/* ─── Z-10: "BUILD YOUR BODY" Unified Headline ─── */}
           <div className="absolute z-10 top-5 sm:top-8 md:top-10 inset-x-0 flex flex-col items-center pointer-events-none px-4">
             <h1
@@ -91,7 +91,7 @@ export default function HeroSection() {
 
           {/* ─── Z-20: Athlete Cutout Image — Head overlapping text (10% Larger & Mobile Optimized) ─── */}
           <div className="absolute z-20 inset-x-0 bottom-0 top-0 flex items-end justify-center pointer-events-none overflow-hidden">
-            <div className="relative w-[340px] xs:w-[440px] sm:w-[570px] md:w-[700px] lg:w-[815px] h-[92%] sm:h-full scale-[1.12] sm:scale-[1.08] origin-bottom">
+            <div className="relative w-85 xs:w-110 sm:w-142.5 md:w-175 lg:w-203.75 h-[92%] sm:h-full scale-[1.12] sm:scale-[1.08] origin-bottom">
               <Image
                 src="/hero.png"
                 alt="Bodybuilder Athlete Cutout"
@@ -104,7 +104,7 @@ export default function HeroSection() {
           </div>
 
           {/* ─── Z-30: Subtitle locked in LEFT-MIDDLE ─── */}
-          <div className="absolute z-30 left-2.5 xs:left-5 sm:left-6 md:left-8 top-[48%] sm:top-1/2 -translate-y-1/2 max-w-[140px] xs:max-w-[190px] sm:max-w-[260px]">
+          <div className="absolute z-30 left-2.5 xs:left-5 sm:left-6 md:left-8 top-[48%] sm:top-1/2 -translate-y-1/2 max-w-35 xs:max-w-[190px]sm:max-w-65">
             <p
               className="text-gray-200 text-xs sm:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
               style={{ fontStyle: "italic" }}
@@ -124,7 +124,7 @@ export default function HeroSection() {
               className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="Facebook"
             >
-              <Facebook className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+              <Facebook className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </a>
             <a
               href="https://instagram.com"
@@ -133,7 +133,7 @@ export default function HeroSection() {
               className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="Instagram"
             >
-              <Instagram className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+              <Instagram className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </a>
             <a
               href="https://tiktok.com"
@@ -142,7 +142,7 @@ export default function HeroSection() {
               className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="TikTok"
             >
-              <TikTokIcon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+              <TikTokIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </a>
           </div>
 
@@ -155,7 +155,7 @@ export default function HeroSection() {
               className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="WhatsApp"
             >
-              <MessageCircle className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+              <MessageCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </a>
             <a
               href="https://youtube.com"
@@ -164,7 +164,7 @@ export default function HeroSection() {
               className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="YouTube"
             >
-              <Youtube className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+              <Youtube className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </a>
             <a
               href="https://x.com"
@@ -173,7 +173,7 @@ export default function HeroSection() {
               className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
               aria-label="X (formerly Twitter)"
             >
-              <XTwitterIcon className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+              <XTwitterIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </a>
           </div>
 
@@ -191,10 +191,10 @@ export default function HeroSection() {
           </div>
 
           {/* ─── Z-40: Notch SVG Background Arc (Decorative) ─── */}
-          <div className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 w-[180px] h-[65px] pointer-events-none">
+          <div className="absolute z-40 bottom-0 left-1/2 -translate-x-1/2 w-45 h-16.25 pointer-events-none">
             <svg
               viewBox="0 -16 180 91"
-              className="absolute inset-0 w-[180px] h-[65px] text-white fill-current block pointer-events-none"
+              className="absolute inset-0 w-45 h-16.25 text-white fill-current block pointer-events-none"
             >
               <path d="M 0 75 C 36 75 44 60 44 38 A 46 46 0 0 1 136 38 C 136 60 144 75 180 75 Z" />
             </svg>
@@ -216,7 +216,7 @@ export default function HeroSection() {
           {/* Stat 1 */}
           <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
-              <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+              <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 stroke-2" />
             </div>
             <div className="flex flex-col text-left">
               <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
@@ -231,7 +231,7 @@ export default function HeroSection() {
           {/* Stat 2 */}
           <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
-              <Users className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 stroke-2" />
             </div>
             <div className="flex flex-col text-left">
               <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
@@ -246,7 +246,7 @@ export default function HeroSection() {
           {/* Stat 3 */}
           <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
-              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 stroke-2" />
             </div>
             <div className="flex flex-col text-left">
               <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">

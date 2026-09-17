@@ -30,7 +30,7 @@ export default function TrainerCalloutBanner({
   return (
     <section
       aria-label="Fitness Trainer Callout"
-      className={`relative w-full overflow-hidden bg-black text-white min-h-[380px] sm:min-h-[440px] md:min-h-[480px] flex items-center border-y border-white/10 ${className}`}
+      className={`relative w-full overflow-hidden bg-black text-white min-h-95 sm:min-h-110 md:min-h-120 flex items-center border-y border-white/10 ${className}`}
     >
       {/* Background Image Container */}
       <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[70%] md:w-[60%] lg:w-[50%] h-full flex justify-end pointer-events-none z-0">
@@ -41,8 +41,8 @@ export default function TrainerCalloutBanner({
           className="h-full w-full object-cover sm:object-cover object-right"
         />
         {/* Smooth Dark Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 sm:via-black/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/80 sm:hidden" />
+        <div className="absolute inset-0 bg-linear-to-r from-black via-black/80 sm:via-black/50 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-transparent to-black/80 sm:hidden" />
       </div>
 
       {/* Subtle Ambient Glow */}

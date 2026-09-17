@@ -192,7 +192,7 @@ export default function GlobalSearchBar({
         <div
           className={`absolute top-full mt-2 bg-black/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden text-white animate-in fade-in slide-in-from-top-2 duration-150 max-h-[75vh] flex flex-col ${
             compact
-              ? "right-0 w-[320px] sm:w-[420px] md:w-[460px]"
+              ? "right-0 w-80 sm:w-105 md:w-115"
               : "left-0 right-0"
           }`}
         >
@@ -202,7 +202,7 @@ export default function GlobalSearchBar({
               <span className="text-white/50 uppercase tracking-wider">
                 Results for:
               </span>
-              <span className="text-white font-mono truncate max-w-[140px] sm:max-w-[200px]">
+              <span className="text-white font-mono truncate max-w-35 sm:max-w-50">
                 &quot;{searchQuery}&quot;
               </span>
             </div>

@@ -59,7 +59,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
   const trackColor = "#262626";
 
   return (
-    <div className="relative flex items-center justify-center w-[190px] h-[190px] xs:w-[210px] xs:h-[210px] sm:w-[230px] sm:h-[230px] my-1">
+    <div className="relative flex items-center justify-center w-47.5 h-47.5 xs:w-52.5 xs:h-52.5 sm:w-57.5 sm:h-57.5 my-1">
       {/* Glowing Circular Progress Ring */}
       <svg
         className="absolute inset-0 w-full h-full -rotate-90"

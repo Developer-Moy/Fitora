@@ -1324,7 +1324,7 @@ export default function MemberDashboardView({
             )}
 
             {aiResponse && !aiLoading && (
-              <div className="p-3.5 sm:p-4 rounded-xl bg-white/[0.03] border border-white/20 text-xs sm:text-sm text-white leading-relaxed space-y-1.5 max-h-[200px] overflow-y-auto">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-white/[0.03] border border-white/20 text-xs sm:text-sm text-white leading-relaxed space-y-1.5 max-h-50 overflow-y-auto">
                 <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-emerald-400">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Coach Guidance & Feedback:</span>

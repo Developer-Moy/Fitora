@@ -331,7 +331,7 @@ export default function BranchManagementView() {
                         <span className="block text-[8px] text-white/40 font-black uppercase tracking-widest">
                           Admin
                         </span>
-                        <span className="font-bold text-white text-xs truncate max-w-[120px] block">
+                        <span className="font-bold text-white text-xs truncate max-w-30 block">
                           {branch.adminName}
                         </span>
                       </div>

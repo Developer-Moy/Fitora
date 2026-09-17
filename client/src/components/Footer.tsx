@@ -79,7 +79,7 @@ export default function Footer() {
             backgroundImage: "url('/choose2.jpg.jpeg')",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20 z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-black/20 z-0 pointer-events-none" />
 
         {/* Content Container */}
         <div className="relative z-10 max-w-7xl mx-auto space-y-8">

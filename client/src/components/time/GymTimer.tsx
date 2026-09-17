@@ -1083,7 +1083,7 @@ export default function GymTimer({
           <div className="relative w-full bg-black border border-white/15 rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col justify-between items-center overflow-hidden h-full">
             {/* Ambient Backlight Glow — only visible while timer is running */}
             {isRunning && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[170px] sm:w-[280px] sm:h-[200px] rounded-full blur-3xl pointer-events-none transition-all duration-700 bg-white/15 scale-110" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-55 h-42.5 sm:w-70 sm:h-50 rounded-full blur-3xl pointer-events-none transition-all duration-700 bg-white/15 scale-110" />
             )}
 
             {/* Top Session Stats Row (Total Gym Time & Realtime Sync) */}
@@ -1118,7 +1118,7 @@ export default function GymTimer({
             <div className="relative z-20 flex flex-col items-center justify-center my-auto py-1">
               <div className="text-[10px] font-semibold text-zinc-300 uppercase tracking-widest mb-1 flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
                 <Dumbbell className="w-3 h-3 text-white" />
-                <span className="truncate max-w-[180px] sm:max-w-none">
+                <span className="truncate max-w-45 sm:max-w-none">
                   {exerciseName}
                 </span>
               </div>
@@ -1314,14 +1314,14 @@ export default function GymTimer({
                   <p className="font-semibold text-zinc-300 text-xs">
                     No sets logged yet today
                   </p>
-                  <p className="text-[11px] text-zinc-500 max-w-[260px]">
+                  <p className="text-[11px] text-zinc-500 max-w-65">
                     Use the{" "}
                     <span className="text-white font-semibold">Log Set</span>{" "}
                     form above or complete intervals to record your workout.
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-white/10 max-h-[340px] overflow-y-auto pr-1">
+                <div className="divide-y divide-white/10 max-h-85 overflow-y-auto pr-1">
                   {completedSets.map((item, idx) => (
                     <div
                       key={idx}

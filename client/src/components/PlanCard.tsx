@@ -32,7 +32,7 @@ export default function PlanCard({
       className={`relative flex flex-col justify-between p-8 rounded-3xl transition-all duration-300 ease-out ${
         isPopular
           ? "bg-white text-black border border-white scale-105 z-10 shadow-[0_25px_60px_rgba(0,0,0,0.55),0_10px_25px_rgba(0,0,0,0.35)] hover:-translate-y-2 hover:shadow-[0_35px_80px_rgba(255,255,255,0.18),0_15px_35px_rgba(0,0,0,0.45)]"
-          : "bg-white/[0.04] text-white border border-white/10 backdrop-blur-xl shadow-[0_20px_45px_rgba(0,0,0,0.45)] hover:-translate-y-2 hover:border-white/25 hover:bg-white/[0.07] hover:shadow-[0_28px_60px_rgba(0,0,0,0.55)]"
+          : "bg-white/4 text-white border border-white/10 backdrop-blur-xl shadow-[0_20px_45px_rgba(0,0,0,0.45)] hover:-translate-y-2 hover:border-white/25 hover:bg-white/[0.07] hover:shadow-[0_28px_60px_rgba(0,0,0,0.55)]"
       }`}
     >
       {/* Popular Badge */}
@@ -98,7 +98,7 @@ export default function PlanCard({
           )}
         </div>
 
-        <div className={`w-full h-[1px] ${isPopular ? "bg-black/10" : "bg-white/10"}`} />
+        <div className={`w-full h-px ${isPopular ? "bg-black/10" : "bg-white/10"}`} />
 
         {/* Feature List */}
         <ul className="space-y-3 pt-1">

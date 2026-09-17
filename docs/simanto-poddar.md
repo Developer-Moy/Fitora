@@ -244,3 +244,4 @@ Issues Resolved Today
 ## 17-Sep-26
 
 - Split legal page into terms and privacy pages.
+- Fixed the safely convertible Tailwind CSS warnings found in the codebase.
