@@ -620,13 +620,6 @@ export default function MasterDashboardPage() {
                 </div>
               </div>
 
-              {/* Referral Reward Card */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-                <div className="lg:col-span-5">
-                  <ReferralRewardCard />
-                </div>
-              </div>
-
               {/* Side-by-Side: Monthly Revenue Chart (7 cols) + Live Attendance Feed (5 cols) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
                 <div className="lg:col-span-7">
@@ -821,6 +814,13 @@ export default function MasterDashboardPage() {
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* Referral Reward Card (Placed at the bottom of Overview) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start pt-2">
+                <div className="lg:col-span-5">
+                  <ReferralRewardCard />
                 </div>
               </div>
             </div>
