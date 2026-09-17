@@ -1,9 +1,9 @@
 <div align="center">
 
-# 🏋️‍♂️ FITORA — AI-Powered Realtime Fitness Ecosystem & Gym Management Platform
+# 🏋️‍♂️ FITORA — AI-Powered Realtime Fitness & Gym Ecosystem
 
 > **The Premier High-Performance Fitness Platform in Bangladesh**  
-> Serving athletes, trainers, and administrators across all 64 districts with an ultra-luxury Pure Black & White visual identity, live workout tracking, contactless gym QR entry, and AI-assisted nutrition.
+> Connecting athletes, trainers, and 64 nationwide gym branches through an ultra-luxury Pure Black & White design, intelligent AI coaching, live video exercise guides, contactless turnstile QR check-in, and frictionless multi-gateway payments.
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19-black?style=for-the-badge&logo=react)](https://react.dev/)
@@ -11,354 +11,132 @@
 [![Express.js](https://img.shields.io/badge/Express.js-4.19-black?style=for-the-badge&logo=express)](https://expressjs.com/)
 [![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Mongoose-black?style=for-the-badge&logo=mongodb)](https://mongoosejs.com/)
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-black?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![Socket.IO](https://img.shields.io/badge/Socket.IO-4.7-black?style=for-the-badge&logo=socket.io)](https://socket.io/)
+[![Google Gemini Flash](https://img.shields.io/badge/Google_Gemini-Flash_AI-black?style=for-the-badge&logo=google)](https://aistudio.google.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)](LICENSE)
 
-[🌐 **Live Production Application**](https://fitora-fitness.vercel.app) • [📖 **API Documentation**](server/README.md) • [🎨 **Frontend Guide**](client/README.md)
+[🌐 **Live Production Application**](https://fitora-fitness.vercel.app) • [💻 **Frontend Engineering Guide**](client/README.md) • [⚙️ **Backend API Catalog**](server/README.md)
 
 </div>
 
 ---
 
-## 📑 Table of Contents
+## 💡 Why FITORA? The Problems We Solve
 
-- [Overview & Vision](#-overview--vision)
-- [🎨 Design System & Homepage Layout Reference](#-design-system--homepage-layout-reference)
-- [✨ Key Platform Innovations](#-key-platform-innovations)
-- [🔐 User Roles & Access Control Matrix](#-user-roles--access-control-matrix)
-- [🌟 Core Modules & Application Features](#-core-modules--application-features)
-- [💳 Subscription, Payment & Retention Engine](#-subscription-payment--retention-engine)
-- [🏗️ Full-Stack Technology Architecture](#️-full-stack-technology-architecture)
-- [📁 Repository Structure](#-repository-structure)
-- [🚀 Getting Started & Installation](#-getting-started--installation)
-- [⚙️ Environment Variables Configuration](#️-environment-variables-configuration)
-- [🧪 Quality Assurance & Build Verification](#-quality-assurance--build-verification)
-- [👥 Authors & Acknowledgments](#-authors--acknowledgments)
-- [📄 License](#-license)
+Traditional gym management software in Bangladesh is either outdated desktop spreadsheets or generic foreign apps that lack local payment methods, multi-branch synchronization, and modern athlete engagement.
 
----
+**FITORA was built to bridge this gap.** We created a unified digital ecosystem that solves real daily headaches for both gym members and gym administrators.
 
-## 🎯 Overview & Vision
+### 🏋️ For Athletes & Gym Members:
 
-**Fitora** is an enterprise-grade, full-stack fitness and gym management platform engineered for modern athletes, fitness enthusiasts, and gym networks in Bangladesh. Built with **Next.js 16 (Turbopack)**, **Node.js/Express**, **MongoDB Atlas**, and **Socket.IO**, Fitora connects 64 nationwide branches into a unified digital ecosystem.
+- **The Problem:** Members lose motivation without feedback, struggle to remember proper exercise form, have no unified log of their workouts, and face tedious manual check-ins at gym counters.
+- **How FITORA Helps:**
+  - **24/7 AI Coach (Google Gemini):** Instant, science-backed workout splits, hypertrophy tips, diet macros, and recovery strategies right at their fingertips.
+  - **50+ Interactive Video Exercises:** Real YouTube video thumbnail cards with smooth hover video previews, ensuring safe technique before lifting a dumbbell.
+  - **365-Day Activity Heatmap:** GitHub-style visual consistency streaks that motivate athletes to never skip a workout day.
+  - **Contactless Turnstile QR Entry:** Instant digital membership pass with an anti-tamper QR code for seamless access across all 64 nationwide branches.
+  - **Transparent Local Billing:** Instant subscription checkout via **bKash**, **Nagad**, and international cards, backed by downloadable vector PDF invoices and a **3-Day Free Trial**.
 
-Unlike traditional gym software, Fitora combines:
+### 🏢 For Gym Owners & Branch Administrators:
 
-1. **Athlete Telemetry**: Live biometric tracking, 365-day activity heatmaps, and rest interval HUDs.
-2. **Contactless Access**: Instant QR-code-based digital membership passes for turnstile gym entry.
-3. **Smart Retention & Commerce**: 3-Day Free Premium Trials, automatic card retention bonuses, vector PDF invoices, and multi-gateway payments (bKash, Nagad, Card, Stripe).
-4. **Administrative Governance**: Admin-exclusive control center with branch occupancy telemetry, revenue analytics, and schema-enforced single Master Admin security.
+- **The Problem:** Manual attendance books lead to ghost entries, turnstile congestion, lost revenue, and zero real-time visibility across branch facilities.
+- **How FITORA Helps:**
+  - **Unified Master & Branch Command Center:** Real-time occupancy gauges, live turnstile check-in feeds, and branch capacity alerts.
+  - **Automated Revenue Telemetry:** Live monthly revenue progression charts, payment gateway distribution breakdowns, and automated subscription renewal trackers.
+  - **Zero Ghost Members:** Every QR scan is securely verified against MongoDB database records in milliseconds.
+  - **Single Master Admin Guard:** Schema-level security preventing unauthorized privilege elevation or administrative tampering.
 
 ---
 
-## 🎨 Design System & Homepage Layout Reference
+## 🌟 Key Platform Features
 
-Fitora is designed with a **100% Monochromatic Pure Black & White (`#000000` / `#FFFFFF`) Luxury Aesthetic** inspired by brutalist minimalism and elite sports performance branding.
+### 1. 🤖 Floating AI Fitness Studio (Google Gemini Flash)
 
-<div align="center">
-  <img src="docs/fitora.png" alt="Fitora Base Design Reference" width="850" style="border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);" />
-</div>
+- Powered by Google's latest **Gemini Flash** engine with an automatic local fitness heuristic fallback so athletes are never left without an answer.
+- Persistent morphing floating widget: docks neatly into the hero section notch and expands into a focused, distraction-free modal when activated.
+- One-click protocol chips: `HYPERTROPHY`, `NUTRITION`, `FAT LOSS`, and `RECOVERY`.
 
-### Visual Design Principles:
+### 2. 📹 Exercise Vault with Hover Video Previews
 
-- **Monochrome High-Contrast**: Strictly `#000000` pitch black and `#FFFFFF` pure white, accented with subtle borders (`border-white/10` to `border-white/20`). Zero intrusive accent colors.
-- **Signature Pill Button System**: Uniform `rounded-full` pill buttons paired with a circular rotating `ArrowUpRight` (`↗`) icon badge.
-- **Responsive & Zoom-Proof Container**: Locked max-width container hierarchy (`max-w-7xl`) preventing UI distortion during 2K/4K scaling or browser zoom adjustments.
-- **Strict Brand Identity**: 100% brand consistency standardized under **FITORA** / **FITORA GYM & AI**.
+- Catalog of 50+ strength, functional, and endurance exercises verified through YouTube oEmbed validation.
+- High-res YouTube video thumbnail previews on every card.
+- **Intelligent Hover Preview:** Hovering over any exercise triggers a muted looping video preview with a 280ms debounce and active `LIVE` indicator.
+- Integrated modal rest stopwatch and set logger to track volume directly into MongoDB.
 
----
+### 3. 🏆 All-in-One Member Hub (`/profile`)
 
-## ✨ Key Platform Innovations
+- **Overview:** Active consistency streaks, daily hydration target (L/day), quick biometric status, dynamic 365-day attendance heatmap, and BMI history ledger with 1-click deletion.
+- **Gym Pass & QR:** High-contrast digital luxury membership pass with scannable `qrCodeId`.
+- **Workouts & Nutrition:** Chronological training logs, personalized macro targets, and saved meal plans.
+- **Subscription & Invoices:** Live subscription expiry ticker, renewal modal, saved payment cards, and complete transaction history.
 
-### 1. 🏆 All-in-One Member Hub (`/profile`)
+### 4. 💳 Frictionless Commerce & Customer Retention Engine
 
-Replaces fragmented user pages with a unified 4-tab athlete cockpit:
+- **Local & Global Gateways:** bKash, Nagad, Visa, Mastercard, and Stripe Checkout Sessions.
+- **Save Card = 2 Bonus Months FREE:** Purchasing a monthly pass while saving a payment card automatically awards 90 days total access (1 month + 2 bonus months free).
+- **Single-Screen Vector PDF Invoices:** Built-in vector PDF generator (`jsPDF`) and print-ready modal with digital verification seal.
 
-- **Overview / My Fitness**: Live workout streak counter, daily hydration tracker, quick athlete profile details, dynamic 365-day attendance & workout `ActivityHeatmap`, and real-time BMI history table with one-click deletion.
-- **Gym Pass & QR**: High-contrast digital membership card with a scannable QR code generated from `user.qrCodeId` for physical gym check-in.
-- **Workouts & Nutrition**: Chronological workout logs (calories burned, duration), `PersonalizedNutritionPlan` matched to the athlete's goals, and scheduled `SavedMealPlan`.
-- **Subscription & Card**: `MembershipStatusCard`, renewal modal, complete invoice history (`BillingSection`), and Saved Card Manager.
+### 5. 🛡️ Administrative Command Center (`/dashboard`)
 
-### 2. ⚡ 3-Day Free Premium Trial Engine
-
-- Automatically initialized upon user registration (`trialExpiresAt = Date.now() + 3 days`).
-- Displays a real-time animated countdown banner in the Member Hub (`d:h:m:s`).
-- Allows new members to test all premium features before committing to a paid tier.
-
-### 3. 💳 Save Card & 2 Bonus Months Retention Model
-
-- Built-in customer retention engine: purchasing a monthly plan while saving a payment card automatically awards **90 days of access (1 month purchase + 2 bonus months FREE)**.
-- Securely stores masked card metadata (`last4`, `brand`, `expiryMonth`, `expiryYear`, `cardHolder`) in MongoDB via dedicated `POST/DELETE /api/users/saved-card` routes.
-
-### 4. 🛡️ Single Master Admin Schema Invariant
-
-- Hardened at the Mongoose schema level (`User.model.ts`): only `master@fitora.com` can ever hold `role: "master_admin"`.
-- Any attempt to register or elevate another account to `master_admin` is rejected with an explicit database error.
-
-### 5. 🔒 Strict Admin-Only Dashboard Policy
-
-- Access to `/dashboard` is strictly gated to `master_admin` and `branch_admin`.
-- Free and premium athletes are automatically routed to their personalized Member Hub (`/profile`), keeping management analytics completely private.
-
-### 6. 🔍 Dynamic Backend Search with Dedicated "Clear" Engine
-
-- Replaced auto-filtering on keystroke with deliberate button-triggered search (clicking "Search" button or pressing `Enter`) across all management views.
-- Dedicated "Clear" button resets input and immediately queries MongoDB directly, eliminating client-side memory filtering.
-
-### 7. 📄 Portal-Mounted Single-Screen Invoice & Vector PDF Engine
-
-- Built with React Portals (`createPortal`) mounting directly to `document.body` at `z-[99999]`, preventing stacking-context issues and overflow clipping.
-- Compact single-screen layout fitting seamlessly on standard 1080p desktop displays without page scrolling.
-- Pure vector PDF document generation via `jspdf` alongside browser-native print optimization (`@media print` in `globals.css`) with zero blank pages.
-
-### 8. 🌐 100% Dynamic MongoDB Data Engine & Zero-Mock Guarantee
-
-- Fully dynamic MongoDB persistence across all entities: exercises, healthy meals, workout logs, user goals, stopwatch presets, and transaction history.
-- All hardcoded mock athletes, branches, and fallback financial figures have been completely eradicated, ensuring all data displayed originates directly from authentic MongoDB collections.
-
-### 9. 🤖 AI Studio & Floating Fitness Intelligence Engine
-
-- **Portal-Mounted Viewport Architecture**: Studio modal rendered directly to `document.body` via React Portal (`createPortal`) at `z-[9999]`, breaking free from container boundaries and preventing clipping from `overflow: hidden` parent sections.
-- **Morphing Hero Notch Trigger**: Persistent trigger launcher locked into the hero section notch on initial load, smoothly morphing into a fixed floating pill (`Ask AI` / `Close AI`) when scrolling past the hero.
-- **Bespoke Luxury Protocol Cards**: High-contrast 2x2 grid (`HYPERTROPHY`, `NUTRITION`, `FAT LOSS`, `RECOVERY`) with 1-click execution matching Fitora's monochromatic luxury brand identity.
-- **Two-Sided Protocols Scroll Rail**: Circular navigation buttons (`<` and `>`) for effortless horizontal browsing across coaching prompts.
-- **Background Body Scroll Lock**: Active body scroll lock (`overflow: hidden`, `overscroll-behavior: none`, `touch-none`) ensuring only the chat console scrolls when active.
-- **Dynamic Identity**: High-contrast visible Fitora logo with `brightness-0` and authenticated athlete profile picture integration via `useSession()`.
+- Gated strictly to `master_admin` and `branch_admin` roles.
+- **Monthly Revenue Progression:** Clean BDT revenue volume charts across calendar months.
+- **Live Branch Occupancy:** Live member count vs. capacity threshold with real-time turnstile check-in feeds and CSV data export.
+- **User Management & Branch Directory:** Centralized CRUD controls across all 64 district branches in Bangladesh.
 
 ---
 
-## 🔐 User Roles & Access Control Matrix
+## 🎨 Monochromatic Luxury Design System
 
-The platform enforces strict Role-Based Access Control (RBAC) across 5 distinct tiers:
+FITORA embraces a strict **Pure Black & White (`#000000` / `#FFFFFF`) Visual Identity**:
 
-| Route / Feature                              | Guest (Unauthenticated) |   Free Member    | Trial Member (3-Day Trial) | Premium Member (Pro/VIP) | Admin (`master` / `branch`) |
-| :------------------------------------------- | :---------------------: | :--------------: | :------------------------: | :----------------------: | :-------------------------: |
-| **Home Page (`/`)**                          |       ✅ Allowed        |    ✅ Allowed    |         ✅ Allowed         |        ✅ Allowed        |         ✅ Allowed          |
-| **Login / Register (`/login`, `/register`)** |       ✅ Allowed        |   🔄 Redirect    |        🔄 Redirect         |       🔄 Redirect        |         🔄 Redirect         |
-| **BMI Calculator (`/calculator`)**           |    🔒 Auth Required     |    ✅ Allowed    |         ✅ Allowed         |        ✅ Allowed        |         ✅ Allowed          |
-| **Gym Rest Stopwatch HUD (`/stopwatch`)**    |    🔒 Auth Required     |    ✅ Allowed    |         ✅ Allowed         |        ✅ Allowed        |         ✅ Allowed          |
-| **Exercise Catalog (`/exercises`)**          |    🔒 Auth Required     |  ✅ Basic Tier   |       ✅ Full Access       |      ✅ Full Access      |       ✅ Full Access        |
-| **Healthy Meals Catalog (`/meals`)**         |    🔒 Auth Required     |    ✅ Allowed    |         ✅ Allowed         |        ✅ Allowed        |         ✅ Allowed          |
-| **Member Hub (`/profile`)**                  |    🔒 Auth Required     | ✅ 4-Tab Cockpit |  ✅ 4-Tab (Active Trial)   |   ✅ 4-Tab (PRO Badge)   |         ✅ Allowed          |
-| **Contactless Gym Pass QR (`/profile`)**     |    🔒 Auth Required     |    ✅ Allowed    |         ✅ Allowed         |        ✅ Allowed        |         ✅ Allowed          |
-| **Admin Dashboard (`/dashboard`)**           |    🔒 Auth Required     |    🚫 Blocked    |         🚫 Blocked         |        🚫 Blocked        |     ✅ Exclusive Access     |
+- **High Contrast:** Pure pitch-black backgrounds and crisp white typography, avoiding washed-out grays.
+- **Signature Pill Buttons:** Rounded-full button silhouettes paired with rotating circular `ArrowUpRight` (`↗`) icon badges.
+- **`w-11/12 max-w-7xl` Grid Alignment:** Mathematical alignment between the Navbar, Hero Section, and content containers for zero layout shift across mobile, tablet, and 4K displays.
 
 ---
 
-## 🌟 Core Modules & Application Features
+## 🏗️ High-Level Technical Stack
 
-### 🏋️ Front-Facing & Public Experience
+| Layer                   | Technologies & Tools                                                               |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| **Frontend Client**     | Next.js 16 (Turbopack), React 19, TypeScript, Tailwind CSS v4, Lucide Icons, jsPDF |
+| **Backend Server**      | Node.js 18+, Express.js 4, TypeScript (`tsx`), Socket.IO, JWT, Bcrypt.js           |
+| **Database & Cloud**    | MongoDB Atlas, Mongoose ODM, Google AI Studio (Gemini Flash), Stripe API           |
+| **Design & Typography** | Inter font, Luxury Monochromatic B&W Theme, Custom SVG Notch Geometry              |
 
-- **Hero Section (`HeroSection.tsx`)**: Title Case Serif Italic _"Build Your Body"_ headline, transparent athlete cutout (`/hero.png`), non-clipped SVG bottom notch, left details text, social icons, right _"See Packages"_ button, and 3-column animated stats counter strip.
-- **Why Choose Us (`WhyChooseUs.tsx`)**: High-contrast white container, 3 stacked workout images, feature checklist, and signature _"Free Trial Today"_ button.
-- **Membership Pricing Section (`PricingSection.tsx`)**: 3-card membership showcase (Basic Pass, Pro Athlete, VIP Ultimate), Monthly / Annual toggle (Save 20%), and signature CTA buttons.
-- **Trainer Callout Banner (`TrainerCalloutBanner.tsx`)**: Pitch-black callout banner _"Need a Fitness Trainer?"_, contact hotline, and signature _"PURCHASE NOW"_ button.
-- **Consultation Form (`ContactInfoForm.tsx`)**: Consultation inquiry form, head office details (`Fitora Tower, Gulshan-2, Dhaka 1212` & `64 Branches in Bangladesh`), and signature _"SUBMIT NOW"_ button.
-- **Global Header & Navigation (`Navbar.tsx`)**: Desktop centered nav links, mobile slide-in drawer, active route indicators, real-time unread notification bell, and dynamic `PRO` badge synchronization.
-- **Floating AI Coach Studio (`FloatingAiWidget.tsx`)**: 24/7 personal gym trainer and nutrition studio powered by Google Gemini (`AQ.` key support, `gemini-3.6-flash` multi-model fallback, and authenticated quota synchronization), portaled directly to the viewport with luxury protocol cards, two-sided scroll controls, body scroll lock, and real athlete avatar integration.
-- **Global Footer (`Footer.tsx`)**: Bold _"GO FOR IT!"_ headline, location details, newsletter subscription, and developer credits.
-
-### 📊 Health, Telemetry & Workout Tools
-
-- **Metric & BMI Calculator (`/calculator`)**: Interactive height/weight adjustment sliders, real-time BMI score, BMR & TDEE macro calculation, and direct profile synchronization.
-- **Real-Time Gym Rest Timer HUD (`/stopwatch`)**: Fullscreen distraction-free timer with quick rest preset chips (+30s, +60s), exercise selector, audio alerts, and telemetry logging to MongoDB.
-- **Exercise Library & Tracker (`/exercises`)**: Live exercises loaded from MongoDB with category filters, muscle group tags, video instruction links, and VIP locks.
-- **Healthy Meals & Diet Planner (`/meals`)**: Filterable recipe catalog with calorie tags, macro breakdowns, and one-click additions to the user's daily meal plan.
-
-### 🛡️ Administrative Operations (`/dashboard`)
-
-- **Platform Overview**: Live KPI metric cards (Total Revenue, Active Members, Check-ins Today, Branch Occupancy).
-- **User Management Table**: Dynamic MongoDB regex search, role filter, branch filter, and member status controls.
-- **Branch Directory**: Nationwide management covering all 64 districts in Bangladesh with real-time check-in counts.
+> For in-depth technical details, schema definitions, and module-specific setups:
+>
+> - 📖 **[Client Architecture & Components Guide](client/README.md)**
+> - ⚙️ **[Server REST API & Socket Microservice Guide](server/README.md)**
+> - 📝 **[Developer Changelog & Daily Engineering Log](docs/moloy.md)**
 
 ---
 
-## 💳 Subscription, Payment & Retention Engine
-
-Fitora incorporates a secure, server-authoritative billing engine:
-
-- **Server-Authoritative Pricing**: All tier pricing (`Basic Pass`, `Pro Athlete`, `VIP Ultimate`) is validated and calculated on the server. Client-submitted prices are rejected.
-- **Supported Payment Gateways**: Simulated and direct integration with **bKash**, **Nagad**, **Card (Visa/Mastercard)**, and **Stripe**.
-- **1-Click Dynamic Renewal**: Extending an active subscription automatically adds duration (30 days for monthly, 365 days for annual) onto the athlete's future expiration date, preventing any loss of remaining days.
-- **Pure Vector PDF & Printable Invoices**: Generates cryptographic invoice serials (`INV-YYYY-XXXXXX`), transaction IDs, tax line-items, and instant high-resolution vector PDF export via `jspdf`.
-- **Live Membership Tickers**: Real-time ticker counting down days, hours, minutes, and seconds remaining across the Member Hub.
-
----
-
-## 🏗️ Full-Stack Technology Architecture
-
-### Frontend Architecture (`client/`)
-
-- **Framework**: Next.js 16 (App Router, Turbopack)
-- **Language**: TypeScript 5.5
-- **Styling**: Tailwind CSS v4, HeroUI, Framer Motion
-- **Icons**: Lucide React, React Icons
-- **PDF Engine**: `jspdf`
-- **Notifications**: React Hot Toast
-- **State Management**: React Hooks & Context (`useDashboardRole`, `useSession`, `useSyncExternalStore`)
-- **Realtime**: Socket.IO Client
-
-### Backend Architecture (`server/`)
-
-- **Runtime**: Node.js 18+ & Express.js 4.19
-- **Language**: TypeScript (`tsx` runtime engine)
-- **Database**: MongoDB Atlas with Mongoose ODM
-- **Realtime**: Socket.IO Server
-- **Security**: JWT Authentication, CORS, Dotenv, Bcrypt.js
-- **Services**: Modular business logic services (`payment.service.ts`, `calorieEstimation.service.ts`, `ai.service.ts`)
-
----
-
-## 📁 Repository Structure
-
-```
-Fitora/
-├── client/                                 # Next.js 16 Frontend Application
-│   ├── public/                             # Static public assets (hero.png, logo.svg, images)
-│   ├── src/
-│   │   ├── app/                            # App Router Pages & Layouts
-│   │   │   ├── (main)/                     # Main homepage ((main)/page.tsx)
-│   │   │   ├── calculator/                 # BMI & Health Calculator page
-│   │   │   ├── dashboard/                  # Admin-only dashboard portal
-│   │   │   ├── exercises/                  # Exercise catalog & tracker page
-│   │   │   ├── login/                      # User authentication login
-│   │   │   ├── meals/                      # Healthy nutrition & meal planner
-│   │   │   ├── payment/success/            # Payment confirmation landing page
-│   │   │   ├── profile/                    # All-in-One Member Hub (4 tabs)
-│   │   │   ├── profile/edit/               # User profile edit page
-│   │   │   ├── register/                   # User registration (3-day trial trigger)
-│   │   │   └── stopwatch/                  # Fullscreen gym timer HUD
-│   │   ├── components/                     # Domain-Organized UI Components
-│   │   │   ├── auth/                       # Login & register containers
-│   │   │   ├── calculator/                 # BmiCalculator, MacroAdjuster, Assessment cards
-│   │   │   ├── dashboard/                  # User management, Branch views, KPI stats
-│   │   │   ├── exercises/                  # ExerciseTracker & workout catalog components
-│   │   │   ├── home/                       # Hero, WhyChooseUs, Pricing, Callout, Contact
-│   │   │   ├── invoice/                    # Vector PDF & print InvoiceModal
-│   │   │   ├── meals/                      # MealCard & meal filter components
-│   │   │   ├── notifications/              # NotificationBell & alert popups
-│   │   │   ├── profile/                    # ActivityHeatmap, BillingSection, NutritionPlan
-│   │   │   ├── subscription/               # MembershipStatusCard, CountdownTimer
-│   │   │   ├── time/                       # GymTimer, ExerciseStopwatch, TimerControls
-│   │   │   ├── Navbar.tsx                  # Global navigation bar & drawer
-│   │   │   └── Footer.tsx                  # Global footer component
-│   │   ├── data/                           # Fallback catalog data (MealsData.ts)
-│   │   ├── hooks/                          # Custom React hooks (useDashboardRole)
-│   │   ├── lib/                            # Auth client & membership utilities
-│   │   ├── services/                       # Client REST API connectors
-│   │   └── types/                          # Centralized TypeScript interfaces
-│   ├── next.config.ts                      # Next.js configuration
-│   ├── package.json                        # Frontend dependencies & scripts
-│   └── tsconfig.json                       # Frontend TypeScript configuration
-│
-├── server/                                 # Express.js & Socket.IO Backend Server
-│   ├── src/
-│   │   ├── config/                         # Database & environment configurations
-│   │   ├── controllers/                    # Route controller handlers
-│   │   │   ├── auth.controller.ts          # Auth, login, registration, 3-day trial initialization
-│   │   │   ├── branch.controller.ts        # 64 branch management & attendance check-ins
-│   │   │   ├── exercise.controller.ts      # Exercise queries & muscle filtering
-│   │   │   ├── master.controller.ts        # Master Admin platform oversight & analytics
-│   │   │   ├── meal.controller.ts          # Healthy meals catalog & search
-│   │   │   ├── notification.controller.ts  # Notification center CRUD & unread counter
-│   │   │   ├── payment.controller.ts       # Checkout, Stripe, bKash, renewal extension
-│   │   │   ├── stopwatch.controller.ts     # Gym timer telemetry & rest presets
-│   │   │   ├── user.controller.ts          # User management, activity streaks, saved cards
-│   │   │   └── workout.controller.ts       # Workout plans & logging
-│   │   ├── middlewares/                    # Security & authentication middlewares
-│   │   │   ├── auth.middleware.ts          # JWT verification & payload extraction
-│   │   │   └── premium.middleware.ts       # Pro / VIP tier gate with admin overrides
-│   │   ├── models/                         # Mongoose Database Schemas
-│   │   │   ├── Branch.model.ts             # 64 branches in Bangladesh
-│   │   │   ├── BranchCheckin.model.ts      # Turnstile check-ins & QR scans
-│   │   │   ├── Exercise.model.ts           # Exercise definitions & guides
-│   │   │   ├── Meal.model.ts               # Nutrition recipe items
-│   │   │   ├── Notification.model.ts       # System & payment notifications
-│   │   │   ├── Payment.model.ts            # Completed transactions & invoices
-│   │   │   ├── StopwatchSession.model.ts   # Workout timer session telemetry
-│   │   │   ├── User.model.ts               # User credentials, trial, saved card & schema guard
-│   │   │   ├── UserTier.model.ts           # Tier validity & privileges
-│   │   │   └── WorkoutLog.model.ts         # User workout logs & calories burned
-│   │   ├── routes/                         # Express REST API Routes
-│   │   │   ├── index.ts                    # Root API router & health check
-│   │   │   ├── auth.routes.ts              # /api/auth
-│   │   │   ├── branch.routes.ts            # /api/branches
-│   │   │   ├── exercise.routes.ts          # /api/exercises
-│   │   │   ├── meal.routes.ts              # /api/meals
-│   │   │   ├── notification.routes.ts      # /api/notifications
-│   │   │   ├── payment.routes.ts           # /api/payments
-│   │   │   ├── user.routes.ts              # /api/users & /api/users/saved-card
-│   │   │   └── workout.routes.ts           # /api/workouts
-│   │   ├── services/                       # Business Logic Layer
-│   │   │   ├── payment.service.ts          # Pricing, renewal extension & retention calculation
-│   │   │   ├── calorieEstimation.service.ts# Metabolic calculations
-│   │   │   └── ai.service.ts               # AI coach logic
-│   │   ├── sockets/                        # Real-time WebSocket connection handlers
-│   │   └── server.ts                       # Server bootstrap & HTTP listener
-│   ├── package.json                        # Backend dependencies & scripts
-│   └── tsconfig.json                       # Backend TypeScript configuration
-│
-├── docs/                                   # Documentation & Architecture Specifications
-│   ├── fitora.png                          # 1-to-1 Homepage Design Reference Mockup
-│   ├── project_architecture.md             # Detailed Technical Architecture & Access Matrix
-│   └── moloy.md                            # Comprehensive Developer Contribution Log (Days 1–6)
-│
-├── package.json                            # Root workspace runner (concurrently dev)
-├── .gitignore                              # Root git ignore rules
-└── README.md                               # Primary project documentation
-```
-
----
-
-## 🚀 Getting Started & Installation
+## 🚀 Quickstart Guide
 
 ### Prerequisites
 
-- **Node.js**: `v18.18.0` or higher
-- **NPM**: `v9.x` or higher
-- **MongoDB**: Local MongoDB instance or MongoDB Atlas Connection URI
+- **Node.js** `v18.18.0` or higher
+- **NPM** `v9.x` or higher
+- **MongoDB Atlas URI**
 
-### Step 1: Clone the Repository
+### 1. Clone & Install Dependencies
 
 ```bash
 git clone https://github.com/Developer-Moy/Fitora.git
 cd Fitora
-```
 
-### Step 2: Install All Dependencies
-
-```bash
-# 1. Install root workspace runner
+# Install root, client, and server dependencies
 npm install
-
-# 2. Install client dependencies
 cd client && npm install
-
-# 3. Install server dependencies
 cd ../server && npm install
+cd ..
 ```
 
-### Step 3: Configure Environment Variables
+### 2. Configure Environment Variables
 
-Create `.env` files in both `client/` and `server/` using the instructions in the next section.
+Create `.env` files in both `client/` and `server/`:
 
-### Step 4: Run Development Server
-
-From the root `Fitora/` directory, launch both frontend and backend concurrently:
-
-```bash
-npm run dev
-```
-
-- **Frontend Client**: [http://localhost:3000](http://localhost:3000)
-- **Backend REST API**: [http://localhost:5000](http://localhost:5000)
-- **API Health Endpoint**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
-
----
-
-## ⚙️ Environment Variables Configuration
-
-### Client Environment (`client/.env`)
+**`client/.env`**:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
@@ -366,41 +144,50 @@ NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-### Server Environment (`server/.env`)
+**`server/.env`**:
 
 ```env
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/fitora-db?retryWrites=true&w=majority
-JWT_SECRET=FITORA_SUPER_SECRET_JWT_KEY_2026_PRODUCTION
+MONGODB_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_jwt_secret_key
 CLIENT_ORIGIN=http://localhost:3000
-STRIPE_SECRET_KEY=sk_test_51...
+GEMINI_API_KEY=your_google_ai_studio_key
+STRIPE_SECRET_KEY=sk_test_...
 ```
+
+### 3. Launch Development Servers
+
+From the root directory, launch both frontend and backend concurrently:
+
+```bash
+npm run dev
+```
+
+- 💻 **Web Client:** [http://localhost:3000](http://localhost:3000)
+- ⚙️ **API Server:** [http://localhost:5000](http://localhost:5000)
+- 🩺 **Health Check:** [http://localhost:5000/api/health](http://localhost:5000/api/health)
 
 ---
 
-## 🧪 Quality Assurance & Build Verification
+## 🧪 Quality Assurance & Zero-Error Verification
 
-Fitora maintains a strict **Zero-Error Compilation Policy**. Verify both projects anytime with:
+Fitora enforces a strict zero-warning compilation policy. Run checks anytime:
 
 ```bash
-# 1. Verify Client TypeScript
+# Verify Frontend TypeScript
 cd client && npx tsc --noEmit
 
-# 2. Verify Server TypeScript
-cd ../server && npm run build
-
-# 3. Verify Next.js Production Build
-cd ../client && npm run build
+# Verify Backend TypeScript
+cd ../server && npx tsc --noEmit
 ```
 
 ---
 
 ## 👥 Authors & Acknowledgments
 
-- **Lead Architect & Developer**: [Developer-Moy](https://github.com/Developer-Moy)
-- **Design Inspiration**: Pure Black & White Elite Athletics Reference (`docs/fitora.png`)
-- **Special Thanks**: To all team contributors and fitness athletes across Bangladesh.
+- **Lead Architect & Full-Stack Developer:** [Developer-Moy](https://github.com/Developer-Moy)
+- **Special Thanks:** To all contributing engineers and fitness athletes across Bangladesh.
 
 ---
 
