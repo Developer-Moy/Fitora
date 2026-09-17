@@ -240,3 +240,7 @@ Issues Resolved Today
 ## 16-Sep-26
 
 - Integrate Framer Motion into the meals catalog and apply sequential stagger fade-up animations to the meal cards.
+
+## 17-Sep-26
+
+- Split legal page into terms and privacy pages.
