@@ -280,7 +280,7 @@ export default function ContactInfoForm() {
                   onChange={(e) =>
                     setFormData({ ...formData, selectedClass: e.target.value })
                   }
-                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium text-gray-600 cursor-pointer"
+                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium cursor-pointer"
                 >
                   <option value="">Select Class</option>
                   <option value="bodybuilding">

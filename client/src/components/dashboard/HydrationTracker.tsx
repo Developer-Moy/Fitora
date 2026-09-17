@@ -238,7 +238,7 @@ export default function HydrationTracker() {
   return (
     <section className="relative w-full max-w-md lg:max-w-3xl mx-auto group my-2 sm:my-4">
       {/* Background Ambient Glow */}
-      <div className="absolute inset-0 bg-white/5 blur-3xl rounded-[2rem] -z-10 transition-opacity duration-500 opacity-30 group-hover:opacity-60" />
+      <div className="absolute inset-0 bg-white/5 blur-3xl rounded-4xl -z-10 transition-opacity duration-500 opacity-30 group-hover:opacity-60" />
 
       <div className="bg-black border border-white/15 rounded-2xl p-5 lg:p-6 flex flex-col lg:grid lg:grid-cols-2 lg:gap-8 xl:gap-10 items-center lg:items-stretch text-center shadow-xl relative overflow-hidden">
         {/* Left Column (Desktop) */}

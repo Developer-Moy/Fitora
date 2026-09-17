@@ -197,7 +197,7 @@ export default function GlobalSearchBar({
           }`}
         >
           {/* Header Bar */}
-          <div className="p-3 border-b border-white/10 flex items-center justify-between bg-white/[0.02] text-[11px]">
+          <div className="p-3 border-b border-white/10 flex items-center justify-between bg-white/2 text-[11px]">
             <div className="flex items-center gap-1.5 font-bold">
               <span className="text-white/50 uppercase tracking-wider">
                 Results for:
@@ -213,7 +213,7 @@ export default function GlobalSearchBar({
 
           {/* Category Filter Pills (if results found) */}
           {totalResults > 0 && !isLoading && (
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/10 overflow-x-auto text-[10px] font-bold uppercase no-scrollbar bg-white/[0.03]">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/10 overflow-x-auto text-[10px] font-bold uppercase no-scrollbar bg-white/3">
               <button
                 type="button"
                 onClick={() => setActiveCategory("all")}

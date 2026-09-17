@@ -512,11 +512,11 @@ export default function MeetTrainers() {
                           <Quote className="w-3 h-3" /> Quote
                         </span>
                         <span className="text-white text-[10px] italic font-medium truncate max-w-42.5">
-                          "
+                          &quot;
                           {selectedTrainer.philosophy?.trim() ||
                             TRAINER_QUOTES[selectedTrainer.name] ||
                             "Consistency and discipline build champions."}
-                          "
+                          &quot;
                         </span>
                       </div>
                     </div>
@@ -538,11 +538,11 @@ export default function MeetTrainers() {
                   </motion.div>
                   <div className="relative z-10 border-l-2 border-white/30 pl-4 py-2">
                     <p className="text-sm font-sans italic text-gray-300 leading-relaxed">
-                      "
+                      &quot;
                       {selectedTrainer.philosophy?.trim() ||
                         TRAINER_QUOTES[selectedTrainer.name] ||
                         "Consistency and discipline build champions."}
-                      "
+                      &quot;
                     </p>
                   </div>
                 </div>
