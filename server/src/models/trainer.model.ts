@@ -17,6 +17,9 @@ export interface ITrainer extends Document {
   designation: string;
   bio: string;
   about: string;
+  philosophy?: string;
+  earlyLife?: string;
+  careerHighlights?: string[];
 
   // Images
   photo: string;
@@ -106,6 +109,20 @@ const trainerSchema = new Schema<ITrainer>(
       type: String,
       required: [true, "Trainer about section is required"],
       trim: true,
+    },
+    philosophy: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    earlyLife: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    careerHighlights: {
+      type: [String],
+      default: [],
     },
 
     // Images
@@ -201,7 +218,7 @@ const trainerSchema = new Schema<ITrainer>(
       type: String,
       enum: {
         values: ["active", "inactive"],
-        message: '{VALUE} is not supported',
+        message: "{VALUE} is not supported",
       },
       default: "active",
     },

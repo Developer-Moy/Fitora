@@ -32,25 +32,25 @@ const goalOptions: {
   calories: string;
   icon: string;
 }[] = [
-    {
-      value: "bulking",
-      label: "Bulking",
-      calories: "+500 kcal",
-      icon: "↑",
-    },
-    {
-      value: "cutting",
-      label: "Cutting",
-      calories: "-500 kcal",
-      icon: "↓",
-    },
-    {
-      value: "maintenance",
-      label: "Maintenance",
-      calories: "TDEE",
-      icon: "↔",
-    },
-  ];
+  {
+    value: "bulking",
+    label: "Bulking",
+    calories: "+500 kcal",
+    icon: "↑",
+  },
+  {
+    value: "cutting",
+    label: "Cutting",
+    calories: "-500 kcal",
+    icon: "↓",
+  },
+  {
+    value: "maintenance",
+    label: "Maintenance",
+    calories: "TDEE",
+    icon: "↔",
+  },
+];
 
 const getPremiumStatus = (): boolean => {
   if (typeof window === "undefined") {
@@ -68,10 +68,10 @@ const getPremiumStatus = (): boolean => {
 
     const plan = String(
       user?.plan ||
-      user?.tier ||
-      user?.subscription?.plan ||
-      user?.subscription?.tier ||
-      "",
+        user?.tier ||
+        user?.subscription?.plan ||
+        user?.subscription?.tier ||
+        "",
     ).toLowerCase();
 
     const premiumPlans = ["premium", "pro", "athlete", "paid"];
@@ -111,8 +111,9 @@ export default function CalculatorPage() {
     carbs: 40,
     fats: 30,
   });
-  const [pendingMacroPercentages, setPendingMacroPercentages] =
-    useState(customMacroPercentages);
+  const [pendingMacroPercentages, setPendingMacroPercentages] = useState(
+    customMacroPercentages,
+  );
 
   // Sync with backend nutrition API when inputs change
   useEffect(() => {
@@ -436,14 +437,11 @@ export default function CalculatorPage() {
     : defaultMacroPercentages;
 
   // Prefer server-verified macros, fall back to client-side calculation
-  const proteinCalories =
-    targetCalories * (macroPercentages.protein / 100);
+  const proteinCalories = targetCalories * (macroPercentages.protein / 100);
 
-  const carbsCalories =
-    targetCalories * (macroPercentages.carbs / 100);
+  const carbsCalories = targetCalories * (macroPercentages.carbs / 100);
 
-  const fatsCalories =
-    targetCalories * (macroPercentages.fats / 100);
+  const fatsCalories = targetCalories * (macroPercentages.fats / 100);
 
   const macros = {
     protein: Math.round(proteinCalories / 4),
@@ -591,7 +589,7 @@ export default function CalculatorPage() {
             const u = JSON.parse(userStr);
             if (u.id || u._id) userId = u.id || u._id;
           }
-        } catch { }
+        } catch {}
       }
 
       const calculatedBmi =
@@ -682,10 +680,11 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
           <button
             type="button"
             onClick={() => setActiveTab("bmi")}
-            className={`flex-1 rounded-full px-3 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${activeTab === "bmi"
-              ? "bg-white text-black shadow-lg"
-              : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
+            className={`flex-1 rounded-full px-3 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${
+              activeTab === "bmi"
+                ? "bg-white text-black shadow-lg"
+                : "text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
           >
             BMI Calculator
           </button>
@@ -693,10 +692,11 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
           <button
             type="button"
             onClick={() => setActiveTab("nutrition")}
-            className={`flex-1 rounded-full px-3 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${activeTab === "nutrition"
-              ? "bg-white text-black shadow-lg"
-              : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
+            className={`flex-1 rounded-full px-3 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${
+              activeTab === "nutrition"
+                ? "bg-white text-black shadow-lg"
+                : "text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
           >
             BMR & Daily Calories
           </button>
@@ -704,10 +704,11 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
           <button
             type="button"
             onClick={() => setActiveTab("goals")}
-            className={`flex-1 rounded-full px-3 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${activeTab === "goals"
-              ? "bg-white text-black shadow-lg"
-              : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}
+            className={`flex-1 rounded-full px-3 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300 ${
+              activeTab === "goals"
+                ? "bg-white text-black shadow-lg"
+                : "text-white/60 hover:bg-white/10 hover:text-white"
+            }`}
           >
             Body Goals & Hydration
           </button>
@@ -742,8 +743,49 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                   </p>
                 </div>
 
-                {/* Full Color Image Banner (Positioned in the Middle, Object-Top to avoid cutting head) */}
-                <div className="group relative h-40 sm:h-48 lg:h-52 my-auto overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
+                {/* Practical Health & Athletic Insights */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-2.5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-emerald-400">
+                      <Target className="w-3.5 h-3.5 shrink-0" />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-white">
+                        Ideal Zone
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 leading-snug">
+                      18.5–24.9 represents optimal metabolic & cardiovascular
+                      health.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-2.5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-sky-400">
+                      <Dumbbell className="w-3.5 h-3.5 shrink-0" />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-white">
+                        Muscle Factor
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 leading-snug">
+                      Dense lean muscle can elevate BMI without excess body fat.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-2.5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-amber-400">
+                      <Flame className="w-3.5 h-3.5 shrink-0" />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-white">
+                        Calorie Sync
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 leading-snug">
+                      Cross-reference with BMR & TDEE on right for deficit or
+                      surplus.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Full Color Image Banner (Enlarged & Prominent, Object-Top to avoid cutting head) */}
+                <div className="group relative h-52 sm:h-60 lg:h-64 w-full overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
                   <Image
                     src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1400&q=80"
                     alt="BMI fitness banner"
@@ -768,6 +810,24 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       <ShieldCheck className="w-3 h-3 text-white" />
                       <span>WHO Standard Scale</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Clinical Formula & Metric Info */}
+                <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">
+                      Formula:
+                    </span>
+                    <span className="font-mono font-bold text-white text-[11px]">
+                      Weight (kg) ÷ [Height (m)]²
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-gray-300 text-[10px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-semibold">
+                      WHO International Standard
+                    </span>
                   </div>
                 </div>
 
@@ -1069,10 +1129,11 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                             <div className="flex w-full items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <span
-                                  className={`flex h-6 w-6 items-center justify-center rounded-lg text-xs font-black transition-colors ${isActive
-                                    ? "bg-black text-white"
-                                    : "bg-white/10 text-white"
-                                    }`}
+                                  className={`flex h-6 w-6 items-center justify-center rounded-lg text-xs font-black transition-colors ${
+                                    isActive
+                                      ? "bg-black text-white"
+                                      : "bg-white/10 text-white"
+                                  }`}
                                 >
                                   {item.icon}
                                 </span>
@@ -1083,10 +1144,11 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                               </div>
 
                               <span
-                                className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${isActive
-                                  ? "bg-black text-white"
-                                  : "bg-white/10 text-white"
-                                  }`}
+                                className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                                  isActive
+                                    ? "bg-black text-white"
+                                    : "bg-white/10 text-white"
+                                }`}
                               >
                                 {item.calories}
                               </span>
@@ -1424,8 +1486,8 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </h3>
 
                     <p className="mt-0.5 text-[10px] leading-relaxed text-gray-400">
-                      Explore meals tailored around your {Math.round(targetCalories)} kcal
-                      daily calorie target.
+                      Explore meals tailored around your{" "}
+                      {Math.round(targetCalories)} kcal daily calorie target.
                     </p>
                   </div>
                 </div>
@@ -1434,7 +1496,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                   variant="white"
                   size="md"
                   onClick={() =>
-                    window.location.href = `/meals?calories=${Math.round(targetCalories)}`
+                    (window.location.href = `/meals?calories=${Math.round(targetCalories)}`)
                   }
                 >
                   View Meal Plan
