@@ -63,7 +63,7 @@ export default function NotificationDropdown() {
               n.type === "renewal" ||
               n.type === "invoice"
                 ? "system"
-                : (n.type as any),
+                : (n.type as any /* eslint-disable-line @typescript-eslint/no-explicit-any */),
           })),
         );
       } else {

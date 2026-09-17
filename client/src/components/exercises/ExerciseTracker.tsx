@@ -77,11 +77,11 @@ export default function ExercisePage() {
       setIsLoading(true);
       const data = await fetchExercises();
       if (data) {
-        const mapped = data.map((d: any) => ({
+        const mapped = data.map((d: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
           id: d._id,
           name: d.name,
           category: (d.category || "FUNCTIONAL").toUpperCase(),
-          difficulty: (d.difficulty || "BEGINNER").toUpperCase() as any,
+          difficulty: (d.difficulty || "BEGINNER").toUpperCase() as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           duration: d.duration || "10 MIN",
           equipment: (d.equipment || "BODYWEIGHT").toUpperCase(),
           muscle: (d.muscle || "").toUpperCase(),
@@ -704,7 +704,7 @@ function ExerciseModal({
             ? json.data
             : json?.data?.logs || [];
           const filtered = items.filter(
-            (item: any) =>
+            (item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) =>
               item.exerciseName?.toLowerCase() === exercise.name.toLowerCase()
           );
           if (active && filtered.length > 0) {

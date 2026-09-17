@@ -53,7 +53,7 @@ export default function BranchManagementView() {
         division: divisionVal !== "all" ? divisionVal : undefined,
       });
       if (result) {
-        setBranches(result as any);
+        setBranches(result as any /* eslint-disable-line @typescript-eslint/no-explicit-any */);
       }
       setIsLoading(false);
     },

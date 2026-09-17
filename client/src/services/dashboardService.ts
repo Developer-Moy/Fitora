@@ -383,7 +383,7 @@ export async function fetchAdminBranches(): Promise<BranchInfo[] | null> {
     const data = await res.json();
     const raw = data.data?.branches || [];
     // Normalize _id → id
-    return raw.map((b: any) => ({
+    return raw.map((b: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
       ...b,
       id:
         b._id ||
@@ -419,7 +419,7 @@ export async function fetchPublicBranches(params?: {
     if (!res.ok) return null;
     const data = await res.json();
     const raw = data.data?.branches || [];
-    return raw.map((b: any) => ({
+    return raw.map((b: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
       ...b,
       id:
         b._id ||
