@@ -12,7 +12,6 @@ import adRoutes from "./ad.routes";
 import userRoutes from "./user.routes";
 import consultationRoutes from "./consultation.routes";
 import branchRoutes from "./branch.routes";
-import trainerRoutes from "./trainer.routes";
 import newsletterRoutes from "./newsletter.routes";
 import stopwatchRoutes from "./stopwatch.routes";
 import exerciseRoutes from "./exercise.routes";

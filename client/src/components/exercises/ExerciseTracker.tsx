@@ -260,20 +260,20 @@ export default function ExercisePage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 pt-12 pb-4 select-none">
                   {/* Previous Button */}
-                  <FitoraPillButton
-                    variant="black"
+                  <button
+                    type="button"
                     onClick={() => {
                       setCurrentPage((p) => Math.max(p - 1, 1));
                       document
-                        .getElementById("exercises-catalog")
+                        .getElementById("exercise-library")
                         ?.scrollIntoView({ behavior: "smooth" });
                     }}
                     disabled={currentPage === 1}
-                    className="gap-1 px-4 py-2.5 text-xs"
+                    className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-all duration-300 shadow-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-neutral-900 disabled:hover:text-white active:scale-95"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
                     <span>Prev</span>
-                  </FitoraPillButton>
+                  </button>
 
                   {/* Page Number Buttons */}
                   <div className="flex items-center gap-1.5 px-2">
@@ -301,20 +301,20 @@ export default function ExercisePage() {
                   </div>
 
                   {/* Next Button */}
-                  <FitoraPillButton
-                    variant="black"
+                  <button
+                    type="button"
                     onClick={() => {
                       setCurrentPage((p) => Math.min(p + 1, totalPages));
                       document
-                        .getElementById("exercises-catalog")
+                        .getElementById("exercise-library")
                         ?.scrollIntoView({ behavior: "smooth" });
                     }}
                     disabled={currentPage === totalPages}
-                    className="gap-1 px-4 py-2.5 text-xs"
+                    className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-all duration-300 shadow-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-neutral-900 disabled:hover:text-white active:scale-95"
                   >
                     <span>Next</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </FitoraPillButton>
+                    <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+                  </button>
                 </div>
               )}
             </>
@@ -364,6 +364,7 @@ export default function ExercisePage() {
             <div className="flex flex-col sm:flex-row gap-2 mt-6">
               <FitoraPillButton
                 variant="black"
+                showIcon={false}
                 onClick={() => setShowPremiumMessage(false)}
                 className="flex-1"
               >
@@ -376,12 +377,9 @@ export default function ExercisePage() {
                   setShowPremiumMessage(false);
                   window.location.href = "/#pricing";
                 }}
-                className="group flex-1"
+                className="flex-1"
               >
-                <span>Upgrade Now</span>
-                <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-sm">
-                  <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-                </span>
+                Upgrade Now
               </FitoraPillButton>
             </div>
           </div>
@@ -429,20 +427,63 @@ function ExerciseCard({
 
   const defaultFallback =
     "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1000&q=80";
+
+  // Primary image source: YouTube thumbnail when videoId exists, otherwise category/exercise image
+  const ytThumbnail = exercise.videoId
+    ? `https://img.youtube.com/vi/${exercise.videoId}/hqdefault.jpg`
+    : null;
   const initialImg =
-    exercise.image || validCategoryImages[exercise.category] || defaultFallback;
+    ytThumbnail || exercise.image || validCategoryImages[exercise.category] || defaultFallback;
+
   const [imgSrc, setImgSrc] = useState(initialImg);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync image source whenever exercise changes
+  useEffect(() => {
+    const freshThumb = exercise.videoId
+      ? `https://img.youtube.com/vi/${exercise.videoId}/hqdefault.jpg`
+      : exercise.image || validCategoryImages[exercise.category] || defaultFallback;
+    setImgSrc(freshThumb);
+  }, [exercise.videoId, exercise.image, exercise.category]);
+
+  // Clean up any pending hover timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (locked || !exercise.videoId) return;
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => {
+      setIsPlayingPreview(true);
+    }, 280);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setIsPlayingPreview(false);
+  };
 
   return (
     <article
       onClick={onClick}
-      className={`group relative h-[280px] sm:h-[310px] overflow-hidden rounded-2xl bg-neutral-900 border border-white/10 hover:border-white/30 transition-all duration-300 cursor-pointer shadow-xl select-none ${
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`group relative h-[280px] sm:h-[310px] overflow-hidden rounded-2xl bg-neutral-900 border transition-all duration-300 cursor-pointer shadow-xl select-none ${
         locked
-          ? "border-white/10 cursor-pointer"
-          : "border-white/10 hover:border-white/30 cursor-pointer"
+          ? "border-white/10 hover:border-white/20"
+          : "border-white/10 hover:border-white/30"
       }`}
     >
-      {/* Image */}
+      {/* Primary Image (YouTube Thumbnail / Fallback) */}
       <Image
         src={imgSrc}
         alt=""
@@ -450,14 +491,30 @@ function ExerciseCard({
         aria-hidden="true"
         onError={() => {
           if (imgSrc !== defaultFallback) {
-            setImgSrc(defaultFallback);
+            setImgSrc(exercise.image || validCategoryImages[exercise.category] || defaultFallback);
           }
         }}
-        className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:scale-105 group-hover:opacity-95 transition-all duration-700 brightness-105 contrast-105"
+        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 brightness-105 contrast-105 z-0 ${
+          isPlayingPreview
+            ? "opacity-0 scale-105"
+            : "opacity-85 group-hover:scale-105 group-hover:opacity-95"
+        }`}
       />
 
+      {/* Auto-playing Muted YouTube Video Preview on Hover */}
+      {isPlayingPreview && exercise.videoId && !locked && (
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-black">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${exercise.videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${exercise.videoId}&showinfo=0&rel=0&iv_load_policy=3&playsinline=1`}
+            title={exercise.name}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] max-w-none pointer-events-none border-0 opacity-95 transition-opacity duration-300"
+          />
+        </div>
+      )}
+
       {/* Subtle Gradient Overlay for High Contrast Text Reading */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 pointer-events-none z-[1]" />
 
       {locked && (
         <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
@@ -480,7 +537,7 @@ function ExerciseCard({
       )}
 
       {/* Number and VIP Badge */}
-      <div className="absolute top-4 left-4 flex items-center gap-1.5 z-10">
+      <div className="absolute top-4 left-4 flex items-center gap-1.5 z-10 pointer-events-none">
         <span className="bg-white text-black px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider">
           {String(index + 1).padStart(2, "0")}
         </span>
@@ -492,17 +549,36 @@ function ExerciseCard({
         )}
       </div>
 
-      {/* Play */}
-      <div className="absolute top-4 right-4 z-10">
-        <div className="relative w-9 h-9 rounded-full bg-white text-black flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-md">
-          {/* Circular loader ring on hover */}
-          <span className="absolute -inset-1 rounded-full border-2 border-transparent border-t-white border-r-white/60 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity duration-300 pointer-events-none" />
-          <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
+      {/* Play Button or Live Preview Status */}
+      <div className="absolute top-4 right-4 z-10 pointer-events-none">
+        <div
+          className={`relative rounded-full flex items-center justify-center transition-all duration-300 shadow-md ${
+            isPlayingPreview
+              ? "h-8 px-2.5 bg-red-600 text-white shadow-red-500/40 shadow-lg scale-105"
+              : "w-9 h-9 bg-white text-black group-hover:scale-105"
+          }`}
+        >
+          {isPlayingPreview ? (
+            <div className="flex items-center gap-1.5">
+              <span className="flex items-end gap-[2px] h-3">
+                <span className="w-[3px] bg-white rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
+                <span className="w-[3px] bg-white rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-3" />
+                <span className="w-[3px] bg-white rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-1.5" />
+              </span>
+              <span className="text-[9px] font-black uppercase tracking-wider">LIVE</span>
+            </div>
+          ) : (
+            <>
+              {/* Circular loader ring on hover */}
+              <span className="absolute -inset-1 rounded-full border-2 border-transparent border-t-white border-r-white/60 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity duration-300 pointer-events-none" />
+              <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
+            </>
+          )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 space-y-2">
+      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 space-y-2 z-10 pointer-events-none">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="px-2.5 py-0.5 rounded-full border border-white/20 bg-black/60 text-[9px] font-bold tracking-wider">
             {exercise.category}
@@ -856,13 +932,19 @@ function ExerciseModal({
               <div className="order-1 lg:order-none flex flex-col gap-2 w-full">
                 {/* YouTube Video Player */}
                 <div className="relative w-full aspect-video overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-white/10 shadow-2xl">
-                  <iframe
-                    className="absolute inset-0 w-full h-full"
-                    src={`https://www.youtube.com/embed/${exercise.videoId}?rel=0`}
-                    title={`${exercise.name} exercise tutorial`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
+                  {exercise.videoId ? (
+                    <iframe
+                      className="absolute inset-0 w-full h-full"
+                      src={`https://www.youtube-nocookie.com/embed/${exercise.videoId}?rel=0`}
+                      title={`${exercise.name} exercise tutorial`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-neutral-900 text-white/40 text-xs font-bold uppercase tracking-wider">
+                      Video Unavailable
+                    </div>
+                  )}
                 </div>
 
                 {/* External Video Demonstration Link */}
@@ -934,33 +1016,33 @@ function ExerciseModal({
 
                 <div className="grid grid-cols-3 gap-2">
                   {!swRunning ? (
-                    <FitoraPillButton
-                      variant="white"
+                    <button
+                      type="button"
                       onClick={startStopwatch}
-                      className="col-span-2 gap-1.5 text-[10px] px-3 py-2"
+                      className="col-span-2 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-black uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all duration-300 shadow-lg cursor-pointer active:scale-95 select-none"
                     >
-                      <Play className="w-3 h-3 fill-black" />
+                      <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
                       <span>{swElapsedMs > 0 ? "Resume" : "Start"}</span>
-                    </FitoraPillButton>
+                    </button>
                   ) : (
-                    <FitoraPillButton
-                      variant="white"
+                    <button
+                      type="button"
                       onClick={pauseStopwatch}
-                      className="col-span-2 gap-1.5 text-[10px] px-3 py-2"
+                      className="col-span-2 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-black uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all duration-300 shadow-lg cursor-pointer active:scale-95 select-none"
                     >
-                      <Pause className="w-3 h-3 fill-black" />
+                      <Pause className="w-3.5 h-3.5 fill-black" />
                       <span>Pause</span>
-                    </FitoraPillButton>
+                    </button>
                   )}
-                  <FitoraPillButton
-                    variant="black"
+                  <button
+                    type="button"
                     onClick={resetStopwatch}
                     disabled={swElapsedMs === 0 && !swRunning}
-                    className="gap-1.5 text-[10px] px-3 py-2"
+                    className="inline-flex items-center justify-center gap-1.5 py-3 px-3 rounded-full text-xs font-black uppercase tracking-wider bg-neutral-900 border border-white/20 text-white hover:bg-white hover:text-black transition-all duration-300 shadow-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-neutral-900 disabled:hover:text-white active:scale-95 select-none"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="w-3.5 h-3.5" />
                     <span>Reset</span>
-                  </FitoraPillButton>
+                  </button>
                 </div>
               </div>
 
@@ -1033,14 +1115,9 @@ function ExerciseModal({
                     variant="white"
                     type="submit"
                     disabled={submitting}
-                    className="group flex-1 gap-2.5 text-xs sm:text-sm px-5 py-3.5"
+                    className="flex-1 text-xs sm:text-sm py-3.5"
                   >
-                    <span>
-                      {submitting ? "LOGGING..." : "FINISH & LOG SET"}
-                    </span>
-                    <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-                      <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                    </span>
+                    {submitting ? "LOGGING..." : "FINISH & LOG SET"}
                   </FitoraPillButton>
                 </div>
               </form>
