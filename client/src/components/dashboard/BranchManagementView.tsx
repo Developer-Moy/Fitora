@@ -298,7 +298,7 @@ export default function BranchManagementView() {
 
                       {/* Metrics Row */}
                       <div className="grid grid-cols-3 gap-1.5 pt-1 text-center text-xs">
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10">
+                        <div className="p-2 rounded-xl bg-white/3 border border-white/10">
                           <span className="block text-[8px] text-white/40 font-black uppercase tracking-widest">
                             Active
                           </span>
@@ -306,7 +306,7 @@ export default function BranchManagementView() {
                             {branch.activeNow}
                           </span>
                         </div>
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10">
+                        <div className="p-2 rounded-xl bg-white/3 border border-white/10">
                           <span className="block text-[8px] text-white/40 font-black uppercase tracking-widest">
                             Equip
                           </span>
@@ -314,7 +314,7 @@ export default function BranchManagementView() {
                             {branch.equipmentCount}
                           </span>
                         </div>
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10">
+                        <div className="p-2 rounded-xl bg-white/3 border border-white/10">
                           <span className="block text-[8px] text-white/40 font-black uppercase tracking-widest">
                             Trainers
                           </span>

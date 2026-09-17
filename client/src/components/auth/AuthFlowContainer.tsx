@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
-  Lock,
   Eye,
   EyeOff,
   ArrowRight,
@@ -16,7 +15,7 @@ import {
   CheckCircle2,
   Dumbbell,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { loginApi, registerApi, saveAuthSession } from "@/services/authService";
 
@@ -64,7 +63,7 @@ function UniversalSlidePill({
   return (
     <div
       onClick={handleSlideAction}
-      className="relative w-full h-12 bg-white/5 border border-white/10 rounded-full p-1 flex items-center justify-between shadow-2xl backdrop-blur-sm cursor-pointer select-none overflow-hidden transition-all duration-300 group hover:border-white/20 hover:bg-white/[0.08]"
+      className="relative w-full h-12 bg-white/5 border border-white/10 rounded-full p-1 flex items-center justify-between shadow-2xl backdrop-blur-sm cursor-pointer select-none overflow-hidden transition-all duration-300 group hover:border-white/20 hover:bg-white/8"
     >
       {/* Olympic Barbell Center Axis & Knurling Guide */}
       <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-0.5 bg-linear-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
@@ -166,7 +165,7 @@ function BarbellClampInput({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -6, opacity: 0 }}
             transition={{ type: "spring", stiffness: 450, damping: 26 }}
-            className="absolute -left-[13px] top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
+            className="absolute -left-3.25 top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
           >
             <BarbellPlates side="left" />
           </motion.div>
@@ -1436,7 +1435,7 @@ export default function AuthFlowContainer({
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 3: MOBILE (11/12 Screen Width max-w-[410px] < 768px)
           ════════════════════════════════════════════════════════════ */}
-      <div className="block md:hidden relative w-11/12 max-w-[410px] h-full max-h-[750px] min-h-[500px] bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col">
+      <div className="block md:hidden relative w-11/12 max-w-102.5 h-full max-h-187.5 min-h-125 bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col">
         <AnimatePresence mode="wait">
           {/* Mobile STEP 1: Welcome Onboarding Screen */}
           {step === "welcome" && (

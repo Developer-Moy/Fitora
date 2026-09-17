@@ -57,7 +57,7 @@ export default function AthleteHealthAssessmentCard({
       className="mx-auto w-full overflow-hidden rounded-2xl border border-white/15 bg-black text-white shadow-2xl"
     >
       {/* Header */}
-      <div className="border-b border-white/10 bg-white/[0.02] p-4 sm:p-5">
+      <div className="border-b border-white/10 bg-white/2 p-4 sm:p-5">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-500">
@@ -153,7 +153,7 @@ export default function AthleteHealthAssessmentCard({
         </div>
 
         {/* Target + Goal - Horizontal */}
-        <div className="mt-3.5 rounded-xl border border-white/10 bg-white/[0.04] p-3 sm:p-3.5">
+        <div className="mt-3.5 rounded-xl border border-white/10 bg-white/4 p-3 sm:p-3.5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">
@@ -242,7 +242,7 @@ function MetricCard({
   subLabel: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+    <div className="rounded-xl border border-white/10 bg-white/3 p-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[8px] font-black uppercase tracking-wider text-gray-500">
           {label}
@@ -268,7 +268,7 @@ function MacroCard({
   percentage: number;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+    <div className="rounded-xl border border-white/10 bg-white/3 p-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-[8px] font-black uppercase tracking-wider text-gray-500">
           {label}
