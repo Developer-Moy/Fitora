@@ -247,12 +247,9 @@ export default function Navbar() {
                   FITORA
                 </span>
                 {isMounted && isPremium && (
-                  <Link
-                    href="#pricing"
-                    className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-white text-black font-extrabold text-xs uppercase tracking-wider border border-white hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer leading-none"
-                  >
+                  <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-white text-black font-extrabold text-[10px] sm:text-xs uppercase tracking-wider border border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none select-none">
                     PRO
-                  </Link>
+                  </span>
                 )}
               </div>
               <span className="text-[9px] text-white/60 font-bold tracking-[0.25em] uppercase">
@@ -322,7 +319,6 @@ export default function Navbar() {
               </Link>
             ) : (
               <div className="hidden lg:flex items-center gap-3">
-
                 <NotificationBell
                   isLoggedIn={isLoggedIn}
                   userEmail={userEmail}

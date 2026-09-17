@@ -311,11 +311,14 @@ export const dashboardLogin = async (req: Request, res: Response) => {
         phone: "+8801700000000",
         role: "master_admin",
         assignedBranch: "All 64 Branches (Headquarters)",
+        assignedBranchSlug: "headquarters",
         plan: "VIP Ultimate",
         status: "active",
         attendanceStreakDays: 145,
         hydrationTargetLiters: 4.0,
         totalPaidBDT: 50000,
+        paymentMethod: "None",
+        qrCodeId: `FIT-MASTER-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
         isMasterProtected: true,
       });
     }
@@ -336,11 +339,14 @@ export const dashboardLogin = async (req: Request, res: Response) => {
         phone: "+8801800000000",
         role: "branch_admin",
         assignedBranch: "Gulshan, Dhaka",
+        assignedBranchSlug: "gulshan-dhaka",
         plan: "Pro Athlete",
         status: "active",
         attendanceStreakDays: 88,
         hydrationTargetLiters: 3.5,
         totalPaidBDT: 25000,
+        paymentMethod: "None",
+        qrCodeId: `FIT-BRANCH-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
         isMasterProtected: false,
       });
     }

@@ -235,9 +235,11 @@ CRITICAL OPERATIONAL RULES:
 
         // Modern Google AI Studio models with multi-version fallback
         const models = [
+          "gemini-flash-latest",
+          "gemini-flash-lite-latest",
+          "gemini-2.5-flash-lite",
           "gemini-3.6-flash",
-          "gemini-2.5-flash",
-          "gemini-1.5-flash",
+          "gemini-pro-latest",
         ];
         for (const model of models) {
           const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
@@ -268,31 +270,27 @@ CRITICAL OPERATIONAL RULES:
             }
           } else {
             const errorData = await geminiRes.text();
+            console.warn(
+              `Gemini model ${model} failed with status ${geminiRes.status}:`,
+              errorData.slice(0, 200),
+            );
+            // On auth/key errors, stop trying more models — fallback to local engine
             if (
               geminiRes.status === 403 ||
               geminiRes.status === 401 ||
               geminiRes.status === 400
             ) {
-              throw new Error(
-                `AUTH_ERROR: Google API responded with ${geminiRes.status}. Check your API key. Details: ${errorData}`,
-              );
+              break;
             }
           }
         }
       } catch (geminiError: any) {
-        console.error("Gemini API Error:", geminiError.message);
-        if (geminiError.message.includes("AUTH_ERROR")) {
-          return res
-            .status(403)
-            .json(
-              errorResponse(
-                "AI Service API Key is invalid or blocked. Please update the API key in the server configuration.",
-                "API_KEY_ERROR",
-                403,
-              ),
-            );
-        }
-        // Otherwise fall back gracefully to local reasoning engine for rate limits/timeouts
+        console.warn(
+          "Gemini API unavailable, using local fitness engine:",
+          geminiError.message,
+        );
+        // Always fall through to local heuristic engine — never block with 403
+        // This ensures AI responds even when Gemini key is invalid/expired/missing
       }
     }
 
