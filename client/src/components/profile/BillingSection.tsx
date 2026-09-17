@@ -9,8 +9,6 @@ import {
   ArrowUpRight,
   ShieldCheck,
   RefreshCw,
-  Sparkles,
-  Check,
   AlertTriangle,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -24,7 +22,6 @@ import {
 import {
   getAuthSession,
   saveAuthSession,
-  AUTH_SESSION_UPDATED,
 } from "@/services/authService";
 import InvoiceModal from "@/components/InvoiceModal";
 import FitoraPillButton from "../ui/FitoraPillButton";
@@ -484,7 +481,7 @@ export default function BillingSection() {
         /* ── Billing history table ── */
         <div className="bg-black border border-white/20 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.3)]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left">
+            <table className="w-full min-w-205 text-left">
               <thead>
                 <tr className="border-b border-white/10 text-[10px] sm:text-xs uppercase tracking-wider text-white/50">
                   <th className="px-4 sm:px-5 py-4 font-bold">Date</th>
@@ -510,7 +507,7 @@ export default function BillingSection() {
                   return (
                     <tr
                       key={payment._id || `${payment.invoiceNumber}-${idx}`}
-                      className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors"
+                      className="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors"
                     >
                       <td className="px-4 sm:px-5 py-4 text-xs sm:text-sm text-white/70 whitespace-nowrap">
                         {formatDate(payment.date)}

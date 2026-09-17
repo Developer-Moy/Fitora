@@ -745,7 +745,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                 {/* Practical Health & Athletic Insights */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-2.5 space-y-1">
+                  <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm p-2.5 space-y-1">
                     <div className="flex items-center gap-1.5 text-emerald-400">
                       <Target className="w-3.5 h-3.5 shrink-0" />
                       <span className="text-[9px] font-black uppercase tracking-wider text-white">
@@ -758,7 +758,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-2.5 space-y-1">
+                  <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm p-2.5 space-y-1">
                     <div className="flex items-center gap-1.5 text-sky-400">
                       <Dumbbell className="w-3.5 h-3.5 shrink-0" />
                       <span className="text-[9px] font-black uppercase tracking-wider text-white">
@@ -770,7 +770,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-2.5 space-y-1">
+                  <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm p-2.5 space-y-1">
                     <div className="flex items-center gap-1.5 text-amber-400">
                       <Flame className="w-3.5 h-3.5 shrink-0" />
                       <span className="text-[9px] font-black uppercase tracking-wider text-white">
@@ -793,7 +793,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     className="w-full h-full object-cover object-top transition duration-700 group-hover:scale-105 brightness-100 contrast-105"
                   />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent" />
 
                   <div className="absolute left-4 top-4">
                     <span className="rounded-full border border-white/20 bg-black/75 px-3 py-0.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white backdrop-blur-md shadow-md">
@@ -814,7 +814,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                 </div>
 
                 {/* Clinical Formula & Metric Info */}
-                <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-xs">
+                <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-white/3 border border-white/10 text-xs">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">
                       Formula:

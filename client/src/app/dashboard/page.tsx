@@ -446,7 +446,7 @@ export default function MasterDashboardPage() {
           Loading revenue analytics...
         </div>
       )}
-      <div className="grid grid-cols-12 gap-1.5 pt-2 items-end min-h-[160px]">
+      <div className="grid grid-cols-12 gap-1.5 pt-2 items-end min-h-40">
         {monthlyRevenueChart.map((item, idx) => {
           const hasData = item.revenue > 0;
           const heightPercent = Math.round(
@@ -461,7 +461,7 @@ export default function MasterDashboardPage() {
               <span className="text-[8px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity">
                 ৳{(item.revenue / 100000).toFixed(1)}L
               </span>
-              <div className="w-full max-w-[20px] flex items-end gap-1 h-[110px] bg-white/5 p-0.5 rounded-xl border border-white/10">
+              <div className="w-full max-w-5 flex items-end gap-1 h-[110px] bg-white/5 p-0.5 rounded-xl border border-white/10">
                 <div
                   className={`w-full rounded-lg transition-all duration-500 ${hasData ? "bg-white" : "bg-white/10"}`}
                   style={{

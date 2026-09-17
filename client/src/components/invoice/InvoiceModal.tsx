@@ -526,7 +526,7 @@ export default function InvoiceModal({
   const modalContent = (
     <div id="invoice-modal-portal">
       {/* ── Modal Backdrop (z-[99999] guarantees it renders ABOVE navbar) ── */}
-      <div className="invoice-modal-backdrop fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+      <div className="invoice-modal-backdrop fixed inset-0 z-99999 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
         {/* Modal Card: Fits comfortably on 1 screen on desktop/laptop */}
         <div className="invoice-modal-card relative w-full max-w-2xl bg-neutral-950 border border-white/20 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.95)] overflow-hidden flex flex-col max-h-[90vh] my-auto">
           {/* Pinned Top Action Toolbar */}

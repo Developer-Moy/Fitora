@@ -120,7 +120,7 @@ function TrialCountdownBanner({ trialExpiresAt }: { trialExpiresAt: string }) {
   if (timeLeft === "expired") return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 via-white/5 to-white/10 px-5 py-3.5 flex items-center justify-between gap-3 shadow-lg">
+    <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-linear-to-r from-white/10 via-white/5 to-white/10 px-5 py-3.5 flex items-center justify-between gap-3 shadow-lg">
       <div className="flex items-center gap-3">
         <Sparkles className="w-5 h-5 text-white shrink-0 animate-pulse" />
         <p className="text-sm text-white font-medium">

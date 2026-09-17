@@ -223,7 +223,7 @@ export default function Navbar() {
   return (
     <>
       {/* ── Navbar Container ── */}
-      <nav className="fixed top-0 left-0 right-0 z-[70] bg-black/95 backdrop-blur-md text-white border-b border-white/10 h-16 sm:h-20 select-none">
+      <nav className="fixed top-0 left-0 right-0 z-70 bg-black/95 backdrop-blur-md text-white border-b border-white/10 h-16 sm:h-20 select-none">
         <div className="w-11/12 max-w-7xl mx-auto h-full flex items-center justify-between relative">
           {/* Left: Brand Logo */}
           <Link
@@ -330,7 +330,7 @@ export default function Navbar() {
 
                 <div
                   ref={profileDropdownRef}
-                  className="relative min-w-[145px] sm:min-w-[155px]"
+                  className="relative min-w-36.25 sm:min-w-38.75"
                 >
                   {/* Profile Dropdown Button with Profile Image */}
                   <button
@@ -429,11 +429,11 @@ export default function Navbar() {
       {/* ── Mobile & Tablet Drawer (Visible ONLY on Mobile/Tablet < 1024px) ── */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 top-16 sm:top-20 z-[90] bg-black/80 backdrop-blur-md lg:hidden"
+          className="fixed inset-0 top-16 sm:top-20 z-90 bg-black/80 backdrop-blur-md lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[320px] h-full bg-black border-l border-white/10 flex flex-col justify-between shadow-2xl z-[100]"
+            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-80 h-full bg-black border-l border-white/10 flex flex-col justify-between shadow-2xl z-100"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── Main Navigation Links (Exact Match to PC Navbar) ── */}
@@ -457,7 +457,7 @@ export default function Navbar() {
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
                       <Icon
-                        className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-black" : "text-white/60"}`}
+                        className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-black" : "text-white/60"}`}
                       />
                       <span className="truncate">{label}</span>
                     </div>

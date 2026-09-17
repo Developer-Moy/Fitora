@@ -340,10 +340,10 @@ export default function FloatingAiWidget() {
                     filter: "blur(4px)",
                   }}
                   transition={{ type: "spring", stiffness: 420, damping: 32 }}
-                  className="fixed bottom-[80px] sm:bottom-24 left-1/2 -translate-x-1/2 w-[calc(100vw-1.5rem)] xs:w-[calc(100vw-2rem)] sm:w-[620px] md:w-[680px] max-w-[680px] h-[560px] max-h-[calc(100vh-120px)] flex flex-col bg-neutral-950/95 backdrop-blur-3xl border border-white/20 rounded-[2.2rem] shadow-[0_30px_90px_rgba(0,0,0,0.98),0_0_40px_rgba(255,255,255,0.08)] overflow-hidden z-[9999] pointer-events-auto font-sans overscroll-contain before:absolute before:inset-x-8 before:top-0 before:h-[1px] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent"
+                  className="fixed bottom-20 sm:bottom-24 left-1/2 -translate-x-1/2 w-[calc(100vw-1.5rem)] xs:w-[calc(100vw-2rem)] sm:w-155 md:w-170 max-w-170 h-140 max-h-[calc(100vh-120px)] flex flex-col bg-neutral-950/95 backdrop-blur-3xl border border-white/20 rounded-[2.2rem] shadow-[0_30px_90px_rgba(0,0,0,0.98),0_0_40px_rgba(255,255,255,0.08)] overflow-hidden z-[9999] pointer-events-auto font-sans overscroll-contain before:absolute before:inset-x-8 before:top-0 before:h-px before:bg-linear-to-r before:from-transparent before:via-white/60 before:to-transparent"
                 >
                   {/* Header: Symmetrical Luxury Console Brand Bar */}
-                  <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5 bg-gradient-to-b from-neutral-900/90 to-neutral-950/90 border-b border-white/10 shrink-0">
+                  <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-3.5 bg-linear-to-b from-neutral-900/90 to-neutral-950/90 border-b border-white/10 shrink-0">
                     <div className="flex items-center gap-3">
                       {/* Brand Logo Emblem */}
                       <div className="relative w-9 h-9 rounded-2xl bg-white text-black flex items-center justify-center shadow-lg border border-white/40 shrink-0">
@@ -405,12 +405,12 @@ export default function FloatingAiWidget() {
                   </div>
 
                   {/* Chat Canvas Area */}
-                  <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-black via-neutral-950 to-black text-xs sm:text-sm scrollbar-thin scrollbar-thumb-white/20 overscroll-contain">
+                  <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-linear-to-b from-black via-neutral-950 to-black text-xs sm:text-sm scrollbar-thin scrollbar-thumb-white/20 overscroll-contain">
                     {/* Welcome Screen: High-End Fitness Protocol Grid when chat is fresh */}
                     {isFreshConversation ? (
                       <div className="space-y-4 pt-1">
                         {/* Welcome Announcement Card */}
-                        <div className="p-4 rounded-2xl bg-gradient-to-r from-neutral-900/90 to-neutral-900/40 border border-white/10 flex items-start gap-3 shadow-lg">
+                        <div className="p-4 rounded-2xl bg-linear-to-r from-neutral-900/90 to-neutral-900/40 border border-white/10 flex items-start gap-3 shadow-lg">
                           <div className="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center shrink-0 shadow-md">
                             <img
                               src="/logo.svg"
@@ -540,7 +540,7 @@ export default function FloatingAiWidget() {
                               <div
                                 className={`user-avatar-fallback w-full h-full ${
                                   userAvatar ? "hidden" : "flex"
-                                } items-center justify-center text-[10px] font-black uppercase text-white bg-gradient-to-br from-neutral-700 to-neutral-900`}
+                                } items-center justify-center text-[10px] font-black uppercase text-white bg-linear-to-br from-neutral-700 to-neutral-900`}
                               >
                                 {userInitial ? (
                                   userInitial
@@ -635,7 +635,7 @@ export default function FloatingAiWidget() {
 
                   {/* Interactive Command Input Deck */}
                   {isQuotaExhausted ? (
-                    <div className="p-3.5 sm:p-4 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 border-t border-white/20 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shrink-0">
+                    <div className="p-3.5 sm:p-4 bg-linear-to-r from-neutral-950 via-neutral-900 to-neutral-950 border-t border-white/20 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shrink-0">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center shrink-0">
                           <Lock className="w-4 h-4 text-amber-400" />
@@ -707,7 +707,7 @@ export default function FloatingAiWidget() {
           className={`group flex items-center justify-center font-bold cursor-pointer transition-all duration-300 pointer-events-auto select-none ${
             isScrolled
               ? "fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full bg-black text-white border-[3.5px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] shadow-[0_0_30px_rgba(255,255,255,0.35)] hover:scale-105 active:scale-95 z-[9999]"
-              : "absolute bottom-[-2px] sm:bottom-[-2px] left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black border-[3px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] hover:scale-110 active:scale-95 z-[45]"
+              : "absolute -bottom-0.5 sm:-bottom-0.5 left-1/2 -translate-x-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black border-[3px] border-white shadow-[0_4px_30px_rgba(0,0,0,0.95)] hover:scale-110 active:scale-95 z-[45]"
           } ${
             isOpen
               ? "ring-2 ring-white/70 shadow-[0_0_25px_rgba(255,255,255,0.6)] scale-105"

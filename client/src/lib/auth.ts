@@ -5,7 +5,6 @@ import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __fitoraAuthMongoClient: MongoClient | undefined;
 }
 

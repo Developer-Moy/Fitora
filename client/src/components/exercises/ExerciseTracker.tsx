@@ -171,7 +171,7 @@ export default function ExercisePage() {
           }}
         />
         {/* Dark Luxury Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/90 to-black z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/80 via-black/90 to-black z-0 pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
           {/* Top Title & Search Bar Row */}
@@ -477,7 +477,7 @@ function ExerciseCard({
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`group relative h-[280px] sm:h-[310px] overflow-hidden rounded-2xl bg-neutral-900 border transition-all duration-300 cursor-pointer shadow-xl select-none ${
+      className={`group relative h-70 sm:h-[310px] overflow-hidden rounded-2xl bg-neutral-900 border transition-all duration-300 cursor-pointer shadow-xl select-none ${
         locked
           ? "border-white/10 hover:border-white/20"
           : "border-white/10 hover:border-white/30"
@@ -514,7 +514,7 @@ function ExerciseCard({
       )}
 
       {/* Subtle Gradient Overlay for High Contrast Text Reading */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 pointer-events-none z-[1]" />
+      <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-black/20 pointer-events-none z-[1]" />
 
       {locked && (
         <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
@@ -560,7 +560,7 @@ function ExerciseCard({
         >
           {isPlayingPreview ? (
             <div className="flex items-center gap-1.5">
-              <span className="flex items-end gap-[2px] h-3">
+              <span className="flex items-end gap-0.5 h-3">
                 <span className="w-[3px] bg-white rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
                 <span className="w-[3px] bg-white rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-3" />
                 <span className="w-[3px] bg-white rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-1.5" />

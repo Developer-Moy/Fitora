@@ -79,7 +79,7 @@ export default function Footer() {
             backgroundImage: "url('/choose2.jpg.jpeg')",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20 z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-black/20 z-0 pointer-events-none" />
 
         {/* Content Container */}
         <div className="relative z-10 max-w-7xl mx-auto space-y-8">
@@ -305,12 +305,12 @@ export default function Footer() {
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 font-semibold">
             <span>FITORA GYM © 2026</span>
             <Link
-              href="/legal"
+              href="/legal/privacy"
               className="hover:text-white transition-colors"
             >
               Privacy Policy
             </Link>
-            <Link href="/legal#TermsAndConditions" className="hover:text-white transition-colors">
+            <Link href="/legal/terms" className="hover:text-white transition-colors">
               Terms of Use
             </Link>
             <span>Design and Developed by DeveloperMoy</span>
