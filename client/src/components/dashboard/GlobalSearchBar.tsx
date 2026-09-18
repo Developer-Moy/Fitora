@@ -11,8 +11,6 @@ import {
   DollarSign,
   Activity,
   ArrowUpRight,
-  ChevronRight,
-  Shield,
   Zap,
 } from "lucide-react";
 import {

@@ -35,7 +35,6 @@ import {
   Search,
   TrendingUp,
   Users,
-  X,
   Zap,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -81,7 +80,6 @@ export default function MasterDashboardPage() {
     setRevenueLoading(true);
     setRevenueError("");
     const data = await fetchMasterRevenue();
-    console.log(data, "data");
     if (data) {
       setMasterRevenue(data);
     } else {

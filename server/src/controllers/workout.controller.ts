@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { WorkoutLog, IWorkoutLog } from "../models/WorkoutLog.model";
+import { WorkoutLog } from "../models/WorkoutLog.model";
 import {
   LOCAL_WORKOUTS_DATABASE,
   WorkoutExercise,
 } from "../data/workout.data.js";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 import { AuthRequest } from "../middlewares/auth.middleware";
-import UserTier from "../models/UserTier.model";
 import User from "../models/User.model";
 import {
   recordHeatmapActivityHelper,

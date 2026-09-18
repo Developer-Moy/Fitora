@@ -5,8 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ArrowUpRight,
-  Search as FiSearch,
-  Settings as FiSettings,
   Menu as FiSidebar,
   X as FiClose,
   Activity as FiActivity,
@@ -23,7 +21,6 @@ import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
 import {
   getAuthSession,
-  clearAuthSession,
   logoutUser,
   AuthUser,
   AUTH_SESSION_UPDATED,
@@ -197,7 +194,6 @@ export default function Navbar() {
   const isBranchAdmin =
     userRole === "branch_admin" ||
     userEmail.toLowerCase().includes("admin@fitora");
-  const isAdmin = isMasterAdmin || isBranchAdmin;
 
   const handleLogout = async () => {
     try {

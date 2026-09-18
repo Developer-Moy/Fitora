@@ -14,7 +14,6 @@ import {
   LogOut,
   Menu,
   X,
-  Zap,
 } from "lucide-react";
 import { useDashboardRole, DashboardRole } from "@/hooks/useDashboardRole";
 import NotificationDropdown from "./NotificationDropdown";
@@ -80,8 +79,6 @@ export default function DashboardNavbar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [currentTab]);
-
-  const isAdmin = role === "master_admin" || role === "branch_admin";
 
   const adminNavItems = [
     {

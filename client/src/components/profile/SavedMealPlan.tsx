@@ -235,7 +235,7 @@ export default function SavedMealPlan({
               {calorieStatusText}
             </span>
             <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
-              Target: 2950 kcal
+              Target: {target} kcal
             </span>
           </div>
         </div>

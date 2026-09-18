@@ -45,19 +45,19 @@ The Fitora frontend strictly adheres to a **Pure Black & White (`#000000` / `#FF
 
 ## 🌟 Core Modules & Application Routes
 
-| Route                  | Module Name                    | Access Level  | Description & Key Components                                                                                                      |
-| :--------------------- | :----------------------------- | :-----------: | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `/`                    | **Homepage**                   |    Public     | 1-to-1 Hero with transparent athlete cutout, SVG arch notch, Why Choose Us, Pricing grid, Trainer Callout, and Consultation Form. |
-| `/calculator`          | **BMI & Health Assessment**    | Authenticated | Interactive height/weight sliders, BMI categorization, BMR/TDEE calculation, and profile synchronization.                         |
-| `/exercises`           | **Exercise Catalog & Tracker** | Authenticated | Live exercises loaded from MongoDB with category filters, muscle group tags, video instruction links, and VIP locks.              |
-| `/meals`               | **Healthy Meals Catalog**      | Authenticated | Nutrition-focused recipe items with calorie tags, macro breakdowns, and one-click additions to daily meal plans.                  |
-| `/stopwatch`           | **Gym Rest Timer HUD**         | Authenticated | Fullscreen distraction-free timer with quick rest chips (+30s, +60s), audio alerts, and workout telemetry logging.                |
-| `/profile`             | **All-in-One Member Hub**      | Authenticated | 4-tab central cockpit: Overview (streak & heatmap), Gym Pass & QR, Workouts & Nutrition, and Subscription & Card.                 |
-| `/profile/edit`        | **Profile Settings**           | Authenticated | Edit athlete name, phone, assigned branch, fitness goal, body metrics, and account credentials.                                   |
-| `/dashboard`           | **Admin Control Portal**       |  Admin Only   | Administrative management restricted strictly to Master Admin (`master@fitora.com`) and Branch Admins.                            |
-| `/dashboard/login`     | **Admin Portal Login**         |  Admin Only   | Specialized administrative entrypoint for branch managers and platform administrators.                                            |
-| `/payment/success`     | **Checkout Receipt**           | Authenticated | Post-checkout landing showing confirmed tier, gateway, and instant vector PDF invoice generation.                                 |
-| `/login` & `/register` | **Authentication**             |    Public     | Glassmorphism authentication flow; new user registration triggers the automatic **3-Day Free Premium Trial**.                     |
+| Route                  | Module Name                    | Access Level  | Description & Key Components                                                                                                                                                      |
+| :--------------------- | :----------------------------- | :-----------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                    | **Homepage**                   |    Public     | 1-to-1 Hero with transparent athlete cutout, SVG arch notch, Why Choose Us, Pricing grid, Trainer Callout, and Consultation Form.                                                 |
+| `/calculator`          | **BMI & Health Assessment**    | Authenticated | Interactive height/weight sliders, BMI categorization, BMR/TDEE calculation, and profile synchronization.                                                                         |
+| `/exercises`           | **Exercise Catalog & Tracker** | Authenticated | Live exercises loaded from MongoDB with YouTube video thumbnail cards, 280ms debounced hover video previews, muscle group tags, rest stopwatch modal, set loggers, and VIP locks. |
+| `/meals`               | **Healthy Meals Catalog**      | Authenticated | Nutrition-focused recipe items with calorie tags, macro breakdowns, and one-click additions to daily meal plans.                                                                  |
+| `/stopwatch`           | **Gym Rest Timer HUD**         | Authenticated | Fullscreen distraction-free timer with quick rest chips (+30s, +60s), audio alerts, and workout telemetry logging.                                                                |
+| `/profile`             | **All-in-One Member Hub**      | Authenticated | 4-tab central cockpit: Overview (streak & heatmap), Gym Pass & QR, Workouts & Nutrition, and Subscription & Card.                                                                 |
+| `/profile/edit`        | **Profile Settings**           | Authenticated | Edit athlete name, phone, assigned branch, fitness goal, body metrics, and account credentials.                                                                                   |
+| `/dashboard`           | **Admin Control Portal**       |  Admin Only   | Administrative management restricted strictly to Master Admin (`master@fitora.com`) and Branch Admins.                                                                            |
+| `/dashboard/login`     | **Admin Portal Login**         |  Admin Only   | Specialized administrative entrypoint for branch managers and platform administrators.                                                                                            |
+| `/payment/success`     | **Checkout Receipt**           | Authenticated | Post-checkout landing showing confirmed tier, gateway, and instant vector PDF invoice generation.                                                                                 |
+| `/login` & `/register` | **Authentication**             |    Public     | Glassmorphism authentication flow; new user registration triggers the automatic **3-Day Free Premium Trial**.                                                                     |
 
 ---
 
@@ -146,6 +146,7 @@ All backend interactions are centralized inside `client/src/services/` for consi
 | `mealService.ts`      | `/api/meals/*`                              | Healthy recipe catalog queries, category filters, and search.                                |
 | `workoutService.ts`   | `/api/workouts/*`                           | Workout log persistence, duration tracking, exercise queries, log deletion, and PR history.  |
 | `branchService.ts`    | `/api/branches/*`                           | 64 nationwide branch directory and live attendance feeds.                                    |
+| `aiService.ts`        | `/api/ai/chat`, `/api/ai/quota`             | Google Gemini AI coach queries, usage quotas, and conversational streaming.                  |
 | `searchService.ts`    | `/api/search`                               | Dynamic multi-entity MongoDB search across athletes, branches, and financials.               |
 
 ---

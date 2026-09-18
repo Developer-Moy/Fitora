@@ -223,10 +223,7 @@ export const updateGoal = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const goal = await Goal.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const goal = await Goal.findById(id);
 
     if (!goal) {
       return res
@@ -318,7 +315,7 @@ export const deleteGoal = async (req: Request, res: Response) => {
 
     }
 
-    const goal = await Goal.findByIdAndDelete({ _id: id, userId, });
+    const goal = await Goal.findOneAndDelete({ _id: id, userId });
 
     if (!goal) {
       return res

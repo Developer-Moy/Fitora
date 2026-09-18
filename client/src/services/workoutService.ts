@@ -4,6 +4,7 @@ import type {
   WorkoutLogSummary,
   WorkoutLogsResult,
 } from "@/types/workout";
+import { enqueueTelemetry, getPendingQueue } from "./offlineQueueService";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -59,8 +60,6 @@ async function parseResponse<T>(
 
   return result as ApiSuccessResponse<T>;
 }
-
-import { enqueueTelemetry, getPendingQueue } from "./offlineQueueService";
 
 export async function createWorkoutLog(
   payload: CreateWorkoutLogPayload,

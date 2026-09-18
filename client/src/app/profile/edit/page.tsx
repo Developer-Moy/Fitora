@@ -15,7 +15,7 @@ import {
   updateUserProfileApi,
 } from "@/services/dashboardService";
 import { ArrowLeft, Upload, Loader2, Trash2 } from "lucide-react";
-import { toast  } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useSession, authClient } from "@/lib/auth-client";
 import Image from "next/image";
 

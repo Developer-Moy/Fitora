@@ -34,6 +34,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Building2,
+  Calendar,
   ChevronLeft,
   ChevronRight,
   CalendarPlus,
