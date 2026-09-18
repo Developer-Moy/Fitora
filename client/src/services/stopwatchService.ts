@@ -1,3 +1,5 @@
+import { enqueueTelemetry } from "./offlineQueueService";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 function getAuthHeader(): Record<string, string> {
@@ -112,8 +114,6 @@ export interface RecentSessionsData {
   todaySessionsCount: number;
   todaySetsCount: number;
 }
-
-import { enqueueTelemetry } from "./offlineQueueService";
 
 export async function completeStopwatchSession(
   payload: {

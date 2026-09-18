@@ -99,14 +99,18 @@ export default function ExercisePage() {
         setIsLoading(false);
       } else if (attempt < 3) {
         // Retry up to 3 times with 2s delay (server may be restarting)
-        setTimeout(() => { if (!cancelled) loadExercises(attempt + 1); }, 2000);
+        setTimeout(() => {
+          if (!cancelled) loadExercises(attempt + 1);
+        }, 2000);
       } else {
         setError("Could not load exercises. Please refresh.");
         setIsLoading(false);
       }
     }
     loadExercises();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredExercises = useMemo(() => {
@@ -143,7 +147,8 @@ export default function ExercisePage() {
           return;
         }
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        const apiBase =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
         const response = await fetch(`${apiBase}/workouts/advanced`, {
           headers: {
@@ -439,7 +444,10 @@ function ExerciseCard({
     ? `https://img.youtube.com/vi/${exercise.videoId}/hqdefault.jpg`
     : null;
   const initialImg =
-    ytThumbnail || exercise.image || validCategoryImages[exercise.category] || defaultFallback;
+    ytThumbnail ||
+    exercise.image ||
+    validCategoryImages[exercise.category] ||
+    defaultFallback;
 
   const [imgSrc, setImgSrc] = useState(initialImg);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
@@ -449,7 +457,9 @@ function ExerciseCard({
   useEffect(() => {
     const freshThumb = exercise.videoId
       ? `https://img.youtube.com/vi/${exercise.videoId}/hqdefault.jpg`
-      : exercise.image || validCategoryImages[exercise.category] || defaultFallback;
+      : exercise.image ||
+        validCategoryImages[exercise.category] ||
+        defaultFallback;
     setImgSrc(freshThumb);
   }, [exercise.videoId, exercise.image, exercise.category]);
 
@@ -497,7 +507,11 @@ function ExerciseCard({
         aria-hidden="true"
         onError={() => {
           if (imgSrc !== defaultFallback) {
-            setImgSrc(exercise.image || validCategoryImages[exercise.category] || defaultFallback);
+            setImgSrc(
+              exercise.image ||
+                validCategoryImages[exercise.category] ||
+                defaultFallback,
+            );
           }
         }}
         className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 brightness-105 contrast-105 z-0 ${
@@ -571,7 +585,9 @@ function ExerciseCard({
                 <span className="w-[3px] bg-white rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-3" />
                 <span className="w-[3px] bg-white rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-1.5" />
               </span>
-              <span className="text-[9px] font-black uppercase tracking-wider">LIVE</span>
+              <span className="text-[9px] font-black uppercase tracking-wider">
+                LIVE
+              </span>
             </div>
           ) : (
             <>
@@ -1276,7 +1292,9 @@ function HistoryList({ logs }: { logs: WorkoutLog[] }) {
             {/* Success checkmark with pulse micro-interaction */}
             <div
               className={`shrink-0 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center ${
-                animatingId === log._id ? "animate-[setPulse_400ms_ease-out]" : ""
+                animatingId === log._id
+                  ? "animate-[setPulse_400ms_ease-out]"
+                  : ""
               }`}
             >
               <CheckCircle2 className="w-3 h-3 text-white" />

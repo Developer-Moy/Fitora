@@ -26,7 +26,6 @@ import {
   Filter,
   MapPin,
   Search,
-  X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -91,7 +90,6 @@ export default function BranchManagementView() {
     currentPage * itemsPerPage,
   );
 
-  const totalMembers = branches.reduce((acc, b) => acc + b.totalMembers, 0);
   const totalRevenue = branches.reduce(
     (acc, b) => acc + b.monthlyRevenueBDT,
     0,

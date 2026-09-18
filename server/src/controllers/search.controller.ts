@@ -140,7 +140,8 @@ export const globalSearch = async (req: Request, res: Response) => {
       );
     }
 
-    const regex = new RegExp(query, "i");
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escapedQuery, "i");
 
     // 1. Search MongoDB for Athletes / Users
     let athletes: any[] = [];

@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
-  Lock,
   Eye,
   EyeOff,
   ArrowRight,
@@ -16,7 +15,7 @@ import {
   CheckCircle2,
   Dumbbell,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { loginApi, registerApi, saveAuthSession } from "@/services/authService";
 

@@ -22,7 +22,6 @@ import {
 } from "@/services/dashboardService";
 import {
   Search,
-  Filter,
   Edit3,
   Trash2,
   UserCheck,
@@ -35,12 +34,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Building2,
-  CreditCard,
   Calendar,
-  Phone,
-  Mail,
-  QrCode,
-  ArrowUpRight,
   ChevronLeft,
   ChevronRight,
   CalendarPlus,

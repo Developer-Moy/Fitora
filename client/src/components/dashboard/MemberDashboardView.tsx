@@ -19,30 +19,20 @@ import {
   Crown,
   Lock,
   Dumbbell,
-  Utensils,
   QrCode,
   Zap,
   CheckCircle2,
   ArrowUpRight,
   Flame,
-  Clock,
   HeartPulse,
   CreditCard,
-  Building2,
-  Calendar,
   ChevronRight,
-  ShieldCheck,
-  Plus,
   Target,
   MessageSquare,
   Activity,
   Edit3,
   User,
   X,
-  Phone,
-  Mail,
-  Check,
-  LayoutDashboard,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -119,7 +109,6 @@ export default function MemberDashboardView({
   const [profileQrCode, setProfileQrCode] = useState("FIT-VIP-PASS-ACTIVE");
   const [workoutLogsList, setWorkoutLogsList] = useState<WorkoutLog[]>([]);
   const [workoutLogsLoading, setWorkoutLogsLoading] = useState(false);
-  const [userActiveGoals, setUserActiveGoals] = useState<any[]>([]);
   const [profileToast, setProfileToast] = useState<string | null>(null);
   const [branches, setBranches] = useState<APIBranchInfo[]>([]);
   const [memberStats, setMemberStats] = useState<MemberStatsResponse | null>(
@@ -194,9 +183,6 @@ export default function MemberDashboardView({
   }, [userPlan]);
 
   // Interactive Modals for Features
-  const [activeFeatureModal, setActiveFeatureModal] = useState<string | null>(
-    null,
-  );
   const [waterGlasses, setWaterGlasses] = useState(6);
   const [aiChatQuery, setAiChatQuery] = useState("");
   const [aiResponse, setAiResponse] = useState<string | null>(null);
@@ -252,17 +238,6 @@ export default function MemberDashboardView({
     } catch {
       toast.error("Network error while updating profile.");
     }
-  };
-
-  const handleSaveHydration = async () => {
-    try {
-      const liters = Math.round(((waterGlasses * 250) / 1000) * 100) / 100;
-      await updateUserHydrationTargetApi(liters);
-      toast.success(`Hydration target saved (${liters}L)`);
-    } catch {
-      toast.success("Hydration target updated!");
-    }
-    setActiveFeatureModal(null);
   };
 
   const handlePayment = async (e: React.FormEvent) => {
@@ -348,11 +323,9 @@ export default function MemberDashboardView({
       }
 
       let response;
-      const rawApiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const apiBase = rawApiUrl.endsWith("/api")
-        ? rawApiUrl
-        : `${rawApiUrl}/api`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
 
       if (goalId) {
         // Existing goal → update
@@ -481,11 +454,9 @@ export default function MemberDashboardView({
     let cancelled = false;
     const loadGoal = async () => {
       try {
-        const rawApiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const apiBase = rawApiUrl.endsWith("/api")
-          ? rawApiUrl
-          : `${rawApiUrl}/api`;
+        const apiBase = (
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+        ).replace(/\/+$/, "");
         const targetUserId = userId || userEmail;
         if (!targetUserId) return;
 
@@ -508,7 +479,6 @@ export default function MemberDashboardView({
         if (g.goalType) {
           setProfileGoal(g.goalType);
         }
-        setUserActiveGoals([g]);
       } catch (err) {
         console.error("Goal fetch error:", err);
       }

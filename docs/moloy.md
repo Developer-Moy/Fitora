@@ -622,7 +622,8 @@ These components form the responsive header, hero section, pricing, callouts, co
 The profile page had a broken `effectiveUser` identity logic. It was checking `isBackendMatching = backendUser && activeAuthEmail && emails match`. When a user logged in via Fitora's own JWT (not BetterAuth/Google), `useSession()` returned `null` and localStorage might not have `fitora_user_email` set at the exact moment of rendering — causing `activeAuthEmail = ""` → `isBackendMatching = false` → `effectiveUser = null`. With `effectiveUser = null`, `resolvedUserId` was also `undefined`, and the guard `if (!resolvedUserId) return` prevented ALL data from loading.
 
 **Fix Applied (`client/src/app/profile/page.tsx`):**
-- Changed logic from "email must match" to "trust backendUser unless a *different* user's email is now active" (`isStaleSession`).
+
+- Changed logic from "email must match" to "trust backendUser unless a _different_ user's email is now active" (`isStaleSession`).
 - `resolvedUserId` now also falls back to `backendUser?.id` / `backendUser?._id` directly, so data loading triggers as soon as `fetchUser()` resolves.
 - Both Fitora-JWT and Google/OAuth users now load their profile data correctly.
 
@@ -634,6 +635,7 @@ The profile page had a broken `effectiveUser` identity logic. It was checking `i
 `updateOwnProfile` in `user.controller.ts` returned 401 immediately when `userId` was empty string. OAuth users (Google Sign-In via BetterAuth) don't get a Fitora JWT, so their requests arrive with only `x-user-email` header. The auth middleware correctly set `req.user.email`, but `req.user.userId = ""`, triggering the 401 guard before reaching the email-based `findOneAndUpdate`.
 
 **Fix Applied (`server/src/controllers/user.controller.ts`):**
+
 - Changed guard from `if (!userId)` to `if (!userId && !authEmail)` — allows email-only authenticated requests through to the existing `findOneAndUpdate({ email: authEmail })` fallback.
 - Tested: `PATCH /api/dashboard/profile` with `x-user-email: master@fitora.com` now returns `200 OK`.
 
@@ -645,6 +647,7 @@ The profile page had a broken `effectiveUser` identity logic. It was checking `i
 Two bugs: (1) When `tsx watch` hot-reloads the server (kills old process), exercises return `null` for ~2 seconds. The old code did nothing on `null` — cards just disappeared with no retry. (2) There was a stale `rawApiUrl.endsWith("/api")` check adding `/api` suffix to URLs that already had it, creating `/api/api/workouts/advanced`.
 
 **Fix Applied (`client/src/components/exercises/ExerciseTracker.tsx`):**
+
 - Added retry mechanism: up to 3 retries with 2s delay when `fetchExercises()` returns null or empty array. Cards auto-recover without user refresh.
 - Removed redundant `/api` suffix logic — use `NEXT_PUBLIC_API_URL` directly.
 - Added `cancelled` ref to prevent state updates after component unmount.
@@ -652,5 +655,42 @@ Two bugs: (1) When `tsx watch` hot-reloads the server (kills old process), exerc
 ---
 
 ### Zero-Error Full-Stack Certification (Day 12):
+
 - Server TypeScript build: **0 Errors** (Exit code 0).
 - Client TypeScript build: **0 Errors** (Exit code 0).
+
+---
+
+### Full-Stack Codebase & Security Audit Fixes (Day 12 Cont.):
+
+1. **Goal Controller Query & Double-Write Optimization (`goal.controller.ts`)**:
+   - Fixed `Goal.findByIdAndDelete({ _id: id, userId })` runtime query bug by switching to canonical `Goal.findOneAndDelete({ _id: id, userId })`.
+   - Optimized `updateGoal` to perform a single `Goal.findById` and single atomic `goal.save()`, eliminating the redundant double-write on every PATCH request.
+
+2. **User Controller Input Sanitization (`user.controller.ts`)**:
+   - Replaced flawed fallback in `updateUser` with clean 400 validation (`!mongoose.Types.ObjectId.isValid(id)`).
+
+3. **Global Search ReDoS Sanitization (`search.controller.ts`)**:
+   - Added regex special character escaping before `new RegExp()` compilation (`query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")`), preventing ReDoS attacks and server crashes from special characters (`[`, `*`, `+`, `?`).
+
+4. **Personalized Nutrition Plan Route Parameters (`personalizedNutritionPlan.controller.ts`)**:
+   - Added `req.params?.userId` into the fallback resolution chain in `getMyPlan`, ensuring clean URL param resolution for `GET /api/personalized-nutrition-plan/:userId`.
+
+5. **Confidential Export Route Authorization (`admin.routes.ts`)**:
+   - Bound `authMiddleware` and `requireMasterAdmin` to `/export/attendance` and `/export/revenue` endpoints to protect financial and member attendance records.
+
+6. **Global Payments Master Admin Guard (`payment.routes.ts`)**:
+   - Added `requireMasterAdmin` to `GET /api/payments/all` so regular members cannot view platform-wide transactions.
+
+7. **CORS Hardening (`server.ts`)**:
+   - Hardened `cors` origin check to strictly permit `CLIENT_URL`, localhost dev ports, and same-origin requests, blocking arbitrary untrusted origins while preserving `credentials: true`.
+
+8. **Frontend Cleanups & Dead Code Removal**:
+   - **`MemberDashboardView.tsx`**: Removed 10 unused Lucide icon imports, cleaned dead function `handleSaveHydration`, removed unused state `activeFeatureModal` and `userActiveGoals`, and normalized `apiBase` URL construction.
+   - **`calculator/page.tsx`**: Removed dead/broken macro balancing logic and commented-out code, wired `serverMacros` properly, and normalized all `apiBase` URLs.
+   - **`SavedMealPlan.tsx`**: Replaced hardcoded `Target: 2950 kcal` with dynamic `{target} kcal`.
+   - **`DashboardNavbar.tsx` & `DashboardSidebar.tsx`**: Removed unused Lucide icons (`Zap`, `QrCode`, `CreditCard`, `Utensils`, `Target`, `Layers`) and dead `isAdmin` variables.
+   - **`GlobalSearchBar.tsx` & `UserManagementTable.tsx`**: Removed unused icons (`ChevronRight`, `Shield`, `Filter`, `Phone`, `Mail`, `QrCode`, `ArrowUpRight`).
+   - **`Navbar.tsx` & `AuthFlowContainer.tsx`**: Removed unused `FiSearch`, `FiSettings`, `clearAuthSession`, `Lock`, and `Toaster` imports.
+   - **`workoutService.ts` & `stopwatchService.ts`**: Relocated mid-file `offlineQueueService` imports to the top of each file.
+   - **`imageUploadService.ts` & `.env.local`**: Moved ImgBB API key to `NEXT_PUBLIC_IMGBB_API_KEY` in `.env.local` with clean local Base64 fallback.

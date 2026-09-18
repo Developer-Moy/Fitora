@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Bell,
-  Check,
   Trash2,
   Activity,
   Dumbbell,

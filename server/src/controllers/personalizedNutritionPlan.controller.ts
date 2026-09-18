@@ -17,6 +17,7 @@ export const getMyPlan = async (
   try {
     const userId =
       req.user?.userId ||
+      req.params?.userId ||
       (req.query.userId as string) ||
       (req.headers["x-user-id"] as string);
 

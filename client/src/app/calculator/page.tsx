@@ -239,12 +239,9 @@ export default function CalculatorPage() {
       setIsSavingHydration(true);
       setHydrationSaved(false);
 
-      const rawApiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-      const apiBase = rawApiUrl.endsWith("/api")
-        ? rawApiUrl
-        : `${rawApiUrl}/api`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
 
       const response = await fetch(
         `${apiBase}/users/profile/hydration-target`,
@@ -313,12 +310,9 @@ export default function CalculatorPage() {
       setIsSavingTargetWeight(true);
       setTargetWeightSaved(false);
 
-      const rawApiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-      const apiBase = rawApiUrl.endsWith("/api")
-        ? rawApiUrl
-        : `${rawApiUrl}/api`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
 
       const response = await fetch(`${apiBase}/users/profile`, {
         method: "PATCH",
@@ -428,48 +422,26 @@ export default function CalculatorPage() {
     }
   }, [goal]);
 
-  // useEffect(() => {
-  //   setCustomMacroPercentages(defaultMacroPercentages);
-  // }, [defaultMacroPercentages]);
-
   const macroPercentages = isPremium
     ? customMacroPercentages
     : defaultMacroPercentages;
 
   // Prefer server-verified macros, fall back to client-side calculation
   const proteinCalories = targetCalories * (macroPercentages.protein / 100);
-
   const carbsCalories = targetCalories * (macroPercentages.carbs / 100);
-
   const fatsCalories = targetCalories * (macroPercentages.fats / 100);
 
-  const macros = {
-    protein: Math.round(proteinCalories / 4),
-    carbs: Math.round(carbsCalories / 4),
-    fats: Math.round(fatsCalories / 9),
-  };
-
-  const handleMacroChange = (
-    macro: "protein" | "carbs" | "fats",
-    value: number,
-  ) => {
-    if (!isPremium) return;
-
-    setCustomMacroPercentages((current) => {
-      const next = {
-        ...current,
-        [macro]: value,
-      };
-
-      const total = next.protein + next.carbs + next.fats;
-
-      if (total === 100) {
-        return next;
+  const macros = serverMacros
+    ? {
+        protein: serverMacros.protein,
+        carbs: serverMacros.carbs,
+        fats: serverMacros.fats,
       }
-
-      return next;
-    });
-  };
+    : {
+        protein: Math.round(proteinCalories / 4),
+        carbs: Math.round(carbsCalories / 4),
+        fats: Math.round(fatsCalories / 9),
+      };
 
   const maxMacro = Math.max(macros.protein, macros.carbs, macros.fats, 1);
 
@@ -570,11 +542,10 @@ export default function CalculatorPage() {
     await syncHealthMetrics();
 
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const endpoint = apiUrl.endsWith("/api")
-        ? `${apiUrl}/bmi/history`
-        : `${apiUrl}/api/bmi/history`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
+      const endpoint = `${apiBase}/bmi/history`;
 
       let userId = "guest_user";
       let token = "";
