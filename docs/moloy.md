@@ -611,3 +611,46 @@ These components form the responsive header, hero section, pricing, callouts, co
 - **Zero-Error Full-Stack Certification**:
   - Server TypeScript build (`cd server && npx tsc --noEmit`): **0 Errors** (Exit code 0).
   - Client TypeScript build (`cd client && npx tsc --noEmit`): **0 Errors** (Exit code 0).
+
+---
+
+## Day 12 — 18 September 2026
+
+### Profile Page — Full Data Loading Fix
+
+**Root Cause Analysis:**
+The profile page had a broken `effectiveUser` identity logic. It was checking `isBackendMatching = backendUser && activeAuthEmail && emails match`. When a user logged in via Fitora's own JWT (not BetterAuth/Google), `useSession()` returned `null` and localStorage might not have `fitora_user_email` set at the exact moment of rendering — causing `activeAuthEmail = ""` → `isBackendMatching = false` → `effectiveUser = null`. With `effectiveUser = null`, `resolvedUserId` was also `undefined`, and the guard `if (!resolvedUserId) return` prevented ALL data from loading.
+
+**Fix Applied (`client/src/app/profile/page.tsx`):**
+- Changed logic from "email must match" to "trust backendUser unless a *different* user's email is now active" (`isStaleSession`).
+- `resolvedUserId` now also falls back to `backendUser?.id` / `backendUser?._id` directly, so data loading triggers as soon as `fetchUser()` resolves.
+- Both Fitora-JWT and Google/OAuth users now load their profile data correctly.
+
+---
+
+### Profile Edit — PATCH /api/dashboard/profile Fix
+
+**Root Cause Analysis:**
+`updateOwnProfile` in `user.controller.ts` returned 401 immediately when `userId` was empty string. OAuth users (Google Sign-In via BetterAuth) don't get a Fitora JWT, so their requests arrive with only `x-user-email` header. The auth middleware correctly set `req.user.email`, but `req.user.userId = ""`, triggering the 401 guard before reaching the email-based `findOneAndUpdate`.
+
+**Fix Applied (`server/src/controllers/user.controller.ts`):**
+- Changed guard from `if (!userId)` to `if (!userId && !authEmail)` — allows email-only authenticated requests through to the existing `findOneAndUpdate({ email: authEmail })` fallback.
+- Tested: `PATCH /api/dashboard/profile` with `x-user-email: master@fitora.com` now returns `200 OK`.
+
+---
+
+### Exercise Cards — Intermittent Loading Fix
+
+**Root Cause Analysis:**
+Two bugs: (1) When `tsx watch` hot-reloads the server (kills old process), exercises return `null` for ~2 seconds. The old code did nothing on `null` — cards just disappeared with no retry. (2) There was a stale `rawApiUrl.endsWith("/api")` check adding `/api` suffix to URLs that already had it, creating `/api/api/workouts/advanced`.
+
+**Fix Applied (`client/src/components/exercises/ExerciseTracker.tsx`):**
+- Added retry mechanism: up to 3 retries with 2s delay when `fetchExercises()` returns null or empty array. Cards auto-recover without user refresh.
+- Removed redundant `/api` suffix logic — use `NEXT_PUBLIC_API_URL` directly.
+- Added `cancelled` ref to prevent state updates after component unmount.
+
+---
+
+### Zero-Error Full-Stack Certification (Day 12):
+- Server TypeScript build: **0 Errors** (Exit code 0).
+- Client TypeScript build: **0 Errors** (Exit code 0).
