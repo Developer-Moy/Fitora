@@ -248,7 +248,7 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
           </div>
 
           {/* Right - Precision Engineered Speedometer Gauge */}
-          <div className="relative mx-auto w-full max-w-[170px] flex flex-col items-center">
+          <div className="relative mx-auto w-full max-w-42.5 flex flex-col items-center">
             <svg
               viewBox="0 0 170 98"
               className="w-full h-auto overflow-visible select-none"

@@ -566,7 +566,7 @@ export default function DashboardSidebar({
             className={`w-full flex items-center transition-all duration-200 cursor-pointer ${
               isCollapsed && !isMobileOpen
                 ? "justify-center"
-                : "gap-3 p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-white/30 text-left"
+                : "gap-3 p-2.5 rounded-2xl bg-white/4 border border-white/10 hover:border-white/30 text-left"
             }`}
             title="Click to Switch Role Preview"
           >

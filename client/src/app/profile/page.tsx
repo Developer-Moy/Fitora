@@ -1056,7 +1056,7 @@ export default function ProfilePage() {
                           : "Check in via the gym turnstile or log a workout session to build your streak!"}
                       </p>
 
-                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex items-center justify-between text-xs text-white/70">
+                      <div className="rounded-xl border border-white/10 bg-white/3 p-3 flex items-center justify-between text-xs text-white/70">
                         <span>Consistency Rating</span>
                         <span className="font-mono font-bold text-white">
                           {(activityStreak?.currentStreak ?? 0) > 5
@@ -1387,7 +1387,7 @@ export default function ProfilePage() {
                   {workoutLogs.slice(0, 6).map((log) => (
                     <div
                       key={log._id}
-                      className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between space-y-3 hover:border-white/25 transition-all h-auto"
+                      className="rounded-xl border border-white/10 bg-white/3 p-4 flex flex-col justify-between space-y-3 hover:border-white/25 transition-all h-auto"
                     >
                       <div>
                         <div className="flex items-center justify-between gap-2">

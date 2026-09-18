@@ -80,9 +80,9 @@ export default function DashboardLoginPage() {
         result.message || "Invalid administrator credentials. Access denied.";
       toast.error(invalidMsg);
       setErrorMessage(invalidMsg);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsLoading(false);
-      const errMsg = err?.message || "Authentication error occurred.";
+      const errMsg = (err instanceof Error ? err.message : "") || "Authentication error occurred.";
       toast.error(errMsg);
       setErrorMessage(errMsg);
     }

@@ -21,7 +21,7 @@ export interface MealChart {
   };
   structure: {
     mealsPerDay: number;
-    distribution: any[];
+    distribution: any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
   };
   createdAt: string;
 }

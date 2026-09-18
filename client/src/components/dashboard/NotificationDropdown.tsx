@@ -63,7 +63,7 @@ export default function NotificationDropdown() {
               n.type === "renewal" ||
               n.type === "invoice"
                 ? "system"
-                : (n.type as any),
+                : (n.type as any /* eslint-disable-line @typescript-eslint/no-explicit-any */),
           })),
         );
       } else {
@@ -241,7 +241,7 @@ export default function NotificationDropdown() {
                   className={`group relative p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
                     item.read
                       ? "bg-black border-white/5 opacity-60 hover:opacity-100"
-                      : "bg-white/[0.04] border-white/15 hover:border-white/30"
+                      : "bg-white/4 border-white/15 hover:border-white/30"
                   }`}
                 >
                   <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">

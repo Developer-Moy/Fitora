@@ -136,7 +136,7 @@ export async function dashboardLoginApi(
       token: authData?.token,
       user: authData?.user,
     };
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+  } catch (error: unknown) {
     return authErrorResponse(error);
   }
 }
@@ -172,7 +172,7 @@ export async function loginApi(
       token: authData?.token,
       user: authData?.user,
     };
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+  } catch (error: unknown) {
     return authErrorResponse(error);
   }
 }
@@ -211,7 +211,7 @@ export async function registerApi(payload: {
       token: authData?.token,
       user: authData?.user,
     };
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+  } catch (error: unknown) {
     return authErrorResponse(error);
   }
 }
@@ -277,7 +277,7 @@ export async function getCurrentUserApi(params?: {
       user: data.data?.user,
       token: token || undefined,
     };
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+  } catch (error: unknown) {
     return authErrorResponse(error);
   }
 }

@@ -205,7 +205,7 @@ export default function DashboardNavbar() {
                 <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-black" />
               </div>
 
-              <div className="hidden md:block text-left max-w-[110px] overflow-hidden">
+              <div className="hidden md:block text-left max-w-27.5 overflow-hidden">
                 <p className="truncate text-xs font-bold text-white leading-tight">
                   {userName ? userName.split(" ")[0] : "Athlete"}
                 </p>

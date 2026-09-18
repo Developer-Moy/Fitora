@@ -605,7 +605,7 @@ export default function MemberDashboardView({
                   Digital Gym Entry Pass
                 </div>
 
-                <div className="my-2.5 p-3 mx-auto max-w-[150px] rounded-xl bg-white border-2 border-white shadow-xl">
+                <div className="my-2.5 p-3 mx-auto max-w-37.5 rounded-xl bg-white border-2 border-white shadow-xl">
                   {isPremium ? (
                     <div className="space-y-1">
                       <div className="w-24 h-24 mx-auto bg-black p-1.5 rounded-lg flex items-center justify-center">
@@ -749,7 +749,7 @@ export default function MemberDashboardView({
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div className="rounded-xl border border-white/10 bg-white/3 p-3">
                   <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-white/50">
                     <span>BMR</span>
                     <Flame className="h-3.5 w-3.5 text-white" />
@@ -764,7 +764,7 @@ export default function MemberDashboardView({
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div className="rounded-xl border border-white/10 bg-white/3 p-3">
                   <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-white/50">
                     <span>TDEE</span>
                     <Activity className="h-3.5 w-3.5 text-white" />
@@ -807,7 +807,7 @@ export default function MemberDashboardView({
                 </button>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 space-y-2">
+              <div className="rounded-xl border border-white/10 bg-white/3 p-3 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <div>
                     <span className="text-[10px] text-white/40 block">
@@ -1064,7 +1064,7 @@ export default function MemberDashboardView({
                 </span>
               </div>
 
-              <div className="max-h-[290px] overflow-y-auto space-y-2 pr-1">
+              <div className="max-h-72.5 overflow-y-auto space-y-2 pr-1">
                 {workoutLogsLoading ? (
                   <div className="py-6 text-center text-white/40 font-bold uppercase animate-pulse text-xs">
                     Loading workouts from MongoDB...
@@ -1073,7 +1073,7 @@ export default function MemberDashboardView({
                   workoutLogsList.map((log, idx) => (
                     <div
                       key={log._id || idx}
-                      className="p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 flex justify-between items-center hover:border-white/25 transition"
+                      className="p-2.5 sm:p-3 rounded-xl bg-white/3 border border-white/10 flex justify-between items-center hover:border-white/25 transition"
                     >
                       <div>
                         <span className="text-white font-black text-xs sm:text-sm block uppercase tracking-tight">
@@ -1141,7 +1141,7 @@ export default function MemberDashboardView({
                   </button>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-2.5">
+                <div className="p-3.5 rounded-xl bg-white/3 border border-white/10 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
@@ -1185,7 +1185,7 @@ export default function MemberDashboardView({
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between text-xs">
+                <div className="p-3 rounded-xl bg-white/3 border border-white/10 flex items-center justify-between text-xs">
                   <span className="text-white/50 font-bold uppercase">
                     Workout Frequency
                   </span>
@@ -1284,7 +1284,7 @@ export default function MemberDashboardView({
             </form>
 
             {aiLoading && (
-              <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-white/50 animate-pulse flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-white/3 border border-white/10 text-xs text-white/50 animate-pulse flex items-center gap-2">
                 <HeartPulse className="w-4 h-4 text-emerald-400 animate-spin" />
                 <span>
                   AI Coach is analyzing your biomechanics and training
@@ -1294,7 +1294,7 @@ export default function MemberDashboardView({
             )}
 
             {aiResponse && !aiLoading && (
-              <div className="p-3.5 sm:p-4 rounded-xl bg-white/[0.03] border border-white/20 text-xs sm:text-sm text-white leading-relaxed space-y-1.5 max-h-50 overflow-y-auto">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-white/3 border border-white/20 text-xs sm:text-sm text-white leading-relaxed space-y-1.5 max-h-50 overflow-y-auto">
                 <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-wider text-emerald-400">
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Coach Guidance & Feedback:</span>
@@ -1347,7 +1347,7 @@ export default function MemberDashboardView({
                 className="space-y-5 text-xs font-bold uppercase tracking-wider"
               >
                 {/* Plan Summary */}
-                <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between">
+                <div className="p-5 rounded-2xl bg-white/3 border border-white/10 flex items-center justify-between">
                   <div>
                     <span className="font-black text-sm text-white uppercase">
                       Pro Athlete Annual Pass
