@@ -73,10 +73,13 @@ export default function ExercisePage() {
   const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
-    async function loadExercises() {
+    let cancelled = false;
+    async function loadExercises(attempt = 0) {
       setIsLoading(true);
+      setError("");
       const data = await fetchExercises();
-      if (data) {
+      if (cancelled) return;
+      if (data && data.length > 0) {
         const mapped = data.map((d: any) => ({
           id: d._id,
           name: d.name,
@@ -93,10 +96,17 @@ export default function ExercisePage() {
             "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=80",
         }));
         setExercises(mapped);
+        setIsLoading(false);
+      } else if (attempt < 3) {
+        // Retry up to 3 times with 2s delay (server may be restarting)
+        setTimeout(() => { if (!cancelled) loadExercises(attempt + 1); }, 2000);
+      } else {
+        setError("Could not load exercises. Please refresh.");
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     loadExercises();
+    return () => { cancelled = true; };
   }, []);
 
   const filteredExercises = useMemo(() => {
@@ -133,11 +143,7 @@ export default function ExercisePage() {
           return;
         }
 
-        const rawApiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const apiBase = rawApiUrl.endsWith("/api")
-          ? rawApiUrl
-          : `${rawApiUrl}/api`;
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
         const response = await fetch(`${apiBase}/workouts/advanced`, {
           headers: {

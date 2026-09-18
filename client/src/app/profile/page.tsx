@@ -383,32 +383,32 @@ export default function ProfilePage() {
 
   // ── Derived Identifiers ──
   // ── Active Identity Reconciliation ──
-  // If the user is logged in via authSession, prioritize authSession's active credentials.
-  // Stale cached backendUser from a previous session must never override the currently active session!
+  // Prefer the backend user loaded from /api/auth/me. Fall back to authSession (BetterAuth/OAuth).
+  // backendUser is authoritative — if it's loaded, use it directly.
   const activeAuthEmail =
     authSession?.user?.email ||
     (typeof window !== "undefined"
       ? localStorage.getItem("fitora_user_email") || ""
       : "");
 
-  const isBackendMatching =
+  // Trust backendUser whenever it's populated (it came from our own API /auth/me).
+  // Only discard it if a *different* user is now signed in via BetterAuth.
+  const isStaleSession =
     backendUser &&
     activeAuthEmail &&
-    backendUser.email?.toLowerCase().trim() ===
-    activeAuthEmail.toLowerCase().trim();
+    backendUser.email?.toLowerCase().trim() !==
+      activeAuthEmail.toLowerCase().trim();
 
-  const effectiveUser = isBackendMatching
-    ? backendUser
-    : backendUser && !activeAuthEmail
-      ? backendUser
-      : null;
+  const effectiveUser = isStaleSession ? null : backendUser;
 
   const resolvedUserId =
     effectiveUser?.id ||
     effectiveUser?._id ||
     authSession?.user?.id ||
+    backendUser?.id ||
+    backendUser?._id ||
     (typeof window !== "undefined"
-      ? (localStorage.getItem("fitora_user_email") ?? undefined)
+      ? localStorage.getItem("fitora_user_email") ?? undefined
       : undefined);
 
   const userEmail =

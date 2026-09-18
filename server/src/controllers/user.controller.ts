@@ -1151,8 +1151,10 @@ export const updateOwnProfile = async (req: AuthRequest, res: Response) => {
   try {
     const authUser = req.user || (req as any).user;
     const userId = authUser?.userId || authUser?.id || authUser?._id;
+    const authEmail = authUser?.email;
 
-    if (!userId) {
+    // Allow email-only auth (OAuth/BetterAuth users without a Fitora JWT userId)
+    if (!userId && !authEmail) {
       return res.status(401).json(errorResponse("Unauthorized", "", 401));
     }
 
