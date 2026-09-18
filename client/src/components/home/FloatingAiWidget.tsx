@@ -137,7 +137,7 @@ export default function FloatingAiWidget() {
     if (session.user) {
       setLocalUser(session.user);
     }
-    const handleAuthUpdate = (e: any) => {
+    const handleAuthUpdate = (e: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
       if (e.detail?.user) {
         setLocalUser(e.detail.user);
       } else {
@@ -276,8 +276,8 @@ export default function FloatingAiWidget() {
       } else {
         toast.error(res.error || res.message || "Failed to generate response.");
       }
-    } catch (err: any) {
-      toast.error(err.message || "Connection error. Please try again.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : "") || "Connection error. Please try again.");
     } finally {
       setIsTyping(false);
     }

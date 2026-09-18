@@ -45,7 +45,7 @@ export interface InvoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
   transaction?: InvoiceData | null;
-  payment?: any;
+  payment?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   userInfo?: {
     name?: string;
     email?: string;

@@ -138,7 +138,7 @@ export const checkoutPaymentApi = async (
 export const fetchMyPaymentsApi = async (
   token?: string,
 ): Promise<
-  PaymentHistoryResponse & { data?: any; activeSubscription?: any }
+  PaymentHistoryResponse & { data?: any; activeSubscription?: any } // eslint-disable-line @typescript-eslint/no-explicit-any
 > => {
   try {
     let resolvedToken = token;
@@ -195,7 +195,7 @@ export const fetchMyPaymentsApi = async (
       (Array.isArray(json?.data) ? json.data : []);
 
     const payments: Payment[] = Array.isArray(rawPayments)
-      ? rawPayments.map((p: any) => ({
+      ? rawPayments.map((p: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
           _id: p._id || p.id || p.transactionId,
           id: p.id || p._id,
           invoiceNumber: p.invoiceNumber,
@@ -219,7 +219,7 @@ export const fetchMyPaymentsApi = async (
       activeSubscription:
         json?.data?.activeSubscription || json?.activeSubscription || null,
     };
-  } catch (err: any) {
+  } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return {
       success: false,
       message: err?.message || "Could not reach payment server",
@@ -242,7 +242,7 @@ export const toggleAutoRenewApi = async (token: string) => {
     });
     const json = await res.json();
     return json;
-  } catch (error: any) {
+  } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return {
       success: false,
       message: error?.message || "Failed to toggle auto-renewal",
@@ -269,7 +269,7 @@ export const changeMembershipPlanApi = async (
     });
     const json = await res.json();
     return json;
-  } catch (error: any) {
+  } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return {
       success: false,
       message: error?.message || "Failed to change membership plan",

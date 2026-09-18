@@ -638,7 +638,7 @@ export default function AuthFlowContainer({
       setTimeout(() => {
         router.push("/");
       }, 700);
-    } catch (err: any) {
+    } catch (err: unknown) {
       saveAuthSession("fitora_google_auth_token", {
         id: "google_user_01",
         name: "Google Athlete",
@@ -711,8 +711,8 @@ export default function AuthFlowContainer({
       setTimeout(() => {
         router.push("/");
       }, 800);
-    } catch (err: any) {
-      toast.error(err?.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : "") || "An unexpected error occurred.");
       setIsLoading(false);
     }
   };
@@ -785,8 +785,8 @@ export default function AuthFlowContainer({
       setTimeout(() => {
         router.push("/");
       }, 800);
-    } catch (err: any) {
-      toast.error(err?.message || "An error occurred.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : "") || "An error occurred.");
       setIsLoading(false);
     }
   };

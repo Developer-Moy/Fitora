@@ -318,7 +318,7 @@ export default function GymTimer({
       });
     };
 
-    const handleQueueChange = (e: any) => {
+    const handleQueueChange = (e: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
       if (e.detail) {
         setPendingQueueCount(e.detail.pendingCount ?? 0);
         setIsQueueSyncing(!!e.detail.isSyncing);
@@ -328,7 +328,7 @@ export default function GymTimer({
       }
     };
 
-    const handleOfflineSynced = (e: any) => {
+    const handleOfflineSynced = (e: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
       const count = e.detail?.syncedCount;
       if (count && count > 0) {
         setIsSynced(true);
