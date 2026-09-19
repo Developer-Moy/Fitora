@@ -6,12 +6,9 @@ import {
   CreditCard,
   Printer,
   FileText,
-  Loader2,
   ArrowUpRight,
   ShieldCheck,
   RefreshCw,
-  Sparkles,
-  Check,
   AlertTriangle,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -22,12 +19,10 @@ import {
   changeMembershipPlanApi,
   type Payment,
 } from "@/services/paymentService";
-import {
-  getAuthSession,
-  saveAuthSession,
-  AUTH_SESSION_UPDATED,
-} from "@/services/authService";
+import { getAuthSession, saveAuthSession } from "@/services/authService";
 import InvoiceModal from "@/components/InvoiceModal";
+import FitoraPillButton from "../ui/FitoraPillButton";
+import FitoraSpinner from "../ui/FitoraSpinner";
 
 /**
  * Payment status → badge style mapping.
@@ -101,21 +96,21 @@ export default function BillingSection() {
           name: user.name || "",
           email: user.email || "",
           phone:
-            (user as any).phone ||
-            (user as any).phoneNumber ||
+            user.phone ||
+            (user as any).phoneNumber || // eslint-disable-line @typescript-eslint/no-explicit-any
             "+880 1700-000000",
           branch:
-            (user as any).assignedBranch ||
-            (user as any).branch ||
+            user.assignedBranch ||
+            (user as any).branch || // eslint-disable-line @typescript-eslint/no-explicit-any
             "Gulshan-2 Flagship Branch",
         });
         setCurrentPlan(user.plan || "Free Pass");
-        setAutoRenew((user as any).autoRenew ?? true);
-        setCancelAtPeriodEnd((user as any).cancelAtPeriodEnd ?? false);
+        setAutoRenew((user as any).autoRenew ?? true); // eslint-disable-line @typescript-eslint/no-explicit-any
+        setCancelAtPeriodEnd((user as any).cancelAtPeriodEnd ?? false); // eslint-disable-line @typescript-eslint/no-explicit-any
         setExpiryDate(
-          (user as any).subscriptionExpiryDate ||
-            (user as any).membershipExpiresAt ||
-            "",
+          (user.subscriptionExpiryDate as string) ||
+            (user.membershipExpiresAt as string) ||
+            ""
         );
       }
 
@@ -282,8 +277,12 @@ export default function BillingSection() {
             <p className="text-xs text-white/60 max-w-xl">
               {isPaidPlan
                 ? cancelAtPeriodEnd
-                  ? `Your subscription is scheduled to end on ${formatDate(expiryDate)}. Your VIP and Pro perks remain 100% active until then.`
-                  : `Your plan will automatically renew on ${formatDate(expiryDate)}. You can switch tiers or cancel renewal at any time with zero penalty.`
+                  ? `Your subscription is scheduled to end on ${formatDate(
+                      expiryDate
+                    )}. Your VIP and Pro perks remain 100% active until then.`
+                  : `Your plan will automatically renew on ${formatDate(
+                      expiryDate
+                    )}. You can switch tiers or cancel renewal at any time with zero penalty.`
                 : "You are currently on the Free Pass. Upgrade to a paid plan to unlock AI Coach Studio, custom rest presets, and advanced workout programs."}
             </p>
           </div>
@@ -306,7 +305,7 @@ export default function BillingSection() {
                 className="px-4 py-2.5 rounded-full border border-white/20 bg-neutral-900 text-white text-xs font-bold uppercase tracking-wider hover:border-white/40 hover:bg-neutral-800 transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50"
               >
                 {isTogglingAutoRenew ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <FitoraSpinner size="sm" />
                 ) : cancelAtPeriodEnd ? (
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 ) : (
@@ -414,7 +413,7 @@ export default function BillingSection() {
                       }`}
                     >
                       {isChangingPlan ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <FitoraSpinner size="sm" />
                       ) : isCurrent ? (
                         <span>Active Tier</span>
                       ) : (
@@ -450,7 +449,7 @@ export default function BillingSection() {
       {/* ── Loading state ── */}
       {loading ? (
         <div className="bg-black border border-white/20 rounded-2xl p-10 flex items-center justify-center">
-          <Loader2 className="w-7 h-7 animate-spin text-white/60" />
+          <FitoraSpinner size="sm" />
         </div>
       ) : error ? (
         <div className="bg-black border border-red-500/20 rounded-2xl p-6 text-center">
@@ -483,7 +482,7 @@ export default function BillingSection() {
         /* ── Billing history table ── */
         <div className="bg-black border border-white/20 rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.3)]">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-left">
+            <table className="w-full min-w-205 text-left">
               <thead>
                 <tr className="border-b border-white/10 text-[10px] sm:text-xs uppercase tracking-wider text-white/50">
                   <th className="px-4 sm:px-5 py-4 font-bold">Date</th>
@@ -509,7 +508,7 @@ export default function BillingSection() {
                   return (
                     <tr
                       key={payment._id || `${payment.invoiceNumber}-${idx}`}
-                      className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors"
+                      className="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors"
                     >
                       <td className="px-4 sm:px-5 py-4 text-xs sm:text-sm text-white/70 whitespace-nowrap">
                         {formatDate(payment.date)}
@@ -527,8 +526,8 @@ export default function BillingSection() {
                               payment.gateway === "bKash"
                                 ? "bg-pink-500"
                                 : payment.gateway === "Nagad"
-                                  ? "bg-orange-400"
-                                  : "bg-white/50"
+                                ? "bg-orange-400"
+                                : "bg-white/50"
                             }`}
                           />
                           {payment.gateway}
@@ -544,17 +543,16 @@ export default function BillingSection() {
                       </td>
                       <td className="px-4 sm:px-5 py-4 text-right">
                         <div className="flex items-center gap-2 justify-end">
-                          <button
+                          <FitoraPillButton
                             type="button"
                             onClick={() => openInvoice(payment)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 text-white hover:bg-white/10 hover:border-white/40 transition-all text-[10px] sm:text-xs font-bold cursor-pointer"
                           >
-                            <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                             <span className="hidden md:inline">
                               View Invoice
                             </span>
                             <span className="md:hidden">Invoice</span>
-                          </button>
+                          </FitoraPillButton>
                           <button
                             type="button"
                             onClick={() => handlePrint(payment)}

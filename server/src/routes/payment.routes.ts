@@ -10,7 +10,10 @@ import {
   toggleAutoRenew,
   changeMembershipPlan,
 } from "../controllers/payment.controller.js";
-import { authMiddleware } from "../middlewares/auth.middleware.js";
+import {
+  authMiddleware,
+  requireMasterAdmin,
+} from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -24,7 +27,7 @@ router.get("/me", authMiddleware, getMyTransactions);
 
 router.get("/my-transactions", authMiddleware, getMyTransactions);
 
-router.get("/all", authMiddleware, getAllPayments);
+router.get("/all", authMiddleware, requireMasterAdmin, getAllPayments);
 
 // Digital Invoice by ID or Transaction ID
 router.get("/invoice/:id", authMiddleware, getInvoiceById);

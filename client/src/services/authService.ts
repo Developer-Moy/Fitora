@@ -68,6 +68,44 @@ export interface AuthResponse {
 }
 
 /**
+ * Standardized user-facing authentication error messages.
+ */
+export const AUTH_ERROR_MESSAGES = Object.freeze({
+  INVALID_CREDENTIALS: "Invalid email or password.",
+  NETWORK_ERROR: "Network error. Please check your internet connection.",
+  SESSION_EXPIRED: "Your session has expired. Please sign in again.",
+  UNEXPECTED: "Something went wrong. Please try again.",
+});
+
+/**
+ * Build a standardized failed AuthResponse for an authentication/request call.
+ *
+ * Classification:
+ * - A thrown `error` (fetch/network failure) => network error.
+ * - `status === 401` on an already-authenticated request => session expired.
+ * - A rejected credential attempt (login/register) => invalid credentials.
+ * - Anything else (e.g. 5xx, malformed payload) => unexpected server error.
+ */
+function authErrorResponse(
+  error?: unknown,
+  status?: number,
+  isCredentialAttempt = true,
+): AuthResponse {
+  if (error) {
+    return { success: false, message: AUTH_ERROR_MESSAGES.NETWORK_ERROR };
+  }
+  if (status === 401 && !isCredentialAttempt) {
+    return { success: false, message: AUTH_ERROR_MESSAGES.SESSION_EXPIRED };
+  }
+  return {
+    success: false,
+    message: isCredentialAttempt
+      ? AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS
+      : AUTH_ERROR_MESSAGES.UNEXPECTED,
+  };
+}
+
+/**
  * 1. Enterprise Security Gateway Login for /dashboard/login
  */
 export async function dashboardLoginApi(
@@ -84,11 +122,7 @@ export async function dashboardLoginApi(
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return {
-        success: false,
-        message:
-          data?.message || "Invalid credentials or unauthorized clearance",
-      };
+      return authErrorResponse(undefined, res.status);
     }
 
     const authData = data.data;
@@ -102,11 +136,8 @@ export async function dashboardLoginApi(
       token: authData?.token,
       user: authData?.user,
     };
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-    return {
-      success: false,
-      message: "Network error — Could not connect to authentication gateway",
-    };
+  } catch (error: unknown) {
+    return authErrorResponse(error);
   }
 }
 
@@ -127,10 +158,7 @@ export async function loginApi(
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return {
-        success: false,
-        message: data?.message || "Invalid email or password",
-      };
+      return authErrorResponse(undefined, res.status);
     }
 
     const authData = data.data;
@@ -144,11 +172,8 @@ export async function loginApi(
       token: authData?.token,
       user: authData?.user,
     };
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-    return {
-      success: false,
-      message: "Network error — Could not reach login server",
-    };
+  } catch (error: unknown) {
+    return authErrorResponse(error);
   }
 }
 
@@ -172,10 +197,7 @@ export async function registerApi(payload: {
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return {
-        success: false,
-        message: data?.message || "Registration failed. Please try again.",
-      };
+      return authErrorResponse(undefined, res.status);
     }
 
     const authData = data.data;
@@ -189,11 +211,8 @@ export async function registerApi(payload: {
       token: authData?.token,
       user: authData?.user,
     };
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-    return {
-      success: false,
-      message: "Network error — Could not complete registration",
-    };
+  } catch (error: unknown) {
+    return authErrorResponse(error);
   }
 }
 
@@ -249,10 +268,7 @@ export async function getCurrentUserApi(params?: {
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.success) {
-      return {
-        success: false,
-        message: data?.message || "Could not retrieve user profile",
-      };
+      return authErrorResponse(undefined, res.status, false);
     }
 
     return {
@@ -261,8 +277,8 @@ export async function getCurrentUserApi(params?: {
       user: data.data?.user,
       token: token || undefined,
     };
-  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-    return { success: false, message: "Could not fetch user claims" };
+  } catch (error: unknown) {
+    return authErrorResponse(error);
   }
 }
 

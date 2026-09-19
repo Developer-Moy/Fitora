@@ -8,29 +8,24 @@ import {
   LayoutDashboard,
   Users,
   Building2,
-  QrCode,
   TrendingUp,
-  CreditCard,
   Activity,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   X,
-  Zap,
   LucideIcon,
   Shield,
   Crown,
   User,
   Dumbbell,
-  Utensils,
-  Target,
-  Layers,
   Circle,
   ChevronsUpDown,
   HeartPulse,
   LogOut,
   MessageSquare,
 } from "lucide-react";
+import Image from "next/image";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -263,7 +258,9 @@ export default function DashboardSidebar({
                 className="flex items-center justify-center group"
                 title="FITORA - GYM & AI"
               >
-                <img
+                <Image
+                  width={32}
+                  height={32}
                   src="/logo.svg"
                   alt="Fitora logo"
                   className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
@@ -278,7 +275,9 @@ export default function DashboardSidebar({
                 className="flex items-center gap-3 group"
                 title="FITORA - GYM & AI"
               >
-                <img
+                <Image
+                  width={32}
+                  height={32}
                   src="/logo.svg"
                   alt="Fitora logo"
                   className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200 shrink-0"
@@ -567,7 +566,7 @@ export default function DashboardSidebar({
             className={`w-full flex items-center transition-all duration-200 cursor-pointer ${
               isCollapsed && !isMobileOpen
                 ? "justify-center"
-                : "gap-3 p-2.5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-white/30 text-left"
+                : "gap-3 p-2.5 rounded-2xl bg-white/4 border border-white/10 hover:border-white/30 text-left"
             }`}
             title="Click to Switch Role Preview"
           >

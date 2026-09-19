@@ -1,22 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
-  Lock,
   Eye,
   EyeOff,
   ArrowRight,
   ArrowLeft,
   ChevronsRight,
-  Sparkles,
   CheckCircle2,
+  Dumbbell,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { loginApi, registerApi, saveAuthSession } from "@/services/authService";
 
@@ -42,7 +41,7 @@ const GoogleIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
   </svg>
 );
 
-// Zero-Border Sleek Universal Slide Pill (100% Identical Height & Scale to Login & Google Buttons: h-11 / 44px)
+// 🔒 3. Olympic Quick-Lock Barbell Collar Slider (Master Launch Plan §5.1)
 function UniversalSlidePill({
   label,
   onAction,
@@ -64,21 +63,27 @@ function UniversalSlidePill({
   return (
     <div
       onClick={handleSlideAction}
-      className="relative w-full h-11 bg-neutral-900/90 rounded-full p-1 flex items-center justify-between shadow-2xl backdrop-blur-xl cursor-pointer select-none overflow-hidden transition-all duration-300 group"
+      className="relative w-full h-12 bg-white/5 border border-white/10 rounded-full p-1 flex items-center justify-between shadow-2xl backdrop-blur-sm cursor-pointer select-none overflow-hidden transition-all duration-300 group hover:border-white/20 hover:bg-white/8"
     >
+      {/* Olympic Barbell Center Axis & Knurling Guide */}
+      <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-0.5 bg-linear-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
+
       {/* Track & Text Area */}
       <div className="relative flex-1 h-full flex items-center justify-between overflow-hidden cursor-pointer px-1">
-        <span className="text-[10px] xs:text-[11px] font-black uppercase text-white tracking-wider truncate pl-11 z-10 drop-shadow">
-          {label}
+        <span className="text-xs font-black uppercase text-white tracking-wider truncate pl-12 z-10 drop-shadow flex items-center gap-1.5">
+          <span>{label}</span>
         </span>
         <ChevronsRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors shrink-0 z-10 mr-2" />
 
-        {/* Single Pure White Circle Knob */}
+        {/* Olympic Barbell Quick-Lock Collar Knob */}
         <motion.div
           drag="x"
           dragConstraints={{ left: 0, right: 380 }}
           dragElastic={0.05}
-          animate={{ left: isSliding ? "calc(100% - 36px)" : "4px" }}
+          animate={{
+            left: isSliding ? "calc(100% - 40px)" : "4px",
+            rotate: isSliding ? 45 : 0,
+          }}
           transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
           onDrag={(_, info) => {
             if (info.offset.x >= 100 && !isSliding) {
@@ -89,12 +94,459 @@ function UniversalSlidePill({
             e.stopPropagation();
             handleSlideAction();
           }}
-          className="absolute top-0 bottom-0 my-auto w-8.5 h-8.5 bg-white text-black rounded-full flex items-center justify-center shadow-2xl cursor-grab active:cursor-grabbing z-20 group-hover:scale-105 transition-transform"
+          className="absolute top-0 bottom-0 my-auto w-9.5 h-9.5 bg-white text-black rounded-full flex items-center justify-center shadow-md cursor-grab active:cursor-grabbing z-20 group-hover:scale-105 transition-transform border border-black/10"
         >
-          <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+          <motion.div
+            animate={{ rotate: isSliding ? 90 : 0 }}
+            className="flex items-center justify-center"
+          >
+            <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+          </motion.div>
         </motion.div>
       </div>
     </div>
+  );
+}
+
+/* ── Symmetrical Vector Barbell Plates (Clean 2-Plate Stack, No Bar, Exact 2-3px Gap) ── */
+const BarbellPlates = ({ side }: { side: "left" | "right" }) => (
+  <svg
+    viewBox="0 0 10 16"
+    className={`w-2.5 h-4 shrink-0 pointer-events-none text-neutral-300 ${
+      side === "right" ? "-scale-x-100" : ""
+    }`}
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    {/* 1. Outer Plate */}
+    <rect x="0.5" y="1" width="3" height="14" rx="1" />
+    {/* 2. Inner Plate */}
+    <rect x="5.5" y="3" width="3" height="10" rx="1" />
+  </svg>
+);
+
+// 🏋️‍♂️ 1. Olympic Barbell Clamp Input (Master Launch Plan §5.1) - Exact 2-3px Gap, No Bar
+function BarbellClampInput({
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  icon,
+  isPassword = false,
+  showPassword = false,
+  onTogglePassword,
+  maxLength,
+  autoComplete,
+  heightClass = "h-11",
+  className = "",
+}: {
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  icon?: React.ReactNode;
+  isPassword?: boolean;
+  showPassword?: boolean;
+  onTogglePassword?: () => void;
+  maxLength?: number;
+  autoComplete?: string;
+  heightClass?: string;
+  className?: string;
+}) {
+  const [isFocused, setIsFocused] = useState(false);
+
+  return (
+    <div className="relative flex items-center group">
+      {/* 🏋️ Left Olympic Barbell Plates with Exact 2.5px Gap */}
+      <AnimatePresence>
+        {isFocused && (
+          <motion.div
+            initial={{ x: -6, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -6, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 450, damping: 26 }}
+            className="absolute -left-3.25 top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
+          >
+            <BarbellPlates side="left" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <input
+        type={isPassword ? (showPassword ? "text" : "password") : type}
+        value={value}
+        maxLength={maxLength}
+        autoComplete={autoComplete}
+        onChange={onChange}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        placeholder={placeholder}
+        className={`w-full ${heightClass} px-4 ${
+          isPassword || icon ? "pr-10" : ""
+        } rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner transition-colors duration-150 border ${
+          isFocused ? "border-white/35" : "border-white/5"
+        } ${className}`}
+      />
+
+      {/* Right Icon or Password Toggle */}
+      {icon && !isPassword && (
+        <span className="absolute right-4 text-gray-400 pointer-events-none">
+          {icon}
+        </span>
+      )}
+
+      {isPassword && onTogglePassword && (
+        <button
+          type="button"
+          onClick={onTogglePassword}
+          className="absolute right-4 text-gray-400 hover:text-white transition-colors cursor-pointer"
+        >
+          {showPassword ? (
+            <EyeOff className="w-4 h-4" />
+          ) : (
+            <Eye className="w-4 h-4" />
+          )}
+        </button>
+      )}
+
+      {/* 🏋️ Right Olympic Barbell Plates with Exact 2.5px Gap */}
+      <AnimatePresence>
+        {isFocused && (
+          <motion.div
+            initial={{ x: 6, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 6, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 450, damping: 26 }}
+            className="absolute -right-3.25 top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
+          >
+            <BarbellPlates side="right" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// 💪 2. Dumbbell Curl Loader Button (Master Launch Plan §5.1)
+function DumbbellCurlButton({
+  label,
+  loading = false,
+  disabled = false,
+  onClick,
+  type = "submit",
+  heightClass = "h-11",
+  className = "",
+}: {
+  label: string;
+  loading?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+  type?: "submit" | "button";
+  heightClass?: string;
+  className?: string;
+}) {
+  const [repCount, setRepCount] = useState(1);
+
+  useEffect(() => {
+    if (!loading) {
+      setRepCount(1);
+      return;
+    }
+    const timer = setInterval(() => {
+      setRepCount((prev) => (prev % 3) + 1);
+    }, 600);
+    return () => clearInterval(timer);
+  }, [loading]);
+
+  const repText =
+    repCount === 1
+      ? "LIFTING... REP 1"
+      : repCount === 2
+        ? "POWERING... REP 2"
+        : "LOCKED IN! REP 3";
+
+  return (
+    <button
+      type={type}
+      disabled={disabled || loading}
+      onClick={onClick}
+      className={`w-full ${heightClass} rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 hover:bg-gray-100 transition-all shadow-2xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-75 disabled:cursor-not-allowed ${className}`}
+    >
+      {loading ? (
+        <div className="w-full flex items-center justify-between">
+          <motion.div
+            animate={{ rotate: [-25, 25, -25], y: [1, -3, 1] }}
+            transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut" }}
+            className="flex items-center"
+          >
+            <Dumbbell className="w-4 h-4 text-black stroke-[2.5]" />
+          </motion.div>
+          <span className="font-black tracking-widest text-[11px] animate-pulse">
+            {repText}
+          </span>
+          <motion.div
+            animate={{ rotate: [25, -25, 25], y: [1, -3, 1] }}
+            transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut" }}
+            className="flex items-center"
+          >
+            <Dumbbell className="w-4 h-4 text-black stroke-[2.5]" />
+          </motion.div>
+        </div>
+      ) : (
+        <>
+          <span>{label}</span>
+          <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+        </>
+      )}
+    </button>
+  );
+}
+
+// 📊 4. Progressive Overload Barbell Password Strength Meter (Master Launch Plan §5.1)
+function BarbellStrengthMeter({ password }: { password: string }) {
+  const hasLength = password.length >= 8;
+  const hasCases = /[a-z]/.test(password) && /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSymbol = /[^a-zA-Z0-9]/.test(password);
+
+  const criteriaCount = [hasLength, hasCases, hasNumber, hasSymbol].filter(
+    Boolean,
+  ).length;
+
+  let strengthLabel = "Weak";
+  let loadLabel = "Empty Bar (20 KG)";
+  let guideText = "Stronger password loads heavier plates onto the barbell";
+
+  if (!password) {
+    strengthLabel = "Too Weak";
+    loadLabel = "Empty Bar (20 KG)";
+    guideText = "Type a password to load plates onto the barbell";
+  } else if (criteriaCount === 1) {
+    strengthLabel = "Weak";
+    loadLabel = "+5 KG Plates (30 KG)";
+    guideText = "Add uppercase, numbers & symbols to load heavier plates";
+  } else if (criteriaCount === 2) {
+    strengthLabel = "Medium";
+    loadLabel = "+10 KG Plates (50 KG)";
+    guideText = "Good progress! Add numbers & symbols for heavier load";
+  } else if (criteriaCount === 3) {
+    strengthLabel = "Strong";
+    loadLabel = "+15 KG Plates (70 KG)";
+    guideText = "Strong! Add 1 more requirement to reach 90 KG PR load";
+  } else if (criteriaCount === 4) {
+    strengthLabel = "Maximum";
+    loadLabel = "Fully Loaded (90 KG) 🏆";
+    guideText = "Unbreakable! Heavy 90 KG Olympic barbell locked & ready";
+  }
+
+  return (
+    <div className="space-y-1 px-1 py-1">
+      {/* Weight & Rank Indicator */}
+      <div className="flex items-center justify-between text-[10px] font-bold tracking-wider uppercase">
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-400">PASSWORD:</span>
+          <span
+            className={
+              criteriaCount === 4
+                ? "text-white font-black"
+                : criteriaCount >= 3
+                  ? "text-gray-200 font-bold"
+                  : criteriaCount >= 2
+                    ? "text-gray-300 font-semibold"
+                    : "text-gray-400 font-medium"
+            }
+          >
+            {strengthLabel}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 text-[9.5px] font-semibold text-gray-400">
+          <Dumbbell className="w-3 h-3 text-gray-400 shrink-0 inline" />
+          <span
+            className={
+              criteriaCount === 4 ? "text-white font-bold" : "text-gray-300"
+            }
+          >
+            {loadLabel}
+          </span>
+        </div>
+      </div>
+
+      {/* Visual Olympic Barbell with Racked Plates */}
+      <div className="relative h-5.5 w-full bg-neutral-950 rounded-full border border-white/10 px-3 flex items-center justify-between overflow-hidden">
+        {/* Left Sleeve & Loaded Plates */}
+        <div className="flex items-center gap-1 z-10">
+          <span
+            className="w-1.5 h-3 bg-neutral-600 rounded-sm"
+            title="Collar"
+          />
+          <AnimatePresence>
+            {hasLength && (
+              <motion.div
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                exit={{ scaleY: 0, opacity: 0 }}
+                className="w-1.5 h-3.5 bg-neutral-400 rounded-sm border border-white/40"
+                title="5kg Plate"
+              />
+            )}
+            {hasCases && (
+              <motion.div
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                exit={{ scaleY: 0, opacity: 0 }}
+                className="w-1.5 h-4 bg-neutral-300 rounded-sm border border-white/60"
+                title="10kg Plate"
+              />
+            )}
+            {hasNumber && (
+              <motion.div
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                exit={{ scaleY: 0, opacity: 0 }}
+                className="w-2 h-4.5 bg-neutral-200 rounded-sm border border-white/80"
+                title="15kg Plate"
+              />
+            )}
+            {hasSymbol && (
+              <motion.div
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                exit={{ scaleY: 0, opacity: 0 }}
+                className="w-2.5 h-5 bg-white rounded-sm border border-white"
+                title="20kg Bumper Plate"
+              />
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Central Olympic Bar Shaft (Knurled Bar) */}
+        <div className="flex-1 mx-2 h-1 bg-linear-to-r from-neutral-700 via-neutral-400 to-neutral-700 rounded-full relative">
+          <div className="absolute inset-0 flex justify-around items-center opacity-30">
+            <span className="w-2 h-full bg-white" />
+            <span className="w-2 h-full bg-white" />
+          </div>
+        </div>
+
+        {/* Right Sleeve & Loaded Plates */}
+        <div className="flex items-center gap-1 z-10 flex-row-reverse">
+          <span
+            className="w-1.5 h-3 bg-neutral-600 rounded-sm"
+            title="Collar"
+          />
+          <AnimatePresence>
+            {hasLength && (
+              <motion.div
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                exit={{ scaleY: 0, opacity: 0 }}
+                className="w-1.5 h-3.5 bg-neutral-400 rounded-sm border border-white/40"
+                title="5kg Plate"
+              />
+            )}
+            {hasCases && (
+              <motion.div
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                exit={{ scaleY: 0, opacity: 0 }}
+                className="w-1.5 h-4 bg-neutral-300 rounded-sm border border-white/60"
+                title="10kg Plate"
+              />
+            )}
+            {hasNumber && (
+              <motion.div
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                exit={{ scaleY: 0, opacity: 0 }}
+                className="w-2 h-4.5 bg-neutral-200 rounded-sm border border-white/80"
+                title="15kg Plate"
+              />
+            )}
+            {hasSymbol && (
+              <motion.div
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 1 }}
+                exit={{ scaleY: 0, opacity: 0 }}
+                className="w-2.5 h-5 bg-white rounded-sm border border-white"
+                title="20kg Bumper Plate"
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* User-Friendly Explanatory Caption */}
+      <div className="flex items-center justify-between text-[9px] text-gray-400 font-medium px-0.5">
+        <span className="truncate">{guideText}</span>
+        <span className="text-gray-500 font-mono text-[8.5px] shrink-0 ml-2">
+          {criteriaCount}/4 LOADED
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// 💥 5. Chalk Dust Particle Burst (Master Launch Plan §5.1)
+function ChalkDustBurst({ show }: { show: boolean }) {
+  if (!show) return null;
+
+  const particles = Array.from({ length: 36 }).map((_, i) => {
+    const angle = (i / 36) * 360;
+    const distance = 90 + (i % 6) * 35;
+    const rad = (angle * Math.PI) / 180;
+    return {
+      id: i,
+      x: Math.cos(rad) * distance,
+      y: Math.sin(rad) * distance,
+      size: 8 + (i % 5) * 4,
+    };
+  });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center overflow-hidden"
+    >
+      {/* Chalk Flash Shockwave */}
+      <motion.div
+        initial={{ scale: 0.2, opacity: 0.8 }}
+        animate={{ scale: 3.5, opacity: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="absolute w-64 h-64 rounded-full bg-white/25 blur-3xl"
+      />
+
+      {/* Chalk Dust Particle Puffs */}
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          initial={{ x: 0, y: 0, scale: 0.2, opacity: 0.95 }}
+          animate={{
+            x: p.x,
+            y: p.y,
+            scale: [0.2, 1.8, 2.5],
+            opacity: [0.95, 0.6, 0],
+          }}
+          transition={{
+            duration: 0.8,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+          style={{ width: p.size, height: p.size }}
+          className="absolute rounded-full bg-white/80 blur-[2px] shadow-[0_0_12px_rgba(255,255,255,0.9)]"
+        />
+      ))}
+
+      {/* Central Athletic Lift Authorized Badge */}
+      <motion.div
+        initial={{ scale: 0.7, opacity: 0, y: 15 }}
+        animate={{ scale: [0.7, 1.05, 1], opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "backOut" }}
+        className="relative z-10 px-6 py-3 rounded-full bg-white text-black font-black tracking-widest text-xs uppercase shadow-[0_0_40px_rgba(255,255,255,0.8)] border border-white flex items-center gap-2"
+      >
+        <Dumbbell className="w-4 h-4 stroke-[2.5]" />
+        <span>LIFT AUTHORIZED • FITORA ATHLETE</span>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -159,6 +611,7 @@ export default function AuthFlowContainer({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showChalkBurst, setShowChalkBurst] = useState(false);
 
   // Social Login Handler
   const handleGoogleSignIn = async () => {
@@ -185,7 +638,7 @@ export default function AuthFlowContainer({
       setTimeout(() => {
         router.push("/");
       }, 700);
-    } catch (err: any) {
+    } catch (err: unknown) {
       saveAuthSession("fitora_google_auth_token", {
         id: "google_user_01",
         name: "Google Athlete",
@@ -225,6 +678,7 @@ export default function AuthFlowContainer({
     try {
       const apiRes = await loginApi(email, password);
       if (apiRes.success && apiRes.user) {
+        setShowChalkBurst(true);
         toast.success(`Welcome back, ${apiRes.user.name || "Athlete"}!`);
         setTimeout(() => {
           router.push("/");
@@ -252,12 +706,13 @@ export default function AuthFlowContainer({
         localStorage.setItem("fitora_auth_session", "true");
         localStorage.setItem("fitora_active_role", "free_user");
       }
+      setShowChalkBurst(true);
       toast.success("Welcome back to FITORA!");
       setTimeout(() => {
         router.push("/");
       }, 800);
-    } catch (err: any) {
-      toast.error(err?.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : "") || "An unexpected error occurred.");
       setIsLoading(false);
     }
   };
@@ -302,6 +757,7 @@ export default function AuthFlowContainer({
       });
 
       if (apiRes.success) {
+        setShowChalkBurst(true);
         toast.success("Account created successfully! Welcome to FITORA.");
         setTimeout(() => {
           router.push("/");
@@ -324,24 +780,27 @@ export default function AuthFlowContainer({
         return;
       }
 
+      setShowChalkBurst(true);
       toast.success("Account created! Welcome to FITORA.");
       setTimeout(() => {
         router.push("/");
       }, 800);
-    } catch (err: any) {
-      toast.error(err?.message || "An error occurred.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : "") || "An error occurred.");
       setIsLoading(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] bg-black text-white flex items-center justify-center p-4 sm:p-6 lg:p-8 xl:p-10 overflow-hidden select-none">
+      {/* 💥 Chalk Dust Burst Shockwave Overlay (§5.1) */}
+      <ChalkDustBurst show={showChalkBurst} />
       {/* Premium Theme-Matched Monochrome Glass Toaster */}
 
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 1: PC / DESKTOP (Zero-Border 12-Col Split >= 1024px)
           ════════════════════════════════════════════════════════════ */}
-      <div className="hidden lg:grid grid-cols-12 w-full max-w-6xl h-full max-h-[760px] min-h-[560px] bg-neutral-950 rounded-[2.5rem] shadow-[0_20px_80px_rgba(0,0,0,0.9)] overflow-hidden">
+      <div className="hidden lg:grid grid-cols-12 w-full max-w-6xl h-full max-h-190 min-h-140 bg-neutral-950 rounded-[2.5rem] shadow-[0_20px_80px_rgba(0,0,0,0.9)] overflow-hidden">
         {/* Left 7 Columns: Ultra-Vivid Hero Gym Image & Centered Slide Pill */}
         <div className="col-span-7 relative flex flex-col justify-between p-8 xl:p-10 overflow-hidden">
           <div className="absolute inset-0 z-0">
@@ -352,7 +811,7 @@ export default function AuthFlowContainer({
               priority
               className="object-cover object-center brightness-[0.75] contrast-115 scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-neutral-950/90" />
+            <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/30 to-neutral-950/90" />
           </div>
 
           <div className="relative z-10 flex items-center justify-between">
@@ -373,15 +832,17 @@ export default function AuthFlowContainer({
                 </span>
               </div>
             </Link>
-            <span className="text-xs font-extrabold text-white tracking-widest uppercase bg-black/60 backdrop-blur-md px-3.5 py-1 rounded-full shadow-lg">
-              EST. 2026
-            </span>
+            <Link
+              href="/"
+              className="text-xs font-extrabold text-white/80 hover:text-white tracking-widest uppercase transition-colors cursor-pointer"
+            >
+              HOME
+            </Link>
           </div>
 
           {/* Centered Middle Section on Left Column */}
           <div className="relative z-10 space-y-4 max-w-xl my-auto py-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-[11px] font-bold uppercase tracking-wider text-white shadow-lg">
-              <Sparkles className="w-3.5 h-3.5 text-white" />
+            <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm text-[11px] font-bold uppercase tracking-wider text-white shadow-lg">
               <span>Next-Gen AI Fitness Platform</span>
             </div>
 
@@ -396,26 +857,26 @@ export default function AuthFlowContainer({
             </p>
 
             <div className="grid grid-cols-2 gap-3 pt-1 pb-1">
-              <div className="flex items-center gap-2.5 text-xs font-bold text-white bg-black/60 backdrop-blur-md px-3.5 py-2.5 rounded-2xl shadow-lg">
+              <div className="flex items-center gap-2.5 text-xs font-bold text-white bg-white/5 border border-white/10 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-lg">
                 <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
                 <span>Realtime Gemini 2.0 AI Coach</span>
               </div>
-              <div className="flex items-center gap-2.5 text-xs font-bold text-white bg-black/60 backdrop-blur-md px-3.5 py-2.5 rounded-2xl shadow-lg">
+              <div className="flex items-center gap-2.5 text-xs font-bold text-white bg-white/5 border border-white/10 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-lg">
                 <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
                 <span>Custom Macro Calculations</span>
               </div>
-              <div className="flex items-center gap-2.5 text-xs font-bold text-white bg-black/60 backdrop-blur-md px-3.5 py-2.5 rounded-2xl shadow-lg">
+              <div className="flex items-center gap-2.5 text-xs font-bold text-white bg-white/5 border border-white/10 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-lg">
                 <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
                 <span>Audio Gym Stopwatch HUD</span>
               </div>
-              <div className="flex items-center gap-2.5 text-xs font-bold text-white bg-black/60 backdrop-blur-md px-3.5 py-2.5 rounded-2xl shadow-lg">
+              <div className="flex items-center gap-2.5 text-xs font-bold text-white bg-white/5 border border-white/10 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-lg">
                 <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
                 <span>Smart Workout Log Tracker</span>
               </div>
             </div>
 
             {/* Slide Pill Bar Centered in Middle of Left Hero Column */}
-            <div className="pt-2 max-w-md">
+            <div className="pt-2 w-full">
               <UniversalSlidePill
                 label={
                   step === "welcome"
@@ -437,13 +898,14 @@ export default function AuthFlowContainer({
             </div>
           </div>
 
-          <div className="relative z-10 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-            © 2026 FITORA INC. ALL RIGHTS RESERVED.
+          <div className="relative z-10 flex items-center justify-between text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+            <span>© 2026 FITORA INC. ALL RIGHTS RESERVED.</span>
+            <span>EST. 2026</span>
           </div>
         </div>
 
         {/* Right 5 Columns: Desktop Auth Form Container (Zero Border, noValidate to block browser popups) */}
-        <div className="col-span-5 relative bg-neutral-950 p-8 xl:p-10 flex flex-col justify-between overflow-hidden">
+        <div className="col-span-5 relative bg-neutral-950 py-5 px-7 xl:py-6 xl:px-9 flex flex-col justify-between overflow-hidden">
           <div className="flex items-center justify-between pb-4 shrink-0">
             <button
               onClick={() => setStep("login")}
@@ -477,7 +939,7 @@ export default function AuthFlowContainer({
                 transition={{ duration: 0.3, ease: "easeOut" }}
                 onSubmit={handleRegisterSubmit}
                 noValidate
-                className="space-y-3 my-auto py-2"
+                className="space-y-2 my-auto"
               >
                 <div className="space-y-0.5 mb-2">
                   <h2 className="text-xl xl:text-2xl font-black text-white uppercase tracking-tight">
@@ -488,71 +950,47 @@ export default function AuthFlowContainer({
                   </p>
                 </div>
 
-                <div className="space-y-2.5">
-                  <input
+                <div className="space-y-1.5">
+                  <BarbellClampInput
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Full Name"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+                    autoComplete="name"
                   />
-                  <input
+                  <BarbellClampInput
                     type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email Address (e.g. name@domain.com)"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+                    autoComplete="email"
+                    icon={<Mail className="w-4 h-4" />}
                   />
-                  <div className="relative flex items-center">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      maxLength={16}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
-                      className="w-full h-11 px-4 pr-10 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-3.5 h-3.5" />
-                      ) : (
-                        <Eye className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                  <div className="relative flex items-center">
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      maxLength={16}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm Password"
-                      className="w-full h-11 px-4 pr-10 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      className="absolute right-4 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="w-3.5 h-3.5" />
-                      ) : (
-                        <Eye className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
+                  <BarbellClampInput
+                    isPassword
+                    showPassword={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
+                    value={password}
+                    maxLength={16}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
+                    autoComplete="new-password"
+                  />
+                  <BarbellClampInput
+                    isPassword
+                    showPassword={showConfirmPassword}
+                    onTogglePassword={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                    value={confirmPassword}
+                    maxLength={16}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm Password"
+                    autoComplete="new-password"
+                  />
                 </div>
 
-                <p className="text-[10px] text-gray-400 font-medium px-2 pt-0.5">
-                  Must be 8–16 chars with 1 uppercase, 1 lowercase, 1 number & 1
-                  symbol.
-                </p>
+                <BarbellStrengthMeter password={password} />
 
                 <div className="flex items-center gap-2 text-[10px] xl:text-[11px] text-gray-400 font-medium px-2 pt-0.5">
                   <input
@@ -568,14 +1006,11 @@ export default function AuthFlowContainer({
                   </span>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-11 rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 hover:bg-gray-100 transition-all shadow-2xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50 mt-2"
-                >
-                  <span>Create Account</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
+                <DumbbellCurlButton
+                  label="Create Account"
+                  loading={isLoading}
+                  className="mt-2"
+                />
               </motion.form>
             ) : (
               <motion.form
@@ -598,38 +1033,25 @@ export default function AuthFlowContainer({
                 </div>
 
                 <div className="space-y-3">
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email Address"
-                      className="w-full h-11 px-4 pr-10 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                    />
-                    <Mail className="absolute right-4 w-4 h-4 text-gray-400" />
-                  </div>
+                  <BarbellClampInput
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email Address"
+                    autoComplete="email"
+                    icon={<Mail className="w-4 h-4" />}
+                  />
 
-                  <div className="relative flex items-center">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      maxLength={16}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password"
-                      className="w-full h-11 px-4 pr-10 rounded-full bg-neutral-900 text-xs text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 text-gray-400 hover:text-white transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
+                  <BarbellClampInput
+                    isPassword
+                    showPassword={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
+                    value={password}
+                    maxLength={16}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    autoComplete="current-password"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between text-xs px-2 text-gray-300 font-medium pt-0.5">
@@ -650,20 +1072,17 @@ export default function AuthFlowContainer({
                   </Link>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-11 rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 hover:bg-gray-100 transition-all shadow-2xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50 mt-2"
-                >
-                  <span>Login</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
+                <DumbbellCurlButton
+                  label="Login"
+                  loading={isLoading}
+                  className="mt-2"
+                />
               </motion.form>
             )}
           </AnimatePresence>
 
           {/* Exclusive Google Login Option on PC */}
-          <div className="pt-4 text-center space-y-2 shrink-0 border-t border-neutral-900/60 mt-2">
+          <div className="pt-2 text-center space-y-1.5 shrink-0 border-t border-neutral-900/40 mt-1">
             <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block">
               Or continue with
             </span>
@@ -682,7 +1101,7 @@ export default function AuthFlowContainer({
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 2: TABLET (11/12 Screen Width max-w-xl)
           ════════════════════════════════════════════════════════════ */}
-      <div className="hidden md:flex lg:hidden relative w-11/12 max-w-xl h-full max-h-[660px] min-h-[500px] bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col justify-between p-7">
+      <div className="hidden md:flex lg:hidden relative w-11/12 max-w-xl h-full max-h-165 min-h-125 bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col justify-between p-7">
         <AnimatePresence mode="wait">
           {/* Tablet STEP 1: Welcome Onboarding Screen */}
           {step === "welcome" && (
@@ -703,7 +1122,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.7] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
               </div>
 
               <div className="relative z-10 flex items-center justify-between pt-1">
@@ -719,14 +1138,16 @@ export default function AuthFlowContainer({
                     FITORA GYM
                   </span>
                 </Link>
-                <span className="text-xs font-extrabold text-white tracking-widest uppercase bg-black/60 backdrop-blur-md px-3 py-1 rounded-full shadow">
-                  EST. 2026
-                </span>
+                <Link
+                  href="/"
+                  className="text-xs font-extrabold text-white/80 hover:text-white tracking-widest uppercase transition-colors cursor-pointer"
+                >
+                  HOME
+                </Link>
               </div>
 
               <div className="relative z-10 space-y-3 my-auto max-w-md mx-auto w-full">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-xs font-bold uppercase tracking-wider text-white shadow-lg">
-                  <Sparkles className="w-4 h-4 text-white" />
+                <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-white shadow-lg">
                   <span>Next-Gen AI Fitness Platform</span>
                 </div>
                 <h1 className="text-2xl xs:text-3xl font-black text-white leading-tight uppercase drop-shadow-lg">
@@ -737,11 +1158,11 @@ export default function AuthFlowContainer({
                   and stay motivated every single day.
                 </p>
                 <div className="grid grid-cols-2 gap-2.5 pt-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-white bg-black/60 backdrop-blur-md px-3 py-2 rounded-xl">
+                  <div className="flex items-center gap-2 text-xs font-bold text-white bg-white/5 border border-white/10 backdrop-blur-sm px-3.5 py-2 rounded-full">
                     <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
                     <span>Realtime AI Coach</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs font-bold text-white bg-black/60 backdrop-blur-md px-3 py-2 rounded-xl">
+                  <div className="flex items-center gap-2 text-xs font-bold text-white bg-white/5 border border-white/10 backdrop-blur-sm px-3.5 py-2 rounded-full">
                     <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
                     <span>Workout Tracker</span>
                   </div>
@@ -776,7 +1197,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.65] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
               </div>
 
               <div className="relative z-10 flex items-center justify-between pb-3 shrink-0">
@@ -817,20 +1238,23 @@ export default function AuthFlowContainer({
                       Log in to continue your fitness journey
                     </p>
                   </div>
-                  <input
+                  <BarbellClampInput
                     type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email Address"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                    autoComplete="email"
+                    icon={<Mail className="w-4 h-4" />}
                   />
-                  <input
-                    type="password"
+                  <BarbellClampInput
+                    isPassword
+                    showPassword={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
                     value={password}
                     maxLength={16}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                    autoComplete="current-password"
                   />
                   <div className="flex items-center justify-between text-xs px-1 text-gray-300 font-medium">
                     <label className="flex items-center gap-1.5 cursor-pointer">
@@ -849,13 +1273,11 @@ export default function AuthFlowContainer({
                       Forget Password
                     </Link>
                   </div>
-                  <button
-                    type="submit"
-                    className="w-full h-11 rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 shadow-xl mt-1"
-                  >
-                    <span>Login</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  <DumbbellCurlButton
+                    label="Login"
+                    loading={isLoading}
+                    className="mt-1"
+                  />
                 </form>
 
                 {/* Tablet Google Login Button */}
@@ -900,7 +1322,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.65] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
               </div>
 
               <div className="relative z-10 flex items-center justify-between pb-3 shrink-0">
@@ -941,43 +1363,49 @@ export default function AuthFlowContainer({
                       Start your fitness journey today
                     </p>
                   </div>
-                  <input
+                  <BarbellClampInput
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Full Name"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                    autoComplete="name"
                   />
-                  <input
+                  <BarbellClampInput
                     type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email Address (e.g. user@domain.com)"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                    autoComplete="email"
+                    icon={<Mail className="w-4 h-4" />}
                   />
-                  <input
-                    type="password"
+                  <BarbellClampInput
+                    isPassword
+                    showPassword={showPassword}
+                    onTogglePassword={() => setShowPassword(!showPassword)}
                     value={password}
                     maxLength={16}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                    autoComplete="new-password"
                   />
-                  <input
-                    type="password"
+                  <BarbellStrengthMeter password={password} />
+                  <BarbellClampInput
+                    isPassword
+                    showPassword={showConfirmPassword}
+                    onTogglePassword={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
                     value={confirmPassword}
                     maxLength={16}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm Password"
-                    className="w-full h-11 px-4 rounded-full bg-neutral-900/90 text-xs text-white outline-none font-medium shadow-inner"
+                    autoComplete="new-password"
                   />
-                  <button
-                    type="submit"
-                    className="w-full h-11 rounded-full bg-white text-black font-black text-xs uppercase flex items-center justify-between px-5 shadow-xl mt-1"
-                  >
-                    <span>Create Account</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  <DumbbellCurlButton
+                    label="Create Account"
+                    loading={isLoading}
+                    className="mt-1"
+                  />
                 </form>
 
                 {/* Tablet Google Register Button */}
@@ -1007,7 +1435,7 @@ export default function AuthFlowContainer({
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 3: MOBILE (11/12 Screen Width max-w-[410px] < 768px)
           ════════════════════════════════════════════════════════════ */}
-      <div className="block md:hidden relative w-11/12 max-w-[410px] h-full max-h-[750px] min-h-[500px] bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col">
+      <div className="block md:hidden relative w-11/12 max-w-102.5 h-full max-h-187.5 min-h-125 bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col">
         <AnimatePresence mode="wait">
           {/* Mobile STEP 1: Welcome Onboarding Screen */}
           {step === "welcome" && (
@@ -1027,7 +1455,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.75] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-neutral-950 via-black/40 to-transparent" />
               </div>
 
               <div className="relative z-10 flex items-center justify-between pt-1">
@@ -1043,9 +1471,12 @@ export default function AuthFlowContainer({
                     FITORA
                   </span>
                 </Link>
-                <span className="text-[9px] font-extrabold text-white tracking-widest uppercase bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full shadow">
-                  EST. 2026
-                </span>
+                <Link
+                  href="/"
+                  className="text-[10px] font-extrabold text-white/80 hover:text-white tracking-widest uppercase transition-colors cursor-pointer"
+                >
+                  HOME
+                </Link>
               </div>
 
               <div className="relative z-10 space-y-2 mb-2">
@@ -1089,7 +1520,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.65] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
               </div>
 
               <div className="relative z-10 pt-1 space-y-0.5 mb-1">
@@ -1164,14 +1595,12 @@ export default function AuthFlowContainer({
                   </Link>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-10 xs:h-11 rounded-full bg-white text-black font-black text-xs flex items-center justify-between px-5 hover:bg-gray-100 transition-all shadow-xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50 mt-1"
-                >
-                  <span className="uppercase tracking-wider">Login</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
+                <DumbbellCurlButton
+                  label="Login"
+                  loading={isLoading}
+                  heightClass="h-10 xs:h-11"
+                  className="mt-1"
+                />
               </form>
 
               {/* Mobile Google Login Option */}
@@ -1215,7 +1644,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.65] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
               </div>
 
               <div className="relative z-10 pt-1 space-y-0.5 mb-1">
@@ -1239,62 +1668,48 @@ export default function AuthFlowContainer({
                 noValidate
                 className="relative z-10 space-y-2 my-auto"
               >
-                <input
+                <BarbellClampInput
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Full Name"
-                  className="w-full h-9 xs:h-10 px-3.5 rounded-full bg-neutral-900/90 text-[11px] text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+                  heightClass="h-9 xs:h-10"
+                  autoComplete="name"
                 />
-                <input
+                <BarbellClampInput
                   type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Email Address (e.g. user@domain.com)"
-                  className="w-full h-9 xs:h-10 px-3.5 rounded-full bg-neutral-900/90 text-[11px] text-white placeholder-gray-500 outline-none font-medium shadow-inner"
+                  heightClass="h-9 xs:h-10"
+                  autoComplete="email"
+                  icon={<Mail className="w-3.5 h-3.5" />}
                 />
-                <div className="relative flex items-center">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    maxLength={16}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
-                    className="w-full h-9 xs:h-10 px-3.5 pr-9 rounded-full bg-neutral-900/90 text-[11px] text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 text-gray-400 hover:text-white"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-3.5 h-3.5" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
-                <div className="relative flex items-center">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    maxLength={16}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm Password"
-                    className="w-full h-9 xs:h-10 px-3.5 pr-9 rounded-full bg-neutral-900/90 text-[11px] text-white placeholder-gray-500 outline-none font-medium shadow-inner"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 text-gray-400 hover:text-white"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-3.5 h-3.5" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
+                <BarbellClampInput
+                  isPassword
+                  showPassword={showPassword}
+                  onTogglePassword={() => setShowPassword(!showPassword)}
+                  value={password}
+                  maxLength={16}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password (8-16 chars, 1 cap, 1 num, 1 symbol)"
+                  heightClass="h-9 xs:h-10"
+                  autoComplete="new-password"
+                />
+                <BarbellStrengthMeter password={password} />
+                <BarbellClampInput
+                  isPassword
+                  showPassword={showConfirmPassword}
+                  onTogglePassword={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
+                  value={confirmPassword}
+                  maxLength={16}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm Password"
+                  heightClass="h-9 xs:h-10"
+                  autoComplete="new-password"
+                />
 
                 <div className="flex items-center gap-1.5 text-[9.5px] text-gray-400 font-medium px-1">
                   <input
@@ -1310,14 +1725,12 @@ export default function AuthFlowContainer({
                   </span>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-9 xs:h-10 rounded-full bg-white text-black font-black text-xs flex items-center justify-between px-4 hover:bg-gray-100 transition-all shadow-xl cursor-pointer hover:scale-[1.01] active:scale-95 disabled:opacity-50 mt-1"
-                >
-                  <span>Create Account</span>
-                  <ArrowRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
+                <DumbbellCurlButton
+                  label="Create Account"
+                  loading={isLoading}
+                  heightClass="h-9 xs:h-10"
+                  className="mt-1"
+                />
               </form>
 
               {/* Mobile Google Register Option */}

@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { motion, type Variants } from "framer-motion";
 
 import { ArrowUpRight, X, Flame, Copy } from "lucide-react";
 import { useState } from "react";
@@ -8,6 +9,21 @@ import { FaPlus } from "react-icons/fa6";
 import { getAuthSession } from "@/services/authService";
 import { addMealToDailyPlan } from "@/services/dailyMealPlanService";
 import { useSession } from "@/lib/auth-client";
+
+const mealCardVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.25, 1, 0.5, 1],
+    },
+  },
+};
 
 interface MealProps {
   id: string;
@@ -87,12 +103,17 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
   return (
     <>
       {/* ── Meal Card Grid Item ── */}
-      <div className="group relative bg-neutral-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:border-white/30 transition-all duration-500 flex flex-col h-full select-none">
+      <motion.div
+        variants={mealCardVariants}
+        className="group relative bg-neutral-950 border border-white/10 rounded-2xl overflow-hidden shadow-2xl hover:border-white/30 transition-all duration-500 flex flex-col h-full select-none"
+      >
         {/* Meal Image */}
         <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-neutral-900">
-          <img
+          <Image
             src={displayImage}
             alt={meal.name}
+            width={400}
+            height={300}
             className="w-full h-full object-cover brightness-95 contrast-105 group-hover:scale-105 transition-transform duration-700 ease-out"
             onError={() => setImageError(true)}
           />
@@ -165,7 +186,7 @@ Key Ingredients: ${meal.ingredients.join(", ")}`;
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Responsive Dark Glassmorphism Modal ── */}
       {isModalOpen && (

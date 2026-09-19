@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { AlertTriangle, RefreshCw, Home, ArrowUpRight } from "lucide-react";
+import { RefreshCw, Home, ArrowUpRight } from "lucide-react";
 
 export default function Error({
   error,
@@ -28,7 +28,7 @@ export default function Error({
           </h1>
 
           <p className="text-gray-400 text-xs sm:text-sm leading-relaxed font-medium">
-            An unexpected error occurred while processing your request. Don't
+            An unexpected error occurred while processing your request. Don&apos;t
             worry, your workout session data is safe.
           </p>
         </div>

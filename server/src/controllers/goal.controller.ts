@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Goal from "../models/Goal.model";
 import WorkoutLog from "../models/WorkoutLog.model";
 import { successResponse, errorResponse } from "../utils/apiResponse";
+import { AuthRequest } from "../middlewares/auth.middleware";
 
 /**
  * Automatically completes a goal when progress reaches target.
@@ -20,6 +21,16 @@ const applyGoalCompletion = (goal: any) => {
   }
 
   return goal;
+};
+
+const normalizeGoalType = (gt?: string) => {
+  if (!gt) return undefined;
+  const lower = gt.toLowerCase();
+  if (lower === "bulking") return "Bulking";
+  if (lower === "cutting") return "Cutting";
+  if (lower === "recomp") return "Recomp";
+  if (lower === "maintenance") return "Maintenance";
+  return undefined;
 };
 
 export const createOrUpdateGoal = async (req: Request, res: Response) => {
@@ -44,16 +55,6 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
     }
 
     const existingGoal = await Goal.findOne({ userId });
-
-    const normalizeGoalType = (gt?: string) => {
-      if (!gt) return undefined;
-      const lower = gt.toLowerCase();
-      if (lower === "bulking") return "Bulking";
-      if (lower === "cutting") return "Cutting";
-      if (lower === "recomp") return "Recomp";
-      if (lower === "maintenance") return "Maintenance";
-      return gt;
-    };
 
     const goalData: any = {
       userId,
@@ -122,6 +123,87 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * GET /api/goals — Get the current authenticated user's goal
+ * Uses JWT token from authMiddleware (no userId param needed)
+ */
+export const getMyGoal = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId =
+      req.user?.userId ||
+      (req as any).user?.id ||
+      (req.query.userId as string) ||
+      (req.query.email as string);
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json(errorResponse("Authentication required", "Unauthorized", 401));
+    }
+
+    // Try finding by userId (ObjectId string or email)
+    const goal = await Goal.findOne({ userId });
+
+    if (!goal) {
+      return res.status(200).json(
+        successResponse("No goal found for this user", null),
+      );
+    }
+
+    applyGoalCompletion(goal);
+    if (goal.isModified()) {
+      await goal.save();
+    }
+
+    const workouts = await WorkoutLog.find({ userId }).sort({ createdAt: -1 }).lean();
+    let activeStreak = 0;
+    let totalVolumeLifted = 0;
+
+    if (workouts.length > 0) {
+      activeStreak = 1;
+      for (let i = 0; i < workouts.length - 1; i++) {
+        const currentDate = (workouts[i] as any).createdAt || (workouts[i] as any).date || new Date();
+        const previousDate = (workouts[i + 1] as any).createdAt || (workouts[i + 1] as any).date || new Date();
+        const gapHours = (new Date(currentDate).getTime() - new Date(previousDate).getTime()) / (1000 * 60 * 60);
+        if (gapHours <= 48) activeStreak++;
+        else break;
+      }
+      for (const workout of workouts as any[]) {
+        if (Array.isArray(workout.sets)) {
+          for (const set of workout.sets) {
+            totalVolumeLifted += (Number(set.weight) || 0) * (Number(set.reps) || 0);
+          }
+        } else {
+          totalVolumeLifted += (Number(workout.setsCount) || 1) * (Number(workout.repsCount) || 10) * (Number(workout.weight) || 0);
+        }
+      }
+    }
+
+    const milestones = [7, 14, 30, 60, 100];
+    const achievedMilestone = milestones.filter((m) => activeStreak >= m).pop() || null;
+
+    return res.status(200).json(
+      successResponse("Goal retrieved successfully", {
+        goal,
+        activeStreak,
+        totalVolumeLifted,
+        milestone: { achieved: !!achievedMilestone, current: achievedMilestone },
+      }),
+    );
+  } catch (error) {
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve goal",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+};
+
+// Get goal by userId param
 export const getGoal = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
@@ -221,10 +303,7 @@ export const updateGoal = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const goal = await Goal.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const goal = await Goal.findById(id);
 
     if (!goal) {
       return res
@@ -234,6 +313,27 @@ export const updateGoal = async (req: Request, res: Response) => {
 
     // Update only supplied fields
     Object.assign(goal, req.body);
+
+    const allowedFields = [
+      "targetWeight",
+      "weeklyWorkoutFrequency",
+      "currentValue",
+      "targetValue",
+      "goalType",
+      "bmr",
+      "tdee",
+      "targetCalories",
+      "macros",
+    ];
+
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        (goal as any)[field] =
+          field === "goalType"
+            ? normalizeGoalType(req.body[field])
+            : req.body[field];
+      }
+    }
 
     // Normalize numeric values
     if (req.body.currentValue !== undefined) {
@@ -247,6 +347,14 @@ export const updateGoal = async (req: Request, res: Response) => {
     // Auto-complete / archive
     applyGoalCompletion(goal);
 
+    if (
+      goal.status !== "completed" &&
+      goal.targetValue > 0 &&
+      goal.currentValue < goal.targetValue
+    ) {
+      goal.status = "active";
+      goal.archivedAt = undefined;
+    }
     await goal.save();
 
     return res
@@ -272,11 +380,26 @@ export const updateGoal = async (req: Request, res: Response) => {
   }
 };
 
+// Delete api
 export const deleteGoal = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const goal = await Goal.findByIdAndDelete(id);
+    const authUser = (req as any).user;
+    const userId = authUser?.userId;
+    if (!userId) {
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Authentication required",
+            "AUTHENTICATION_REQUIRED",
+            401,
+          ),
+        );
+    }
+
+    const goal = await Goal.findOneAndDelete({ _id: id, userId });
 
     if (!goal) {
       return res
@@ -355,6 +478,63 @@ export const getArchivedGoals = async (req: Request, res: Response) => {
       .json(
         errorResponse(
           "Failed to get archived goals",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+};
+
+/** * GET /api/goals/presets * * Predefined fitness goal options. */
+export const getGoalPresets = async (req: Request, res: Response) => {
+  try {
+    const presets = [
+      {
+        id: "bulking",
+        goalType: "Bulking",
+        label: "Build Muscle",
+        description: "Increase body weight and muscle mass.",
+        calorieAdjustment: 500,
+        recommendedWorkoutFrequency: 5,
+      },
+      {
+        id: "cutting",
+        goalType: "Cutting",
+        label: "Lose Fat",
+        description: "Reduce body weight while preserving muscle.",
+        calorieAdjustment: -500,
+        recommendedWorkoutFrequency: 4,
+      },
+      {
+        id: "recomp",
+        goalType: "Recomp",
+        label: "Body Recomposition",
+        description: "Build muscle while gradually reducing body fat.",
+        calorieAdjustment: 0,
+        recommendedWorkoutFrequency: 4,
+      },
+      {
+        id: "maintenance",
+        goalType: "Maintenance",
+        label: "Maintain Weight",
+        description: "Maintain your current body weight and fitness.",
+        calorieAdjustment: 0,
+        recommendedWorkoutFrequency: 3,
+      },
+    ];
+    return res.status(200).json(
+      successResponse("Goal presets retrieved successfully", {
+        presets,
+        count: presets.length,
+      }),
+    );
+  } catch (error) {
+    console.error("Get goal presets error:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to get goal presets",
           error instanceof Error ? error.message : "Internal Server Error",
           500,
         ),

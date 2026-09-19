@@ -5,10 +5,8 @@ import {
   Clock,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   AlertTriangle,
   RefreshCw,
-  Zap,
   ArrowUpRight,
 } from "lucide-react";
 

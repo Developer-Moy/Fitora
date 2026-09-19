@@ -534,7 +534,7 @@ export const EXERCISE_DATABASE = [
       "Avoid using momentum.",
       "Stop around shoulder height.",
     ],
-    videoId: "3VcKaXpzqRo",
+    videoId: "yHx8wPv4RPo",
     image:
       "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=80",
   },
@@ -722,7 +722,7 @@ export const EXERCISE_DATABASE = [
       "Squeeze your glute.",
       "Avoid arching your back.",
     ],
-    videoId: "SJ1Xuz9D-ZQ",
+    videoId: "n-cgsNePyFo",
     image:
       "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1400&q=80",
   },
@@ -806,7 +806,7 @@ export const EXERCISE_DATABASE = [
       "Catch them in a stable position.",
       "Practice technique before increasing weight.",
     ],
-    videoId: "OZTiJ7i3j1A",
+    videoId: "7fHjE4paZXk",
     image:
       "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?auto=format&fit=crop&w=1400&q=80",
   },
@@ -826,7 +826,7 @@ export const EXERCISE_DATABASE = [
       "Control every transition.",
       "Focus on movement quality.",
     ],
-    videoId: "uZfZ5d1XK5U",
+    videoId: "2-6EPLtSLwU",
     image:
       "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=80",
   },
@@ -870,7 +870,7 @@ export const EXERCISE_DATABASE = [
       "Pump your arms naturally.",
       "Maintain a consistent pace.",
     ],
-    videoId: "ZZeO1B8YjT0",
+    videoId: "bZUfaLxJ36M",
     image:
       "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?auto=format&fit=crop&w=1400&q=80",
   },
@@ -934,7 +934,7 @@ export const EXERCISE_DATABASE = [
       "Move into the stretch gradually.",
       "Never force the range.",
     ],
-    videoId: "YQmpZ4VQz1Y",
+    videoId: "DXuStgWuJV8",
     image:
       "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1400&q=80",
   },
@@ -954,7 +954,7 @@ export const EXERCISE_DATABASE = [
       "Avoid forcing the stretch.",
       "Repeat on both sides.",
     ],
-    videoId: "2S6V2c8R2mM",
+    videoId: "-CiWQ2IvY34",
     image:
       "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1400&q=80",
   },
@@ -1018,7 +1018,7 @@ export const EXERCISE_DATABASE = [
       "Maintain a stable stance.",
       "Work in controlled intervals.",
     ],
-    videoId: "w9p7a4k8k9E",
+    videoId: "7wDx6mZDxA8",
     image:
       "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=80",
   },
@@ -1038,7 +1038,7 @@ export const EXERCISE_DATABASE = [
       "Take short powerful steps.",
       "Maintain steady pressure.",
     ],
-    videoId: "J0rK6Z2mX8Q",
+    videoId: "IDO9AL4QoEs",
     image:
       "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=80",
   },

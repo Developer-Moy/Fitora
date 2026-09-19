@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import mongoose from "mongoose";
 import workoutRoutes from "./workout.routes";
+import trainerRoutes from "./trainer.routes";
 import aiRoutes from "./ai.routes";
 import authRoutes from "./auth.routes";
 import goalRoutes from "./goal.routes";
@@ -22,6 +23,7 @@ import masterRoutes from "./master.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import adminRoutes from "./admin.routes";
 import heatmapRoutes from "./heatmap.routes";
+import personalizedNutritionPlanRoutes from "./personalizedNutritionPlan.routes.js";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
 const apiRouter = Router();
@@ -59,6 +61,7 @@ apiRouter.get("/health", (req: Request, res: Response) => {
 
 // Mounted Central API Routes across all 6 Team Members
 apiRouter.use("/workouts", workoutRoutes);
+apiRouter.use("/trainers", trainerRoutes);
 apiRouter.use("/exercises", exerciseRoutes);
 apiRouter.use("/ai", aiRoutes);
 apiRouter.use("/auth", authRoutes);
@@ -81,5 +84,6 @@ apiRouter.use("/payments", paymentRoutes);
 apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/notifications", notificationRoutes);
 apiRouter.use("/heatmap", heatmapRoutes);
+apiRouter.use("/personalized-nutrition-plan", personalizedNutritionPlanRoutes);
 
 export default apiRouter;

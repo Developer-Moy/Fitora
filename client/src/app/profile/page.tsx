@@ -13,7 +13,6 @@ import {
   MapPin,
   Dumbbell,
   LogOut,
-  Loader2,
   CreditCard,
   QrCode,
   Flame,
@@ -58,6 +57,10 @@ import {
   type UserActivityStreakData,
 } from "@/services/activityService";
 import { saveCardApi, deleteSavedCardApi } from "@/services/dashboardService";
+import FitoraPillButton from "@/components/ui/FitoraPillButton";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
+import VipPassModal from "@/components/home/VipPassModal";
+import Image from "next/image";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -117,7 +120,7 @@ function TrialCountdownBanner({ trialExpiresAt }: { trialExpiresAt: string }) {
   if (timeLeft === "expired") return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 via-white/5 to-white/10 px-5 py-3.5 flex items-center justify-between gap-3 shadow-lg">
+    <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-linear-to-r from-white/10 via-white/5 to-white/10 px-5 py-3.5 flex items-center justify-between gap-3 shadow-lg">
       <div className="flex items-center gap-3">
         <Sparkles className="w-5 h-5 text-white shrink-0 animate-pulse" />
         <p className="text-sm text-white font-medium">
@@ -313,7 +316,7 @@ function SaveCardModal({
             className="w-full flex items-center justify-center gap-2 bg-white text-black rounded-xl py-2.5 text-sm font-bold hover:bg-neutral-200 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {saving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <FitoraSpinner className="w-4 h-4 animate-spin" />
             ) : (
               <CheckCircle className="w-4 h-4" />
             )}
@@ -371,6 +374,8 @@ export default function ProfilePage() {
     expiryDate?: string;
   } | null>(null);
 
+  const [isVipPassOpen, setIsVipPassOpen] = useState(false);
+
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [renewPlan, setRenewPlan] = useState<PlanItem | null>(null);
@@ -378,30 +383,23 @@ export default function ProfilePage() {
 
   // ── Derived Identifiers ──
   // ── Active Identity Reconciliation ──
-  // If the user is logged in via authSession, prioritize authSession's active credentials.
-  // Stale cached backendUser from a previous session must never override the currently active session!
+  // Prefer the backend user loaded from /api/auth/me. Fall back to authSession (BetterAuth/OAuth).
+  // backendUser is authoritative — if it's loaded, use it directly.
   const activeAuthEmail =
     authSession?.user?.email ||
     (typeof window !== "undefined"
       ? localStorage.getItem("fitora_user_email") || ""
       : "");
 
-  const isBackendMatching =
-    backendUser &&
-    activeAuthEmail &&
-    backendUser.email?.toLowerCase().trim() ===
-      activeAuthEmail.toLowerCase().trim();
-
-  const effectiveUser = isBackendMatching
-    ? backendUser
-    : backendUser && !activeAuthEmail
-      ? backendUser
-      : null;
+  // Trust backendUser whenever it's populated (it came from our own API /auth/me).
+  const effectiveUser = backendUser;
 
   const resolvedUserId =
     effectiveUser?.id ||
     effectiveUser?._id ||
     authSession?.user?.id ||
+    backendUser?.id ||
+    backendUser?._id ||
     (typeof window !== "undefined"
       ? (localStorage.getItem("fitora_user_email") ?? undefined)
       : undefined);
@@ -579,7 +577,10 @@ export default function ProfilePage() {
           () => null,
         ),
         fetch(`${apiUrl}/goals/${encodeURIComponent(String(resolvedUserId))}`, {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...headers,
+          },
           cache: "no-store",
         })
           .then((r) => (r.ok ? r.json() : null))
@@ -645,10 +646,17 @@ export default function ProfilePage() {
       backendUser?.membershipExpiresAt || backendUser?.subscriptionExpiryDate;
     const freeTier =
       !plan || plan === "Free Pass" || plan.toLowerCase().includes("free");
-    if (freeTier || !rawExpiry) {
+    
+    if (freeTier) {
       setMembershipBannerData({ status: "no_membership", planName: plan });
       return;
     }
+    
+    if (!rawExpiry) {
+      setMembershipBannerData(null);
+      return;
+    }
+
     const exp = new Date(String(rawExpiry)).getTime();
     const now = Date.now();
     const diff = exp - now;
@@ -793,7 +801,7 @@ export default function ProfilePage() {
         )}
 
         {/* ── 3-Day Free Trial Countdown Banner ── */}
-        {backendUser?.isTrialActive && backendUser.trialExpiresAt && (
+        {backendUser?.isTrialActive && backendUser.trialExpiresAt && !isPremium && (
           <TrialCountdownBanner trialExpiresAt={backendUser.trialExpiresAt} />
         )}
 
@@ -802,9 +810,11 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/25 flex items-center justify-center text-2xl font-black overflow-hidden shrink-0 shadow-inner">
               {userAvatar && !avatarError ? (
-                <img
+                <Image
                   src={userAvatar}
                   alt={userName}
+                  width={64}
+                  height={64}
                   onError={() => setAvatarError(true)}
                   className="w-full h-full object-cover"
                 />
@@ -826,7 +836,7 @@ export default function ProfilePage() {
                 >
                   {userPlan}
                 </span>
-                {effectiveUser?.isTrialActive && (
+                {effectiveUser?.isTrialActive && !isPremium && (
                   <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     Pro Trial
                   </span>
@@ -846,13 +856,15 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
-            <Link
-              href="/profile/edit"
-              className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/20 text-white/80 hover:text-black hover:bg-white transition-all cursor-pointer shadow-sm"
-            >
+            <FitoraPillButton href="/profile/edit">
               <span>Edit Profile</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
+            </FitoraPillButton>
+            <FitoraPillButton
+              variant="white"
+              onClick={() => setIsVipPassOpen(true)}
+            >
+              FREE VIP PASS
+            </FitoraPillButton>
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full border border-white/15 text-white/60 hover:text-white hover:border-white/30 transition-all cursor-pointer"
@@ -1025,7 +1037,7 @@ export default function ProfilePage() {
 
                   {activityStreakLoading ? (
                     <div className="py-6 flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                      <FitoraSpinner className="w-6 h-6 animate-spin text-white/40" />
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1047,7 +1059,7 @@ export default function ProfilePage() {
                           : "Check in via the gym turnstile or log a workout session to build your streak!"}
                       </p>
 
-                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex items-center justify-between text-xs text-white/70">
+                      <div className="rounded-xl border border-white/10 bg-white/3 p-3 flex items-center justify-between text-xs text-white/70">
                         <span>Consistency Rating</span>
                         <span className="font-mono font-bold text-white">
                           {(activityStreak?.currentStreak ?? 0) > 5
@@ -1182,7 +1194,7 @@ export default function ProfilePage() {
 
                   {bmiLoading ? (
                     <div className="py-8 flex items-center justify-center">
-                      <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                      <FitoraSpinner className="w-6 h-6 animate-spin text-white/40" />
                     </div>
                   ) : bmiHistory.length === 0 ? (
                     <div className="py-8 flex flex-col items-center justify-center text-center space-y-2">
@@ -1293,14 +1305,16 @@ export default function ProfilePage() {
 
                   <div className="flex justify-center p-2">
                     {qrDataUrl ? (
-                      <img
+                      <Image
                         src={qrDataUrl}
                         alt="Gym turnstile entry QR"
+                        width={160}
+                        height={160}
                         className="w-40 h-40 rounded-xl border border-white/20 bg-white p-1.5 shadow-md"
                       />
                     ) : (
                       <div className="w-40 h-40 rounded-xl border border-white/20 flex items-center justify-center bg-white/5">
-                        <Loader2 className="w-6 h-6 animate-spin text-white/40" />
+                        <FitoraSpinner className="w-6 h-6 animate-spin text-white/40" />
                       </div>
                     )}
                   </div>
@@ -1351,7 +1365,7 @@ export default function ProfilePage() {
 
               {isLoadingWorkouts ? (
                 <div className="py-12 flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-white/40" />
+                  <FitoraSpinner />
                 </div>
               ) : workoutLogs.length === 0 ? (
                 <div className="py-12 flex flex-col items-center justify-center text-center space-y-3">
@@ -1376,7 +1390,7 @@ export default function ProfilePage() {
                   {workoutLogs.slice(0, 6).map((log) => (
                     <div
                       key={log._id}
-                      className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between space-y-3 hover:border-white/25 transition-all h-auto"
+                      className="rounded-xl border border-white/10 bg-white/3 p-4 flex flex-col justify-between space-y-3 hover:border-white/25 transition-all h-auto"
                     >
                       <div>
                         <div className="flex items-center justify-between gap-2">
@@ -1567,6 +1581,12 @@ export default function ProfilePage() {
           onSaved={fetchUser}
         />
       )}
+
+      {/* Free vip pass Modal */}
+      <VipPassModal
+        isOpen={isVipPassOpen}
+        onClose={() => setIsVipPassOpen(false)}
+      />
     </div>
   );
 }

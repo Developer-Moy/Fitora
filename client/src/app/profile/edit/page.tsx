@@ -7,17 +7,15 @@ import {
   getAuthSession,
   saveAuthSession,
 } from "@/services/authService";
-import {
-  uploadToImgBB,
-  readFileAsDataURL,
-} from "@/services/imageUploadService";
+import { uploadToImgBB } from "@/services/imageUploadService";
 import {
   fetchPublicBranches,
   updateUserProfileApi,
 } from "@/services/dashboardService";
 import { ArrowLeft, Upload, Loader2, Trash2 } from "lucide-react";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useSession, authClient } from "@/lib/auth-client";
+import Image from "next/image";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -187,9 +185,11 @@ export default function EditProfilePage() {
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-neutral-900 border border-white/20 overflow-hidden flex items-center justify-center text-white text-2xl font-black shrink-0">
               {editAvatarUrl ? (
-                <img
+                <Image
                   src={editAvatarUrl}
                   alt="Avatar"
+                  width={80}
+                  height={80}
                   className="w-full h-full object-cover"
                 />
               ) : (

@@ -2,8 +2,7 @@
  * ImgBB & Local File Image Upload Service
  */
 
-const IMGBB_API_KEY =
-  process.env.NEXT_PUBLIC_IMGBB_API_KEY || "895c029311dc00966f913d969245fc30";
+const IMGBB_API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "";
 
 export interface UploadResult {
   success: boolean;

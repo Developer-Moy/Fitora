@@ -4,7 +4,6 @@ import { StopwatchPreset } from "../models/StopwatchPreset.model";
 import { StopwatchSession } from "../models/StopwatchSession.model";
 import { CustomRestPreset } from "../models/CustomRestPreset.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
-import { requirePremium } from "../middlewares/auth.middleware";
 import { estimateCalories } from "../services/calorieEstimation.service";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 

@@ -51,6 +51,13 @@ export interface IUser extends Document {
   weight?: number;
   height?: number;
   gender?: string;
+  age?: number;
+  activityLevel?:
+  | "sedentary"
+  | "light"
+  | "moderate"
+  | "active"
+  | "veryActive";
   bio?: string;
   avatarUrl?: string;
   image?: string;
@@ -208,6 +215,17 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: false,
     },
+    age: {
+      type: Number,
+      required: false,
+      min: 1,
+      max: 120,
+    },
+    activityLevel: {
+      type: String,
+      required: false,
+      enum: ["sedentary", "light", "moderate", "active", "veryActive"],
+    },
     bio: {
       type: String,
       required: false,
@@ -277,11 +295,14 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-// Indexes
+// Indexes (only for non-unique fields — unique fields auto-create indexes)
 userSchema.index({ role: 1 });
 userSchema.index({ assignedBranchSlug: 1 });
 userSchema.index({ status: 1 });
+userSchema.index({ plan: 1 });
 
-const User = mongoose.model<IUser>("User", userSchema);
+// Guard against hot-reload model re-registration (prevents duplicate index warnings)
+const User = (mongoose.models.User as mongoose.Model<IUser>) || mongoose.model<IUser>("User", userSchema);
 
+export { User };
 export default User;

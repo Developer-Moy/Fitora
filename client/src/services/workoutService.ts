@@ -4,6 +4,7 @@ import type {
   WorkoutLogSummary,
   WorkoutLogsResult,
 } from "@/types/workout";
+import { enqueueTelemetry, getPendingQueue } from "./offlineQueueService";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -62,7 +63,15 @@ async function parseResponse<T>(
 
 export async function createWorkoutLog(
   payload: CreateWorkoutLogPayload,
+  options?: { skipOfflineQueue?: boolean },
 ): Promise<WorkoutLog> {
+  const isOffline = typeof window !== "undefined" && !navigator.onLine;
+
+  if (isOffline && !options?.skipOfflineQueue) {
+    await enqueueTelemetry("WORKOUT_LOG", payload);
+    return createOptimisticWorkoutLog(payload);
+  }
+
   let response: Response;
   try {
     response = await fetch(`${API_URL}/workouts/log`, {
@@ -74,11 +83,66 @@ export async function createWorkoutLog(
       body: JSON.stringify(payload),
     });
   } catch {
+    if (!options?.skipOfflineQueue) {
+      await enqueueTelemetry("WORKOUT_LOG", payload);
+      return createOptimisticWorkoutLog(payload);
+    }
     throw new Error("Network error — could not reach the server");
   }
 
   const result = await parseResponse<WorkoutLog>(response);
   return result.data;
+}
+
+function createOptimisticWorkoutLog(
+  payload: CreateWorkoutLogPayload,
+): WorkoutLog {
+  const estimatedCalories =
+    payload.caloriesBurned ??
+    Math.round(
+      (payload.setsCount || 1) * (payload.repsCount || 10) * 0.4 +
+        (payload.durationMinutes ? payload.durationMinutes * 5 : 10),
+    );
+
+  const optimistic: WorkoutLog = {
+    _id: `offline_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    exerciseName: payload.exerciseName,
+    setsCount: payload.setsCount,
+    repsCount: payload.repsCount,
+    weight: payload.weight,
+    durationMinutes: payload.durationMinutes,
+    notes: payload.notes,
+    caloriesBurned: estimatedCalories,
+    date: payload.date || new Date().toISOString(),
+    userId: payload.userId,
+  };
+
+  // Dispatch event so local history & heatmap update optimistically
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("fitora-workout-logged", {
+        detail: {
+          userId: payload.userId,
+          exerciseName: payload.exerciseName,
+          date: optimistic.date,
+          isOffline: true,
+        },
+      }),
+    );
+  }
+
+  return optimistic;
+}
+
+export async function getPendingOfflineWorkoutLogs(): Promise<WorkoutLog[]> {
+  try {
+    const queue = await getPendingQueue();
+    return queue
+      .filter((item) => item.type === "WORKOUT_LOG")
+      .map((item) => createOptimisticWorkoutLog(item.payload));
+  } catch {
+    return [];
+  }
 }
 
 export async function getWorkoutLogs(

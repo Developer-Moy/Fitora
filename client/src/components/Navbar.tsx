@@ -5,8 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ArrowUpRight,
-  Search as FiSearch,
-  Settings as FiSettings,
   Menu as FiSidebar,
   X as FiClose,
   Activity as FiActivity,
@@ -23,13 +21,13 @@ import toast from "react-hot-toast";
 import { useSession } from "@/lib/auth-client";
 import {
   getAuthSession,
-  clearAuthSession,
   logoutUser,
   AuthUser,
   AUTH_SESSION_UPDATED,
   getCurrentUserApi,
 } from "@/services/authService";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import Image from "next/image";
 
 /* ── Navigation Links (Exact Match Between PC & Mobile Hamburger) ── */
 const NAV_LINKS = [
@@ -106,15 +104,20 @@ export default function Navbar() {
           ? localStorage.getItem("fitora_user_plan")
           : "");
 
+      const checkPremium = (p: string | null | undefined) => {
+        if (!p) return false;
+        const lowered = p.toLowerCase();
+        return (
+          lowered.includes("basic pass") ||
+          lowered.includes("pro athlete") ||
+          lowered.includes("vip ultimate")
+        );
+      };
+
       const hasProStatus =
         role === "premium_user" ||
         role === "master_admin" ||
-        Boolean(
-          plan &&
-          plan.toLowerCase() !== "free" &&
-          plan.toLowerCase() !== "free_user" &&
-          plan.trim() !== "",
-        );
+        checkPremium(plan);
 
       setIsPremium(Boolean(hasProStatus));
 
@@ -132,15 +135,11 @@ export default function Navbar() {
             if (res.success && res.user) {
               const serverRole = res.user.role;
               const serverPlan = res.user.plan;
+              
               const isServerPro =
                 serverRole === "premium_user" ||
                 serverRole === "master_admin" ||
-                Boolean(
-                  serverPlan &&
-                  serverPlan.toLowerCase() !== "free" &&
-                  serverPlan.toLowerCase() !== "free_user" &&
-                  serverPlan.trim() !== "",
-                );
+                checkPremium(serverPlan);
 
               setIsPremium(Boolean(isServerPro));
 
@@ -196,7 +195,6 @@ export default function Navbar() {
   const isBranchAdmin =
     userRole === "branch_admin" ||
     userEmail.toLowerCase().includes("admin@fitora");
-  const isAdmin = isMasterAdmin || isBranchAdmin;
 
   const handleLogout = async () => {
     try {
@@ -222,7 +220,7 @@ export default function Navbar() {
   return (
     <>
       {/* ── Navbar Container ── */}
-      <nav className="fixed top-0 left-0 right-0 z-[70] bg-black/95 backdrop-blur-md text-white border-b border-white/10 h-16 sm:h-20 select-none">
+      <nav className="fixed top-0 left-0 right-0 z-70 bg-black/95 backdrop-blur-md text-white border-b border-white/10 h-16 sm:h-20 select-none">
         <div className="w-11/12 max-w-7xl mx-auto h-full flex items-center justify-between relative">
           {/* Left: Brand Logo */}
           <Link
@@ -233,9 +231,11 @@ export default function Navbar() {
             }}
             className="flex items-center gap-3 group select-none shrink-0"
           >
-            <img
+            <Image
               src="/logo.svg"
               alt="Fitora logo"
+              width={32}
+              height={32}
               className="w-8 h-8 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform duration-200"
             />
             <div className="flex flex-col">
@@ -244,12 +244,9 @@ export default function Navbar() {
                   FITORA
                 </span>
                 {isMounted && isPremium && (
-                  <Link
-                    href="#pricing"
-                    className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-white text-black font-extrabold text-xs uppercase tracking-wider border border-white hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95 transition-all shadow-md cursor-pointer leading-none"
-                  >
+                  <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-white text-black font-extrabold text-[10px] sm:text-xs uppercase tracking-wider border border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none select-none">
                     PRO
-                  </Link>
+                  </span>
                 )}
               </div>
               <span className="text-[9px] text-white/60 font-bold tracking-[0.25em] uppercase">
@@ -319,16 +316,6 @@ export default function Navbar() {
               </Link>
             ) : (
               <div className="hidden lg:flex items-center gap-3">
-                {/* If user is not yet PRO, show a PRO upgrade button matching other buttons */}
-                {isMounted && !isPremium && (
-                  <Link
-                    href="#pricing"
-                    className="group inline-flex items-center justify-center bg-white text-black border border-white font-extrabold text-xs sm:text-sm px-4 py-2 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
-                  >
-                    <span>PRO</span>
-                  </Link>
-                )}
-
                 <NotificationBell
                   isLoggedIn={isLoggedIn}
                   userEmail={userEmail}
@@ -336,7 +323,7 @@ export default function Navbar() {
 
                 <div
                   ref={profileDropdownRef}
-                  className="relative min-w-[145px] sm:min-w-[155px]"
+                  className="relative min-w-36.25 sm:min-w-38.75"
                 >
                   {/* Profile Dropdown Button with Profile Image */}
                   <button
@@ -347,7 +334,9 @@ export default function Navbar() {
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-7 h-7 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-sm border border-black/10">
                         {userAvatar ? (
-                          <img
+                          <Image
+                            width={28}
+                            height={28}
                             src={userAvatar}
                             alt={userName}
                             className="w-full h-full object-cover"
@@ -433,11 +422,11 @@ export default function Navbar() {
       {/* ── Mobile & Tablet Drawer (Visible ONLY on Mobile/Tablet < 1024px) ── */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 top-16 sm:top-20 z-[90] bg-black/80 backdrop-blur-md lg:hidden"
+          className="fixed inset-0 top-16 sm:top-20 z-90 bg-black/80 backdrop-blur-md lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
         >
           <div
-            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[320px] h-full bg-black border-l border-white/10 flex flex-col justify-between shadow-2xl z-[100]"
+            className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-80 h-full bg-black border-l border-white/10 flex flex-col justify-between shadow-2xl z-100"
             onClick={(e) => e.stopPropagation()}
           >
             {/* ── Main Navigation Links (Exact Match to PC Navbar) ── */}
@@ -461,7 +450,7 @@ export default function Navbar() {
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
                       <Icon
-                        className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-black" : "text-white/60"}`}
+                        className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-black" : "text-white/60"}`}
                       />
                       <span className="truncate">{label}</span>
                     </div>
@@ -504,7 +493,9 @@ export default function Navbar() {
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-7 h-7 rounded-full bg-black text-white font-black text-xs flex items-center justify-center shrink-0 overflow-hidden shadow-sm border border-white/20">
                         {userAvatar ? (
-                          <img
+                          <Image
+                            width={28}
+                            height={28}
                             src={userAvatar}
                             alt={userName}
                             className="w-full h-full object-cover"

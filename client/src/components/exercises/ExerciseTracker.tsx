@@ -1,5 +1,6 @@
 "use client";
 
+import FitoraPillButton from "@/components/ui/FitoraPillButton";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
   ArrowUpRight,
@@ -8,18 +9,23 @@ import {
   ChevronRight,
   Clock3,
   Dumbbell,
+  ExternalLink,
   Flame,
   Lock,
   Pause,
   Play,
   RotateCcw,
   Search,
+  Sparkles,
   Target,
   X,
   Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { fetchExercises } from "@/services/exerciseService";
+import { createWorkoutLog } from "@/services/workoutService";
+import Image from "next/image";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 
 type Exercise = {
   id: string;
@@ -40,14 +46,14 @@ const categories = [
   "CHEST",
   "BACK",
   "LEGS",
-  "ARMS",
   "SHOULDERS",
+  "ARMS",
   "CORE",
-  "GLUTES",
-  "FULL BODY",
   "CARDIO",
-  "MOBILITY",
+  "FULL BODY",
   "FUNCTIONAL",
+  "MOBILITY",
+  "GLUTES",
 ];
 
 export default function ExercisePage() {
@@ -58,7 +64,7 @@ export default function ExercisePage() {
   const [activeCategory, setActiveCategory] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
-    null,
+    null
   );
 
   const [isPremium, setIsPremium] = useState(false);
@@ -68,15 +74,18 @@ export default function ExercisePage() {
   const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
-    async function loadExercises() {
+    let cancelled = false;
+    async function loadExercises(attempt = 0) {
       setIsLoading(true);
+      setError("");
       const data = await fetchExercises();
-      if (data) {
+      if (cancelled) return;
+      if (data && data.length > 0) {
         const mapped = data.map((d: any) => ({
           id: d._id,
           name: d.name,
           category: (d.category || "FUNCTIONAL").toUpperCase(),
-          difficulty: (d.difficulty || "BEGINNER").toUpperCase() as any,
+          difficulty: (d.difficulty || "BEGINNER").toUpperCase() as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           duration: d.duration || "10 MIN",
           equipment: (d.equipment || "BODYWEIGHT").toUpperCase(),
           muscle: (d.muscle || "").toUpperCase(),
@@ -88,10 +97,21 @@ export default function ExercisePage() {
             "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=80",
         }));
         setExercises(mapped);
+        setIsLoading(false);
+      } else if (attempt < 3) {
+        // Retry up to 3 times with 2s delay (server may be restarting)
+        setTimeout(() => {
+          if (!cancelled) loadExercises(attempt + 1);
+        }, 2000);
+      } else {
+        setError("Could not load exercises. Please refresh.");
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     loadExercises();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredExercises = useMemo(() => {
@@ -117,27 +137,42 @@ export default function ExercisePage() {
   useEffect(() => {
     const checkPremiumAccess = async () => {
       try {
-        const token =
-          typeof window !== "undefined"
-            ? localStorage.getItem("fitora_token") ||
-              localStorage.getItem("fitora_auth_token")
-            : null;
+        if (typeof window === "undefined") return;
 
-        if (!token) {
+        // 1. Quick local storage check to avoid API latency and token missing issues
+        const plan = localStorage.getItem("fitora_user_plan");
+        const role = localStorage.getItem("fitora_user_role");
+        
+        if (
+          plan === "Pro Athlete" || 
+          plan === "VIP Ultimate" || 
+          plan === "Basic Pass" || 
+          role === "premium_user" ||
+          role === "master_admin" ||
+          role === "admin"
+        ) {
+          setIsPremium(true);
+          return;
+        }
+
+        // 2. Fallback to API check
+        const token = localStorage.getItem("fitora_token") || localStorage.getItem("fitora_auth_token");
+        const userEmail = localStorage.getItem("fitora_user_email");
+
+        if (!token && !userEmail) {
           setIsPremium(false);
           return;
         }
 
-        const rawApiUrl =
+        const headers: Record<string, string> = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        if (userEmail) headers["x-user-email"] = userEmail;
+
+        const apiBase =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const apiBase = rawApiUrl.endsWith("/api")
-          ? rawApiUrl
-          : `${rawApiUrl}/api`;
 
         const response = await fetch(`${apiBase}/workouts/advanced`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
         });
 
         setIsPremium(response.ok);
@@ -166,7 +201,7 @@ export default function ExercisePage() {
           }}
         />
         {/* Dark Luxury Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/90 to-black z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/80 via-black/90 to-black z-0 pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
           {/* Top Title & Search Bar Row */}
@@ -225,11 +260,8 @@ export default function ExercisePage() {
 
           {/* 3x3 Exercise Grid (9 Cards Per Page) */}
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-white/50">
-              <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-xs font-bold uppercase tracking-widest">
-                Loading exercise library...
-              </p>
+            <div className="flex items-center justify-center py-20">
+              <FitoraSpinner size="lg" label="Loading exercise library..." />
             </div>
           ) : paginatedExercises.length > 0 ? (
             <>
@@ -264,9 +296,9 @@ export default function ExercisePage() {
                         ?.scrollIntoView({ behavior: "smooth" });
                     }}
                     disabled={currentPage === 1}
-                    className="inline-flex items-center gap-1 px-4 py-2.5 rounded-full border border-white/20 bg-neutral-900 text-xs font-bold text-white hover:bg-white hover:text-black transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer shadow-md"
+                    className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-all duration-300 shadow-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-neutral-900 disabled:hover:text-white active:scale-95"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
                     <span>Prev</span>
                   </button>
 
@@ -291,7 +323,7 @@ export default function ExercisePage() {
                         >
                           {pageNum}
                         </button>
-                      ),
+                      )
                     )}
                   </div>
 
@@ -305,10 +337,10 @@ export default function ExercisePage() {
                         ?.scrollIntoView({ behavior: "smooth" });
                     }}
                     disabled={currentPage === totalPages}
-                    className="inline-flex items-center gap-1 px-4 py-2.5 rounded-full border border-white/20 bg-neutral-900 text-xs font-bold text-white hover:bg-white hover:text-black transition disabled:opacity-30 disabled:pointer-events-none cursor-pointer shadow-md"
+                    className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-full text-xs font-black uppercase tracking-wider bg-neutral-900 border border-white/15 text-white hover:bg-white hover:text-black transition-all duration-300 shadow-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-neutral-900 disabled:hover:text-white active:scale-95"
                   >
                     <span>Next</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4 stroke-[2.5]" />
                   </button>
                 </div>
               )}
@@ -336,7 +368,7 @@ export default function ExercisePage() {
 
       {showPremiumMessage && (
         <div
-          className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-5"
+          className="fixed inset-0 z-200 bg-black/80 backdrop-blur-md flex items-center justify-center p-5"
           onClick={() => setShowPremiumMessage(false)}
         >
           <div
@@ -357,27 +389,25 @@ export default function ExercisePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-2 mt-6">
-              <button
-                type="button"
+              <FitoraPillButton
+                variant="black"
+                showIcon={false}
                 onClick={() => setShowPremiumMessage(false)}
-                className="flex-1 px-5 py-3 rounded-full border border-white/15 bg-neutral-900 text-white text-xs font-black uppercase tracking-wider hover:border-white/40 transition"
+                className="flex-1"
               >
                 Maybe Later
-              </button>
+              </FitoraPillButton>
 
-              <button
-                type="button"
+              <FitoraPillButton
+                variant="white"
                 onClick={() => {
                   setShowPremiumMessage(false);
-                  window.location.href = "/pricing";
+                  window.location.href = "/#pricing";
                 }}
-                className="group flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white text-black text-xs font-black uppercase tracking-wider hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.35)] transition cursor-pointer shadow-lg"
+                className="flex-1"
               >
-                <span>Upgrade Now</span>
-                <span className="w-5 h-5 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-sm">
-                  <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-                </span>
-              </button>
+                Upgrade Now
+              </FitoraPillButton>
             </div>
           </div>
         </div>
@@ -424,34 +454,103 @@ function ExerciseCard({
 
   const defaultFallback =
     "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1000&q=80";
+
+  // Primary image source: YouTube thumbnail when videoId exists, otherwise category/exercise image
+  const ytThumbnail = exercise.videoId
+    ? `https://img.youtube.com/vi/${exercise.videoId}/hqdefault.jpg`
+    : null;
   const initialImg =
-    exercise.image || validCategoryImages[exercise.category] || defaultFallback;
+    ytThumbnail ||
+    exercise.image ||
+    validCategoryImages[exercise.category] ||
+    defaultFallback;
+
   const [imgSrc, setImgSrc] = useState(initialImg);
+  const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync image source whenever exercise changes
+  useEffect(() => {
+    const freshThumb = exercise.videoId
+      ? `https://img.youtube.com/vi/${exercise.videoId}/hqdefault.jpg`
+      : exercise.image ||
+        validCategoryImages[exercise.category] ||
+        defaultFallback;
+    setImgSrc(freshThumb);
+  }, [exercise.videoId, exercise.image, exercise.category]);
+
+  // Clean up any pending hover timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (locked || !exercise.videoId) return;
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => {
+      setIsPlayingPreview(true);
+    }, 280);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setIsPlayingPreview(false);
+  };
 
   return (
     <article
       onClick={onClick}
-      className={`group relative h-[280px] sm:h-[310px] overflow-hidden rounded-2xl bg-neutral-900 border border-white/10 hover:border-white/30 transition-all duration-300 cursor-pointer shadow-xl select-none ${
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`group relative h-70 sm:h-77.5 overflow-hidden rounded-2xl bg-neutral-900 border transition-all duration-300 cursor-pointer shadow-xl select-none ${
         locked
-          ? "border-white/10 cursor-pointer"
-          : "border-white/10 hover:border-white/30 cursor-pointer"
+          ? "border-white/10 hover:border-white/20"
+          : "border-white/10 hover:border-white/30"
       }`}
     >
-      {/* Image */}
-      <img
+      {/* Primary Image (YouTube Thumbnail / Fallback) */}
+      <Image
         src={imgSrc}
         alt=""
+        fill
         aria-hidden="true"
         onError={() => {
           if (imgSrc !== defaultFallback) {
-            setImgSrc(defaultFallback);
+            setImgSrc(
+              exercise.image ||
+                validCategoryImages[exercise.category] ||
+                defaultFallback,
+            );
           }
         }}
-        className="absolute inset-0 w-full h-full object-cover opacity-85 group-hover:scale-105 group-hover:opacity-95 transition-all duration-700 brightness-105 contrast-105"
+        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 brightness-105 contrast-105 z-0 ${
+          isPlayingPreview
+            ? "opacity-0 scale-105"
+            : "opacity-85 group-hover:scale-105 group-hover:opacity-95"
+        }`}
       />
 
+      {/* Auto-playing Muted YouTube Video Preview on Hover */}
+      {isPlayingPreview && exercise.videoId && !locked && (
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-black">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${exercise.videoId}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${exercise.videoId}&showinfo=0&rel=0&iv_load_policy=3&playsinline=1`}
+            title={exercise.name}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] max-w-none pointer-events-none border-0 opacity-95 transition-opacity duration-300"
+          />
+        </div>
+      )}
+
       {/* Subtle Gradient Overlay for High Contrast Text Reading */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20" />
+      <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-black/20 pointer-events-none z-1" />
 
       {locked && (
         <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
@@ -473,25 +572,55 @@ function ExerciseCard({
         </div>
       )}
 
-      {/* Number */}
-      <div className="absolute top-4 left-4">
+      {/* Number and VIP Badge */}
+      <div className="absolute top-4 left-4 flex items-center gap-1.5 z-10 pointer-events-none">
         <span className="bg-white text-black px-2.5 py-1 rounded-full text-[10px] font-black tracking-wider">
           {String(index + 1).padStart(2, "0")}
         </span>
+        {exercise.difficulty === "ADVANCED" && (
+          <span className="bg-amber-400 text-black px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider flex items-center gap-1 shadow-md">
+            <Sparkles className="w-2.5 h-2.5 fill-black" />
+            VIP
+          </span>
+        )}
       </div>
 
-      {/* Play */}
-      <div className="absolute top-4 right-4">
-        <div className="relative w-9 h-9 rounded-full bg-white text-black flex items-center justify-center transition-all duration-300 group-hover:scale-105 shadow-md">
-          {/* Circular loader ring on hover */}
-          <span className="absolute -inset-1 rounded-full border-2 border-transparent border-t-white border-r-white/60 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity duration-300 pointer-events-none" />
-          <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
+      {/* Play Button or Live Preview Status */}
+      <div className="absolute top-4 right-4 z-10 pointer-events-none">
+        <div
+          className={`relative rounded-full flex items-center justify-center transition-all duration-300 shadow-md ${
+            isPlayingPreview
+              ? "h-8 px-2.5 bg-red-600 text-white shadow-red-500/40 shadow-lg scale-105"
+              : "w-9 h-9 bg-white text-black group-hover:scale-105"
+          }`}
+        >
+          {isPlayingPreview ? (
+            <div className="flex items-center gap-1.5">
+              <span className="flex items-end gap-0.5 h-3">
+                <span className="w-0.75 bg-white rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
+                <span className="w-0.75 bg-white rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-3" />
+                <span className="w-0.75 bg-white rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-1.5" />
+              </span>
+              <span className="text-[9px] font-black uppercase tracking-wider">
+                LIVE
+              </span>
+              <span className="text-[9px] font-black uppercase tracking-wider">
+                LIVE
+              </span>
+            </div>
+          ) : (
+            <>
+              {/* Circular loader ring on hover */}
+              <span className="absolute -inset-1 rounded-full border-2 border-transparent border-t-white border-r-white/60 opacity-0 group-hover:opacity-100 group-hover:animate-spin transition-opacity duration-300 pointer-events-none" />
+              <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
+            </>
+          )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 space-y-2">
-        <div className="flex flex-wrap gap-1.5">
+      <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 space-y-2 z-10 pointer-events-none">
+        <div className="flex flex-wrap items-center gap-1.5">
           <span className="px-2.5 py-0.5 rounded-full border border-white/20 bg-black/60 text-[9px] font-bold tracking-wider">
             {exercise.category}
           </span>
@@ -499,6 +628,13 @@ function ExerciseCard({
           <span className="px-2.5 py-0.5 rounded-full border border-white/20 bg-black/60 text-[9px] font-bold tracking-wider">
             {exercise.difficulty}
           </span>
+
+          {exercise.difficulty === "ADVANCED" && (
+            <span className="px-2.5 py-0.5 rounded-full border border-amber-400/40 bg-amber-500/20 text-amber-300 text-[9px] font-black tracking-wider flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5 fill-amber-300" />
+              VIP EXCLUSIVE
+            </span>
+          )}
         </div>
 
         <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-tight line-clamp-1">
@@ -587,8 +723,10 @@ function ExerciseModal({
         if (token) headers["Authorization"] = `Bearer ${token}`;
 
         const res = await fetch(
-          `${API_BASE_URL}/workouts/log?userId=${encodeURIComponent(userId)}&limit=50`,
-          { headers },
+          `${API_BASE_URL}/workouts/log?userId=${encodeURIComponent(
+            userId
+          )}&limit=50`,
+          { headers }
         );
         if (res.ok) {
           const json = await res.json();
@@ -596,8 +734,8 @@ function ExerciseModal({
             ? json.data
             : json?.data?.logs || [];
           const filtered = items.filter(
-            (item: any) =>
-              item.exerciseName?.toLowerCase() === exercise.name.toLowerCase(),
+            (item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) =>
+              item.exerciseName?.toLowerCase() === exercise.name.toLowerCase()
           );
           if (active && filtered.length > 0) {
             setHistory(filtered);
@@ -652,7 +790,10 @@ function ExerciseModal({
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     const centi = Math.floor((ms % 1000) / 10);
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(centi).padStart(2, "0")}`;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}.${String(centi).padStart(2, "0")}`;
   };
 
   const validate = (): string | null => {
@@ -675,7 +816,7 @@ function ExerciseModal({
   };
 
   const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>,
+    event: React.FormEvent<HTMLFormElement>
   ): Promise<void> => {
     event.preventDefault();
     const validationError = validate();
@@ -708,40 +849,12 @@ function ExerciseModal({
     };
 
     try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("fitora_token") ||
-            localStorage.getItem("fitora_auth_token")
-          : null;
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
-
-      const response = await fetch(`${API_BASE_URL}/workouts/log`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        let message = `Request failed with status ${response.status}`;
-        try {
-          const data = await response.json();
-          message = (data && (data.message || data.error)) || message;
-        } catch {
-          // ignore non-JSON response
-        }
-        throw new Error(message);
-      }
-
-      const result = await response.json();
-      const created: WorkoutLog = (result?.data ||
-        result?.payload ||
-        result) as WorkoutLog;
+      const created = await createWorkoutLog(payload);
+      const safeId = created._id ?? `offline_${Date.now()}`;
+      const isOfflineItem = safeId.startsWith("offline_");
 
       const normalized: WorkoutLog = {
-        _id: created._id ?? `local-${Date.now()}`,
+        _id: safeId,
         exerciseName: created.exerciseName ?? exercise.name,
         setsCount: Number(created.setsCount ?? payload.setsCount),
         repsCount: Number(created.repsCount ?? payload.repsCount),
@@ -753,10 +866,17 @@ function ExerciseModal({
 
       setHistory((prev) => [normalized, ...prev]);
       setNotes("");
-      toast.success(
-        `${exercise.name} logged: ${normalized.setsCount} × ${normalized.repsCount} @ ${normalized.weight}kg`,
-        { duration: 3000 },
-      );
+      if (isOfflineItem) {
+        toast.success(
+          `Offline Mode: ${exercise.name} saved locally! Will sync to MongoDB once online 📶`,
+          { duration: 4000, icon: "💾" }
+        );
+      } else {
+        toast.success(
+          `${exercise.name} logged: ${normalized.setsCount} × ${normalized.repsCount} @ ${normalized.weight}kg`,
+          { duration: 3000 }
+        );
+      }
 
       // Notify active Heatmap and workout listeners of newly saved activity
       if (typeof window !== "undefined") {
@@ -768,7 +888,7 @@ function ExerciseModal({
                 exerciseName: exercise.name,
                 date: payload.date,
               },
-            }),
+            })
           );
         } catch {
           // Heatmap refresh failure must never cause workout save to fail
@@ -789,7 +909,7 @@ function ExerciseModal({
   return (
     <div
       className="
-        fixed inset-0 z-[100]
+        fixed inset-0 z-100
         bg-black/90 backdrop-blur-xl
         flex items-center justify-center
         p-0 sm:p-4 md:p-6
@@ -802,7 +922,7 @@ function ExerciseModal({
         className="
           relative w-full h-full sm:h-auto sm:max-h-[90vh] md:max-h-[85vh] lg:max-h-[88vh]
           max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-5xl
-          overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
+          overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none
           bg-neutral-950 border border-white/15
           rounded-none sm:rounded-3xl
           shadow-[0_0_50px_rgba(0,0,0,0.9)]
@@ -855,16 +975,38 @@ function ExerciseModal({
             {/* LEFT COLUMN */}
             <div className="contents lg:flex lg:flex-col lg:gap-4 lg:w-full">
               {/* 1. Video & Metadata -> order-1 on mobile */}
-              <div className="order-1 lg:order-none flex flex-col gap-2 w-full">
+              <div className="order-1 lg:order-0 flex flex-col gap-2 w-full">
                 {/* YouTube Video Player */}
                 <div className="relative w-full aspect-video overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-white/10 shadow-2xl">
-                  <iframe
-                    className="absolute inset-0 w-full h-full"
-                    src={`https://www.youtube.com/embed/${exercise.videoId}?rel=0`}
-                    title={`${exercise.name} exercise tutorial`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
+                  {exercise.videoId ? (
+                    <iframe
+                      className="absolute inset-0 w-full h-full"
+                      src={`https://www.youtube-nocookie.com/embed/${exercise.videoId}?rel=0`}
+                      title={`${exercise.name} exercise tutorial`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-neutral-900 text-white/40 text-xs font-bold uppercase tracking-wider">
+                      Video Unavailable
+                    </div>
+                  )}
+                </div>
+
+                {/* External Video Demonstration Link */}
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                    Video Demonstration
+                  </span>
+                  <a
+                    href={`https://www.youtube.com/watch?v=${exercise.videoId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] font-bold text-white/70 hover:text-white transition uppercase tracking-wider hover:underline"
+                  >
+                    <span>Watch in Full HD</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
 
                 {/* 3 Metadata Cards (Duration, Equipment, Target) under Video */}
@@ -888,7 +1030,7 @@ function ExerciseModal({
               </div>
 
               {/* 2. Modal Stopwatch -> order-2 on mobile */}
-              <div className="order-2 lg:order-none w-full bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
+              <div className="order-2 lg:order-0 w-full bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <div className="flex items-center gap-3">
                     <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
@@ -902,8 +1044,8 @@ function ExerciseModal({
                     {swRunning
                       ? "RUNNING"
                       : swElapsedMs > 0
-                        ? "PAUSED"
-                        : "READY"}
+                      ? "PAUSED"
+                      : "READY"}
                   </span>
                 </div>
 
@@ -923,18 +1065,18 @@ function ExerciseModal({
                     <button
                       type="button"
                       onClick={startStopwatch}
-                      className="col-span-2 inline-flex items-center justify-center gap-1.5 bg-white text-black font-extrabold text-[10px] uppercase tracking-wider px-3 py-2 rounded-full hover:bg-gray-100 transition shadow-md cursor-pointer"
+                      className="col-span-2 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-black uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all duration-300 shadow-lg cursor-pointer active:scale-95 select-none"
                     >
-                      <Play className="w-3 h-3 fill-black" />
+                      <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
                       <span>{swElapsedMs > 0 ? "Resume" : "Start"}</span>
                     </button>
                   ) : (
                     <button
                       type="button"
                       onClick={pauseStopwatch}
-                      className="col-span-2 inline-flex items-center justify-center gap-1.5 bg-white text-black font-extrabold text-[10px] uppercase tracking-wider px-3 py-2 rounded-full hover:bg-gray-100 transition shadow-md cursor-pointer"
+                      className="col-span-2 inline-flex items-center justify-center gap-2 py-3 px-4 rounded-full text-xs font-black uppercase tracking-wider bg-white text-black hover:bg-neutral-200 transition-all duration-300 shadow-lg cursor-pointer active:scale-95 select-none"
                     >
-                      <Pause className="w-3 h-3 fill-black" />
+                      <Pause className="w-3.5 h-3.5 fill-black" />
                       <span>Pause</span>
                     </button>
                   )}
@@ -942,16 +1084,16 @@ function ExerciseModal({
                     type="button"
                     onClick={resetStopwatch}
                     disabled={swElapsedMs === 0 && !swRunning}
-                    className="inline-flex items-center justify-center gap-1.5 bg-neutral-950 border border-white/15 text-white font-extrabold text-[10px] uppercase tracking-wider px-3 py-2 rounded-full hover:border-white/40 transition shadow-md cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center gap-1.5 py-3 px-3 rounded-full text-xs font-black uppercase tracking-wider bg-neutral-900 border border-white/20 text-white hover:bg-white hover:text-black transition-all duration-300 shadow-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-neutral-900 disabled:hover:text-white active:scale-95 select-none"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RotateCcw className="w-3.5 h-3.5" />
                     <span>Reset</span>
                   </button>
                 </div>
               </div>
 
               {/* 5. History List (Under Stopwatch!) -> order-5 on mobile */}
-              <div className="order-5 lg:order-none w-full">
+              <div className="order-5 lg:order-0 w-full">
                 <HistoryList logs={history} />
               </div>
             </div>
@@ -1015,31 +1157,33 @@ function ExerciseModal({
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <button
+                  <FitoraPillButton
+                    variant="white"
                     type="submit"
                     disabled={submitting}
-                    className="group flex-1 inline-flex items-center justify-center gap-2.5 bg-white text-black font-extrabold text-xs sm:text-sm px-5 py-3.5 rounded-full hover:bg-gray-100 transition-all duration-300 shadow-xl cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex-1 text-xs sm:text-sm py-3.5"
                   >
-                    <span>
-                      {submitting ? "LOGGING..." : "FINISH & LOG SET"}
-                    </span>
-                    <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-300">
-                      <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                    </span>
-                  </button>
+                    {submitting ? "LOGGING..." : "FINISH & LOG SET"}
+                  </FitoraPillButton>
                 </div>
               </form>
 
               {/* 4. Badges, Title, Description, Tips -> order-4 on mobile, order-1 on desktop */}
               <div className="order-4 lg:order-1 space-y-5 w-full">
                 {/* Category & Difficulty Badges */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="px-3 py-1 rounded-full bg-white text-black text-[9px] font-black uppercase tracking-wider">
                     {exercise.category}
                   </span>
                   <span className="px-3 py-1 rounded-full border border-white/20 text-white/60 text-[9px] font-black uppercase tracking-wider">
                     {exercise.difficulty}
                   </span>
+                  {exercise.difficulty === "ADVANCED" && (
+                    <span className="px-3 py-1 rounded-full border border-amber-400/40 bg-amber-500/20 text-amber-300 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                      <Sparkles className="w-2.5 h-2.5 fill-amber-300" />
+                      VIP ACCESS
+                    </span>
+                  )}
                 </div>
 
                 {/* Exercise Title & Description */}
@@ -1130,6 +1274,18 @@ function NumberField({
 ============================================================ */
 
 function HistoryList({ logs }: { logs: WorkoutLog[] }) {
+  const [animatingId, setAnimatingId] = useState<string | null>(null);
+  const prevLenRef = useRef(logs.length);
+
+  useEffect(() => {
+    if (logs.length > prevLenRef.current && logs[0]) {
+      setAnimatingId(logs[0]._id);
+      const timer = setTimeout(() => setAnimatingId(null), 500);
+      return () => clearTimeout(timer);
+    }
+    prevLenRef.current = logs.length;
+  }, [logs.length, logs]);
+
   if (logs.length === 0) {
     return (
       <div className="border border-dashed border-white/10 rounded-2xl p-5 text-center">
@@ -1157,7 +1313,17 @@ function HistoryList({ logs }: { logs: WorkoutLog[] }) {
             key={log._id}
             className="flex items-center justify-between gap-3 border border-white/10 bg-neutral-950 rounded-xl px-3 py-2.5"
           >
-            <div className="min-w-0">
+            {/* Success checkmark with pulse micro-interaction */}
+            <div
+              className={`shrink-0 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center ${
+                animatingId === log._id
+                  ? "animate-[setPulse_400ms_ease-out]"
+                  : ""
+              }`}
+            >
+              <CheckCircle2 className="w-3 h-3 text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-black text-white truncate">
                 {log.setsCount} × {log.repsCount} @ {log.weight}kg
               </p>
@@ -1181,6 +1347,15 @@ function HistoryList({ logs }: { logs: WorkoutLog[] }) {
           </li>
         ))}
       </ul>
+
+      {/* Set completion pulse keyframes */}
+      <style>{`
+        @keyframes setPulse {
+          0% { transform: scale(0.9); opacity: 0.7; }
+          50% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

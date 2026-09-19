@@ -1,16 +1,28 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { motion, type Variants } from "framer-motion";
 import { fetchMealsApi, MealItem } from "@/services/mealService";
 import { MealsData } from "@/data/MealsData";
 import MealCard from "@/components/meals/MealCard";
+import { MealSkeletonGrid } from "@/components/meals/MealSkeletonCard";
 import {
   Search,
   Utensils,
   ChevronLeft,
   ChevronRight,
-  Loader2,
 } from "lucide-react";
+
+const mealGridVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05,
+    },
+  },
+};
 
 export default function MealsPage() {
   const [meals, setMeals] = useState<MealItem[]>([]);
@@ -152,7 +164,11 @@ export default function MealsPage() {
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <span className="text-xs font-extrabold uppercase tracking-widest text-gray-400 flex items-center gap-2">
             <Utensils className="w-4 h-4 text-white" />
-            <span>Showing {filteredMeals.length} Nutritious Meals</span>
+            <span>
+              {isLoading
+                ? "Loading Healthy Meals..."
+                : `Showing ${filteredMeals.length} Nutritious Meals`}
+            </span>
           </span>
 
           <span className="text-xs font-bold text-gray-400">
@@ -162,15 +178,16 @@ export default function MealsPage() {
 
         {/* Meals Grid & Pagination */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <Loader2 className="w-8 h-8 text-white animate-spin" />
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
-              Loading healthy meals from database...
-            </p>
-          </div>
+          <MealSkeletonGrid count={ITEMS_PER_PAGE} />
         ) : paginatedMeals.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <motion.div
+              key={`meals-grid-${currentPage}-${selectedCategory}`}
+              variants={mealGridVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+            >
               {paginatedMeals.map((meal) => (
                 <MealCard
                   key={meal.id}
@@ -182,7 +199,7 @@ export default function MealsPage() {
                   img={meal.img}
                 />
               ))}
-            </div>
+            </motion.div>
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
@@ -247,8 +264,8 @@ export default function MealsPage() {
               No Meals Found
             </h3>
             <p className="text-xs text-gray-400 max-w-sm mx-auto">
-              No meal recipe matches "{searchQuery}". Try searching for another
-              keyword or select "All Meals".
+              No meal recipe matches &quot;{searchQuery}&quot;. Try searching for another
+              keyword or select &quot;All Meals&quot;.
             </p>
           </div>
         )}

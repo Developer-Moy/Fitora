@@ -14,6 +14,7 @@ import {
   Shield,
   UserCheck,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -79,9 +80,9 @@ export default function DashboardLoginPage() {
         result.message || "Invalid administrator credentials. Access denied.";
       toast.error(invalidMsg);
       setErrorMessage(invalidMsg);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsLoading(false);
-      const errMsg = err?.message || "Authentication error occurred.";
+      const errMsg = (err instanceof Error ? err.message : "") || "Authentication error occurred.";
       toast.error(errMsg);
       setErrorMessage(errMsg);
     }
@@ -108,9 +109,11 @@ export default function DashboardLoginPage() {
       {/* Top Bar */}
       <header className="max-w-5xl mx-auto w-full flex items-center justify-between py-2 shrink-0">
         <Link href="/" className="flex items-center gap-2.5 group select-none">
-          <img
+          <Image
             src="/logo.svg"
             alt="FITORA logo"
+            width={28}
+            height={28}
             className="w-7 h-7 object-contain filter brightness-0 invert group-hover:scale-105 transition-transform"
           />
           <div className="flex flex-col">
@@ -133,7 +136,7 @@ export default function DashboardLoginPage() {
       </header>
 
       {/* Main Login Card */}
-      <main className="max-w-[440px] w-full mx-auto my-auto shrink-0 space-y-5 py-6">
+      <main className="max-w-110 w-full mx-auto my-auto shrink-0 space-y-5 py-6">
         {/* Title */}
         <div className="text-center space-y-1.5">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/15 text-[10px] font-bold uppercase tracking-widest text-white/70">

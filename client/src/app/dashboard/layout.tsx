@@ -77,7 +77,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       <DashboardNavbar />
 
       {/* Main Content Wrapper - Full width and spacious for data */}
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 max-w-[1700px] w-full mx-auto space-y-3 sm:space-y-4">
+      <main className="flex-1 px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3 max-w-425 w-full mx-auto space-y-3 sm:space-y-4">
         {children}
       </main>
     </div>

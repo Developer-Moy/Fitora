@@ -6,10 +6,21 @@ import {
   FaInstagram,
   FaXTwitter,
   FaPinterestP,
+  FaWhatsapp,
 } from "react-icons/fa6";
-import { ArrowUpRight, CheckCircle2 as FiCheckCircle } from "lucide-react";
+import {
+  ArrowUpRight,
+  Phone,
+  Mail,
+  CheckCircle2 as FiCheckCircle,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { submitConsultationApi } from "@/services/consultationService";
+import { getWhatsAppUrl } from "@/utils/whatsappHelper";
+
+const FITORA_CONTACT_PHONE = "+880 1700-000000";
+const FITORA_TEL_LINK = "tel:+8801700000000";
+const FITORA_SUPPORT_EMAIL = "support@fitora.com.bd";
 
 export default function ContactInfoForm() {
   const [formData, setFormData] = useState({
@@ -30,13 +41,21 @@ export default function ContactInfoForm() {
       toast.error("Please enter your name and email address.");
       return;
     }
+    if (!formData.selectedClass) {
+      toast.error("Please select a class.");
+      return;
+    }
+    if (!formData.comment || !formData.comment.trim()) {
+      toast.error("Please enter your message.");
+      return;
+    }
 
     setIsSubmitting(true);
     const result = await submitConsultationApi({
       fullName: formData.fullName,
       email: formData.email,
       phone: formData.phone,
-      selectedClass: formData.selectedClass || "General Fitness & Gym Access",
+      selectedClass: formData.selectedClass,
       comment: formData.comment,
     });
 
@@ -120,8 +139,32 @@ export default function ContactInfoForm() {
               </h3>
               <div className="w-10 h-1 bg-black" />
               <div className="text-xs sm:text-sm text-gray-500 leading-relaxed font-normal space-y-0.5 pt-1">
-                <p>+880 1700-000000</p>
-                <p>support@fitora.com.bd</p>
+                <a
+                  href={FITORA_TEL_LINK}
+                  className="inline-flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
+                  aria-label="Call FITORA"
+                >
+                  <Phone className="w-3.5 h-3.5 shrink-0" />
+                  {FITORA_CONTACT_PHONE}
+                </a>
+                <a
+                  href={`mailto:${FITORA_SUPPORT_EMAIL}`}
+                  className="inline-flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
+                  aria-label="Email FITORA support"
+                >
+                  <Mail className="w-3.5 h-3.5 shrink-0" />
+                  {FITORA_SUPPORT_EMAIL}
+                </a>
+                <a
+                  href={getWhatsAppUrl(FITORA_CONTACT_PHONE)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
+                  aria-label="WhatsApp"
+                >
+                  <FaWhatsapp size={14} className="shrink-0" />
+                  {FITORA_CONTACT_PHONE}
+                </a>
               </div>
             </div>
 
@@ -167,6 +210,15 @@ export default function ContactInfoForm() {
                   aria-label="Pinterest"
                 >
                   <FaPinterestP size={14} />
+                </a>
+                <a
+                  href={getWhatsAppUrl(FITORA_CONTACT_PHONE)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gray-100 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all"
+                  aria-label="WhatsApp"
+                >
+                  <FaWhatsapp size={14} />
                 </a>
               </div>
             </div>
@@ -223,11 +275,12 @@ export default function ContactInfoForm() {
 
               <div>
                 <select
+                  required
                   value={formData.selectedClass}
                   onChange={(e) =>
                     setFormData({ ...formData, selectedClass: e.target.value })
                   }
-                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium text-gray-600 cursor-pointer"
+                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium cursor-pointer"
                 >
                   <option value="">Select Class</option>
                   <option value="bodybuilding">
@@ -241,6 +294,7 @@ export default function ContactInfoForm() {
 
               <div>
                 <textarea
+                  required
                   rows={5}
                   value={formData.comment}
                   onChange={(e) =>

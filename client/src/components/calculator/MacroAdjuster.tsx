@@ -1,6 +1,7 @@
 "use client";
 
-import { Lock, SlidersHorizontal, ArrowUpRight } from "lucide-react";
+import { Lock, SlidersHorizontal, } from "lucide-react";
+import FitoraPillButton from "../ui/FitoraPillButton";
 
 type MacroAdjusterProps = {
   isPremium: boolean;
@@ -95,15 +96,13 @@ export default function MacroAdjuster({
               for a personalized nutrition target.
             </p>
 
-            <a
-              href="/pricing"
-              className="group mt-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-[9px] font-black uppercase tracking-wider text-black transition hover:bg-gray-200 shadow-md"
+            <FitoraPillButton
+              href="/#pricing"
+              variant="white"
+              size="sm"
             >
-              <span>Upgrade to Pro</span>
-              <span className="w-4 h-4 rounded-full bg-black text-white flex items-center justify-center group-hover:rotate-45 transition-transform duration-300 shadow-sm">
-                <ArrowUpRight className="w-2.5 h-2.5 stroke-[2.5]" />
-              </span>
-            </a>
+              Upgrade to Premium
+            </FitoraPillButton>
           </div>
         </div>
       )}

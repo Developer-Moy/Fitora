@@ -27,6 +27,7 @@ export interface CreateWorkoutLogPayload {
   repsCount: number;
   weight?: number;
   durationMinutes?: number;
+  caloriesBurned?: number;
   notes?: string;
   date?: string;
   userId?: string;

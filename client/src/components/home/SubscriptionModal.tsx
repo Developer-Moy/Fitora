@@ -76,6 +76,11 @@ export default function SubscriptionModal({
     setCardExpiry(raw);
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, "").slice(0, 11);
+    setPhone(raw);
+  };
+
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -84,8 +89,18 @@ export default function SubscriptionModal({
     let resolvedCardName = cardName.trim();
 
     if (paymentMethod === "bkash" || paymentMethod === "nagad") {
-      if (!phone || phone.length < 11) {
-        toast.error("Please enter a valid 11-digit mobile number.");
+      const cleanPhone = phone.trim();
+      const bdPhoneRegex = /^01\d{9}$/;
+
+      if (!cleanPhone) {
+        toast.error("Please enter your mobile number.");
+        return;
+      }
+
+      if (!bdPhoneRegex.test(cleanPhone)) {
+        toast.error(
+          "Please enter a valid 11-digit mobile number starting with 01 (e.g., 017XXXXXXXX).",
+        );
         return;
       }
     } else if (paymentMethod === "card") {
@@ -136,7 +151,7 @@ export default function SubscriptionModal({
         "Content-Type": "application/json",
       };
       if (token) headers["Authorization"] = `Bearer ${token}`;
-      const resolvedUserId = currentUser?.id || (currentUser as any)?._id || "";
+      const resolvedUserId = currentUser?.id || (currentUser as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)?._id || "";
       const resolvedEmail =
         currentUser?.email ||
         (typeof window !== "undefined"
@@ -187,12 +202,12 @@ export default function SubscriptionModal({
         returnedUser?.membershipExpiresAt;
 
       // Ensure local user session is updated so Navbar immediately shows PRO badge
-      const updatedUserObj: any = {
+      const updatedUserObj: any /* eslint-disable-line @typescript-eslint/no-explicit-any */ = {
         ...(currentUser || {}),
         id:
           returnedUser?.id ||
           returnedUser?._id ||
-          (currentUser as any)?.id ||
+          (currentUser as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)?.id ||
           "user_" + Date.now(),
         name:
           returnedUser?.name ||
@@ -221,10 +236,10 @@ export default function SubscriptionModal({
 
       setIsProcessing(false);
       onSuccess(plan, isAnnual, gatewayFormatted);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[SubscriptionModal Checkout Error]:", err);
       toast.error(
-        err.message || "Payment processing failed. Please try again.",
+        (err instanceof Error ? err.message : "") || "Payment processing failed. Please try again.",
       );
       setIsProcessing(false);
     }
@@ -257,7 +272,7 @@ export default function SubscriptionModal({
           planName: plan.name,
           isAnnual,
           customerEmail: currentUser?.email,
-          userId: currentUser?.id || (currentUser as any)?._id,
+          userId: currentUser?.id || (currentUser as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)?._id,
         }),
       });
 
@@ -275,7 +290,7 @@ export default function SubscriptionModal({
 
       // Redirect directly to Stripe-hosted Checkout page
       window.location.href = data.data.url;
-    } catch (err: any) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       console.error("[Stripe Checkout Redirect Error]:", err);
       toast.error("Network error. Could not connect to payment gateway.");
       setIsCardLoading(false);
@@ -448,10 +463,12 @@ export default function SubscriptionModal({
                       </label>
                       <input
                         type="tel"
+                        inputMode="numeric"
                         required
+                        maxLength={11}
                         placeholder="017XXXXXXXX"
                         value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        onChange={handlePhoneChange}
                         className="w-full px-3 py-1.5 sm:py-2 bg-black border border-white/20 rounded-lg text-xs text-white placeholder-white/40 outline-none focus:border-white"
                       />
                     </div>

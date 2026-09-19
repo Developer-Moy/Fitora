@@ -214,9 +214,10 @@ const branchSchema = new Schema<IBranch>(
 branchSchema.index({ division: 1 });
 branchSchema.index({ district: 1 });
 branchSchema.index({ city: 1 });
-branchSchema.index({ slug: 1 });
+// Note: slug has unique:true in field definition — no extra .index() needed
 branchSchema.index({ status: 1 });
 
-const Branch = mongoose.model<IBranch>("Branch", branchSchema);
+// Guard against hot-reload model re-registration (prevents duplicate index warnings)
+const Branch = (mongoose.models.Branch as mongoose.Model<IBranch>) || mongoose.model<IBranch>("Branch", branchSchema);
 
 export default Branch;

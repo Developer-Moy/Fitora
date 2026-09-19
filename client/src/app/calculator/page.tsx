@@ -1,12 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Utensils,
-  ArrowUpRight,
   CheckCircle,
   Flame,
   Dumbbell,
@@ -22,6 +19,8 @@ import { calculateTimeline } from "@/utils/calculateTimeline";
 import { calculateNutritionApi } from "@/services/nutritionService";
 import MacroAdjuster from "@/components/calculator/MacroAdjuster";
 import AthleteHealthAssessmentCard from "@/components/calculator/AthleteHealthAssessmentCard";
+import FitoraPillButton from "@/components/ui/FitoraPillButton";
+import Image from "next/image";
 
 type Gender = "male" | "female";
 type Goal = "bulking" | "cutting" | "maintenance";
@@ -53,6 +52,48 @@ const goalOptions: {
   },
 ];
 
+const getPremiumStatus = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    const userStr = localStorage.getItem("fitora_user");
+
+    if (!userStr) {
+      return false;
+    }
+
+    const user = JSON.parse(userStr);
+
+    const plan = String(
+      user?.plan ||
+        user?.tier ||
+        user?.subscription?.plan ||
+        user?.subscription?.tier ||
+        "",
+    );
+
+    // Match actual Fitora plan names stored in MongoDB
+    const premiumPlans = ["Basic Pass", "Pro Athlete", "VIP Ultimate"];
+    if (premiumPlans.includes(plan)) return true;
+
+    // Also handle legacy lowercase/partial names as fallback
+    const planLower = plan.toLowerCase();
+    return (
+      planLower.includes("basic") ||
+      planLower.includes("pro") ||
+      planLower.includes("vip") ||
+      planLower.includes("athlete") ||
+      planLower.includes("premium") ||
+      planLower.includes("paid")
+    );
+  } catch (error) {
+    console.error("Premium status check failed:", error);
+    return false;
+  }
+};
+
 export default function CalculatorPage() {
   const [age, setAge] = useState(25);
   const [gender, setGender] = useState<Gender>("male");
@@ -75,12 +116,15 @@ export default function CalculatorPage() {
     carbs: number;
     fats: number;
   } | null>(null);
-  const [isPremium, setIsPremium] = useState(false);
+  const [isPremium] = useState(getPremiumStatus);
   const [customMacroPercentages, setCustomMacroPercentages] = useState({
     protein: 30,
     carbs: 40,
     fats: 30,
   });
+  const [pendingMacroPercentages, setPendingMacroPercentages] = useState(
+    customMacroPercentages,
+  );
 
   // Sync with backend nutrition API when inputs change
   useEffect(() => {
@@ -206,12 +250,9 @@ export default function CalculatorPage() {
       setIsSavingHydration(true);
       setHydrationSaved(false);
 
-      const rawApiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-      const apiBase = rawApiUrl.endsWith("/api")
-        ? rawApiUrl
-        : `${rawApiUrl}/api`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
 
       const response = await fetch(
         `${apiBase}/users/profile/hydration-target`,
@@ -280,12 +321,9 @@ export default function CalculatorPage() {
       setIsSavingTargetWeight(true);
       setTargetWeightSaved(false);
 
-      const rawApiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-      const apiBase = rawApiUrl.endsWith("/api")
-        ? rawApiUrl
-        : `${rawApiUrl}/api`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
 
       const response = await fetch(`${apiBase}/users/profile`, {
         method: "PATCH",
@@ -362,19 +400,12 @@ export default function CalculatorPage() {
     }
   };
 
-  const targetCalories = useMemo(() => {
-    switch (goal) {
-      case "bulking":
-        return tdee + 500;
-
-      case "cutting":
-        return Math.max(tdee - 500, 0);
-
-      case "maintenance":
-      default:
-        return tdee;
-    }
-  }, [tdee, goal]);
+  const targetCalories =
+    goal === "bulking"
+      ? tdee + 500
+      : goal === "cutting"
+        ? Math.max(tdee - 500, 0)
+        : tdee;
 
   const defaultMacroPercentages = useMemo(() => {
     switch (goal) {
@@ -402,80 +433,26 @@ export default function CalculatorPage() {
     }
   }, [goal]);
 
-  useEffect(() => {
-    setCustomMacroPercentages(defaultMacroPercentages);
-  }, [defaultMacroPercentages]);
-
   const macroPercentages = isPremium
     ? customMacroPercentages
     : defaultMacroPercentages;
 
   // Prefer server-verified macros, fall back to client-side calculation
-  const macros = useMemo(() => {
-    const proteinCalories = targetCalories * (macroPercentages.protein / 100);
+  const proteinCalories = targetCalories * (macroPercentages.protein / 100);
+  const carbsCalories = targetCalories * (macroPercentages.carbs / 100);
+  const fatsCalories = targetCalories * (macroPercentages.fats / 100);
 
-    const carbsCalories = targetCalories * (macroPercentages.carbs / 100);
-
-    const fatsCalories = targetCalories * (macroPercentages.fats / 100);
-
-    return {
-      protein: Math.round(proteinCalories / 4),
-      carbs: Math.round(carbsCalories / 4),
-      fats: Math.round(fatsCalories / 9),
-    };
-  }, [targetCalories, macroPercentages]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    try {
-      const userStr = localStorage.getItem("fitora_user");
-
-      if (!userStr) {
-        setIsPremium(false);
-        return;
+  const macros = serverMacros
+    ? {
+        protein: serverMacros.protein,
+        carbs: serverMacros.carbs,
+        fats: serverMacros.fats,
       }
-
-      const user = JSON.parse(userStr);
-
-      const plan = String(
-        user?.plan ||
-          user?.tier ||
-          user?.subscription?.plan ||
-          user?.subscription?.tier ||
-          "",
-      ).toLowerCase();
-
-      const premiumPlans = ["premium", "pro", "athlete", "paid"];
-
-      setIsPremium(premiumPlans.includes(plan));
-    } catch (error) {
-      console.error("Premium status check failed:", error);
-      setIsPremium(false);
-    }
-  }, []);
-
-  const handleMacroChange = (
-    macro: "protein" | "carbs" | "fats",
-    value: number,
-  ) => {
-    if (!isPremium) return;
-
-    setCustomMacroPercentages((current) => {
-      const next = {
-        ...current,
-        [macro]: value,
+    : {
+        protein: Math.round(proteinCalories / 4),
+        carbs: Math.round(carbsCalories / 4),
+        fats: Math.round(fatsCalories / 9),
       };
-
-      const total = next.protein + next.carbs + next.fats;
-
-      if (total === 100) {
-        return next;
-      }
-
-      return next;
-    });
-  };
 
   const maxMacro = Math.max(macros.protein, macros.carbs, macros.fats, 1);
 
@@ -576,11 +553,10 @@ export default function CalculatorPage() {
     await syncHealthMetrics();
 
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const endpoint = apiUrl.endsWith("/api")
-        ? `${apiUrl}/bmi/history`
-        : `${apiUrl}/api/bmi/history`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
+      const endpoint = `${apiBase}/bmi/history`;
 
       let userId = "guest_user";
       let token = "";
@@ -749,15 +725,57 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                   </p>
                 </div>
 
-                {/* Full Color Image Banner (Positioned in the Middle, Object-Top to avoid cutting head) */}
-                <div className="group relative h-40 sm:h-48 lg:h-52 my-auto overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
-                  <img
+                {/* Practical Health & Athletic Insights */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm p-2.5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-emerald-400">
+                      <Target className="w-3.5 h-3.5 shrink-0" />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-white">
+                        Ideal Zone
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 leading-snug">
+                      18.5–24.9 represents optimal metabolic & cardiovascular
+                      health.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm p-2.5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-sky-400">
+                      <Dumbbell className="w-3.5 h-3.5 shrink-0" />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-white">
+                        Muscle Factor
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 leading-snug">
+                      Dense lean muscle can elevate BMI without excess body fat.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm p-2.5 space-y-1">
+                    <div className="flex items-center gap-1.5 text-amber-400">
+                      <Flame className="w-3.5 h-3.5 shrink-0" />
+                      <span className="text-[9px] font-black uppercase tracking-wider text-white">
+                        Calorie Sync
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 leading-snug">
+                      Cross-reference with BMR & TDEE on right for deficit or
+                      surplus.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Full Color Image Banner (Enlarged & Prominent, Object-Top to avoid cutting head) */}
+                <div className="group relative h-52 sm:h-60 lg:h-64 w-full overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
+                  <Image
                     src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1400&q=80"
                     alt="BMI fitness banner"
+                    fill
                     className="w-full h-full object-cover object-top transition duration-700 group-hover:scale-105 brightness-100 contrast-105"
                   />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent" />
 
                   <div className="absolute left-4 top-4">
                     <span className="rounded-full border border-white/20 bg-black/75 px-3 py-0.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white backdrop-blur-md shadow-md">
@@ -774,6 +792,24 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       <ShieldCheck className="w-3 h-3 text-white" />
                       <span>WHO Standard Scale</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Clinical Formula & Metric Info */}
+                <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-white/3 border border-white/10 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">
+                      Formula:
+                    </span>
+                    <span className="font-mono font-bold text-white text-[11px]">
+                      Weight (kg) ÷ [Height (m)]²
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-gray-300 text-[10px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-semibold">
+                      WHO International Standard
+                    </span>
                   </div>
                 </div>
 
@@ -1039,42 +1075,67 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                         const isActive = goal === item.value;
 
                         return (
-                          <button
+                          <FitoraPillButton
                             key={item.value}
-                            type="button"
-                            onClick={() => setGoal(item.value)}
-                            className={`flex w-full items-center justify-between p-2 sm:px-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${
-                              isActive
-                                ? "border-white bg-white text-black shadow-lg"
-                                : "border-white/15 bg-black text-white hover:border-white/40 hover:bg-white/5"
-                            }`}
+                            variant={isActive ? "white" : "black"}
+                            size="sm"
+                            showIcon={false}
+                            onClick={() => {
+                              setGoal(item.value);
+
+                              setCustomMacroPercentages({
+                                protein:
+                                  item.value === "bulking"
+                                    ? 30
+                                    : item.value === "cutting"
+                                      ? 35
+                                      : 30,
+
+                                carbs:
+                                  item.value === "bulking"
+                                    ? 45
+                                    : item.value === "cutting"
+                                      ? 35
+                                      : 40,
+
+                                fats:
+                                  item.value === "bulking"
+                                    ? 25
+                                    : item.value === "cutting"
+                                      ? 30
+                                      : 30,
+                              });
+                            }}
+                            className="w-full"
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex w-full items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`flex h-6 w-6 items-center justify-center rounded-lg text-xs font-black transition-colors ${
+                                    isActive
+                                      ? "bg-black text-white"
+                                      : "bg-white/10 text-white"
+                                  }`}
+                                >
+                                  {item.icon}
+                                </span>
+
+                                <span className="text-xs font-bold uppercase tracking-wider">
+                                  {item.label}
+                                </span>
+                              </div>
+
                               <span
-                                className={`flex h-6 w-6 items-center justify-center rounded-lg text-xs font-black transition-colors ${
+                                className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
                                   isActive
                                     ? "bg-black text-white"
                                     : "bg-white/10 text-white"
                                 }`}
                               >
-                                {item.icon}
-                              </span>
-
-                              <span className="text-xs font-bold uppercase tracking-wider">
-                                {item.label}
+                                {item.calories}
                               </span>
                             </div>
-
-                            <span
-                              className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                                isActive
-                                  ? "bg-black text-white font-black"
-                                  : "bg-white/10 text-white"
-                              }`}
-                            >
-                              {item.calories}
-                            </span>
-                          </button>
+                          </FitoraPillButton>
                         );
                       })}
                     </div>
@@ -1267,11 +1328,17 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                       <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                         <motion.div
-                          className="h-full rounded-full bg-white"
+                          className="h-full rounded-full bg-white origin-left"
+                          initial={{ width: 0 }}
                           animate={{
-                            width: `${(macros.protein / maxMacro) * 100}%`,
+                            width: `${macroPercentages.protein}%`,
                           }}
-                          transition={{ duration: 0.6 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 120,
+                            damping: 18,
+                            mass: 0.8,
+                          }}
                         />
                       </div>
                     </div>
@@ -1297,11 +1364,18 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                       <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                         <motion.div
-                          className="h-full rounded-full bg-gray-400"
+                          className="h-full rounded-full bg-gray-400 origin-left"
+                          initial={{ width: 0 }}
                           animate={{
-                            width: `${(macros.carbs / maxMacro) * 100}%`,
+                            width: `${macroPercentages.carbs}%`,
                           }}
-                          transition={{ duration: 0.6 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 120,
+                            damping: 18,
+                            mass: 0.8,
+                            delay: 0.08,
+                          }}
                         />
                       </div>
                     </div>
@@ -1327,11 +1401,18 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                       <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                         <motion.div
-                          className="h-full rounded-full bg-gray-500"
+                          className="h-full rounded-full bg-gray-500 origin-left"
+                          initial={{ width: 0 }}
                           animate={{
-                            width: `${(macros.fats / maxMacro) * 100}%`,
+                            width: `${macroPercentages.fats}%`,
                           }}
-                          transition={{ duration: 0.6 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 120,
+                            damping: 18,
+                            mass: 0.8,
+                            delay: 0.16,
+                          }}
                         />
                       </div>
                     </div>
@@ -1341,38 +1422,69 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                 {/* Save & Export Actions Directly Under Calorie & Macro Results */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
                   {/* Save History */}
-                  <button
-                    type="button"
+                  <FitoraPillButton
+                    variant="white"
+                    size="md"
                     onClick={handleSaveHistory}
+                    loading={isSavingHistory}
                     disabled={isSavingHistory}
-                    className="group inline-flex items-center justify-between w-full bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)] hover:scale-[1.01] active:scale-[0.99] font-extrabold text-xs px-4 py-2.5 rounded-full transition-all duration-300 shadow-xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <span>
-                      {isSavingHistory
-                        ? "SAVING HISTORY..."
-                        : "SAVE CALCULATION HISTORY"}
-                    </span>
-
-                    <span className="bg-black text-white w-5 h-5 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
-                      <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-                    </span>
-                  </button>
+                    {isSavingHistory
+                      ? "Saving History..."
+                      : "Save Calculation History"}
+                  </FitoraPillButton>
 
                   {/* Export */}
-                  <button
-                    type="button"
+                  <FitoraPillButton
+                    variant="black"
+                    size="md"
                     onClick={handleExport}
-                    className="group inline-flex items-center justify-between w-full bg-black text-white border border-white/20 hover:border-white hover:bg-white/10 hover:scale-[1.01] active:scale-[0.99] font-extrabold text-xs px-4 py-2.5 rounded-full transition-all duration-300 shadow-xl cursor-pointer"
                   >
-                    <span>EXPORT METRICS & SUMMARY</span>
-
-                    <span className="bg-white text-black w-5 h-5 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
-                      <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-                    </span>
-                  </button>
+                    Export Metrics & Summary
+                  </FitoraPillButton>
                 </div>
               </div>
             </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+              className="mt-2.5 rounded-2xl border border-white/15 bg-white/5 p-3.5 sm:p-4"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-black">
+                    <Utensils className="h-4 w-4" />
+                  </div>
+
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">
+                      PERSONALIZED MEAL PLAN
+                    </p>
+
+                    <h3 className="mt-0.5 text-sm font-black uppercase tracking-tight text-white">
+                      Build Your Daily Meal Plan.
+                    </h3>
+
+                    <p className="mt-0.5 text-[10px] leading-relaxed text-gray-400">
+                      Explore meals tailored around your{" "}
+                      {Math.round(targetCalories)} kcal daily calorie target.
+                    </p>
+                  </div>
+                </div>
+
+                <FitoraPillButton
+                  variant="white"
+                  size="md"
+                  onClick={() =>
+                    (window.location.href = `/meals?calories=${Math.round(targetCalories)}`)
+                  }
+                >
+                  View Meal Plan
+                </FitoraPillButton>
+              </div>
+            </motion.div>
 
             {/* Pro Athlete Macro Adjuster */}
             <div className="mt-4">
@@ -1391,11 +1503,31 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
               <MacroAdjuster
                 isPremium={isPremium}
-                protein={macroPercentages.protein}
-                carbs={macroPercentages.carbs}
-                fats={macroPercentages.fats}
-                onChange={handleMacroChange}
+                protein={pendingMacroPercentages.protein}
+                carbs={pendingMacroPercentages.carbs}
+                fats={pendingMacroPercentages.fats}
+                onChange={(macro, value) => {
+                  setPendingMacroPercentages((current) => ({
+                    ...current,
+                    [macro]: value,
+                  }));
+                }}
               />
+
+              {isPremium && (
+                <div className="mt-3 flex justify-end">
+                  <FitoraPillButton
+                    variant="white"
+                    size="md"
+                    onClick={() => {
+                      setCustomMacroPercentages(pendingMacroPercentages);
+                      toast.success("Custom macro distribution applied");
+                    }}
+                  >
+                    Apply Custom Macros
+                  </FitoraPillButton>
+                </div>
+              )}
 
               {/* Contextual Save Action for Custom Macros */}
               <div className="mt-2.5 flex flex-col sm:flex-row items-center justify-between gap-2.5 rounded-xl border border-white/10 bg-white/5 p-3 text-white">
@@ -1403,17 +1535,15 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                   Customized macro ratios apply to all your nutritional targets
                   and history.
                 </p>
-                <button
-                  type="button"
+                <FitoraPillButton
+                  variant="white"
+                  size="sm"
                   onClick={handleSaveHistory}
+                  loading={isSavingHistory}
                   disabled={isSavingHistory}
-                  className="inline-flex items-center gap-2 bg-white text-black font-extrabold text-xs px-4 py-2 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all shadow-lg active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
                 >
-                  <span>
-                    {isSavingHistory ? "Saving..." : "Save Custom Macros"}
-                  </span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </button>
+                  Save Custom Macros
+                </FitoraPillButton>
               </div>
             </div>
 
@@ -1496,7 +1626,9 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </div>
 
                     <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[8px] font-black uppercase tracking-widest text-gray-400">
-                      500 KCAL {goal === "cutting" ? "DEFICIT" : "SURPLUS"}
+                      {targetWeight === weight
+                        ? "MAINTENANCE"
+                        : `500 KCAL ${targetWeight < weight ? "DEFICIT" : "SURPLUS"}`}
                     </span>
                   </div>
 
@@ -1522,7 +1654,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                             setTargetWeightSaved(false);
                           }}
                           placeholder="65"
-                          className="w-18 px-2.5 py-1 text-center rounded-xl bg-white border-2 border-neutral-300 text-black placeholder:text-neutral-500 placeholder:font-medium font-black text-xs outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition-all shadow-sm"
+                          className="w-18 px-2.5 py-1 text-center rounded-xl bg-white border-2 border-neutral-300 text-black placeholder:text-neutral-500 placeholder:font-medium font-black text-xs outline-none focus:border-black transition-all"
                         />
                         <span className="text-xs font-bold text-gray-400">
                           KG
@@ -1530,21 +1662,16 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       </div>
                     </div>
 
-                    <button
-                      type="button"
+                    <FitoraPillButton
+                      variant="white"
+                      size="md"
                       onClick={handleSaveTargetWeight}
+                      loading={isSavingTargetWeight}
                       disabled={isSavingTargetWeight}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[10px] font-extrabold text-black transition-all duration-300 hover:bg-neutral-100 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 shadow-md cursor-pointer shrink-0"
+                      className="shrink-0"
                     >
-                      <span>
-                        {isSavingTargetWeight
-                          ? "SAVING..."
-                          : targetWeightSaved
-                            ? "✓ SAVED TO PROFILE"
-                            : "SAVE TO PROFILE"}
-                      </span>
-                      <ArrowUpRight className="h-3 w-3" />
-                    </button>
+                      Save Target Weight
+                    </FitoraPillButton>
                   </div>
 
                   <div className="mt-3 grid gap-2.5 grid-cols-3">
@@ -1622,7 +1749,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       </p>
                       <p className="mt-0.5 text-[11px] leading-relaxed text-gray-400">
                         {timeline && timeline.weeks > 0
-                          ? `At 500 kcal daily ${goal === "cutting" ? "deficit" : "surplus"}, estimated to reach ${targetWeight} kg in ${timeline.weeks} weeks.`
+                          ? `At 500 kcal daily ${targetWeight < weight ? "deficit" : "surplus"}, estimated to reach ${targetWeight} kg in ${timeline.weeks} weeks.`
                           : "Your target weight matches your current weight. Adjust your target weight above to project a transformation timeline."}
                       </p>
                       <p className="mt-1 text-[8px] font-black uppercase tracking-widest text-gray-500">
@@ -1675,21 +1802,15 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       </p>
                     </div>
 
-                    <button
-                      type="button"
+                    <FitoraPillButton
+                      variant="black"
+                      size="md"
                       onClick={handleSaveHydration}
+                      loading={isSavingHydration}
                       disabled={isSavingHydration}
-                      className="inline-flex items-center justify-between gap-2.5 rounded-full bg-white px-4 py-2.5 text-xs font-extrabold text-black transition-all duration-300 hover:bg-neutral-100 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 shadow-lg cursor-pointer"
                     >
-                      <span>
-                        {isSavingHydration
-                          ? "SAVING..."
-                          : hydrationSaved
-                            ? "✓ SAVED TO PROFILE"
-                            : "SAVE TO PROFILE"}
-                      </span>
-                      <ArrowUpRight className="h-3.5 w-3.5" />
-                    </button>
+                      Save Hydration Target
+                    </FitoraPillButton>
                   </div>
 
                   {/* Hydration Breakdown Pills */}
@@ -1776,32 +1897,23 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
               {/* Action Buttons for Assessment */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                <button
-                  type="button"
+                <FitoraPillButton
+                  variant="black"
+                  size="md"
                   onClick={handleExport}
-                  className="group inline-flex items-center justify-between w-full bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-[1.01] active:scale-[0.99] font-extrabold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-300 shadow-2xl cursor-pointer"
                 >
-                  <span>EXPORT METRICS & PRINT ASSESSMENT</span>
-                  <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
-                    <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-                  </span>
-                </button>
+                  Export Metrics
+                </FitoraPillButton>
 
-                <button
-                  type="button"
+                <FitoraPillButton
+                  variant="white"
+                  size="md"
                   onClick={handleSaveHistory}
+                  loading={isSavingHistory}
                   disabled={isSavingHistory}
-                  className="group inline-flex items-center justify-between w-full bg-white text-black border border-white hover:bg-neutral-100 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)] hover:scale-[1.01] active:scale-[0.99] font-extrabold text-xs sm:text-sm px-5 py-2.5 rounded-full transition-all duration-300 shadow-2xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <span>
-                    {isSavingHistory
-                      ? "SAVING HISTORY..."
-                      : "SAVE CALCULATION HISTORY"}
-                  </span>
-                  <span className="bg-black text-white w-6 h-6 rounded-full flex items-center justify-center group-hover:rotate-45 group-hover:scale-110 transition-all duration-300 shadow-md">
-                    <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
-                  </span>
-                </button>
+                  Save Calculation
+                </FitoraPillButton>
               </div>
             </div>
           </div>

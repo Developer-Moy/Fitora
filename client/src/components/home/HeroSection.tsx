@@ -69,14 +69,62 @@ const CountUp = ({
 };
 
 export default function HeroSection() {
+  const [stats, setStats] = useState({
+    trainers: 105,
+    members: 970,
+    programs: 135,
+  });
+
+  useEffect(() => {
+    const API_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+    // Fetch live platform stats from public endpoint
+    Promise.allSettled([
+      fetch(`${API_URL}/trainers?limit=1`).then((r) => r.json()),
+      fetch(`${API_URL}/dashboard/public-stats`).then((r) => r.json()),
+    ])
+      .then(([trainersRes, platformRes]) => {
+        const updated = { ...stats };
+
+        // Trainer count from trainers API
+        if (trainersRes.status === "fulfilled") {
+          const td = trainersRes.value;
+          const count =
+            td?.data?.pagination?.total ||
+            td?.data?.total ||
+            td?.total ||
+            (Array.isArray(td?.data) ? td.data.length : 0);
+          if (count > 0) updated.trainers = count;
+        }
+
+        // Member count and programs from platform stats
+        if (platformRes.status === "fulfilled") {
+          const pd = platformRes.value?.data || platformRes.value;
+          if (pd?.totalMembers && pd.totalMembers > 0)
+            updated.members = pd.totalMembers;
+          if (pd?.totalExercises && pd.totalExercises > 0)
+            updated.programs = pd.totalExercises;
+          if (pd?.totalTrainers && pd.totalTrainers > 0)
+            updated.trainers = pd.totalTrainers;
+        }
+
+        setStats(updated);
+      })
+      .catch(() => {
+        /* keep defaults silently */
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <section className="relative w-full overflow-hidden select-none">
       {/* ════════════════════════════════════════════════════════════
           HERO CONTAINER — Locked Centered Layout (Zoom & Ultrawide Proof)
           ════════════════════════════════════════════════════════════ */}
       <div className="relative w-full bg-black text-white overflow-x-clip min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
-        {/* ─── Centered max-w-7xl container to lock relative positions on Zoom & UltraWide ─── */}
-        <div className="relative w-full max-w-7xl mx-auto h-full min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
+        {/* ─── Centered w-11/12 max-w-7xl container matching Navbar alignment exactly ─── */}
+        <div className="relative w-11/12 max-w-7xl mx-auto h-full min-h-[480px] sm:min-h-[520px] md:min-h-[560px] lg:min-h-[620px]">
           {/* ─── Z-10: "BUILD YOUR BODY" Unified Headline ─── */}
           <div className="absolute z-10 top-5 sm:top-8 md:top-10 inset-x-0 flex flex-col items-center pointer-events-none px-4">
             <h1
@@ -103,8 +151,8 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* ─── Z-30: Subtitle locked in LEFT-MIDDLE ─── */}
-          <div className="absolute z-30 left-2.5 xs:left-5 sm:left-6 md:left-8 top-[48%] sm:top-1/2 -translate-y-1/2 max-w-[140px] xs:max-w-[190px] sm:max-w-[260px]">
+          {/* ─── Z-30: Subtitle locked in LEFT-MIDDLE (Aligned with Navbar Logo) ─── */}
+          <div className="absolute z-30 left-0 top-[48%] sm:top-1/2 -translate-y-1/2 max-w-[140px] xs:max-w-[190px] sm:max-w-[260px]">
             <p
               className="text-gray-200 text-xs sm:text-sm leading-[1.6] sm:leading-[1.7] font-medium"
               style={{ fontStyle: "italic" }}
@@ -116,7 +164,7 @@ export default function HeroSection() {
           </div>
 
           {/* ─── Z-30: Social Icons (3 on Left Bottom: Facebook, Instagram, TikTok) ─── */}
-          <div className="absolute z-30 left-3 xs:left-5 sm:left-6 md:left-8 bottom-4 sm:bottom-6 flex items-center gap-3 sm:gap-4 text-white/70">
+          <div className="absolute z-30 left-0 bottom-4 sm:bottom-6 flex items-center gap-3 sm:gap-4 text-white/70">
             <a
               href="https://facebook.com"
               target="_blank"
@@ -147,7 +195,7 @@ export default function HeroSection() {
           </div>
 
           {/* ─── Z-30: Social Icons (3 on Right Bottom: WhatsApp, YouTube, X) ─── */}
-          <div className="absolute z-30 right-3 xs:right-5 sm:right-6 md:right-8 bottom-4 sm:bottom-6 flex items-center gap-3 sm:gap-4 text-white/70">
+          <div className="absolute z-30 right-0 bottom-4 sm:bottom-6 flex items-center gap-3 sm:gap-4 text-white/70">
             <a
               href="https://wa.me/8801700000000"
               target="_blank"
@@ -177,8 +225,8 @@ export default function HeroSection() {
             </a>
           </div>
 
-          {/* ─── Z-30: "See Packages" Button locked in RIGHT-MIDDLE ─── */}
-          <div className="absolute z-30 right-2.5 xs:right-5 sm:right-6 md:right-8 top-[48%] sm:top-1/2 -translate-y-1/2">
+          {/* ─── Z-30: "See Packages" Button locked in RIGHT-MIDDLE (Aligned with Navbar Right CTA) ─── */}
+          <div className="absolute z-30 right-0 top-[48%] sm:top-1/2 -translate-y-1/2">
             <Link
               href="#pricing"
               className="group inline-flex items-center gap-2 bg-white text-black border border-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full hover:bg-neutral-100 hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 shadow-xl cursor-pointer"
@@ -210,51 +258,53 @@ export default function HeroSection() {
           ════════════════════════════════════════════════════════════ */}
       <div
         id="stats"
-        className="bg-white text-black py-10 sm:py-12 px-6 border-b border-gray-100"
+        className="bg-white text-black py-10 sm:py-12 border-b border-gray-100"
       >
-        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {/* Stat 1 */}
-          <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
-              <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+        <div className="w-11/12 max-w-7xl mx-auto">
+          <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            {/* Stat 1 */}
+            <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 stroke-2" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
+                  <CountUp end={stats.trainers} />+
+                </span>
+                <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
+                  Expert Trainers
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
-                <CountUp end={105} />+
-              </span>
-              <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
-                Expert Trainers
-              </span>
-            </div>
-          </div>
 
-          {/* Stat 2 */}
-          <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
-              <Users className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+            {/* Stat 2 */}
+            <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 stroke-2" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
+                  <CountUp end={stats.members} />+
+                </span>
+                <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
+                  Members Joined
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
-                <CountUp end={970} />+
-              </span>
-              <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
-                Members Joined
-              </span>
-            </div>
-          </div>
 
-          {/* Stat 3 */}
-          <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
-            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
-              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
-            </div>
-            <div className="flex flex-col text-left">
-              <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
-                <CountUp end={135} />+
-              </span>
-              <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
-                Fitness Programs
-              </span>
+            {/* Stat 3 */}
+            <div className="group flex items-center justify-center sm:justify-start gap-4 p-4 sm:p-5 rounded-2xl bg-neutral-50/90 border border-neutral-200/80 hover:border-black/30 hover:bg-white shadow-sm hover:shadow-lg transition-all duration-300">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 stroke-2" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
+                  <CountUp end={stats.programs} />+
+                </span>
+                <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
+                  Fitness Programs
+                </span>
+              </div>
             </div>
           </div>
         </div>

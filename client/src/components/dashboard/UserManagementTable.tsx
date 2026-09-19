@@ -22,7 +22,6 @@ import {
 } from "@/services/dashboardService";
 import {
   Search,
-  Filter,
   Edit3,
   Trash2,
   UserCheck,
@@ -35,12 +34,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Building2,
-  CreditCard,
   Calendar,
-  Phone,
-  Mail,
-  QrCode,
-  ArrowUpRight,
   ChevronLeft,
   ChevronRight,
   CalendarPlus,
@@ -646,7 +640,7 @@ export default function UserManagementTable({
       <div className="overflow-x-auto rounded-2xl border border-white/15 bg-black shadow-xl">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-white/10 bg-white/[0.02] text-white/50 font-black uppercase tracking-widest text-[10px]">
+            <tr className="border-b border-white/10 bg-white/2 text-white/50 font-black uppercase tracking-widest text-[10px]">
               <th className="py-2.5 px-3.5">Member</th>
               <th className="py-2.5 px-3.5">Role & Tier</th>
               <th className="py-2.5 px-3.5">Assigned Branch</th>
@@ -693,7 +687,7 @@ export default function UserManagementTable({
               users.map((user) => (
                 <tr
                   key={user.id}
-                  className="hover:bg-white/[0.03] transition-colors"
+                  className="hover:bg-white/3 transition-colors"
                 >
                   {/* User Profile */}
                   <td className="py-2 px-3.5">
@@ -717,7 +711,7 @@ export default function UserManagementTable({
 
                   {/* Branch */}
                   <td className="py-2 px-3.5">
-                    <div className="flex items-center gap-1 font-medium text-white max-w-[180px] truncate">
+                    <div className="flex items-center gap-1 font-medium text-white max-w-45 truncate">
                       <Building2 className="w-3 h-3 text-white/40 shrink-0" />
                       <span className="truncate text-xs">
                         {user.assignedBranch}
@@ -1375,7 +1369,7 @@ export default function UserManagementTable({
               </button>
             </div>
 
-            <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/10">
+            <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-white/3 border border-white/10">
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${getPlanBadgeColor(extendTarget.plan)}`}
               >
@@ -1539,7 +1533,7 @@ export default function UserManagementTable({
               </div>
             ) : auditData ? (
               <div className="space-y-2.5">
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/3 border border-white/10">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
                     Current Plan
                   </span>
@@ -1550,7 +1544,7 @@ export default function UserManagementTable({
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/3 border border-white/10">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
                     Subscription Status
                   </span>
@@ -1592,7 +1586,7 @@ export default function UserManagementTable({
                 ].map((row) => (
                   <div
                     key={row.label}
-                    className="flex items-center justify-between gap-4 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10"
+                    className="flex items-center justify-between gap-4 p-3.5 rounded-2xl bg-white/3 border border-white/10"
                   >
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/40 shrink-0">
                       {row.label}

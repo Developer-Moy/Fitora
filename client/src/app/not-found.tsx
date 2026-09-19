@@ -2,19 +2,22 @@
 
 import Link from "next/link";
 import { ArrowUpRight, ArrowLeft, Home, Activity, Clock } from "lucide-react";
+import Image from "next/image";
 
 export default function NotFound() {
   return (
     <main className="h-screen max-h-screen w-full overflow-hidden bg-black text-white flex flex-col justify-between p-6 sm:p-10 select-none relative font-sans">
       {/* Monochrome Ambient Atmospheric Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-[140px] pointer-events-none z-0" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-white/5 rounded-full blur-[140px] pointer-events-none z-0" />
 
       {/* ── Top Header Bar ── */}
       <div className="relative z-10 flex items-center justify-between w-full max-w-6xl mx-auto">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <img
+          <Image
             src="/logo.svg"
             alt="Fitora logo"
+            width={28}
+            height={28}
             className="w-7 h-7 object-contain filter brightness-0 invert"
           />
           <span className="font-black text-base tracking-wider uppercase">
@@ -27,7 +30,7 @@ export default function NotFound() {
       <div className="relative z-10 max-w-xl mx-auto text-center space-y-6 my-auto">
         {/* Giant Outlined 404 Display */}
         <div className="relative flex items-center justify-center">
-          <span className="text-8xl sm:text-[10rem] font-black uppercase leading-none tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-white/70 to-white/10 font-sans">
+          <span className="text-8xl sm:text-[10rem] font-black uppercase leading-none tracking-tight text-transparent bg-clip-text bg-linear-to-b from-white via-white/70 to-white/10 font-sans">
             404
           </span>
         </div>
@@ -39,8 +42,9 @@ export default function NotFound() {
           </h1>
 
           <p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-md mx-auto font-medium">
-            You've strayed outside the training zone. The page you requested has
-            been moved or doesn't exist in FITORA's engine.
+            You&apos;ve strayed outside the training zone. The page you
+            requested has been moved or doesn&apos;t exist in FITORA&apos;s
+            engine.
           </p>
         </div>
 

@@ -153,12 +153,23 @@ server/
 | `PATCH` | `/api/notifications/:id/read` | Authenticated | Mark individual notification as read.                   |
 | `PATCH` | `/api/notifications/read-all` | Authenticated | Mark all notifications as read.                         |
 
+### 🤖 Artificial Intelligence Coach (`/api/ai`)
+
+| Method | Endpoint          |    Access     | Description                                                                                         |
+| :----- | :---------------- | :-----------: | :-------------------------------------------------------------------------------------------------- |
+| `POST` | `/api/ai/chat`    | Optional Auth | Chat with Google Gemini Flash AI coach; includes automated local fitness heuristic fallback engine. |
+| `GET`  | `/api/ai/quota`   | Optional Auth | Check daily AI queries and plan generation quota status based on user tier.                         |
+| `GET`  | `/api/ai/history` | Authenticated | Fetch persistent AI conversation history for authenticated athletes.                                |
+
 ---
 
 ## 💼 Business Logic Services Layer
 
 Business calculations are separated from Express controllers inside `server/src/services/`:
 
+- **`ai.service.ts`**:
+  - Cascading multi-model discovery prioritizing Google's latest production models (`gemini-flash-latest`, `gemini-flash-lite-latest`, `gemini-2.5-flash-lite`).
+  - High-resilience fallback system transitioning to local hypertrophy, nutrition, and recovery heuristic generators when cloud models are unreachable.
 - **`payment.service.ts`**:
   - `MEMBERSHIP_PLANS`: Server-authoritative plan catalog and pricing specifications.
   - `resolvePlan()`: Canonical plan key resolution.
