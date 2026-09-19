@@ -104,7 +104,7 @@ export default function Navbar() {
           ? localStorage.getItem("fitora_user_plan")
           : "");
 
-      const checkPremium = (p: string | null) => {
+      const checkPremium = (p: string | null | undefined) => {
         if (!p) return false;
         const lowered = p.toLowerCase();
         return (
