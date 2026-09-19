@@ -80,13 +80,18 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
       const API_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (finalToken) {
+        headers["Authorization"] = `Bearer ${finalToken}`;
+      }
+
       const response = await fetch(`${API_URL}/users/profile/health-metrics`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${finalToken}`,
-        },
+        headers,
         body: JSON.stringify({
+          userId,
           age,
           gender,
           height: Math.round(height),
