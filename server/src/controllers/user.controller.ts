@@ -1027,7 +1027,7 @@ export const updateHealthMetrics = async (req: AuthRequest, res: Response) => {
         );
     }
 
-    let updatedUser = await User.findByIdAndUpdate(
+    let updatedUser: any = await User.findByIdAndUpdate(
       userId,
       {
         $set: updateFields,
