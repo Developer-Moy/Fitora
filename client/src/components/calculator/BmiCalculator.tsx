@@ -59,6 +59,8 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
       // 1. Save BMI history
       const success = await saveBmiHistory({
         userId,
+          userEmail: session?.user?.email || authSession?.user?.email,
+          userName: session?.user?.name || authSession?.user?.name,
         heightCm: Math.round(height),
         weightKg: Number(weight.toFixed(1)),
         bmiScore: bmi,
@@ -92,6 +94,8 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
         headers,
         body: JSON.stringify({
           userId,
+          userEmail: session?.user?.email || authSession?.user?.email,
+          userName: session?.user?.name || authSession?.user?.name,
           age,
           gender,
           height: Math.round(height),

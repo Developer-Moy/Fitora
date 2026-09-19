@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import User from "../models/User.model";
@@ -1026,7 +1027,7 @@ export const updateHealthMetrics = async (req: AuthRequest, res: Response) => {
         );
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
+    let updatedUser = await User.findByIdAndUpdate(
       userId,
       {
         $set: updateFields,
@@ -1038,9 +1039,35 @@ export const updateHealthMetrics = async (req: AuthRequest, res: Response) => {
     ).select("-passwordHash");
 
     if (!updatedUser) {
-      return res
-        .status(404)
-        .json(errorResponse("User not found", "USER_NOT_FOUND", 404));
+      if (req.body.userEmail) {
+        // Auto-provision Google Login (Better Auth) users in the Fitora database
+        const passwordHash = await bcrypt.hash(Math.random().toString(36), 10);
+        
+        let validObjectId;
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+           validObjectId = new mongoose.Types.ObjectId(userId);
+        } else {
+           validObjectId = new mongoose.Types.ObjectId();
+        }
+
+        updatedUser = await User.create({
+          _id: validObjectId,
+          name: req.body.userName || "Fitora Athlete",
+          email: req.body.userEmail,
+          passwordHash,
+          phone: "+8801700000000",
+          assignedBranch: "Gulshan Premium Branch",
+          assignedBranchSlug: "gulshan-branch",
+          plan: "Free Pass",
+          role: "athlete",
+          status: "active",
+          ...updateFields,
+        });
+      } else {
+        return res
+          .status(404)
+          .json(errorResponse("User not found", "USER_NOT_FOUND", 404));
+      }
     }
 
     return res.status(200).json(
