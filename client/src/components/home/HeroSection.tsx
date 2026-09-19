@@ -69,6 +69,54 @@ const CountUp = ({
 };
 
 export default function HeroSection() {
+  const [stats, setStats] = useState({
+    trainers: 105,
+    members: 970,
+    programs: 135,
+  });
+
+  useEffect(() => {
+    const API_URL =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+    // Fetch live platform stats from public endpoint
+    Promise.allSettled([
+      fetch(`${API_URL}/trainers?limit=1`).then((r) => r.json()),
+      fetch(`${API_URL}/dashboard/public-stats`).then((r) => r.json()),
+    ])
+      .then(([trainersRes, platformRes]) => {
+        const updated = { ...stats };
+
+        // Trainer count from trainers API
+        if (trainersRes.status === "fulfilled") {
+          const td = trainersRes.value;
+          const count =
+            td?.data?.pagination?.total ||
+            td?.data?.total ||
+            td?.total ||
+            (Array.isArray(td?.data) ? td.data.length : 0);
+          if (count > 0) updated.trainers = count;
+        }
+
+        // Member count and programs from platform stats
+        if (platformRes.status === "fulfilled") {
+          const pd = platformRes.value?.data || platformRes.value;
+          if (pd?.totalMembers && pd.totalMembers > 0)
+            updated.members = pd.totalMembers;
+          if (pd?.totalExercises && pd.totalExercises > 0)
+            updated.programs = pd.totalExercises;
+          if (pd?.totalTrainers && pd.totalTrainers > 0)
+            updated.trainers = pd.totalTrainers;
+        }
+
+        setStats(updated);
+      })
+      .catch(() => {
+        /* keep defaults silently */
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <section className="relative w-full overflow-hidden select-none">
       {/* ════════════════════════════════════════════════════════════
@@ -221,7 +269,7 @@ export default function HeroSection() {
               </div>
               <div className="flex flex-col text-left">
                 <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
-                  <CountUp end={105} />+
+                  <CountUp end={stats.trainers} />+
                 </span>
                 <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
                   Expert Trainers
@@ -236,7 +284,7 @@ export default function HeroSection() {
               </div>
               <div className="flex flex-col text-left">
                 <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
-                  <CountUp end={970} />+
+                  <CountUp end={stats.members} />+
                 </span>
                 <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
                   Members Joined
@@ -251,7 +299,7 @@ export default function HeroSection() {
               </div>
               <div className="flex flex-col text-left">
                 <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black leading-none font-sans">
-                  <CountUp end={135} />+
+                  <CountUp end={stats.programs} />+
                 </span>
                 <span className="text-gray-500 font-bold text-[10px] sm:text-xs uppercase tracking-wider mt-1.5">
                   Fitness Programs

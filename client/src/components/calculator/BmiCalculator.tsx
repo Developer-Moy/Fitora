@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { saveBmiHistory } from "@/services/bmiService";
+import { getAuthSession } from "@/services/authService";
 import FitoraPillButton from "../ui/FitoraPillButton";
 
 interface BmiCalculatorProps {
@@ -37,8 +38,22 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
     setIsSaving(true);
 
     try {
+      const session = getAuthSession();
+      const userId = (session?.user as any)?._id || (session?.user as any)?.id;
+      const finalToken =
+        session?.token ||
+        localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token");
+
+      if (!finalToken || !userId) {
+        toast.error("Please login to save your BMI record.");
+        setIsSaving(false);
+        return;
+      }
+
       // 1. Save BMI history
       const success = await saveBmiHistory({
+        userId,
         heightCm: Math.round(height),
         weightKg: Number(weight.toFixed(1)),
         bmiScore: bmi,
@@ -51,20 +66,12 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
       });
 
       if (!success) {
-        toast.error("Please login to save your BMI record.");
+        toast.error("Failed to save BMI record.");
+        setIsSaving(false);
         return;
       }
 
       // 2. Sync health metrics to User profile
-      const token =
-        localStorage.getItem("fitora_token") ||
-        localStorage.getItem("fitora_auth_token");
-
-      if (!token) {
-        toast.error("Please login to sync your health metrics.");
-        return;
-      }
-
       const API_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -72,7 +79,7 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${finalToken}`,
         },
         body: JSON.stringify({
           age,

@@ -43,6 +43,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {isMounted && (
         <Toaster
           position="top-right"
+          containerStyle={{
+            top: 80, // Offset for navbar height
+          }}
           toastOptions={{
             style: {
               background: "#18181b",

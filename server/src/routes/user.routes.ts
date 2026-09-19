@@ -2,6 +2,7 @@ import express from "express";
 import {
   getDashboardStats,
   getPlatformStats,
+  getPublicStats,
   getAllUsers,
   createUser,
   updateUser,
@@ -26,6 +27,9 @@ const router = express.Router();
 
 // Personal member stats (authenticated)
 router.get("/", authMiddleware, getDashboardStats);
+
+// Public platform stats (no auth required — for home page hero section)
+router.get("/public-stats", getPublicStats);
 
 // Platform-wide admin stats (admin only)
 router.get(

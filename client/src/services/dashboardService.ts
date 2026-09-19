@@ -529,12 +529,33 @@ export async function saveCardApi(cardDetails: {
   expiryYear: string;
   cardHolder: string;
   token?: string;
+  userId?: string;
 }): Promise<{ success: boolean; message: string; savedCard?: object }> {
   try {
+    let resolvedUserId = cardDetails.userId;
+    if (!resolvedUserId && typeof window !== "undefined") {
+      try {
+        const sessionStr = localStorage.getItem("fitora_auth_session");
+        if (sessionStr) {
+          const session = JSON.parse(sessionStr);
+          resolvedUserId = session?.user?.id || session?.user?._id;
+        }
+        if (!resolvedUserId) {
+          const userStr = localStorage.getItem("fitora_user");
+          if (userStr) {
+            const userObj = JSON.parse(userStr);
+            resolvedUserId = userObj?._id || userObj?.id;
+          }
+        }
+      } catch {}
+    }
+
+    const payload = { ...cardDetails, userId: resolvedUserId };
+
     const res = await fetch(`${API_URL}/users/saved-card`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...getAuthHeader() },
-      body: JSON.stringify(cardDetails),
+      body: JSON.stringify(payload),
     });
     const data = await res.json().catch(() => null);
     return {
@@ -556,7 +577,25 @@ export async function deleteSavedCardApi(): Promise<{
   message: string;
 }> {
   try {
-    const res = await fetch(`${API_URL}/users/saved-card`, {
+    let resolvedUserId = "";
+    if (typeof window !== "undefined") {
+      try {
+        const sessionStr = localStorage.getItem("fitora_auth_session");
+        if (sessionStr) {
+          const session = JSON.parse(sessionStr);
+          resolvedUserId = session?.user?.id || session?.user?._id || "";
+        }
+        if (!resolvedUserId) {
+          const userStr = localStorage.getItem("fitora_user");
+          if (userStr) {
+            const userObj = JSON.parse(userStr);
+            resolvedUserId = userObj?._id || userObj?.id || "";
+          }
+        }
+      } catch {}
+    }
+
+    const res = await fetch(`${API_URL}/users/saved-card?userId=${encodeURIComponent(resolvedUserId)}`, {
       method: "DELETE",
       headers: { ...getAuthHeader() },
     });

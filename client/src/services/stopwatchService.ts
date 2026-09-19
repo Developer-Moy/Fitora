@@ -141,7 +141,11 @@ export async function completeStopwatchSession(
       headers: { "Content-Type": "application/json", ...getAuthHeader() },
       body: JSON.stringify(payload),
     });
-    if (!res.ok && !options?.skipOfflineQueue && (res.status >= 500 || res.status === 0)) {
+    if (
+      !res.ok &&
+      !options?.skipOfflineQueue &&
+      (res.status >= 500 || res.status === 0)
+    ) {
       await enqueueTelemetry("STOPWATCH_SESSION", payload);
       return true;
     }

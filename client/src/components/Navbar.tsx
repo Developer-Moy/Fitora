@@ -104,15 +104,20 @@ export default function Navbar() {
           ? localStorage.getItem("fitora_user_plan")
           : "");
 
+      const checkPremium = (p: string | null) => {
+        if (!p) return false;
+        const lowered = p.toLowerCase();
+        return (
+          lowered.includes("basic pass") ||
+          lowered.includes("pro athlete") ||
+          lowered.includes("vip ultimate")
+        );
+      };
+
       const hasProStatus =
         role === "premium_user" ||
         role === "master_admin" ||
-        Boolean(
-          plan &&
-          plan.toLowerCase() !== "free" &&
-          plan.toLowerCase() !== "free_user" &&
-          plan.trim() !== "",
-        );
+        checkPremium(plan);
 
       setIsPremium(Boolean(hasProStatus));
 
@@ -130,15 +135,11 @@ export default function Navbar() {
             if (res.success && res.user) {
               const serverRole = res.user.role;
               const serverPlan = res.user.plan;
+              
               const isServerPro =
                 serverRole === "premium_user" ||
                 serverRole === "master_admin" ||
-                Boolean(
-                  serverPlan &&
-                  serverPlan.toLowerCase() !== "free" &&
-                  serverPlan.toLowerCase() !== "free_user" &&
-                  serverPlan.trim() !== "",
-                );
+                checkPremium(serverPlan);
 
               setIsPremium(Boolean(isServerPro));
 

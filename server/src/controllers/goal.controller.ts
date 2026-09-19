@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Goal from "../models/Goal.model";
 import WorkoutLog from "../models/WorkoutLog.model";
 import { successResponse, errorResponse } from "../utils/apiResponse";
+import { AuthRequest } from "../middlewares/auth.middleware";
 
 /**
  * Automatically completes a goal when progress reaches target.
@@ -54,7 +55,6 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
     }
 
     const existingGoal = await Goal.findOne({ userId });
-
 
     const goalData: any = {
       userId,
@@ -123,7 +123,87 @@ export const createOrUpdateGoal = async (req: Request, res: Response) => {
   }
 };
 
-// Get api
+/**
+ * GET /api/goals — Get the current authenticated user's goal
+ * Uses JWT token from authMiddleware (no userId param needed)
+ */
+export const getMyGoal = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId =
+      req.user?.userId ||
+      (req as any).user?.id ||
+      (req.query.userId as string) ||
+      (req.query.email as string);
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json(errorResponse("Authentication required", "Unauthorized", 401));
+    }
+
+    // Try finding by userId (ObjectId string or email)
+    const goal = await Goal.findOne({ userId });
+
+    if (!goal) {
+      return res.status(200).json(
+        successResponse("No goal found for this user", null),
+      );
+    }
+
+    applyGoalCompletion(goal);
+    if (goal.isModified()) {
+      await goal.save();
+    }
+
+    const workouts = await WorkoutLog.find({ userId }).sort({ createdAt: -1 }).lean();
+    let activeStreak = 0;
+    let totalVolumeLifted = 0;
+
+    if (workouts.length > 0) {
+      activeStreak = 1;
+      for (let i = 0; i < workouts.length - 1; i++) {
+        const currentDate = (workouts[i] as any).createdAt || (workouts[i] as any).date || new Date();
+        const previousDate = (workouts[i + 1] as any).createdAt || (workouts[i + 1] as any).date || new Date();
+        const gapHours = (new Date(currentDate).getTime() - new Date(previousDate).getTime()) / (1000 * 60 * 60);
+        if (gapHours <= 48) activeStreak++;
+        else break;
+      }
+      for (const workout of workouts as any[]) {
+        if (Array.isArray(workout.sets)) {
+          for (const set of workout.sets) {
+            totalVolumeLifted += (Number(set.weight) || 0) * (Number(set.reps) || 0);
+          }
+        } else {
+          totalVolumeLifted += (Number(workout.setsCount) || 1) * (Number(workout.repsCount) || 10) * (Number(workout.weight) || 0);
+        }
+      }
+    }
+
+    const milestones = [7, 14, 30, 60, 100];
+    const achievedMilestone = milestones.filter((m) => activeStreak >= m).pop() || null;
+
+    return res.status(200).json(
+      successResponse("Goal retrieved successfully", {
+        goal,
+        activeStreak,
+        totalVolumeLifted,
+        milestone: { achieved: !!achievedMilestone, current: achievedMilestone },
+      }),
+    );
+  } catch (error) {
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to retrieve goal",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
+};
+
+// Get goal by userId param
 export const getGoal = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
@@ -267,11 +347,13 @@ export const updateGoal = async (req: Request, res: Response) => {
     // Auto-complete / archive
     applyGoalCompletion(goal);
 
-    if (goal.status !== "completed" &&
+    if (
+      goal.status !== "completed" &&
       goal.targetValue > 0 &&
       goal.currentValue < goal.targetValue
     ) {
-      goal.status = "active"; goal.archivedAt = undefined;
+      goal.status = "active";
+      goal.archivedAt = undefined;
     }
     await goal.save();
 
@@ -306,13 +388,15 @@ export const deleteGoal = async (req: Request, res: Response) => {
     const authUser = (req as any).user;
     const userId = authUser?.userId;
     if (!userId) {
-      return res.status(401).json(
-        errorResponse(
-          "Authentication required", "AUTHENTICATION_REQUIRED",
-          401
-        )
-      );
-
+      return res
+        .status(401)
+        .json(
+          errorResponse(
+            "Authentication required",
+            "AUTHENTICATION_REQUIRED",
+            401,
+          ),
+        );
     }
 
     const goal = await Goal.findOneAndDelete({ _id: id, userId });
@@ -439,23 +523,21 @@ export const getGoalPresets = async (req: Request, res: Response) => {
       },
     ];
     return res.status(200).json(
-      successResponse(
-        "Goal presets retrieved successfully",
-        {
-          presets,
-          count: presets.length,
-        }
-      )
+      successResponse("Goal presets retrieved successfully", {
+        presets,
+        count: presets.length,
+      }),
     );
   } catch (error) {
     console.error("Get goal presets error:", error);
-    return res.status(500).json(
-      errorResponse("Failed to get goal presets",
-        error instanceof Error
-          ? error.message
-          : "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to get goal presets",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 };

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authMiddleware } from "../middlewares/auth.middleware";
 
 import {
   createOrUpdateGoal,
@@ -6,13 +7,17 @@ import {
   updateGoal,
   getGoalPresets,
   deleteGoal,
-   getActiveGoals,
+  getActiveGoals,
   getArchivedGoals,
+  getMyGoal,
 } from "../controllers/goal.controller";
 
 const router = Router();
 
 router.get("/presets", getGoalPresets);
+
+// GET /api/goals — returns the authenticated user's goal (uses JWT token)
+router.get("/", authMiddleware, getMyGoal);
 
 router.get("/active/:userId", getActiveGoals);
 

@@ -392,14 +392,7 @@ export default function ProfilePage() {
       : "");
 
   // Trust backendUser whenever it's populated (it came from our own API /auth/me).
-  // Only discard it if a *different* user is now signed in via BetterAuth.
-  const isStaleSession =
-    backendUser &&
-    activeAuthEmail &&
-    backendUser.email?.toLowerCase().trim() !==
-      activeAuthEmail.toLowerCase().trim();
-
-  const effectiveUser = isStaleSession ? null : backendUser;
+  const effectiveUser = backendUser;
 
   const resolvedUserId =
     effectiveUser?.id ||
@@ -584,7 +577,10 @@ export default function ProfilePage() {
           () => null,
         ),
         fetch(`${apiUrl}/goals/${encodeURIComponent(String(resolvedUserId))}`, {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...headers,
+          },
           cache: "no-store",
         })
           .then((r) => (r.ok ? r.json() : null))
@@ -650,10 +646,17 @@ export default function ProfilePage() {
       backendUser?.membershipExpiresAt || backendUser?.subscriptionExpiryDate;
     const freeTier =
       !plan || plan === "Free Pass" || plan.toLowerCase().includes("free");
-    if (freeTier || !rawExpiry) {
+    
+    if (freeTier) {
       setMembershipBannerData({ status: "no_membership", planName: plan });
       return;
     }
+    
+    if (!rawExpiry) {
+      setMembershipBannerData(null);
+      return;
+    }
+
     const exp = new Date(String(rawExpiry)).getTime();
     const now = Date.now();
     const diff = exp - now;
@@ -798,7 +801,7 @@ export default function ProfilePage() {
         )}
 
         {/* ── 3-Day Free Trial Countdown Banner ── */}
-        {backendUser?.isTrialActive && backendUser.trialExpiresAt && (
+        {backendUser?.isTrialActive && backendUser.trialExpiresAt && !isPremium && (
           <TrialCountdownBanner trialExpiresAt={backendUser.trialExpiresAt} />
         )}
 
@@ -833,7 +836,7 @@ export default function ProfilePage() {
                 >
                   {userPlan}
                 </span>
-                {effectiveUser?.isTrialActive && (
+                {effectiveUser?.isTrialActive && !isPremium && (
                   <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     Pro Trial
                   </span>

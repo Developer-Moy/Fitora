@@ -94,7 +94,9 @@ export async function createWorkoutLog(
   return result.data;
 }
 
-function createOptimisticWorkoutLog(payload: CreateWorkoutLogPayload): WorkoutLog {
+function createOptimisticWorkoutLog(
+  payload: CreateWorkoutLogPayload,
+): WorkoutLog {
   const estimatedCalories =
     payload.caloriesBurned ??
     Math.round(
