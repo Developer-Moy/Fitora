@@ -14,6 +14,8 @@
 [![Google Gemini Flash](https://img.shields.io/badge/Google_Gemini-Flash_AI-black?style=for-the-badge&logo=google)](https://aistudio.google.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)](LICENSE)
 
+<img src="./docs/fitora.png" alt="FITORA Preview" width="100%" style="border-radius: 12px; margin: 20px 0;" />
+
 [🌐 **Live Production Application**](https://fitora-fitness.vercel.app) • [💻 **Frontend Engineering Guide**](client/README.md) • [⚙️ **Backend API Catalog**](server/README.md)
 
 </div>
