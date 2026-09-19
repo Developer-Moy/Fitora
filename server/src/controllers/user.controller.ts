@@ -1040,29 +1040,41 @@ export const updateHealthMetrics = async (req: AuthRequest, res: Response) => {
 
     if (!updatedUser) {
       if (req.body.userEmail) {
-        // Auto-provision Google Login (Better Auth) users in the Fitora database
-        const passwordHash = await bcrypt.hash(Math.random().toString(36), 10);
+        const safeEmail = req.body.userEmail.toLowerCase().trim();
+        updatedUser = await User.findOne({ email: safeEmail });
         
-        let validObjectId;
-        if (mongoose.Types.ObjectId.isValid(userId)) {
-           validObjectId = new mongoose.Types.ObjectId(userId);
+        if (updatedUser) {
+          updatedUser = await User.findByIdAndUpdate(
+            updatedUser._id,
+            { $set: updateFields },
+            { new: true, runValidators: true }
+          ).select("-passwordHash");
         } else {
-           validObjectId = new mongoose.Types.ObjectId();
-        }
+          // Auto-provision Google Login (Better Auth) users in the Fitora database
+          const passwordHash = await bcrypt.hash(Math.random().toString(36), 10);
+          
+          let validObjectId;
+          if (mongoose.Types.ObjectId.isValid(userId)) {
+             validObjectId = new mongoose.Types.ObjectId(userId);
+          } else {
+             validObjectId = new mongoose.Types.ObjectId();
+          }
 
-        updatedUser = await User.create({
-          _id: validObjectId,
-          name: req.body.userName || "Fitora Athlete",
-          email: req.body.userEmail,
-          passwordHash,
-          phone: "+8801700000000",
-          assignedBranch: "Gulshan Premium Branch",
-          assignedBranchSlug: "gulshan-branch",
-          plan: "Free Pass",
-          role: "athlete",
-          status: "active",
-          ...updateFields,
-        });
+          updatedUser = await User.create({
+            _id: validObjectId,
+            name: req.body.userName || "Fitora Athlete",
+            email: safeEmail,
+            passwordHash,
+            phone: "+8801700000000",
+            assignedBranch: "Gulshan Premium Branch",
+            assignedBranchSlug: "gulshan-branch",
+            plan: "Free Pass",
+            role: "athlete",
+            status: "active",
+            qrCodeId: `QR-${Date.now().toString(36).toUpperCase()}`,
+            ...updateFields,
+          });
+        }
       } else {
         return res
           .status(404)
