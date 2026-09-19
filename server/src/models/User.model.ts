@@ -295,12 +295,14 @@ userSchema.pre("save", function (next) {
   next();
 });
 
-// Indexes
+// Indexes (only for non-unique fields — unique fields auto-create indexes)
 userSchema.index({ role: 1 });
 userSchema.index({ assignedBranchSlug: 1 });
 userSchema.index({ status: 1 });
+userSchema.index({ plan: 1 });
 
-const User = mongoose.model<IUser>("User", userSchema);
+// Guard against hot-reload model re-registration (prevents duplicate index warnings)
+const User = (mongoose.models.User as mongoose.Model<IUser>) || mongoose.model<IUser>("User", userSchema);
 
 export { User };
 export default User;

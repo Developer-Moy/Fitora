@@ -42,35 +42,40 @@ export default function NotificationDropdown() {
 
     if (!token) return;
 
-    fetchNotificationsApi(token).then((res) => {
-      if (
-        res.success &&
-        Array.isArray(res.notifications) &&
-        res.notifications.length > 0
-      ) {
-        setNotifications(
-          res.notifications.map((n: AppNotification) => ({
-            id: n._id,
-            title: n.title,
-            description: n.message,
-            time: new Date(n.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            read: n.isRead,
-            type:
-              n.type === "payment" ||
-              n.type === "renewal" ||
-              n.type === "invoice"
-                ? "system"
-                : (n.type as any /* eslint-disable-line @typescript-eslint/no-explicit-any */),
-          })),
-        );
-      } else {
-        setNotifications([]);
-      }
-    });
-  }, []);
+    // Fetch notifications initially and whenever the dropdown is opened
+    const fetchNotifs = () => {
+      fetchNotificationsApi(token).then((res) => {
+        if (
+          res.success &&
+          Array.isArray(res.notifications) &&
+          res.notifications.length > 0
+        ) {
+          setNotifications(
+            res.notifications.map((n: AppNotification) => ({
+              id: n._id,
+              title: n.title,
+              description: n.message,
+              time: new Date(n.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              read: n.isRead,
+              type:
+                n.type === "payment" ||
+                n.type === "renewal" ||
+                n.type === "invoice"
+                  ? "system"
+                  : (n.type as any),
+            })),
+          );
+        } else {
+          setNotifications([]);
+        }
+      });
+    };
+
+    fetchNotifs();
+  }, [isOpen]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 

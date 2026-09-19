@@ -10,7 +10,17 @@ import {
 
 const router = Router();
 
-router.get("/export/attendance", authMiddleware, requireMasterAdmin, getAttendanceExport);
-router.get("/export/revenue", authMiddleware, requireMasterAdmin, getRevenueExport);
+router.get(
+  "/export/attendance",
+  authMiddleware,
+  requireMasterAdmin,
+  getAttendanceExport,
+);
+router.get(
+  "/export/revenue",
+  authMiddleware,
+  requireMasterAdmin,
+  getRevenueExport,
+);
 
 export default router;

@@ -72,11 +72,22 @@ const getPremiumStatus = (): boolean => {
         user?.subscription?.plan ||
         user?.subscription?.tier ||
         "",
-    ).toLowerCase();
+    );
 
-    const premiumPlans = ["premium", "pro", "athlete", "paid"];
+    // Match actual Fitora plan names stored in MongoDB
+    const premiumPlans = ["Basic Pass", "Pro Athlete", "VIP Ultimate"];
+    if (premiumPlans.includes(plan)) return true;
 
-    return premiumPlans.includes(plan);
+    // Also handle legacy lowercase/partial names as fallback
+    const planLower = plan.toLowerCase();
+    return (
+      planLower.includes("basic") ||
+      planLower.includes("pro") ||
+      planLower.includes("vip") ||
+      planLower.includes("athlete") ||
+      planLower.includes("premium") ||
+      planLower.includes("paid")
+    );
   } catch (error) {
     console.error("Premium status check failed:", error);
     return false;
@@ -1657,7 +1668,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       onClick={handleSaveTargetWeight}
                       loading={isSavingTargetWeight}
                       disabled={isSavingTargetWeight}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-black border border-white/20 px-3.5 py-1.5 text-[10px] font-extrabold text-white transition-all duration-300 hover:bg-neutral-900 hover:border-white/40 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shrink-0"
+                      className="shrink-0"
                     >
                       Save Target Weight
                     </FitoraPillButton>

@@ -189,9 +189,7 @@ export default function GlobalSearchBar({
       {isOpen && searchQuery.trim().length > 0 && (
         <div
           className={`absolute top-full mt-2 bg-black/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden text-white animate-in fade-in slide-in-from-top-2 duration-150 max-h-[75vh] flex flex-col ${
-            compact
-              ? "right-0 w-80 sm:w-105 md:w-115"
-              : "left-0 right-0"
+            compact ? "right-0 w-80 sm:w-105 md:w-115" : "left-0 right-0"
           }`}
         >
           {/* Header Bar */}

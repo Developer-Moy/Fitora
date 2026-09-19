@@ -236,10 +236,7 @@ export const getWorkoutLogs = async (
     const authUser = (req as any).user;
 
     const targetUserId =
-      (userId as string) ||
-      authUser?.userId ||
-      authUser?.id ||
-      "guest_user";
+      (userId as string) || authUser?.userId || authUser?.id || "guest_user";
 
     let logs: any[] = [];
     const isDbConnected = mongoose.connection.readyState === 1;
@@ -265,10 +262,7 @@ export const getWorkoutLogs = async (
                 }).select("_id email");
               } else {
                 userDoc = await User.findOne({
-                  $or: [
-                    { email: targetUserId },
-                    { phone: targetUserId },
-                  ],
+                  $or: [{ email: targetUserId }, { phone: targetUserId }],
                 }).select("_id email");
               }
 
@@ -287,8 +281,7 @@ export const getWorkoutLogs = async (
               }
             } catch {}
 
-            const queryEmail =
-              (email as string) || authUser?.email;
+            const queryEmail = (email as string) || authUser?.email;
             if (
               queryEmail &&
               !conditions.some((c) => c.userId === queryEmail)
@@ -426,10 +419,7 @@ export const createWorkoutLog = async (
 
     const authUser = (req as any).user;
     const finalUserId =
-      userId ||
-      authUser?.userId ||
-      authUser?.id ||
-      "guest_user";
+      userId || authUser?.userId || authUser?.id || "guest_user";
     const logDate = date ? new Date(date) : new Date();
 
     // Auto-calculate estimated calories if not provided

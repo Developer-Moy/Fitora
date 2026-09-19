@@ -7,9 +7,7 @@ import {
   getAuthSession,
   saveAuthSession,
 } from "@/services/authService";
-import {
-  uploadToImgBB,
-} from "@/services/imageUploadService";
+import { uploadToImgBB } from "@/services/imageUploadService";
 import {
   fetchPublicBranches,
   updateUserProfileApi,

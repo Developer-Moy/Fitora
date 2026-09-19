@@ -1,8 +1,5 @@
 import { Router } from "express";
-import {
-  authMiddleware,
-  requirePremium,
-} from "../middlewares/auth.middleware";
+import { authMiddleware, requirePremium } from "../middlewares/auth.middleware";
 import {
   getPresets,
   createCustomPreset,

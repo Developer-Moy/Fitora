@@ -295,8 +295,8 @@ const TRAINER_HIGHLIGHTS: Record<string, string[]> = {
 };
 
 export default function MeetTrainers() {
-  const [trainers, setTrainers] = useState<Trainer[]>(DEFAULT_TRAINERS);
-  const [loading, setLoading] = useState(false);
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
 
   useEffect(() => {
@@ -304,6 +304,7 @@ export default function MeetTrainers() {
     const apiUrl =
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+    setLoading(true);
     fetch(`${apiUrl}/trainers`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -311,16 +312,19 @@ export default function MeetTrainers() {
       })
       .then((data) => {
         if (!isMounted) return;
-        const fetchedTrainers = Array.isArray(data.data)
-          ? data.data
-          : Array.isArray(data?.data?.trainers)
+        const fetchedTrainers = Array.isArray(data?.data?.trainers)
           ? data.data.trainers
+          : Array.isArray(data?.data)
+          ? data.data
           : Array.isArray(data?.trainers)
           ? data.trainers
           : [];
 
         if (fetchedTrainers.length > 0) {
           setTrainers(fetchedTrainers);
+        } else {
+          // Fallback to defaults if API returns empty
+          setTrainers(DEFAULT_TRAINERS);
         }
         setLoading(false);
       })
@@ -330,6 +334,7 @@ export default function MeetTrainers() {
           err
         );
         if (isMounted) {
+          setTrainers(DEFAULT_TRAINERS);
           setLoading(false);
         }
       });
@@ -338,6 +343,7 @@ export default function MeetTrainers() {
       isMounted = false;
     };
   }, []);
+
 
   return (
     <section

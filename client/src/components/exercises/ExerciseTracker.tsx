@@ -25,6 +25,7 @@ import toast from "react-hot-toast";
 import { fetchExercises } from "@/services/exerciseService";
 import { createWorkoutLog } from "@/services/workoutService";
 import Image from "next/image";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 
 type Exercise = {
   id: string;
@@ -136,24 +137,42 @@ export default function ExercisePage() {
   useEffect(() => {
     const checkPremiumAccess = async () => {
       try {
-        const token =
-          typeof window !== "undefined"
-            ? localStorage.getItem("fitora_token") ||
-              localStorage.getItem("fitora_auth_token")
-            : null;
+        if (typeof window === "undefined") return;
 
-        if (!token) {
+        // 1. Quick local storage check to avoid API latency and token missing issues
+        const plan = localStorage.getItem("fitora_user_plan");
+        const role = localStorage.getItem("fitora_user_role");
+        
+        if (
+          plan === "Pro Athlete" || 
+          plan === "VIP Ultimate" || 
+          plan === "Basic Pass" || 
+          role === "premium_user" ||
+          role === "master_admin" ||
+          role === "admin"
+        ) {
+          setIsPremium(true);
+          return;
+        }
+
+        // 2. Fallback to API check
+        const token = localStorage.getItem("fitora_token") || localStorage.getItem("fitora_auth_token");
+        const userEmail = localStorage.getItem("fitora_user_email");
+
+        if (!token && !userEmail) {
           setIsPremium(false);
           return;
         }
+
+        const headers: Record<string, string> = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        if (userEmail) headers["x-user-email"] = userEmail;
 
         const apiBase =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
         const response = await fetch(`${apiBase}/workouts/advanced`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
         });
 
         setIsPremium(response.ok);
@@ -241,11 +260,8 @@ export default function ExercisePage() {
 
           {/* 3x3 Exercise Grid (9 Cards Per Page) */}
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-white/50">
-              <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-xs font-bold uppercase tracking-widest">
-                Loading exercise library...
-              </p>
+            <div className="flex items-center justify-center py-20">
+              <FitoraSpinner size="lg" label="Loading exercise library..." />
             </div>
           ) : paginatedExercises.length > 0 ? (
             <>

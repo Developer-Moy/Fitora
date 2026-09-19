@@ -11,7 +11,10 @@ import { seedStopwatchPresets } from "./data/stopwatch.seed.js";
 
 import { handleStripeWebhook } from "./controllers/payment.controller.js";
 import { apiLimiter, authLimiter } from "./middlewares/rateLimit.middleware.js";
-import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./middlewares/error.middleware.js";
 
 dotenv.config();
 

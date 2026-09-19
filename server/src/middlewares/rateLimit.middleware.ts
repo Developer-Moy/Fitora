@@ -93,7 +93,7 @@ const createLimiter = ({
  */
 export const apiLimiter = createLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1500, // Increased from 100 to 1500 to allow dashboard concurrent fetches
   message: "Too many requests. Please try again later.",
   errorCode: "TOO_MANY_REQUESTS",
   // Hand auth traffic over to `authLimiter` exclusively.
