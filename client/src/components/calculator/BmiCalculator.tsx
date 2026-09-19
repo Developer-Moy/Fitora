@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { saveBmiHistory } from "@/services/bmiService";
 import { getAuthSession } from "@/services/authService";
+import { useSession } from "@/lib/auth-client";
 import FitoraPillButton from "../ui/FitoraPillButton";
 
 interface BmiCalculatorProps {
@@ -17,6 +18,8 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
   const [weightUnit, setWeightUnit] = useState<"kg" | "lbs">("kg");
   const [heightUnit, setHeightUnit] = useState<"cm" | "ft">("cm");
   const [isSaving, setIsSaving] = useState(false);
+
+  const { data: authSession } = useSession();
 
   // Health calculation inputs
   const [age, setAge] = useState(25);
@@ -39,13 +42,15 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
 
     try {
       const session = getAuthSession();
-      const userId = (session?.user as any)?._id || (session?.user as any)?.id;
+      const currentUser = session?.user || authSession?.user;
+      const userId = (currentUser as any)?._id || (currentUser as any)?.id;
+      
       const finalToken =
         session?.token ||
         localStorage.getItem("fitora_token") ||
         localStorage.getItem("fitora_auth_token");
 
-      if (!finalToken || !userId) {
+      if (!userId) {
         toast.error("Please login to save your BMI record.");
         setIsSaving(false);
         return;
