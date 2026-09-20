@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="utf-8">
+<title>FITORA - Project Architecture & Full-Stack Section Distribution</title>
+<style>
+  body {
+    font-family: 'Calibri', 'Segoe UI', Arial, sans-serif;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background-color: #ffffff;
+    margin: 40px;
+  }
+  h1 {
+    font-size: 24pt;
+    color: #000000;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid #000000;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  h2 {
+    font-size: 16pt;
+    color: #111111;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1.5px solid #333333;
+    padding-bottom: 5px;
+    margin-top: 25px;
+    margin-bottom: 12px;
+  }
+  h3 {
+    font-size: 13pt;
+    color: #222222;
+    margin-top: 18px;
+    margin-bottom: 8px;
+  }
+  .member-box {
+    background-color: #f9f9f9;
+    border-left: 4px solid #000000;
+    padding: 12px 18px;
+    margin-bottom: 20px;
+  }
+  .member-title {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #000000;
+    margin-bottom: 4px;
+  }
+  .member-role {
+    font-size: 11pt;
+    color: #555555;
+    font-style: italic;
+    margin-bottom: 10px;
+  }
+  .feature-item {
+    margin-bottom: 12px;
+  }
+  .feature-title {
+    font-weight: bold;
+    color: #111111;
+    font-size: 11pt;
+  }
+  .feature-desc {
+    color: #333333;
+    font-size: 10.5pt;
+    margin-left: 15px;
+  }
+  .tech-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    margin-bottom: 25px;
+  }
+  .tech-table th, .tech-table td {
+    border: 1px solid #dddddd;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 10.5pt;
+  }
+  .tech-table th {
+    background-color: #000000;
+    color: #ffffff;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 10pt;
+  }
+  .tech-table tr:nth-child(even) {
+    background-color: #f6f6f6;
+  }
+</style>
+</head>
+<body>
+
+<h1>FITORA &mdash; Project Architecture &amp; Feature Distribution</h1>
+
+<h2>1. Project Architecture &amp; Technology Stack</h2>
+<table class="tech-table">
+  <tr>
+    <th style="width: 28%;">Technology Layer</th>
+    <th>Implementation Details &amp; Libraries</th>
+  </tr>
+  <tr>
+    <td><strong>Frontend Stack</strong></td>
+    <td>Next.js 16 (App Router), React 19, Strict TypeScript, Tailwind CSS v4, Lucide Icons, and Framer Motion</td>
+  </tr>
+  <tr>
+    <td><strong>Backend Stack</strong></td>
+    <td>Node.js, Express.js 4/5 (Strict TypeScript Architecture), Zod Schema Validation, JWT Authentication, and Bcrypt</td>
+  </tr>
+  <tr>
+    <td><strong>Database Management</strong></td>
+    <td>MongoDB Atlas (Cloud Cluster Engine) and Mongoose ODM with automated indexing and schemas</td>
+  </tr>
+  <tr>
+    <td><strong>Real-Time Communication &amp; Telemetry</strong></td>
+    <td>Socket.IO (Live workout telemetry &amp; turnstile check-in sync), Vercel (Client Web App), Render (Backend Service)</td>
+  </tr>
+  <tr>
+    <td><strong>Multi-AI Intelligent System</strong></td>
+    <td>Google Gemini AI (Google AI Studio API with multi-model fallback: gemini-flash-latest, gemini-flash-lite-latest, heuristic failover engine) &amp; Groq Cloud / OpenAI architecture</td>
+  </tr>
+  <tr>
+    <td><strong>Payments &amp; Access Governance</strong></td>
+    <td>Multi-Gateway Payments (Stripe, bKash, Nagad), 3-Day Free Pro Trial Engine, Card Retention System, Digital QR Code Turnstiles, and Master Admin RBAC</td>
+  </tr>
+</table>
+
+<h2>2. 12 Full-Stack Feature Modules &amp; Team Responsibility</h2>
+
+<div class="member-box">
+  <div class="member-title">Team Lead (Member 1) &mdash; Moloy Krishna Paul</div>
+  <div class="member-role">Full-Stack Architect, Core Authentication &amp; AI Integration Lead (Branch: moloy)</div>
+
+  <div class="feature-item">
+    <div class="feature-title">1. Role-Based Authentication &amp; Athlete Profile Hub</div>
+    <div class="feature-desc">&bull; Implemented multi-provider authentication (JWT, Google OAuth, BetterAuth session reconciliation).<br>
+    &bull; Built protected route guards, role authorization (Master Admin, Branch Admin, Athlete), and session recovery.<br>
+    &bull; Designed and developed the full Athlete Profile Hub with biometric metrics, avatar upload, and QR Gym Pass turnstile entry (<code>/profile</code>, <code>/profile/edit</code>).<br>
+    &bull; Implemented the automated 3-Day Pro Trial activation and Card Retention bonus engine.</div>
+  </div>
+
+  <div class="feature-item">
+    <div class="feature-title">2. Multi-AI Fallback Engine &amp; AI Coach Studio</div>
+    <div class="feature-desc">&bull; Architected Google Gemini AI Studio integration with automated multi-model discovery (<code>gemini-flash-latest</code>, <code>gemini-flash-lite-latest</code>).<br>
+    &bull; Engineered zero-downtime heuristic fallback engine ensuring 100% response uptime even during quota exhaustion.<br>
+    &bull; Built 24/7 AI Coach conversational studio with streaming responses and fitness query audit logging (<code>/api/ai/*</code>).</div>
+  </div>
+</div>
+
+<div class="member-box">
+  <div class="member-title">Member 2 &mdash; Gazi Md. Salauddin</div>
+  <div class="member-role">Core Feature Developer &mdash; Exercise Studio &amp; Goals Engine (Branch: salauddin)</div>
+
+  <div class="feature-item">
+    <div class="feature-title">3. Exercise Catalog Engine &amp; Video Movement Studio</div>
+    <div class="feature-desc">&bull; Built filterable and searchable exercise library with muscle group categorization and difficulty levels (<code>/exercises</code>).<br>
+    &bull; Integrated YouTube thumbnail cards with 280ms debounced hover video previews and LIVE coaching badges.<br>
+    &bull; Developed exercise detail modals with step-by-step coaching tips, sets, reps, and Personal Record (PR) tracking.</div>
+  </div>
+
+  <div class="feature-item">
+    <div class="feature-title">4. Target Goal &amp; Milestone Hub</div>
+    <div class="feature-desc">&bull; Implemented full CRUD fitness goal tracking system for weight loss, maintenance, and hypertrophy (<code>/api/goals/*</code>).<br>
+    &bull; Built active and archived goal management, target deadline projection, and 1RM strength calculations.<br>
+    &bull; Integrated VIP Pass Modal (<code>VipPassModal.tsx</code>) and turnstile access protection middleware.</div>
+  </div>
+</div>
+
+<div class="member-box">
+  <div class="member-title">Member 3 &mdash; Simanto Paul</div>
+  <div class="member-role">Fitness Calculations &amp; Body Metrics Specialist (Branch: simanto-paul)</div>
+
+  <div class="feature-item">
+    <div class="feature-title">5. Scientific AI Macro Calculator &amp; Health Engine</div>
+    <div class="feature-desc">&bull; Developed core calculation algorithms for scientific BMI, Mifflin-St Jeor BMR, and activity-based TDEE (<code>/calculator</code>).<br>
+    &bull; Engineered dynamic macronutrient distribution engine (Protein, Carbohydrates, Fats) with animated progress bars.<br>
+    &bull; Built reusable computation utilities: <code>calculateBmi.ts</code>, <code>calculateBmr.ts</code>, <code>calculateTdee.ts</code>, and <code>calculateMacros.ts</code>.</div>
+  </div>
+
+  <div class="feature-item">
+    <div class="feature-title">6. Target Weight Timeline &amp; Dynamic Hydration Tracker</div>
+    <div class="feature-desc">&bull; Built target weight timeline projection UI with weekly caloric deficit/surplus modeling.<br>
+    &bull; Developed dynamic daily hydration target calculator with profile database synchronization (<code>/api/users/profile/hydration-target</code>).<br>
+    &bull; Implemented athlete health assessment cards and automated PDF report export utilities.</div>
+  </div>
+</div>
+
+<div class="member-box">
+  <div class="member-title">Member 4 &mdash; Simanto Poddar</div>
+  <div class="member-role">Nutrition &amp; Dietary Systems Specialist (Branch: simanto-poddar)</div>
+
+  <div class="feature-item">
+    <div class="feature-title">7. Progress Analytics Visualizer &amp; Attendance Matrix</div>
+    <div class="feature-desc">&bull; Developed dynamic workout consistency scoring and body weight transformation analytics.<br>
+    &bull; Built 365-day monochrome gym attendance matrix and membership renewal countdown banners (<code>MembershipExpiryBanner.tsx</code>).<br>
+    &bull; Integrated terms, privacy, and legal documentation pages into the platform navigation.</div>
+  </div>
+
+  <div class="feature-item">
+    <div class="feature-title">8. AI Nutrition Planner &amp; Daily Meal Catalog</div>
+    <div class="feature-desc">&bull; Developed personalized nutrition plan engine and healthy meal catalog with category filters (<code>/meals</code>, <code>PersonalizedNutritionPlan.tsx</code>).<br>
+    &bull; Implemented backend Daily Meal Plan API (<code>GET /api/daily-plan/:userId</code>, <code>createMealChart</code>).<br>
+    &bull; Built daily calorie progress tracking bar, grocery list export action, and skeleton loading grids.</div>
+  </div>
+</div>
+
+<div class="member-box">
+  <div class="member-title">Member 5 &mdash; Puskor Roy</div>
+  <div class="member-role">Workout Telemetry &amp; Timing Systems Specialist (Branch: puskor_roy)</div>
+
+  <div class="feature-item">
+    <div class="feature-title">9. Daily Workout Logger &amp; Offline Telemetry Queue</div>
+    <div class="feature-desc">&bull; Developed authoritative workout logging engine with sets, reps, lifted weights, and calorie expenditure (<code>/api/workouts/log</code>).<br>
+    &bull; Engineered offline-first telemetry caching queue utilizing browser IndexedDB with automatic background MongoDB synchronization upon reconnect (<code>offlineQueueService.ts</code>).<br>
+    &bull; Built complete workout history log viewer with calendar analytics and exercise summary statistics.</div>
+  </div>
+
+  <div class="feature-item">
+    <div class="feature-title">10. Circular HUD Stopwatch &amp; Custom Rest Presets</div>
+    <div class="feature-desc">&bull; Developed interactive circular SVG HUD workout stopwatch with live countdown and audio alert cues (<code>GymTimer.tsx</code>, <code>stopwatch.tsx</code>, <code>/stopwatch</code>).<br>
+    &bull; Built custom rest interval preset engine with database persistence and premium access controls (<code>CustomRestPreset.model.ts</code>, <code>/api/stopwatch/*</code>).<br>
+    &bull; Integrated Member Billing &amp; Payment History card with live subscription status tracking (<code>BillingSection.tsx</code>, <code>MembershipStatusCard.tsx</code>).</div>
+  </div>
+</div>
+
+<div class="member-box">
+  <div class="member-title">Member 6 &mdash; Alfaaz Ahmed</div>
+  <div class="member-role">Executive Dashboard, Search &amp; Governance Specialist (Branch: alfaaz)</div>
+
+  <div class="feature-item">
+    <div class="feature-title">11. Advanced Global Search &amp; Multi-Filter Engine</div>
+    <div class="feature-desc">&bull; Engineered debounced real-time global search bar across athletes, gym branches, and workout movements (<code>GlobalSearchBar.tsx</code>, <code>/api/search/*</code>).<br>
+    &bull; Implemented multi-parameter filtering by available equipment, division, and difficulty levels.<br>
+    &bull; Developed real-time notification bell dropdown with unread badge counter (<code>NotificationDropdown.tsx</code>).</div>
+  </div>
+
+  <div class="feature-item">
+    <div class="feature-title">12. Executive Admin Dashboard &amp; Report CSV/PDF Export</div>
+    <div class="feature-desc">&bull; Built executive command center dashboard displaying platform KPIs, monthly revenue progression, and branch occupancy telemetry (<code>/dashboard</code>, <code>MemberDashboardView.tsx</code>).<br>
+    &bull; Implemented server-side data export engines for monthly revenue reports and attendance CSV logs (<code>admin.controller.ts</code>).<br>
+    &bull; Implemented platform-wide security enhancements including Helmet headers and Express API rate limiting.</div>
+  </div>
+</div>
+
+</body>
+</html>
