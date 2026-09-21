@@ -56,3 +56,28 @@ export const sendConsultationEmail = async (data: any) => {
     console.error('Error sending consultation email:', error);
   }
 };
+
+export const sendTrainerSessionEmail = async (trainerEmail: string, data: any) => {
+  try {
+    const to = trainerEmail || "developermoy@gmail.com";
+    await transporter.sendMail({
+      from: '"Fitora Gym" <noreply@fitora.app>',
+      to,
+      subject: `New Session Booking from ${data.fullName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; color: #333; padding: 20px; border: 1px solid #ddd;">
+          <h2 style="color: #000; border-bottom: 2px solid #000; padding-bottom: 10px;">New Session Booking Request</h2>
+          <p><strong>Name:</strong> ${data.fullName}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+          <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
+          <p><strong>Date:</strong> ${new Date(data.date).toDateString()}</p>
+          <p><strong>Time Slot:</strong> ${data.timeSlot}</p>
+          <p style="margin-top: 20px;">Please login to your trainer dashboard to confirm this booking.</p>
+        </div>
+      `,
+    });
+    console.log(`Session booking email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending session booking email:', error);
+  }
+};

@@ -13,6 +13,7 @@ export interface ITrainer extends Document {
 
   // Basic Info
   name: string;
+  email: string;
   slug: string;
   designation: string;
   bio: string;
