@@ -84,6 +84,11 @@ Traditional gym management software in Bangladesh is either outdated desktop spr
 - **Live Branch Occupancy:** Live member count vs. capacity threshold with real-time turnstile check-in feeds and CSV data export.
 - **User Management & Branch Directory:** Centralized CRUD controls across all 64 district branches in Bangladesh.
 
+### 6. 📅 Dynamic 1-on-1 Session Booking
+- **Smart Time Slot Engine:** Real-time frontend validation utilizing `GET /booked-slots` to instantly disable booked schedules and prevent overlap.
+- **Automated Notifications:** Nodemailer integration dispatches formatted confirmation emails to elite trainers upon successful booking.
+- **Glassmorphic UI:** Highly responsive, luxury booking interface matching Fitora's Pure Black & White signature theme.
+
 ---
 
 ## 🎨 Monochromatic Luxury Design System

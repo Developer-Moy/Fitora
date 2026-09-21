@@ -161,6 +161,13 @@ server/
 | `GET`  | `/api/ai/quota`   | Optional Auth | Check daily AI queries and plan generation quota status based on user tier.                         |
 | `GET`  | `/api/ai/history` | Authenticated | Fetch persistent AI conversation history for authenticated athletes.                                |
 
+### 📅 Session Booking (`/api/session-booking`)
+
+| Method | Endpoint                        |    Access     | Description                                                                                           |
+| :----- | :------------------------------ | :-----------: | :---------------------------------------------------------------------------------------------------- |
+| `POST` | `/api/session-booking/`         | Optional Auth | Submit a booking request; validates data, prevents double-booking, and emails trainer via Nodemailer. |
+| `GET`  | `/api/session-booking/booked-slots` |    Public     | Fetch dynamically booked time slots for a specific trainer and date to prevent frontend overlaps.     |
+
 ---
 
 ## 💼 Business Logic Services Layer
