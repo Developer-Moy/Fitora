@@ -23,7 +23,7 @@ export default function TrainerCalloutBanner({
   phoneNumber = "+880 1700-000000",
   phoneLink = "tel:+8801700000000",
   buttonText = "BOOK A SESSION",
-  buttonHref = "/exercises",
+  buttonHref = "/book-session",
   backgroundImage = "/trainer-banner-bg.jpg",
   className = "",
 }: TrainerCalloutBannerProps) {

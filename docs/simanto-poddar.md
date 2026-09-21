@@ -245,3 +245,7 @@ Issues Resolved Today
 
 - Split legal page into terms and privacy pages.
 - Fixed the safely convertible Tailwind CSS warnings found in the codebase.
+
+## 21-Sep-26
+
+- Update footer social icons

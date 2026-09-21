@@ -497,6 +497,13 @@ https://github.com/Developer-Moy/Fitora/tree/simanto-paul
 * Reviewed and optimized minor UI components for better loading performance.
 * Completed testing and verification of the performance improvements.
 
+### 21-Sep-26
+
+* Updated the form input fields with rounded corners for a cleaner UI.
+* Improved the select dropdown styling and alignment.
+* Standardized the form field appearance with consistent spacing, borders, and rounded styling.
+* Verified the updated form UI for consistency and responsiveness.
+
 
 ---
 
