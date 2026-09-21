@@ -601,11 +601,19 @@ Updated the homepage contact section and added a reusable WhatsApp link helper.
 
 ## 15-Sep-26
 
-- Upgraded the authentication pages with a polished **glassmorphism UI**, rebuilt in `client/src/components/auth/AuthFlowContainer.tsx`.
-- Added **client-side validation and toast feedback** to the auth flow, including email format checks and inline success/error notifications.
-- Connected the **Google OAuth login button** to the existing Better Auth social sign-in flow with loading, error, and redirect handling.
-- Added dedicated `/pricing` page with **monthly & annual membership pricing** using the reusable `PlanCard` component.
-- Connected the pricing CTA to the **checkout flow** so plan selection opens the subscription checkout modal and refreshes the user session after success.
+### Contact Info Links: Stack Vertically + TikTok Social Link
+
+Refined the homepage **Information** block so the three contact links (phone, email, WhatsApp) stack vertically instead of sitting inline, and added a TikTok icon to the **Follow Us** social row.
+
+#### Key Implementation (`client/src/components/home/ContactInfoForm.tsx`):
+
+- Imported `FaTiktok` from `react-icons/fa6` alongside the existing social icons.
+- Changed the Information block's link container from `inline-flex` with `space-y-0.5` to a vertical `flex flex-col items-start` layout with `space-y-2`, so the Phone, Mail and WhatsApp links display one below the other.
+- Converted each of the three links from `inline-flex` to `flex` so the icon + text stay locked together in the stacked layout.
+- Added a new TikTok follow-us button next to the Instagram icon:
+  - Renders `FaTiktok` inside the same pill style as the other social icons (`w-9 h-9 rounded-full bg-gray-100 text-black`, hover: `bg-black hover:text-white`).
+  - Links to `https://tiktok.com` with `target="_blank"` and `rel="noopener noreferrer"`.
+  - Includes an `aria-label="TikTok"`.
 
 ---
 

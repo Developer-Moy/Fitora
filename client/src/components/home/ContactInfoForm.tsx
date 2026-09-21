@@ -7,6 +7,7 @@ import {
   FaXTwitter,
   FaPinterestP,
   FaWhatsapp,
+  FaTiktok,
 } from "react-icons/fa6";
 import {
   ArrowUpRight,
@@ -138,10 +139,10 @@ export default function ContactInfoForm() {
                 Information
               </h3>
               <div className="w-10 h-1 bg-black" />
-              <div className="text-xs sm:text-sm text-gray-500 leading-relaxed font-normal space-y-0.5 pt-1">
+              <div className="text-xs sm:text-sm text-gray-500 leading-relaxed font-normal space-y-2 pt-1 flex flex-col items-start">
                 <a
                   href={FITORA_TEL_LINK}
-                  className="inline-flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
+                  className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
                   aria-label="Call FITORA"
                 >
                   <Phone className="w-3.5 h-3.5 shrink-0" />
@@ -149,7 +150,7 @@ export default function ContactInfoForm() {
                 </a>
                 <a
                   href={`mailto:${FITORA_SUPPORT_EMAIL}`}
-                  className="inline-flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
+                  className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
                   aria-label="Email FITORA support"
                 >
                   <Mail className="w-3.5 h-3.5 shrink-0" />
@@ -159,7 +160,7 @@ export default function ContactInfoForm() {
                   href={getWhatsAppUrl(FITORA_CONTACT_PHONE)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
+                  className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors"
                   aria-label="WhatsApp"
                 >
                   <FaWhatsapp size={14} className="shrink-0" />
@@ -201,6 +202,15 @@ export default function ContactInfoForm() {
                   aria-label="Instagram"
                 >
                   <FaInstagram size={15} />
+                </a>
+                <a
+                  href="https://tiktok.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-full bg-gray-100 text-black flex items-center justify-center hover:bg-black hover:text-white transition-all"
+                  aria-label="TikTok"
+                >
+                  <FaTiktok size={14} />
                 </a>
                 <a
                   href="https://pinterest.com"
@@ -321,7 +331,6 @@ export default function ContactInfoForm() {
                 />
               </div>
 
-              {/* SUBMIT NOW Button — Black pill with white circle ArrowUpRight badge (moloy branch original) */}
               <div className="pt-2">
                 <button
                   type="submit"
