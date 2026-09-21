@@ -717,7 +717,7 @@ export default function FloatingAiWidget() {
         >
           {isScrolled ? (
             <div className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white stroke-none group-hover:rotate-12 transition-transform duration-300 drop-shadow-md" />
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white stroke-none transition-transform duration-300 drop-shadow-md animate-[spin_6s_linear_infinite]" />
               <span className="text-[11px] sm:text-xs tracking-wide">
                 {isOpen ? "Close AI" : "Ask AI"}
               </span>
