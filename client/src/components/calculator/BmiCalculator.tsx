@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { saveBmiHistory } from "@/services/bmiService";
+import { getAuthSession } from "@/services/authService";
+import { useSession } from "@/lib/auth-client";
 import FitoraPillButton from "../ui/FitoraPillButton";
 
 interface BmiCalculatorProps {
@@ -16,6 +18,8 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
   const [weightUnit, setWeightUnit] = useState<"kg" | "lbs">("kg");
   const [heightUnit, setHeightUnit] = useState<"cm" | "ft">("cm");
   const [isSaving, setIsSaving] = useState(false);
+
+  const { data: authSession } = useSession();
 
   // Health calculation inputs
   const [age, setAge] = useState(25);
@@ -37,8 +41,24 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
     setIsSaving(true);
 
     try {
+      const session = getAuthSession();
+      const currentUser = session?.user || authSession?.user;
+      const userId = (currentUser as any)?._id || (currentUser as any)?.id;
+      
+      const finalToken =
+        session?.token ||
+        localStorage.getItem("fitora_token") ||
+        localStorage.getItem("fitora_auth_token");
+
+      if (!userId) {
+        toast.error("Please login to save your BMI record.");
+        setIsSaving(false);
+        return;
+      }
+
       // 1. Save BMI history
       const success = await saveBmiHistory({
+        userId,
         heightCm: Math.round(height),
         weightKg: Number(weight.toFixed(1)),
         bmiScore: bmi,
@@ -51,30 +71,29 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
       });
 
       if (!success) {
-        toast.error("Please login to save your BMI record.");
+        toast.error("Failed to save BMI record.");
+        setIsSaving(false);
         return;
       }
 
       // 2. Sync health metrics to User profile
-      const token =
-        localStorage.getItem("fitora_token") ||
-        localStorage.getItem("fitora_auth_token");
-
-      if (!token) {
-        toast.error("Please login to sync your health metrics.");
-        return;
-      }
-
       const API_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (finalToken) {
+        headers["Authorization"] = `Bearer ${finalToken}`;
+      }
+
       const response = await fetch(`${API_URL}/users/profile/health-metrics`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify({
+          userId,
+          userEmail: session?.user?.email || authSession?.user?.email,
+          userName: session?.user?.name || authSession?.user?.name,
           age,
           gender,
           height: Math.round(height),
@@ -248,7 +267,7 @@ const BmiCalculator = ({ onBmiChange }: BmiCalculatorProps) => {
           </div>
 
           {/* Right - Precision Engineered Speedometer Gauge */}
-          <div className="relative mx-auto w-full max-w-[170px] flex flex-col items-center">
+          <div className="relative mx-auto w-full max-w-42.5 flex flex-col items-center">
             <svg
               viewBox="0 0 170 98"
               className="w-full h-auto overflow-visible select-none"

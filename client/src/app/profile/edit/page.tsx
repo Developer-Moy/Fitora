@@ -7,16 +7,13 @@ import {
   getAuthSession,
   saveAuthSession,
 } from "@/services/authService";
-import {
-  uploadToImgBB,
-  readFileAsDataURL,
-} from "@/services/imageUploadService";
+import { uploadToImgBB } from "@/services/imageUploadService";
 import {
   fetchPublicBranches,
   updateUserProfileApi,
 } from "@/services/dashboardService";
 import { ArrowLeft, Upload, Loader2, Trash2 } from "lucide-react";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useSession, authClient } from "@/lib/auth-client";
 import Image from "next/image";
 

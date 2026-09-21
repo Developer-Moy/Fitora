@@ -248,7 +248,7 @@ export default function PricingSection() {
                 </div>
 
                 <div
-                  className={`w-full h-[1px] ${
+                  className={`w-full h-px ${
                     plan.isPopular ? "bg-white/20" : "bg-gray-100"
                   }`}
                 />

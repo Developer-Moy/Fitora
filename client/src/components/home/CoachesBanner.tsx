@@ -14,7 +14,7 @@ export default function CoachesBanner() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         {/* Left Side: 2 Rounded Coach Photos from Public Folder */}
         <div className="lg:col-span-6 grid grid-cols-2 gap-4">
-          <div className="aspect-[4/5] rounded-2xl overflow-hidden border border-gray-200 shadow-md group">
+          <div className="aspect-4/5 rounded-2xl overflow-hidden border border-gray-200 shadow-md group">
             <Image
               src="/coache1.jpg.jpeg"
               alt="Fitness Coach Mentor 1"
@@ -23,7 +23,7 @@ export default function CoachesBanner() {
               className="w-full h-full object-cover filter brightness-95 contrast-105 group-hover:scale-105 transition-transform duration-500"
             />
           </div>
-          <div className="aspect-[4/5] rounded-2xl overflow-hidden border border-gray-200 shadow-md group">
+          <div className="aspect-4/5 rounded-2xl overflow-hidden border border-gray-200 shadow-md group">
             <Image
               src="/choach2.jpg.jpeg"
               alt="Fitness Coach Mentor 2"

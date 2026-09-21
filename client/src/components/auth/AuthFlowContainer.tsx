@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
-  Lock,
   Eye,
   EyeOff,
   ArrowRight,
@@ -16,7 +15,7 @@ import {
   CheckCircle2,
   Dumbbell,
 } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
 import { loginApi, registerApi, saveAuthSession } from "@/services/authService";
 
@@ -64,10 +63,10 @@ function UniversalSlidePill({
   return (
     <div
       onClick={handleSlideAction}
-      className="relative w-full h-12 bg-white/5 border border-white/10 rounded-full p-1 flex items-center justify-between shadow-2xl backdrop-blur-sm cursor-pointer select-none overflow-hidden transition-all duration-300 group hover:border-white/20 hover:bg-white/[0.08]"
+      className="relative w-full h-12 bg-white/5 border border-white/10 rounded-full p-1 flex items-center justify-between shadow-2xl backdrop-blur-sm cursor-pointer select-none overflow-hidden transition-all duration-300 group hover:border-white/20 hover:bg-white/8"
     >
       {/* Olympic Barbell Center Axis & Knurling Guide */}
-      <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-[2px] bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 h-0.5 bg-linear-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
 
       {/* Track & Text Area */}
       <div className="relative flex-1 h-full flex items-center justify-between overflow-hidden cursor-pointer px-1">
@@ -166,7 +165,7 @@ function BarbellClampInput({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -6, opacity: 0 }}
             transition={{ type: "spring", stiffness: 450, damping: 26 }}
-            className="absolute -left-[13px] top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
+            className="absolute -left-3.25 top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
           >
             <BarbellPlates side="left" />
           </motion.div>
@@ -218,7 +217,7 @@ function BarbellClampInput({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 6, opacity: 0 }}
             transition={{ type: "spring", stiffness: 450, damping: 26 }}
-            className="absolute -right-[13px] top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
+            className="absolute -right-3.25 top-1/2 -translate-y-1/2 z-20 flex items-center pointer-events-none"
           >
             <BarbellPlates side="right" />
           </motion.div>
@@ -421,7 +420,7 @@ function BarbellStrengthMeter({ password }: { password: string }) {
         </div>
 
         {/* Central Olympic Bar Shaft (Knurled Bar) */}
-        <div className="flex-1 mx-2 h-1 bg-gradient-to-r from-neutral-700 via-neutral-400 to-neutral-700 rounded-full relative">
+        <div className="flex-1 mx-2 h-1 bg-linear-to-r from-neutral-700 via-neutral-400 to-neutral-700 rounded-full relative">
           <div className="absolute inset-0 flex justify-around items-center opacity-30">
             <span className="w-2 h-full bg-white" />
             <span className="w-2 h-full bg-white" />
@@ -639,7 +638,7 @@ export default function AuthFlowContainer({
       setTimeout(() => {
         router.push("/");
       }, 700);
-    } catch (err: any) {
+    } catch (err: unknown) {
       saveAuthSession("fitora_google_auth_token", {
         id: "google_user_01",
         name: "Google Athlete",
@@ -712,8 +711,8 @@ export default function AuthFlowContainer({
       setTimeout(() => {
         router.push("/");
       }, 800);
-    } catch (err: any) {
-      toast.error(err?.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : "") || "An unexpected error occurred.");
       setIsLoading(false);
     }
   };
@@ -786,8 +785,8 @@ export default function AuthFlowContainer({
       setTimeout(() => {
         router.push("/");
       }, 800);
-    } catch (err: any) {
-      toast.error(err?.message || "An error occurred.");
+    } catch (err: unknown) {
+      toast.error((err instanceof Error ? err.message : "") || "An error occurred.");
       setIsLoading(false);
     }
   };
@@ -801,7 +800,7 @@ export default function AuthFlowContainer({
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 1: PC / DESKTOP (Zero-Border 12-Col Split >= 1024px)
           ════════════════════════════════════════════════════════════ */}
-      <div className="hidden lg:grid grid-cols-12 w-full max-w-6xl h-full max-h-[760px] min-h-[560px] bg-neutral-950 rounded-[2.5rem] shadow-[0_20px_80px_rgba(0,0,0,0.9)] overflow-hidden">
+      <div className="hidden lg:grid grid-cols-12 w-full max-w-6xl h-full max-h-190 min-h-140 bg-neutral-950 rounded-[2.5rem] shadow-[0_20px_80px_rgba(0,0,0,0.9)] overflow-hidden">
         {/* Left 7 Columns: Ultra-Vivid Hero Gym Image & Centered Slide Pill */}
         <div className="col-span-7 relative flex flex-col justify-between p-8 xl:p-10 overflow-hidden">
           <div className="absolute inset-0 z-0">
@@ -812,7 +811,7 @@ export default function AuthFlowContainer({
               priority
               className="object-cover object-center brightness-[0.75] contrast-115 scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-neutral-950/90" />
+            <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/30 to-neutral-950/90" />
           </div>
 
           <div className="relative z-10 flex items-center justify-between">
@@ -1102,7 +1101,7 @@ export default function AuthFlowContainer({
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 2: TABLET (11/12 Screen Width max-w-xl)
           ════════════════════════════════════════════════════════════ */}
-      <div className="hidden md:flex lg:hidden relative w-11/12 max-w-xl h-full max-h-[660px] min-h-[500px] bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col justify-between p-7">
+      <div className="hidden md:flex lg:hidden relative w-11/12 max-w-xl h-full max-h-165 min-h-125 bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col justify-between p-7">
         <AnimatePresence mode="wait">
           {/* Tablet STEP 1: Welcome Onboarding Screen */}
           {step === "welcome" && (
@@ -1123,7 +1122,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.7] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
               </div>
 
               <div className="relative z-10 flex items-center justify-between pt-1">
@@ -1198,7 +1197,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.65] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
               </div>
 
               <div className="relative z-10 flex items-center justify-between pb-3 shrink-0">
@@ -1323,7 +1322,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.65] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
               </div>
 
               <div className="relative z-10 flex items-center justify-between pb-3 shrink-0">
@@ -1436,7 +1435,7 @@ export default function AuthFlowContainer({
       {/* ════════════════════════════════════════════════════════════
           LAYOUT VARIANT 3: MOBILE (11/12 Screen Width max-w-[410px] < 768px)
           ════════════════════════════════════════════════════════════ */}
-      <div className="block md:hidden relative w-11/12 max-w-[410px] h-full max-h-[750px] min-h-[500px] bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col">
+      <div className="block md:hidden relative w-11/12 max-w-102.5 h-full max-h-187.5 min-h-125 bg-neutral-950 rounded-[2.5rem] shadow-2xl overflow-hidden flex-col">
         <AnimatePresence mode="wait">
           {/* Mobile STEP 1: Welcome Onboarding Screen */}
           {step === "welcome" && (
@@ -1456,7 +1455,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.75] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-neutral-950 via-black/40 to-transparent" />
               </div>
 
               <div className="relative z-10 flex items-center justify-between pt-1">
@@ -1521,7 +1520,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.65] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
               </div>
 
               <div className="relative z-10 pt-1 space-y-0.5 mb-1">
@@ -1645,7 +1644,7 @@ export default function AuthFlowContainer({
                   priority
                   className="object-cover object-center brightness-[0.65] contrast-115"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/85 via-neutral-950/85 to-neutral-950" />
               </div>
 
               <div className="relative z-10 pt-1 space-y-0.5 mb-1">

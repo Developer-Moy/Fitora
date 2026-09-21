@@ -12,11 +12,12 @@ import {
  */
 export const getMyPlan = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
     const userId =
       req.user?.userId ||
+      req.params?.userId ||
       (req.query.userId as string) ||
       (req.headers["x-user-id"] as string);
 
@@ -35,19 +36,22 @@ export const getMyPlan = async (
           plan
             ? "Personalized nutrition plan retrieved successfully"
             : "No personalized nutrition plan found for this user",
-          plan
-        )
+          plan,
+        ),
       );
   } catch (error) {
-    console.error("[PersonalizedNutritionPlanController] getMyPlan error:", error);
+    console.error(
+      "[PersonalizedNutritionPlanController] getMyPlan error:",
+      error,
+    );
     return res
       .status(500)
       .json(
         errorResponse(
           "Failed to retrieve personalized nutrition plan",
           error instanceof Error ? error.message : "Internal Server Error",
-          500
-        )
+          500,
+        ),
       );
   }
 };
@@ -58,7 +62,7 @@ export const getMyPlan = async (
  */
 export const generatePlan = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
     const userId =
@@ -82,13 +86,13 @@ export const generatePlan = async (
       .json(
         successResponse(
           "Personalized nutrition plan generated and calibrated successfully",
-          plan
-        )
+          plan,
+        ),
       );
   } catch (error) {
     console.error(
       "[PersonalizedNutritionPlanController] generatePlan error:",
-      error
+      error,
     );
     return res
       .status(500)
@@ -96,8 +100,8 @@ export const generatePlan = async (
         errorResponse(
           "Failed to generate personalized nutrition plan",
           error instanceof Error ? error.message : "Internal Server Error",
-          500
-        )
+          500,
+        ),
       );
   }
 };
@@ -108,7 +112,7 @@ export const generatePlan = async (
  */
 export const regeneratePlan = async (
   req: AuthRequest,
-  res: Response
+  res: Response,
 ): Promise<Response> => {
   try {
     const userId =
@@ -132,13 +136,13 @@ export const regeneratePlan = async (
       .json(
         successResponse(
           "Personalized nutrition plan recalibrated and updated successfully",
-          plan
-        )
+          plan,
+        ),
       );
   } catch (error) {
     console.error(
       "[PersonalizedNutritionPlanController] regeneratePlan error:",
-      error
+      error,
     );
     return res
       .status(500)
@@ -146,8 +150,8 @@ export const regeneratePlan = async (
         errorResponse(
           "Failed to regenerate personalized nutrition plan",
           error instanceof Error ? error.message : "Internal Server Error",
-          500
-        )
+          500,
+        ),
       );
   }
 };

@@ -119,7 +119,7 @@ export async function fetchUserActivityStreakApi(
       if (json.success && json.data) {
         return json.data;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Try next alias
     }
   }

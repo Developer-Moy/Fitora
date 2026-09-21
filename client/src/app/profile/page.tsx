@@ -120,7 +120,7 @@ function TrialCountdownBanner({ trialExpiresAt }: { trialExpiresAt: string }) {
   if (timeLeft === "expired") return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-r from-white/10 via-white/5 to-white/10 px-5 py-3.5 flex items-center justify-between gap-3 shadow-lg">
+    <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-linear-to-r from-white/10 via-white/5 to-white/10 px-5 py-3.5 flex items-center justify-between gap-3 shadow-lg">
       <div className="flex items-center gap-3">
         <Sparkles className="w-5 h-5 text-white shrink-0 animate-pulse" />
         <p className="text-sm text-white font-medium">
@@ -334,7 +334,7 @@ export default function ProfilePage() {
   const { data: authSession } = useSession();
 
   const isMounted = useSyncExternalStore(
-    () => () => { },
+    () => () => {},
     () => true,
     () => false,
   );
@@ -383,30 +383,23 @@ export default function ProfilePage() {
 
   // ── Derived Identifiers ──
   // ── Active Identity Reconciliation ──
-  // If the user is logged in via authSession, prioritize authSession's active credentials.
-  // Stale cached backendUser from a previous session must never override the currently active session!
+  // Prefer the backend user loaded from /api/auth/me. Fall back to authSession (BetterAuth/OAuth).
+  // backendUser is authoritative — if it's loaded, use it directly.
   const activeAuthEmail =
     authSession?.user?.email ||
     (typeof window !== "undefined"
       ? localStorage.getItem("fitora_user_email") || ""
       : "");
 
-  const isBackendMatching =
-    backendUser &&
-    activeAuthEmail &&
-    backendUser.email?.toLowerCase().trim() ===
-    activeAuthEmail.toLowerCase().trim();
-
-  const effectiveUser = isBackendMatching
-    ? backendUser
-    : backendUser && !activeAuthEmail
-      ? backendUser
-      : null;
+  // Trust backendUser whenever it's populated (it came from our own API /auth/me).
+  const effectiveUser = backendUser;
 
   const resolvedUserId =
     effectiveUser?.id ||
     effectiveUser?._id ||
     authSession?.user?.id ||
+    backendUser?.id ||
+    backendUser?._id ||
     (typeof window !== "undefined"
       ? (localStorage.getItem("fitora_user_email") ?? undefined)
       : undefined);
@@ -433,21 +426,21 @@ export default function ProfilePage() {
     (authSession?.user as any)?.avatarUrl ||
     (typeof window !== "undefined"
       ? (() => {
-        try {
-          const u = JSON.parse(localStorage.getItem("fitora_user") || "{}");
-          if (
-            !activeAuthEmail ||
-            (u.email &&
-              u.email.toLowerCase().trim() ===
-              activeAuthEmail.toLowerCase().trim())
-          ) {
-            return u.avatarUrl || u.image || "";
+          try {
+            const u = JSON.parse(localStorage.getItem("fitora_user") || "{}");
+            if (
+              !activeAuthEmail ||
+              (u.email &&
+                u.email.toLowerCase().trim() ===
+                  activeAuthEmail.toLowerCase().trim())
+            ) {
+              return u.avatarUrl || u.image || "";
+            }
+            return "";
+          } catch {
+            return "";
           }
-          return "";
-        } catch {
-          return "";
-        }
-      })()
+        })()
       : "");
 
   useEffect(() => {
@@ -500,7 +493,7 @@ export default function ProfilePage() {
           if (res.user.plan) {
             localStorage.setItem("fitora_user_plan", res.user.plan);
           }
-        } catch { }
+        } catch {}
       }
     }
   }, [
@@ -545,7 +538,7 @@ export default function ProfilePage() {
       const token =
         typeof window !== "undefined"
           ? localStorage.getItem("fitora_token") ||
-          localStorage.getItem("fitora_auth_token")
+            localStorage.getItem("fitora_auth_token")
           : null;
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -584,7 +577,10 @@ export default function ProfilePage() {
           () => null,
         ),
         fetch(`${apiUrl}/goals/${encodeURIComponent(String(resolvedUserId))}`, {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...headers,
+          },
           cache: "no-store",
         })
           .then((r) => (r.ok ? r.json() : null))
@@ -650,10 +646,17 @@ export default function ProfilePage() {
       backendUser?.membershipExpiresAt || backendUser?.subscriptionExpiryDate;
     const freeTier =
       !plan || plan === "Free Pass" || plan.toLowerCase().includes("free");
-    if (freeTier || !rawExpiry) {
+    
+    if (freeTier) {
       setMembershipBannerData({ status: "no_membership", planName: plan });
       return;
     }
+    
+    if (!rawExpiry) {
+      setMembershipBannerData(null);
+      return;
+    }
+
     const exp = new Date(String(rawExpiry)).getTime();
     const now = Date.now();
     const diff = exp - now;
@@ -689,7 +692,7 @@ export default function ProfilePage() {
       if (!resolvedUserId) return;
       getWorkoutLogs(String(resolvedUserId), 30)
         .then((r) => setWorkoutLogs(r?.logs || []))
-        .catch(() => { });
+        .catch(() => {});
     };
     window.addEventListener("fitora-workout-logged", handler);
     return () => window.removeEventListener("fitora-workout-logged", handler);
@@ -699,7 +702,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-    } catch { }
+    } catch {}
     toast.success("Logged out successfully. Keep training, Champion! 👋");
     setTimeout(() => {
       window.location.href = "/";
@@ -772,13 +775,13 @@ export default function ProfilePage() {
   const weightProgress =
     currentWeight > 0 && targetWeight > 0
       ? Math.min(
-        100,
-        Math.max(
-          0,
-          100 -
-          (weightDifference / Math.max(currentWeight, targetWeight)) * 100,
-        ),
-      )
+          100,
+          Math.max(
+            0,
+            100 -
+              (weightDifference / Math.max(currentWeight, targetWeight)) * 100,
+          ),
+        )
       : 0;
 
   if (!isMounted) return null;
@@ -798,7 +801,7 @@ export default function ProfilePage() {
         )}
 
         {/* ── 3-Day Free Trial Countdown Banner ── */}
-        {backendUser?.isTrialActive && backendUser.trialExpiresAt && (
+        {backendUser?.isTrialActive && backendUser.trialExpiresAt && !isPremium && (
           <TrialCountdownBanner trialExpiresAt={backendUser.trialExpiresAt} />
         )}
 
@@ -825,14 +828,15 @@ export default function ProfilePage() {
                   {userName}
                 </h1>
                 <span
-                  className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border tracking-wider ${isPremium
-                    ? "bg-white text-black border-white"
-                    : "bg-white/10 text-white/70 border-white/20"
-                    }`}
+                  className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border tracking-wider ${
+                    isPremium
+                      ? "bg-white text-black border-white"
+                      : "bg-white/10 text-white/70 border-white/20"
+                  }`}
                 >
                   {userPlan}
                 </span>
-                {effectiveUser?.isTrialActive && (
+                {effectiveUser?.isTrialActive && !isPremium && (
                   <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                     Pro Trial
                   </span>
@@ -852,11 +856,8 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
-            <FitoraPillButton
-              href="/profile/edit"
-            >
+            <FitoraPillButton href="/profile/edit">
               <span>Edit Profile</span>
-
             </FitoraPillButton>
             <FitoraPillButton
               variant="white"
@@ -901,10 +902,11 @@ export default function ProfilePage() {
             <button
               key={tab.key}
               onClick={() => setActiveSubmenu(tab.key as SubmenuTab)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${activeSubmenu === tab.key
-                ? "bg-white text-black border-white shadow-lg scale-[1.01]"
-                : "bg-black text-white/60 border-white/15 hover:border-white/40 hover:text-white"
-                }`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
+                activeSubmenu === tab.key
+                  ? "bg-white text-black border-white shadow-lg scale-[1.01]"
+                  : "bg-black text-white/60 border-white/15 hover:border-white/40 hover:text-white"
+              }`}
             >
               {tab.icon}
               <span>{tab.label}</span>
@@ -1052,12 +1054,12 @@ export default function ProfilePage() {
 
                       <p className="text-xs text-white/60 leading-relaxed">
                         {activityStreak?.longestStreak != null &&
-                          activityStreak.longestStreak > 0
+                        activityStreak.longestStreak > 0
                           ? `Personal record: ${activityStreak.longestStreak} days uninterrupted training streak.`
                           : "Check in via the gym turnstile or log a workout session to build your streak!"}
                       </p>
 
-                      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex items-center justify-between text-xs text-white/70">
+                      <div className="rounded-xl border border-white/10 bg-white/3 p-3 flex items-center justify-between text-xs text-white/70">
                         <span>Consistency Rating</span>
                         <span className="font-mono font-bold text-white">
                           {(activityStreak?.currentStreak ?? 0) > 5
@@ -1388,7 +1390,7 @@ export default function ProfilePage() {
                   {workoutLogs.slice(0, 6).map((log) => (
                     <div
                       key={log._id}
-                      className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex flex-col justify-between space-y-3 hover:border-white/25 transition-all h-auto"
+                      className="rounded-xl border border-white/10 bg-white/3 p-4 flex flex-col justify-between space-y-3 hover:border-white/25 transition-all h-auto"
                     >
                       <div>
                         <div className="flex items-center justify-between gap-2">

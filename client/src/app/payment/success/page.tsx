@@ -141,7 +141,7 @@ function PaymentSuccessContent() {
       } catch {}
 
       setIsLoading(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[Payment Verification Client Error]:", err);
       setErrorMessage(
         "Could not connect to payment verification gateway. Please check your network and try again.",

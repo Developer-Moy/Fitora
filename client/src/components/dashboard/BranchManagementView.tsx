@@ -26,7 +26,6 @@ import {
   Filter,
   MapPin,
   Search,
-  X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -53,7 +52,7 @@ export default function BranchManagementView() {
         division: divisionVal !== "all" ? divisionVal : undefined,
       });
       if (result) {
-        setBranches(result as any);
+        setBranches(result as any /* eslint-disable-line @typescript-eslint/no-explicit-any */);
       }
       setIsLoading(false);
     },
@@ -91,7 +90,6 @@ export default function BranchManagementView() {
     currentPage * itemsPerPage,
   );
 
-  const totalMembers = branches.reduce((acc, b) => acc + b.totalMembers, 0);
   const totalRevenue = branches.reduce(
     (acc, b) => acc + b.monthlyRevenueBDT,
     0,
@@ -298,7 +296,7 @@ export default function BranchManagementView() {
 
                       {/* Metrics Row */}
                       <div className="grid grid-cols-3 gap-1.5 pt-1 text-center text-xs">
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10">
+                        <div className="p-2 rounded-xl bg-white/3 border border-white/10">
                           <span className="block text-[8px] text-white/40 font-black uppercase tracking-widest">
                             Active
                           </span>
@@ -306,7 +304,7 @@ export default function BranchManagementView() {
                             {branch.activeNow}
                           </span>
                         </div>
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10">
+                        <div className="p-2 rounded-xl bg-white/3 border border-white/10">
                           <span className="block text-[8px] text-white/40 font-black uppercase tracking-widest">
                             Equip
                           </span>
@@ -314,7 +312,7 @@ export default function BranchManagementView() {
                             {branch.equipmentCount}
                           </span>
                         </div>
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/10">
+                        <div className="p-2 rounded-xl bg-white/3 border border-white/10">
                           <span className="block text-[8px] text-white/40 font-black uppercase tracking-widest">
                             Trainers
                           </span>
@@ -331,7 +329,7 @@ export default function BranchManagementView() {
                         <span className="block text-[8px] text-white/40 font-black uppercase tracking-widest">
                           Admin
                         </span>
-                        <span className="font-bold text-white text-xs truncate max-w-[120px] block">
+                        <span className="font-bold text-white text-xs truncate max-w-30 block">
                           {branch.adminName}
                         </span>
                       </div>

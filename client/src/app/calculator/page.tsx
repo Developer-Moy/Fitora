@@ -72,11 +72,22 @@ const getPremiumStatus = (): boolean => {
         user?.subscription?.plan ||
         user?.subscription?.tier ||
         "",
-    ).toLowerCase();
+    );
 
-    const premiumPlans = ["premium", "pro", "athlete", "paid"];
+    // Match actual Fitora plan names stored in MongoDB
+    const premiumPlans = ["Basic Pass", "Pro Athlete", "VIP Ultimate"];
+    if (premiumPlans.includes(plan)) return true;
 
-    return premiumPlans.includes(plan);
+    // Also handle legacy lowercase/partial names as fallback
+    const planLower = plan.toLowerCase();
+    return (
+      planLower.includes("basic") ||
+      planLower.includes("pro") ||
+      planLower.includes("vip") ||
+      planLower.includes("athlete") ||
+      planLower.includes("premium") ||
+      planLower.includes("paid")
+    );
   } catch (error) {
     console.error("Premium status check failed:", error);
     return false;
@@ -239,12 +250,9 @@ export default function CalculatorPage() {
       setIsSavingHydration(true);
       setHydrationSaved(false);
 
-      const rawApiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-      const apiBase = rawApiUrl.endsWith("/api")
-        ? rawApiUrl
-        : `${rawApiUrl}/api`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
 
       const response = await fetch(
         `${apiBase}/users/profile/hydration-target`,
@@ -313,12 +321,9 @@ export default function CalculatorPage() {
       setIsSavingTargetWeight(true);
       setTargetWeightSaved(false);
 
-      const rawApiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-      const apiBase = rawApiUrl.endsWith("/api")
-        ? rawApiUrl
-        : `${rawApiUrl}/api`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
 
       const response = await fetch(`${apiBase}/users/profile`, {
         method: "PATCH",
@@ -428,48 +433,26 @@ export default function CalculatorPage() {
     }
   }, [goal]);
 
-  // useEffect(() => {
-  //   setCustomMacroPercentages(defaultMacroPercentages);
-  // }, [defaultMacroPercentages]);
-
   const macroPercentages = isPremium
     ? customMacroPercentages
     : defaultMacroPercentages;
 
   // Prefer server-verified macros, fall back to client-side calculation
   const proteinCalories = targetCalories * (macroPercentages.protein / 100);
-
   const carbsCalories = targetCalories * (macroPercentages.carbs / 100);
-
   const fatsCalories = targetCalories * (macroPercentages.fats / 100);
 
-  const macros = {
-    protein: Math.round(proteinCalories / 4),
-    carbs: Math.round(carbsCalories / 4),
-    fats: Math.round(fatsCalories / 9),
-  };
-
-  const handleMacroChange = (
-    macro: "protein" | "carbs" | "fats",
-    value: number,
-  ) => {
-    if (!isPremium) return;
-
-    setCustomMacroPercentages((current) => {
-      const next = {
-        ...current,
-        [macro]: value,
-      };
-
-      const total = next.protein + next.carbs + next.fats;
-
-      if (total === 100) {
-        return next;
+  const macros = serverMacros
+    ? {
+        protein: serverMacros.protein,
+        carbs: serverMacros.carbs,
+        fats: serverMacros.fats,
       }
-
-      return next;
-    });
-  };
+    : {
+        protein: Math.round(proteinCalories / 4),
+        carbs: Math.round(carbsCalories / 4),
+        fats: Math.round(fatsCalories / 9),
+      };
 
   const maxMacro = Math.max(macros.protein, macros.carbs, macros.fats, 1);
 
@@ -570,11 +553,10 @@ export default function CalculatorPage() {
     await syncHealthMetrics();
 
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const endpoint = apiUrl.endsWith("/api")
-        ? `${apiUrl}/bmi/history`
-        : `${apiUrl}/api/bmi/history`;
+      const apiBase = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+      ).replace(/\/+$/, "");
+      const endpoint = `${apiBase}/bmi/history`;
 
       let userId = "guest_user";
       let token = "";
@@ -745,7 +727,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
 
                 {/* Practical Health & Athletic Insights */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-2.5 space-y-1">
+                  <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm p-2.5 space-y-1">
                     <div className="flex items-center gap-1.5 text-emerald-400">
                       <Target className="w-3.5 h-3.5 shrink-0" />
                       <span className="text-[9px] font-black uppercase tracking-wider text-white">
@@ -758,7 +740,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-2.5 space-y-1">
+                  <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm p-2.5 space-y-1">
                     <div className="flex items-center gap-1.5 text-sky-400">
                       <Dumbbell className="w-3.5 h-3.5 shrink-0" />
                       <span className="text-[9px] font-black uppercase tracking-wider text-white">
@@ -770,7 +752,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-2.5 space-y-1">
+                  <div className="rounded-xl border border-white/10 bg-white/3 backdrop-blur-sm p-2.5 space-y-1">
                     <div className="flex items-center gap-1.5 text-amber-400">
                       <Flame className="w-3.5 h-3.5 shrink-0" />
                       <span className="text-[9px] font-black uppercase tracking-wider text-white">
@@ -793,7 +775,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                     className="w-full h-full object-cover object-top transition duration-700 group-hover:scale-105 brightness-100 contrast-105"
                   />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent" />
 
                   <div className="absolute left-4 top-4">
                     <span className="rounded-full border border-white/20 bg-black/75 px-3 py-0.5 text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white backdrop-blur-md shadow-md">
@@ -814,7 +796,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                 </div>
 
                 {/* Clinical Formula & Metric Info */}
-                <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-xs">
+                <div className="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-white/3 border border-white/10 text-xs">
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">
                       Formula:
@@ -1686,7 +1668,7 @@ Fats: ${macros.fats}g (${macroPercentages.fats}%)`;
                       onClick={handleSaveTargetWeight}
                       loading={isSavingTargetWeight}
                       disabled={isSavingTargetWeight}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-full bg-black border border-white/20 px-3.5 py-1.5 text-[10px] font-extrabold text-white transition-all duration-300 hover:bg-neutral-900 hover:border-white/40 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shrink-0"
+                      className="shrink-0"
                     >
                       Save Target Weight
                     </FitoraPillButton>

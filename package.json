@@ -15,6 +15,7 @@
     "concurrently": "^8.2.2"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3"
   }
 }

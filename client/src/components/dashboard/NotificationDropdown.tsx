@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Bell,
-  Check,
   Trash2,
   Activity,
   Dumbbell,
@@ -43,35 +42,40 @@ export default function NotificationDropdown() {
 
     if (!token) return;
 
-    fetchNotificationsApi(token).then((res) => {
-      if (
-        res.success &&
-        Array.isArray(res.notifications) &&
-        res.notifications.length > 0
-      ) {
-        setNotifications(
-          res.notifications.map((n: AppNotification) => ({
-            id: n._id,
-            title: n.title,
-            description: n.message,
-            time: new Date(n.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            read: n.isRead,
-            type:
-              n.type === "payment" ||
-              n.type === "renewal" ||
-              n.type === "invoice"
-                ? "system"
-                : (n.type as any),
-          })),
-        );
-      } else {
-        setNotifications([]);
-      }
-    });
-  }, []);
+    // Fetch notifications initially and whenever the dropdown is opened
+    const fetchNotifs = () => {
+      fetchNotificationsApi(token).then((res) => {
+        if (
+          res.success &&
+          Array.isArray(res.notifications) &&
+          res.notifications.length > 0
+        ) {
+          setNotifications(
+            res.notifications.map((n: AppNotification) => ({
+              id: n._id,
+              title: n.title,
+              description: n.message,
+              time: new Date(n.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              read: n.isRead,
+              type:
+                n.type === "payment" ||
+                n.type === "renewal" ||
+                n.type === "invoice"
+                  ? "system"
+                  : (n.type as any),
+            })),
+          );
+        } else {
+          setNotifications([]);
+        }
+      });
+    };
+
+    fetchNotifs();
+  }, [isOpen]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -242,7 +246,7 @@ export default function NotificationDropdown() {
                   className={`group relative p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
                     item.read
                       ? "bg-black border-white/5 opacity-60 hover:opacity-100"
-                      : "bg-white/[0.04] border-white/15 hover:border-white/30"
+                      : "bg-white/4 border-white/15 hover:border-white/30"
                   }`}
                 >
                   <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">

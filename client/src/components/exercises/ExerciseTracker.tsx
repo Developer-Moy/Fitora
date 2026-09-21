@@ -25,6 +25,7 @@ import toast from "react-hot-toast";
 import { fetchExercises } from "@/services/exerciseService";
 import { createWorkoutLog } from "@/services/workoutService";
 import Image from "next/image";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 
 type Exercise = {
   id: string;
@@ -63,7 +64,7 @@ export default function ExercisePage() {
   const [activeCategory, setActiveCategory] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
-    null,
+    null
   );
 
   const [isPremium, setIsPremium] = useState(false);
@@ -73,15 +74,18 @@ export default function ExercisePage() {
   const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
-    async function loadExercises() {
+    let cancelled = false;
+    async function loadExercises(attempt = 0) {
       setIsLoading(true);
+      setError("");
       const data = await fetchExercises();
-      if (data) {
+      if (cancelled) return;
+      if (data && data.length > 0) {
         const mapped = data.map((d: any) => ({
           id: d._id,
           name: d.name,
           category: (d.category || "FUNCTIONAL").toUpperCase(),
-          difficulty: (d.difficulty || "BEGINNER").toUpperCase() as any,
+          difficulty: (d.difficulty || "BEGINNER").toUpperCase() as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           duration: d.duration || "10 MIN",
           equipment: (d.equipment || "BODYWEIGHT").toUpperCase(),
           muscle: (d.muscle || "").toUpperCase(),
@@ -93,10 +97,21 @@ export default function ExercisePage() {
             "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=1400&q=80",
         }));
         setExercises(mapped);
+        setIsLoading(false);
+      } else if (attempt < 3) {
+        // Retry up to 3 times with 2s delay (server may be restarting)
+        setTimeout(() => {
+          if (!cancelled) loadExercises(attempt + 1);
+        }, 2000);
+      } else {
+        setError("Could not load exercises. Please refresh.");
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
     loadExercises();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredExercises = useMemo(() => {
@@ -122,27 +137,42 @@ export default function ExercisePage() {
   useEffect(() => {
     const checkPremiumAccess = async () => {
       try {
-        const token =
-          typeof window !== "undefined"
-            ? localStorage.getItem("fitora_token") ||
-              localStorage.getItem("fitora_auth_token")
-            : null;
+        if (typeof window === "undefined") return;
 
-        if (!token) {
+        // 1. Quick local storage check to avoid API latency and token missing issues
+        const plan = localStorage.getItem("fitora_user_plan");
+        const role = localStorage.getItem("fitora_user_role");
+        
+        if (
+          plan === "Pro Athlete" || 
+          plan === "VIP Ultimate" || 
+          plan === "Basic Pass" || 
+          role === "premium_user" ||
+          role === "master_admin" ||
+          role === "admin"
+        ) {
+          setIsPremium(true);
+          return;
+        }
+
+        // 2. Fallback to API check
+        const token = localStorage.getItem("fitora_token") || localStorage.getItem("fitora_auth_token");
+        const userEmail = localStorage.getItem("fitora_user_email");
+
+        if (!token && !userEmail) {
           setIsPremium(false);
           return;
         }
 
-        const rawApiUrl =
+        const headers: Record<string, string> = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        if (userEmail) headers["x-user-email"] = userEmail;
+
+        const apiBase =
           process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const apiBase = rawApiUrl.endsWith("/api")
-          ? rawApiUrl
-          : `${rawApiUrl}/api`;
 
         const response = await fetch(`${apiBase}/workouts/advanced`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers,
         });
 
         setIsPremium(response.ok);
@@ -171,7 +201,7 @@ export default function ExercisePage() {
           }}
         />
         {/* Dark Luxury Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/90 to-black z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/80 via-black/90 to-black z-0 pointer-events-none" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
           {/* Top Title & Search Bar Row */}
@@ -230,11 +260,8 @@ export default function ExercisePage() {
 
           {/* 3x3 Exercise Grid (9 Cards Per Page) */}
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4 text-white/50">
-              <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-xs font-bold uppercase tracking-widest">
-                Loading exercise library...
-              </p>
+            <div className="flex items-center justify-center py-20">
+              <FitoraSpinner size="lg" label="Loading exercise library..." />
             </div>
           ) : paginatedExercises.length > 0 ? (
             <>
@@ -296,7 +323,7 @@ export default function ExercisePage() {
                         >
                           {pageNum}
                         </button>
-                      ),
+                      )
                     )}
                   </div>
 
@@ -341,7 +368,7 @@ export default function ExercisePage() {
 
       {showPremiumMessage && (
         <div
-          className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-5"
+          className="fixed inset-0 z-200 bg-black/80 backdrop-blur-md flex items-center justify-center p-5"
           onClick={() => setShowPremiumMessage(false)}
         >
           <div
@@ -433,7 +460,10 @@ function ExerciseCard({
     ? `https://img.youtube.com/vi/${exercise.videoId}/hqdefault.jpg`
     : null;
   const initialImg =
-    ytThumbnail || exercise.image || validCategoryImages[exercise.category] || defaultFallback;
+    ytThumbnail ||
+    exercise.image ||
+    validCategoryImages[exercise.category] ||
+    defaultFallback;
 
   const [imgSrc, setImgSrc] = useState(initialImg);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
@@ -443,7 +473,9 @@ function ExerciseCard({
   useEffect(() => {
     const freshThumb = exercise.videoId
       ? `https://img.youtube.com/vi/${exercise.videoId}/hqdefault.jpg`
-      : exercise.image || validCategoryImages[exercise.category] || defaultFallback;
+      : exercise.image ||
+        validCategoryImages[exercise.category] ||
+        defaultFallback;
     setImgSrc(freshThumb);
   }, [exercise.videoId, exercise.image, exercise.category]);
 
@@ -477,7 +509,7 @@ function ExerciseCard({
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className={`group relative h-[280px] sm:h-[310px] overflow-hidden rounded-2xl bg-neutral-900 border transition-all duration-300 cursor-pointer shadow-xl select-none ${
+      className={`group relative h-70 sm:h-77.5 overflow-hidden rounded-2xl bg-neutral-900 border transition-all duration-300 cursor-pointer shadow-xl select-none ${
         locked
           ? "border-white/10 hover:border-white/20"
           : "border-white/10 hover:border-white/30"
@@ -491,7 +523,11 @@ function ExerciseCard({
         aria-hidden="true"
         onError={() => {
           if (imgSrc !== defaultFallback) {
-            setImgSrc(exercise.image || validCategoryImages[exercise.category] || defaultFallback);
+            setImgSrc(
+              exercise.image ||
+                validCategoryImages[exercise.category] ||
+                defaultFallback,
+            );
           }
         }}
         className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 brightness-105 contrast-105 z-0 ${
@@ -514,7 +550,7 @@ function ExerciseCard({
       )}
 
       {/* Subtle Gradient Overlay for High Contrast Text Reading */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/20 pointer-events-none z-[1]" />
+      <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-black/20 pointer-events-none z-1" />
 
       {locked && (
         <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
@@ -560,12 +596,17 @@ function ExerciseCard({
         >
           {isPlayingPreview ? (
             <div className="flex items-center gap-1.5">
-              <span className="flex items-end gap-[2px] h-3">
-                <span className="w-[3px] bg-white rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
-                <span className="w-[3px] bg-white rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-3" />
-                <span className="w-[3px] bg-white rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-1.5" />
+              <span className="flex items-end gap-0.5 h-3">
+                <span className="w-0.75 bg-white rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
+                <span className="w-0.75 bg-white rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-3" />
+                <span className="w-0.75 bg-white rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-1.5" />
               </span>
-              <span className="text-[9px] font-black uppercase tracking-wider">LIVE</span>
+              <span className="text-[9px] font-black uppercase tracking-wider">
+                LIVE
+              </span>
+              <span className="text-[9px] font-black uppercase tracking-wider">
+                LIVE
+              </span>
             </div>
           ) : (
             <>
@@ -682,8 +723,10 @@ function ExerciseModal({
         if (token) headers["Authorization"] = `Bearer ${token}`;
 
         const res = await fetch(
-          `${API_BASE_URL}/workouts/log?userId=${encodeURIComponent(userId)}&limit=50`,
-          { headers },
+          `${API_BASE_URL}/workouts/log?userId=${encodeURIComponent(
+            userId
+          )}&limit=50`,
+          { headers }
         );
         if (res.ok) {
           const json = await res.json();
@@ -691,8 +734,8 @@ function ExerciseModal({
             ? json.data
             : json?.data?.logs || [];
           const filtered = items.filter(
-            (item: any) =>
-              item.exerciseName?.toLowerCase() === exercise.name.toLowerCase(),
+            (item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) =>
+              item.exerciseName?.toLowerCase() === exercise.name.toLowerCase()
           );
           if (active && filtered.length > 0) {
             setHistory(filtered);
@@ -747,7 +790,10 @@ function ExerciseModal({
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     const centi = Math.floor((ms % 1000) / 10);
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(centi).padStart(2, "0")}`;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}.${String(centi).padStart(2, "0")}`;
   };
 
   const validate = (): string | null => {
@@ -770,7 +816,7 @@ function ExerciseModal({
   };
 
   const handleSubmit = async (
-    event: React.FormEvent<HTMLFormElement>,
+    event: React.FormEvent<HTMLFormElement>
   ): Promise<void> => {
     event.preventDefault();
     const validationError = validate();
@@ -823,12 +869,12 @@ function ExerciseModal({
       if (isOfflineItem) {
         toast.success(
           `Offline Mode: ${exercise.name} saved locally! Will sync to MongoDB once online 📶`,
-          { duration: 4000, icon: "💾" },
+          { duration: 4000, icon: "💾" }
         );
       } else {
         toast.success(
           `${exercise.name} logged: ${normalized.setsCount} × ${normalized.repsCount} @ ${normalized.weight}kg`,
-          { duration: 3000 },
+          { duration: 3000 }
         );
       }
 
@@ -842,7 +888,7 @@ function ExerciseModal({
                 exerciseName: exercise.name,
                 date: payload.date,
               },
-            }),
+            })
           );
         } catch {
           // Heatmap refresh failure must never cause workout save to fail
@@ -863,7 +909,7 @@ function ExerciseModal({
   return (
     <div
       className="
-        fixed inset-0 z-[100]
+        fixed inset-0 z-100
         bg-black/90 backdrop-blur-xl
         flex items-center justify-center
         p-0 sm:p-4 md:p-6
@@ -876,7 +922,7 @@ function ExerciseModal({
         className="
           relative w-full h-full sm:h-auto sm:max-h-[90vh] md:max-h-[85vh] lg:max-h-[88vh]
           max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-5xl
-          overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
+          overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none
           bg-neutral-950 border border-white/15
           rounded-none sm:rounded-3xl
           shadow-[0_0_50px_rgba(0,0,0,0.9)]
@@ -929,7 +975,7 @@ function ExerciseModal({
             {/* LEFT COLUMN */}
             <div className="contents lg:flex lg:flex-col lg:gap-4 lg:w-full">
               {/* 1. Video & Metadata -> order-1 on mobile */}
-              <div className="order-1 lg:order-none flex flex-col gap-2 w-full">
+              <div className="order-1 lg:order-0 flex flex-col gap-2 w-full">
                 {/* YouTube Video Player */}
                 <div className="relative w-full aspect-video overflow-hidden rounded-xl sm:rounded-2xl bg-black border border-white/10 shadow-2xl">
                   {exercise.videoId ? (
@@ -984,7 +1030,7 @@ function ExerciseModal({
               </div>
 
               {/* 2. Modal Stopwatch -> order-2 on mobile */}
-              <div className="order-2 lg:order-none w-full bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
+              <div className="order-2 lg:order-0 w-full bg-neutral-900/80 border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 flex flex-col justify-between">
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <div className="flex items-center gap-3">
                     <span className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center shrink-0">
@@ -998,8 +1044,8 @@ function ExerciseModal({
                     {swRunning
                       ? "RUNNING"
                       : swElapsedMs > 0
-                        ? "PAUSED"
-                        : "READY"}
+                      ? "PAUSED"
+                      : "READY"}
                   </span>
                 </div>
 
@@ -1047,7 +1093,7 @@ function ExerciseModal({
               </div>
 
               {/* 5. History List (Under Stopwatch!) -> order-5 on mobile */}
-              <div className="order-5 lg:order-none w-full">
+              <div className="order-5 lg:order-0 w-full">
                 <HistoryList logs={history} />
               </div>
             </div>
@@ -1270,7 +1316,9 @@ function HistoryList({ logs }: { logs: WorkoutLog[] }) {
             {/* Success checkmark with pulse micro-interaction */}
             <div
               className={`shrink-0 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center ${
-                animatingId === log._id ? "animate-[setPulse_400ms_ease-out]" : ""
+                animatingId === log._id
+                  ? "animate-[setPulse_400ms_ease-out]"
+                  : ""
               }`}
             >
               <CheckCircle2 className="w-3 h-3 text-white" />

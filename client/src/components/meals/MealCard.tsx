@@ -49,9 +49,9 @@ const MealCard = (meal: MealProps) => {
     // 3. Email as last-resort identifier when only an admin-shortcut session exists
     const { user: localUser } = getAuthSession();
     const userId =
-      session?.user?.id ||
       localUser?.id ||
       localUser?._id ||
+      session?.user?.id ||
       (typeof window !== "undefined"
         ? (localStorage.getItem("fitora_user_email") ?? undefined)
         : undefined);

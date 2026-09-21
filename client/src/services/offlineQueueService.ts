@@ -17,7 +17,7 @@ export type TelemetryQueueType = "WORKOUT_LOG" | "STOPWATCH_SESSION";
 export interface OfflineQueueItem {
   id: string;
   type: TelemetryQueueType;
-  payload: any;
+  payload: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   createdAt: string;
   attempts: number;
   lastAttemptAt?: string;
@@ -95,7 +95,7 @@ function setLocalStorageQueue(items: OfflineQueueItem[]): void {
 
 export async function enqueueTelemetry(
   type: TelemetryQueueType,
-  payload: any,
+  payload: any, // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<OfflineQueueItem> {
   const item: OfflineQueueItem = {
     id: `queue_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
@@ -293,11 +293,11 @@ export async function syncPendingTelemetry(): Promise<{
           await updateQueueItem(item);
           failed++;
         }
-      } catch (networkErr: any) {
+      } catch (networkErr: unknown) {
         // Network dropped mid-sync
         item.attempts = (item.attempts || 0) + 1;
         item.lastAttemptAt = new Date().toISOString();
-        item.error = networkErr?.message || "Network request failed";
+        item.error = (networkErr instanceof Error ? networkErr.message : "") || "Network request failed";
         await updateQueueItem(item);
         failed++;
         break; // Stop draining if network went down again

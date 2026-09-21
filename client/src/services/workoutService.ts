@@ -4,6 +4,7 @@ import type {
   WorkoutLogSummary,
   WorkoutLogsResult,
 } from "@/types/workout";
+import { enqueueTelemetry, getPendingQueue } from "./offlineQueueService";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -60,8 +61,6 @@ async function parseResponse<T>(
   return result as ApiSuccessResponse<T>;
 }
 
-import { enqueueTelemetry, getPendingQueue } from "./offlineQueueService";
-
 export async function createWorkoutLog(
   payload: CreateWorkoutLogPayload,
   options?: { skipOfflineQueue?: boolean },
@@ -95,7 +94,9 @@ export async function createWorkoutLog(
   return result.data;
 }
 
-function createOptimisticWorkoutLog(payload: CreateWorkoutLogPayload): WorkoutLog {
+function createOptimisticWorkoutLog(
+  payload: CreateWorkoutLogPayload,
+): WorkoutLog {
   const estimatedCalories =
     payload.caloriesBurned ??
     Math.round(

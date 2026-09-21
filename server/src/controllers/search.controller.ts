@@ -136,11 +136,12 @@ export const globalSearch = async (req: Request, res: Response) => {
           branches: [],
           financials: [],
           telemetry: [],
-        })
+        }),
       );
     }
 
-    const regex = new RegExp(query, "i");
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(escapedQuery, "i");
 
     // 1. Search MongoDB for Athletes / Users
     let athletes: any[] = [];
@@ -156,7 +157,7 @@ export const globalSearch = async (req: Request, res: Response) => {
             { plan: regex },
           ],
         },
-        "name email phone role plan assignedBranch status qrCodeId"
+        "name email phone role plan assignedBranch status qrCodeId",
       )
         .limit(6)
         .lean();
@@ -194,7 +195,7 @@ export const globalSearch = async (req: Request, res: Response) => {
             { adminName: regex },
           ],
         },
-        "name division district city address adminName status memberCapacity"
+        "name division district city address adminName status memberCapacity",
       )
         .limit(6)
         .lean();
@@ -223,7 +224,7 @@ export const globalSearch = async (req: Request, res: Response) => {
       (item) =>
         item.title.toLowerCase().includes(queryLower) ||
         item.subtitle.toLowerCase().includes(queryLower) ||
-        item.tags.some((tag) => tag.includes(queryLower))
+        item.tags.some((tag) => tag.includes(queryLower)),
     ).slice(0, 5);
 
     // 4. Search Telemetry
@@ -231,7 +232,7 @@ export const globalSearch = async (req: Request, res: Response) => {
       (item) =>
         item.title.toLowerCase().includes(queryLower) ||
         item.subtitle.toLowerCase().includes(queryLower) ||
-        item.tags.some((tag) => tag.includes(queryLower))
+        item.tags.some((tag) => tag.includes(queryLower)),
     ).slice(0, 5);
 
     const totalCount =
@@ -248,15 +249,17 @@ export const globalSearch = async (req: Request, res: Response) => {
         branches: formattedBranches,
         financials: formattedFinancials,
         telemetry: formattedTelemetry,
-      })
+      }),
     );
   } catch (error) {
-    return res.status(500).json(
-      errorResponse(
-        "Failed to execute global search",
-        error instanceof Error ? error.message : "Internal Server Error",
-        500
-      )
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to execute global search",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
   }
 };

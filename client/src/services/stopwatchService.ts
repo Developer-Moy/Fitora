@@ -1,3 +1,5 @@
+import { enqueueTelemetry } from "./offlineQueueService";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 function getAuthHeader(): Record<string, string> {
@@ -113,8 +115,6 @@ export interface RecentSessionsData {
   todaySetsCount: number;
 }
 
-import { enqueueTelemetry } from "./offlineQueueService";
-
 export async function completeStopwatchSession(
   payload: {
     workoutType?: string;
@@ -141,7 +141,11 @@ export async function completeStopwatchSession(
       headers: { "Content-Type": "application/json", ...getAuthHeader() },
       body: JSON.stringify(payload),
     });
-    if (!res.ok && !options?.skipOfflineQueue && (res.status >= 500 || res.status === 0)) {
+    if (
+      !res.ok &&
+      !options?.skipOfflineQueue &&
+      (res.status >= 500 || res.status === 0)
+    ) {
       await enqueueTelemetry("STOPWATCH_SESSION", payload);
       return true;
     }

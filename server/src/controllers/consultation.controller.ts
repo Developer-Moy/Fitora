@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Consultation } from "../models/Consultation.model";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import { successResponse, errorResponse } from "../utils/apiResponse";
+import { sendConsultationEmail } from "../utils/mailer";
 
 /**
  * 1. Public: Create Consultation Lead Inquiry (`POST /api/consultations`)
@@ -38,6 +39,9 @@ export const createLead = async (req: Request, res: Response) => {
       comment: comment?.trim() || "",
       status: "pending",
     });
+
+    // Send email to developermoy@gmail.com
+    await sendConsultationEmail(consultation).catch(err => console.error("Email failed:", err));
 
     return res.status(201).json(
       successResponse(

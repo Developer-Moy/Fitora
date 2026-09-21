@@ -28,3 +28,31 @@ export const sendWelcomeEmail = async (to: string, name: string) => {
     console.error('Error sending welcome email:', error);
   }
 };
+export const sendConsultationEmail = async (data: any) => {
+  try {
+    const to = "developermoy@gmail.com";
+    await transporter.sendMail({
+      from: '"Fitora Gym" <noreply@fitora.app>',
+      to,
+      subject: `New Consultation Inquiry from ${data.fullName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; color: #333; padding: 20px; border: 1px solid #ddd;">
+          <h2 style="color: #000; border-bottom: 2px solid #000; padding-bottom: 10px;">New Consultation Request</h2>
+          <p><strong>Name:</strong> ${data.fullName}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+          <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
+          <p><strong>Class:</strong> ${data.selectedClass}</p>
+          <p><strong>Branch:</strong> ${data.preferredBranch}</p>
+          <p><strong>Program:</strong> ${data.preferredProgram}</p>
+          <p><strong>Comment:</strong></p>
+          <blockquote style="background: #e9e9e9; padding: 10px; border-left: 4px solid #ccc; margin: 10px 0;">
+            ${data.comment || 'No comment provided.'}
+          </blockquote>
+        </div>
+      `,
+    });
+    console.log(`Consultation email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending consultation email:', error);
+  }
+};

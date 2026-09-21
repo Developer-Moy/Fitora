@@ -9,7 +9,6 @@ import {
   Receipt,
   ArrowUpRight,
   FileText,
-  Sparkles,
 } from "lucide-react";
 import MembershipCountdown from "@/components/subscription/MembershipCountdown";
 import InvoiceModal from "@/components/invoice/InvoiceModal";
@@ -247,9 +246,9 @@ export default function BillingPaymentHistory({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px] text-left">
+            <table className="w-full min-w-175 text-left">
               <thead>
-                <tr className="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/50 bg-white/[0.02]">
+                <tr className="border-b border-white/10 text-[11px] uppercase tracking-wider text-white/50 bg-white/2">
                   <th className="px-5 sm:px-6 py-4 font-bold">Date</th>
 
                   <th className="px-5 sm:px-6 py-4 font-bold">Plan</th>
@@ -274,7 +273,7 @@ export default function BillingPaymentHistory({
                 {transactions.map((transaction) => (
                   <tr
                     key={transaction._id}
-                    className="border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors"
+                    className="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors"
                   >
                     <td className="px-5 sm:px-6 py-4 text-sm text-white/70">
                       <div className="flex items-center gap-2">

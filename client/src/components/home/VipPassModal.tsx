@@ -124,7 +124,7 @@ export default function VipPassModal({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-9999 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
       onClick={handleClose}
     >
       <div
@@ -195,7 +195,7 @@ export default function VipPassModal({
         ) : (
           <>
             {/* Pass Card */}
-            <div className="mx-6 mb-6 rounded-2xl border border-white/15 bg-gradient-to-br from-[#181818] to-[#080808] p-5">
+            <div className="mx-6 mb-6 rounded-2xl border border-white/15 bg-linear-to-br from-[#181818] to-[#080808] p-5">
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/30">

@@ -4,19 +4,29 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  FaFacebookF,
-  FaInstagram,
-  FaLinkedinIn,
-  FaYoutube,
-} from "react-icons/fa6";
-import {
   MapPin as FiMapPin,
   ArrowRight as FiArrowRight,
   CheckCircle2 as FiCheckCircle,
+  Facebook,
+  Instagram,
+  MessageCircle,
+  Youtube,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { subscribeNewsletterApi } from "@/services/adService";
 import Image from "next/image";
+
+const TikTokIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 1 1-2.896-2.896c.148 0 .292.012.434.034V9.332a6.334 6.334 0 1 0 5.908 6.34V9.43a8.188 8.188 0 0 0 4.769 1.51v-3.51a4.832 4.832 0 0 1-1.000-.744z" />
+  </svg>
+);
+
+const XTwitterIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 export default function Footer() {
   const pathname = usePathname();
@@ -79,7 +89,7 @@ export default function Footer() {
             backgroundImage: "url('/choose2.jpg.jpeg')",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20 z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-t from-black via-black/50 to-black/20 z-0 pointer-events-none" />
 
         {/* Content Container */}
         <div className="relative z-10 max-w-7xl mx-auto space-y-8">
@@ -140,40 +150,58 @@ export default function Footer() {
             {/* Social Media Icons */}
             <div className="flex items-center gap-5">
               <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white/90 hover:text-white transition-colors"
-                aria-label="Instagram"
-              >
-                <FaInstagram size={18} />
-              </a>
-              <a
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/90 hover:text-white transition-colors"
+                className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
                 aria-label="Facebook"
               >
-                <FaFacebookF size={16} />
+                <Facebook className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/90 hover:text-white transition-colors"
-                aria-label="LinkedIn"
+                className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
+                aria-label="Instagram"
               >
-                <FaLinkedinIn size={17} />
+                <Instagram className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              </a>
+              <a
+                href="https://tiktok.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
+                aria-label="TikTok"
+              >
+                <TikTokIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              </a>
+              <a
+                href="https://wa.me/8801700000000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
+                aria-label="WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </a>
               <a
                 href="https://youtube.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/90 hover:text-white transition-colors"
+                className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
                 aria-label="YouTube"
               >
-                <FaYoutube size={19} />
+                <Youtube className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              </a>
+              <a
+                href="https://x.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
+                aria-label="X (formerly Twitter)"
+              >
+                <XTwitterIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               </a>
             </div>
 
@@ -305,12 +333,12 @@ export default function Footer() {
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 font-semibold">
             <span>FITORA GYM © 2026</span>
             <Link
-              href="/legal"
+              href="/legal/privacy"
               className="hover:text-white transition-colors"
             >
               Privacy Policy
             </Link>
-            <Link href="/legal#TermsAndConditions" className="hover:text-white transition-colors">
+            <Link href="/legal/terms" className="hover:text-white transition-colors">
               Terms of Use
             </Link>
             <span>Design and Developed by DeveloperMoy</span>

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { AuthRequest } from "../middlewares/auth.middleware";
 import User from "../models/User.model";
@@ -144,6 +145,37 @@ export const getDashboardStats = async (req: Request, res: Response) => {
           500,
         ),
       );
+  }
+};
+
+/**
+ * GET /api/dashboard/public-stats — Public platform overview (no auth required)
+ * Returns only non-sensitive counts for the home page hero section
+ */
+export const getPublicStats = async (req: Request, res: Response) => {
+  try {
+    const [totalMembers, totalWorkouts] = await Promise.all([
+      User.countDocuments({ status: "active" }),
+      WorkoutLog.countDocuments({}),
+    ]);
+
+    return res.status(200).json(
+      successResponse("Public stats retrieved successfully", {
+        totalMembers,
+        totalWorkouts,
+        totalBranches: 64,
+        totalPrograms: 135,
+      }),
+    );
+  } catch (error: any) {
+    return res.status(200).json(
+      successResponse("Public stats (fallback)", {
+        totalMembers: 970,
+        totalWorkouts: 15000,
+        totalBranches: 64,
+        totalPrograms: 135,
+      }),
+    );
   }
 };
 
@@ -490,11 +522,9 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     const updates = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      // Try finding by string id pattern
-      const user = await User.findOne({});
-      if (!user) {
-        return res.status(404).json(errorResponse("User not found", "", 404));
-      }
+      return res
+        .status(400)
+        .json(errorResponse("Invalid user ID format", "INVALID_ID", 400));
     }
 
     // Root/Master Admin account is completely immutable (protected by email too)
@@ -838,18 +868,13 @@ export const getUserMembershipAudit = async (
   }
 };
 
-
 /**
  * PATCH /api/users/profile/health-metrics
  * Sync calculated health metrics to the authenticated user's profile
  */
-export const updateHealthMetrics = async (
-  req: AuthRequest,
-  res: Response,
-) => {
+export const updateHealthMetrics = async (req: AuthRequest, res: Response) => {
   try {
-    const userId =
-      req.user?.userId || (req as any).user?.id;
+    const userId = req.user?.userId || (req as any).user?.id;
 
     if (!userId) {
       return res
@@ -857,15 +882,7 @@ export const updateHealthMetrics = async (
         .json(errorResponse("Unauthorized", "UNAUTHORIZED", 401));
     }
 
-    const {
-      age,
-      gender,
-      height,
-      weight,
-      bmr,
-      tdee,
-      activityLevel,
-    } = req.body;
+    const { age, gender, height, weight, bmr, tdee, activityLevel } = req.body;
 
     const updateFields: Record<string, any> = {};
 
@@ -873,18 +890,12 @@ export const updateHealthMetrics = async (
     if (age !== undefined) {
       const numericAge = Number(age);
 
-      if (
-        !Number.isFinite(numericAge) ||
-        numericAge < 1 ||
-        numericAge > 120
-      ) {
-        return res.status(400).json(
-          errorResponse(
-            "Age must be between 1 and 120",
-            "INVALID_AGE",
-            400,
-          ),
-        );
+      if (!Number.isFinite(numericAge) || numericAge < 1 || numericAge > 120) {
+        return res
+          .status(400)
+          .json(
+            errorResponse("Age must be between 1 and 120", "INVALID_AGE", 400),
+          );
       }
 
       updateFields.age = numericAge;
@@ -893,13 +904,15 @@ export const updateHealthMetrics = async (
     // Gender
     if (gender !== undefined) {
       if (gender !== "male" && gender !== "female") {
-        return res.status(400).json(
-          errorResponse(
-            "Gender must be male or female",
-            "INVALID_GENDER",
-            400,
-          ),
-        );
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Gender must be male or female",
+              "INVALID_GENDER",
+              400,
+            ),
+          );
       }
 
       updateFields.gender = gender;
@@ -914,13 +927,15 @@ export const updateHealthMetrics = async (
         numericHeight < 50 ||
         numericHeight > 250
       ) {
-        return res.status(400).json(
-          errorResponse(
-            "Height must be between 50 and 250 cm",
-            "INVALID_HEIGHT",
-            400,
-          ),
-        );
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Height must be between 50 and 250 cm",
+              "INVALID_HEIGHT",
+              400,
+            ),
+          );
       }
 
       updateFields.height = numericHeight;
@@ -935,13 +950,15 @@ export const updateHealthMetrics = async (
         numericWeight < 20 ||
         numericWeight > 300
       ) {
-        return res.status(400).json(
-          errorResponse(
-            "Weight must be between 20 and 300 kg",
-            "INVALID_WEIGHT",
-            400,
-          ),
-        );
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Weight must be between 20 and 300 kg",
+              "INVALID_WEIGHT",
+              400,
+            ),
+          );
       }
 
       updateFields.weight = numericWeight;
@@ -951,17 +968,10 @@ export const updateHealthMetrics = async (
     if (bmr !== undefined) {
       const numericBmr = Number(bmr);
 
-      if (
-        !Number.isFinite(numericBmr) ||
-        numericBmr <= 0
-      ) {
-        return res.status(400).json(
-          errorResponse(
-            "Valid BMR is required",
-            "INVALID_BMR",
-            400,
-          ),
-        );
+      if (!Number.isFinite(numericBmr) || numericBmr <= 0) {
+        return res
+          .status(400)
+          .json(errorResponse("Valid BMR is required", "INVALID_BMR", 400));
       }
 
       updateFields.bmr = Math.round(numericBmr);
@@ -971,17 +981,10 @@ export const updateHealthMetrics = async (
     if (tdee !== undefined) {
       const numericTdee = Number(tdee);
 
-      if (
-        !Number.isFinite(numericTdee) ||
-        numericTdee <= 0
-      ) {
-        return res.status(400).json(
-          errorResponse(
-            "Valid TDEE is required",
-            "INVALID_TDEE",
-            400,
-          ),
-        );
+      if (!Number.isFinite(numericTdee) || numericTdee <= 0) {
+        return res
+          .status(400)
+          .json(errorResponse("Valid TDEE is required", "INVALID_TDEE", 400));
       }
 
       updateFields.tdee = Math.round(numericTdee);
@@ -998,29 +1001,33 @@ export const updateHealthMetrics = async (
       ];
 
       if (!validActivityLevels.includes(activityLevel)) {
-        return res.status(400).json(
-          errorResponse(
-            "Invalid activity level",
-            "INVALID_ACTIVITY_LEVEL",
-            400,
-          ),
-        );
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              "Invalid activity level",
+              "INVALID_ACTIVITY_LEVEL",
+              400,
+            ),
+          );
       }
 
       updateFields.activityLevel = activityLevel;
     }
 
     if (Object.keys(updateFields).length === 0) {
-      return res.status(400).json(
-        errorResponse(
-          "At least one health metric is required",
-          "VALIDATION_ERROR",
-          400,
-        ),
-      );
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "At least one health metric is required",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
+    let updatedUser: any = await User.findByIdAndUpdate(
       userId,
       {
         $set: updateFields,
@@ -1032,45 +1039,77 @@ export const updateHealthMetrics = async (
     ).select("-passwordHash");
 
     if (!updatedUser) {
-      return res.status(404).json(
-        errorResponse(
-          "User not found",
-          "USER_NOT_FOUND",
-          404,
-        ),
-      );
+      if (req.body.userEmail) {
+        const safeEmail = req.body.userEmail.toLowerCase().trim();
+        updatedUser = await User.findOne({ email: safeEmail });
+        
+        if (updatedUser) {
+          updatedUser = await User.findByIdAndUpdate(
+            updatedUser._id,
+            { $set: updateFields },
+            { new: true, runValidators: true }
+          ).select("-passwordHash");
+        } else {
+          // Auto-provision Google Login (Better Auth) users in the Fitora database
+          const passwordHash = await bcrypt.hash(Math.random().toString(36), 10);
+          
+          let validObjectId;
+          if (mongoose.Types.ObjectId.isValid(userId)) {
+             validObjectId = new mongoose.Types.ObjectId(userId);
+          } else {
+             validObjectId = new mongoose.Types.ObjectId();
+          }
+
+          updatedUser = await User.create({
+            _id: validObjectId,
+            name: req.body.userName || "Fitora Athlete",
+            email: safeEmail,
+            passwordHash,
+            phone: "+8801700000000",
+            assignedBranch: "Gulshan Premium Branch",
+            assignedBranchSlug: "gulshan-branch",
+            plan: "Free Pass",
+            role: "athlete",
+            status: "active",
+            qrCodeId: `QR-${Date.now().toString(36).toUpperCase()}`,
+            ...updateFields,
+          });
+        }
+      } else {
+        return res
+          .status(404)
+          .json(errorResponse("User not found", "USER_NOT_FOUND", 404));
+      }
     }
 
     return res.status(200).json(
-      successResponse(
-        "Health metrics updated successfully",
-        {
-          user: updatedUser,
-          healthMetrics: {
-            age: updatedUser.age,
-            gender: updatedUser.gender,
-            height: updatedUser.height,
-            weight: updatedUser.weight,
-            bmr: updatedUser.bmr,
-            tdee: updatedUser.tdee,
-            activityLevel: updatedUser.activityLevel,
-          },
+      successResponse("Health metrics updated successfully", {
+        user: updatedUser,
+        healthMetrics: {
+          age: updatedUser.age,
+          gender: updatedUser.gender,
+          height: updatedUser.height,
+          weight: updatedUser.weight,
+          bmr: updatedUser.bmr,
+          tdee: updatedUser.tdee,
+          activityLevel: updatedUser.activityLevel,
         },
-      ),
+      }),
     );
   } catch (error: any) {
     console.error("Error in updateHealthMetrics:", error);
 
-    return res.status(500).json(
-      errorResponse(
-        "Failed to update health metrics",
-        error.message || "Internal Server Error",
-        500,
-      ),
-    );
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to update health metrics",
+          error.message || "Internal Server Error",
+          500,
+        ),
+      );
   }
 };
-
 
 /**
  * PATCH /api/users/profile/hydration-target
@@ -1151,8 +1190,10 @@ export const updateOwnProfile = async (req: AuthRequest, res: Response) => {
   try {
     const authUser = req.user || (req as any).user;
     const userId = authUser?.userId || authUser?.id || authUser?._id;
+    const authEmail = authUser?.email;
 
-    if (!userId) {
+    // Allow email-only auth (OAuth/BetterAuth users without a Fitora JWT userId)
+    if (!userId && !authEmail) {
       return res.status(401).json(errorResponse("Unauthorized", "", 401));
     }
 
@@ -1654,7 +1695,9 @@ export const getUserActivityStreak = async (req: Request, res: Response) => {
 export const saveSavedCard = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
+    console.log("[saveSavedCard] Attempting to save card for userId:", userId);
     if (!userId) {
+      console.log("[saveSavedCard] No userId in req.user");
       return res
         .status(401)
         .json(errorResponse("Unauthorized", "UNAUTHORIZED", 401));
@@ -1662,16 +1705,19 @@ export const saveSavedCard = async (req: AuthRequest, res: Response) => {
     const { last4, brand, expiryMonth, expiryYear, cardHolder, token } =
       req.body;
     if (!last4 || !brand || !expiryMonth || !expiryYear || !cardHolder) {
+      console.log("[saveSavedCard] Missing details:", req.body);
       return res
         .status(400)
         .json(errorResponse("Missing card details", "VALIDATION_ERROR", 400));
     }
     const user = await User.findById(userId);
     if (!user) {
+      console.log("[saveSavedCard] User not found for ID:", userId);
       return res
         .status(404)
         .json(errorResponse("User not found", "NOT_FOUND", 404));
     }
+    console.log("[saveSavedCard] Found user:", user.email);
     user.savedCard = {
       last4,
       brand,
@@ -1681,6 +1727,7 @@ export const saveSavedCard = async (req: AuthRequest, res: Response) => {
       token,
       savedAt: new Date(),
     };
+    user.markModified("savedCard");
     await user.save({ validateModifiedOnly: true });
     return res.status(200).json(
       successResponse("Card saved successfully", {
@@ -1720,6 +1767,7 @@ export const deleteSavedCard = async (req: AuthRequest, res: Response) => {
         .json(errorResponse("User not found", "NOT_FOUND", 404));
     }
     user.savedCard = undefined;
+    user.markModified("savedCard");
     await user.save({ validateModifiedOnly: true });
     return res
       .status(200)
@@ -1734,6 +1782,7 @@ export const deleteSavedCard = async (req: AuthRequest, res: Response) => {
 export default {
   getDashboardStats,
   getPlatformStats,
+  getPublicStats,
   getAllUsers,
   createUser,
   updateUser,

@@ -25,19 +25,16 @@ import {
 } from "@/services/dashboardService";
 import {
   Activity,
-  Building2,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
   CreditCard,
   DollarSign,
   Download,
-  LayoutDashboard,
   QrCode,
   Search,
   TrendingUp,
   Users,
-  X,
   Zap,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -46,12 +43,7 @@ import { useCallback, useEffect, useState } from "react";
 export default function MasterDashboardPage() {
   const {
     role,
-    setRole,
     assignedBranch,
-    userName,
-    userEmail,
-    userPlan,
-    isPremium,
     isMasterAdmin,
   } = useDashboardRole();
 
@@ -88,7 +80,6 @@ export default function MasterDashboardPage() {
     setRevenueLoading(true);
     setRevenueError("");
     const data = await fetchMasterRevenue();
-    console.log(data, "data");
     if (data) {
       setMasterRevenue(data);
     } else {
@@ -446,7 +437,7 @@ export default function MasterDashboardPage() {
           Loading revenue analytics...
         </div>
       )}
-      <div className="grid grid-cols-12 gap-1.5 pt-2 items-end min-h-[160px]">
+      <div className="grid grid-cols-12 gap-1.5 pt-2 items-end min-h-40">
         {monthlyRevenueChart.map((item, idx) => {
           const hasData = item.revenue > 0;
           const heightPercent = Math.round(
@@ -461,7 +452,7 @@ export default function MasterDashboardPage() {
               <span className="text-[8px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity">
                 ৳{(item.revenue / 100000).toFixed(1)}L
               </span>
-              <div className="w-full max-w-[20px] flex items-end gap-1 h-[110px] bg-white/5 p-0.5 rounded-xl border border-white/10">
+              <div className="w-full max-w-5 flex items-end gap-1 h-27.5 bg-white/5 p-0.5 rounded-xl border border-white/10">
                 <div
                   className={`w-full rounded-lg transition-all duration-500 ${hasData ? "bg-white" : "bg-white/10"}`}
                   style={{
@@ -620,13 +611,6 @@ export default function MasterDashboardPage() {
                 </div>
               </div>
 
-              {/* Referral Reward Card */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-                <div className="lg:col-span-5">
-                  <ReferralRewardCard />
-                </div>
-              </div>
-
               {/* Side-by-Side: Monthly Revenue Chart (7 cols) + Live Attendance Feed (5 cols) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
                 <div className="lg:col-span-7">
@@ -671,11 +655,11 @@ export default function MasterDashboardPage() {
                   )}
 
                   {attendanceLoading ? (
-                    <div className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-6 text-xs text-white/60 text-center">
+                    <div className="rounded-xl border border-white/10 bg-white/2 px-3 py-6 text-xs text-white/60 text-center">
                       Loading live occupancy & check-ins...
                     </div>
                   ) : occupancyData ? (
-                    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 space-y-2">
+                    <div className="rounded-xl border border-white/10 bg-white/3 p-3 space-y-2">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-bold text-white">
                           {occupancyData.currentOccupancy} /{" "}
@@ -774,11 +758,11 @@ export default function MasterDashboardPage() {
                     </div>
 
                     {paginatedCheckins.length === 0 ? (
-                      <div className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-4 text-xs text-white/50 text-center">
+                      <div className="rounded-xl border border-white/10 bg-white/2 px-3 py-4 text-xs text-white/50 text-center">
                         No live check-ins available today.
                       </div>
                     ) : (
-                      <div className="max-h-[175px] overflow-y-auto divide-y divide-white/5 text-xs pr-1">
+                      <div className="max-h-43.75 overflow-y-auto divide-y divide-white/5 text-xs pr-1">
                         {paginatedCheckins.map((checkin) => (
                           <div
                             key={checkin._id}
@@ -788,7 +772,7 @@ export default function MasterDashboardPage() {
                               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-black shrink-0">
                                 <QrCode className="h-3.5 w-3.5" />
                               </div>
-                              <div className="truncate max-w-[150px] sm:max-w-[190px]">
+                              <div className="truncate max-w-37.5 sm:max-w-47.5">
                                 <span className="font-bold text-white text-xs block truncate">
                                   {checkin.memberName}
                                 </span>
@@ -821,6 +805,13 @@ export default function MasterDashboardPage() {
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* Referral Reward Card (Placed at the bottom of Overview) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start pt-2">
+                <div className="lg:col-span-5">
+                  <ReferralRewardCard />
                 </div>
               </div>
             </div>
@@ -881,7 +872,7 @@ export default function MasterDashboardPage() {
                     ).map((gw, idx) => (
                       <div
                         key={idx}
-                        className="p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-1.5"
+                        className="p-3 rounded-xl bg-white/3 border border-white/10 space-y-1.5"
                       >
                         <div className="flex items-center justify-between text-[11px] font-black uppercase">
                           <span className="text-white text-xs">{gw.name}</span>
@@ -901,7 +892,7 @@ export default function MasterDashboardPage() {
                     {(isMasterAdmin ? gatewayList : gatewayBreakdown).length ===
                       0 &&
                       !revenueLoading && (
-                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-white/50">
+                        <div className="p-3 rounded-xl bg-white/3 border border-white/10 text-xs text-white/50">
                           No completed payments recorded yet.
                         </div>
                       )}
@@ -1022,7 +1013,7 @@ export default function MasterDashboardPage() {
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="p-3.5 rounded-xl bg-white/3 border border-white/10">
                   <span className="text-[11px] text-white/50 font-black uppercase tracking-wider">
                     Daily Active Syncs
                   </span>
@@ -1030,7 +1021,7 @@ export default function MasterDashboardPage() {
                     14,280
                   </span>
                 </div>
-                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="p-3.5 rounded-xl bg-white/3 border border-white/10">
                   <span className="text-[11px] text-white/50 font-black uppercase tracking-wider">
                     Turnstile Scans Processed
                   </span>
@@ -1038,7 +1029,7 @@ export default function MasterDashboardPage() {
                     8,920
                   </span>
                 </div>
-                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10">
+                <div className="p-3.5 rounded-xl bg-white/3 border border-white/10">
                   <span className="text-[11px] text-white/50 font-black uppercase tracking-wider">
                     API Response Latency
                   </span>

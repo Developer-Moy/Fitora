@@ -11,7 +11,10 @@ import { seedStopwatchPresets } from "./data/stopwatch.seed.js";
 
 import { handleStripeWebhook } from "./controllers/payment.controller.js";
 import { apiLimiter, authLimiter } from "./middlewares/rateLimit.middleware.js";
-import { errorHandler, notFoundHandler } from "./middlewares/error.middleware.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./middlewares/error.middleware.js";
 
 dotenv.config();
 
@@ -27,17 +30,23 @@ const io = new SocketIOServer(server, {
   },
 });
 
-// Middleware
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
   "http://localhost:3000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3000",
 ];
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin))
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.startsWith("http://localhost:")
+      ) {
         return callback(null, true);
-      return callback(null, true);
+      }
+      return callback(null, false);
     },
     credentials: true,
   }),

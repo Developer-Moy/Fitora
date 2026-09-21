@@ -523,7 +523,7 @@ export default function ActivityHeatmap({
         </div>
 
         {/* Dynamic Consistency Streak Badge */}
-        <div className="flex items-center gap-2.5 self-start sm:self-center bg-white/[0.07] hover:bg-white/[0.1] border border-white/20 rounded-xl px-3.5 py-2 transition-all">
+        <div className="flex items-center gap-2.5 self-start sm:self-center bg-white/[0.07] hover:bg-white/10 border border-white/20 rounded-xl px-3.5 py-2 transition-all">
           <Flame
             className={`w-5 h-5 ${
               consistencyStreak > 0
@@ -568,7 +568,7 @@ export default function ActivityHeatmap({
             <span>Loading activity heatmap...</span>
             <div className="w-24 h-3 bg-white/10 rounded" />
           </div>
-          <div className="w-full h-32 bg-white/[0.03] border border-white/10 rounded-xl flex items-center justify-center">
+          <div className="w-full h-32 bg-white/3 border border-white/10 rounded-xl flex items-center justify-center">
             <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
           </div>
         </div>
@@ -605,13 +605,13 @@ export default function ActivityHeatmap({
               <div className="flex gap-1">
                 {/* Weekday indicator labels */}
                 <div className="flex flex-col justify-between text-[9px] font-bold uppercase tracking-wider text-white/40 pr-1.5 py-0.5 select-none w-6 text-right">
-                  <span className="h-3.5 leading-[14px]">Mon</span>
-                  <span className="h-3.5 leading-[14px] opacity-0">Tue</span>
-                  <span className="h-3.5 leading-[14px]">Wed</span>
-                  <span className="h-3.5 leading-[14px] opacity-0">Thu</span>
-                  <span className="h-3.5 leading-[14px]">Fri</span>
-                  <span className="h-3.5 leading-[14px] opacity-0">Sat</span>
-                  <span className="h-3.5 leading-[14px] opacity-0">Sun</span>
+                  <span className="h-3.5 leading-3.5">Mon</span>
+                  <span className="h-3.5 leading-3.5 opacity-0">Tue</span>
+                  <span className="h-3.5 leading-3.5">Wed</span>
+                  <span className="h-3.5 leading-3.5 opacity-0">Thu</span>
+                  <span className="h-3.5 leading-3.5">Fri</span>
+                  <span className="h-3.5 leading-3.5 opacity-0">Sat</span>
+                  <span className="h-3.5 leading-3.5 opacity-0">Sun</span>
                 </div>
 
                 {/* 53 Columns of Weeks */}
@@ -652,7 +652,7 @@ export default function ActivityHeatmap({
 
           {/* ── Empty State Callout ── */}
           {!isLoading && totalWorkoutsInYear === 0 && (
-            <div className="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left bg-white/[0.02] p-4 rounded-xl border border-white/10">
+            <div className="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left bg-white/2 p-4 rounded-xl border">
               <div className="space-y-0.5">
                 <p className="text-xs font-black uppercase tracking-wider text-white">
                   Start Your Fitness Journey
@@ -718,23 +718,23 @@ export default function ActivityHeatmap({
           <div className="flex items-center gap-1">
             <span
               title="0 workouts"
-              className="w-3 h-3 rounded-[2px] bg-white/[0.05] border border-white/[0.08]"
+              className="w-3 h-3 rounded-xs bg-white/5 border border-white/8"
             />
             <span
               title="1 workout"
-              className="w-3 h-3 rounded-[2px] bg-white/30 border border-white/40"
+              className="w-3 h-3 rounded-xs bg-white/30 border border-white/40"
             />
             <span
               title="2 workouts"
-              className="w-3 h-3 rounded-[2px] bg-white/55 border border-white/65"
+              className="w-3 h-3 rounded-xs bg-white/55 border border-white/65"
             />
             <span
               title="3 workouts"
-              className="w-3 h-3 rounded-[2px] bg-white/80 border border-white"
+              className="w-3 h-3 rounded-xs bg-white/80 border border-white"
             />
             <span
               title="4+ workouts"
-              className="w-3 h-3 rounded-[2px] bg-white border border-white shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+              className="w-3 h-3 rounded-xs bg-white border border-white shadow-[0_0_8px_rgba(255,255,255,0.7)]"
             />
           </div>
           <span className="text-[11px] text-white/50">More</span>
@@ -752,9 +752,9 @@ export default function ActivityHeatmap({
               top: `${tooltip.y}px`,
               transform: "translate(-50%, -100%)",
             }}
-            className="pointer-events-none z-[99999] transition-all duration-75"
+            className="pointer-events-none z-99999 transition-all duration-75"
           >
-            <div className="bg-neutral-900/95 backdrop-blur-md border border-white/20 text-white rounded-xl px-3 py-1.5 shadow-2xl space-y-0.5 min-w-[120px] text-center">
+            <div className="bg-neutral-900/95 backdrop-blur-md border border-white/20 text-white rounded-xl px-3 py-1.5 shadow-2xl space-y-0.5 min-w-30 text-center">
               <p className="text-[10px] font-medium text-white/60 tracking-tight">
                 {tooltip.dateStr}
               </p>
@@ -766,7 +766,7 @@ export default function ActivityHeatmap({
                     : `${tooltip.count} workouts`}
               </p>
               {tooltip.workouts.length > 0 && (
-                <p className="text-[10px] text-white/80 truncate max-w-[190px] pt-0.5 border-t border-white/10">
+                <p className="text-[10px] text-white/80 truncate max-w-47.5 pt-0.5 border-t border-white/10">
                   {tooltip.workouts
                     .map((w) => w.exerciseName || "Workout")
                     .slice(0, 2)
@@ -777,7 +777,7 @@ export default function ActivityHeatmap({
                 </p>
               )}
               {/* Subtle Downward Pointer Arrow */}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-white/20" />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-white/20" />
             </div>
           </div>,
           document.body,

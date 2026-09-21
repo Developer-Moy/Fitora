@@ -295,8 +295,8 @@ const TRAINER_HIGHLIGHTS: Record<string, string[]> = {
 };
 
 export default function MeetTrainers() {
-  const [trainers, setTrainers] = useState<Trainer[]>(DEFAULT_TRAINERS);
-  const [loading, setLoading] = useState(false);
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
 
   useEffect(() => {
@@ -304,6 +304,7 @@ export default function MeetTrainers() {
     const apiUrl =
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+    setLoading(true);
     fetch(`${apiUrl}/trainers`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -311,25 +312,29 @@ export default function MeetTrainers() {
       })
       .then((data) => {
         if (!isMounted) return;
-        const fetchedTrainers = Array.isArray(data.data)
+        const fetchedTrainers = Array.isArray(data?.data?.trainers)
+          ? data.data.trainers
+          : Array.isArray(data?.data)
           ? data.data
-          : Array.isArray(data?.data?.trainers)
-            ? data.data.trainers
-            : Array.isArray(data?.trainers)
-              ? data.trainers
-              : [];
+          : Array.isArray(data?.trainers)
+          ? data.trainers
+          : [];
 
         if (fetchedTrainers.length > 0) {
           setTrainers(fetchedTrainers);
+        } else {
+          // Fallback to defaults if API returns empty
+          setTrainers(DEFAULT_TRAINERS);
         }
         setLoading(false);
       })
       .catch((err) => {
         console.warn(
           "API fetch failed for trainers, utilizing reliable default trainers:",
-          err,
+          err
         );
         if (isMounted) {
+          setTrainers(DEFAULT_TRAINERS);
           setLoading(false);
         }
       });
@@ -338,6 +343,7 @@ export default function MeetTrainers() {
       isMounted = false;
     };
   }, []);
+
 
   return (
     <section
@@ -370,14 +376,14 @@ export default function MeetTrainers() {
                   key={trainer._id}
                   whileHover={{ scale: 1.02, y: -5 }}
                   onClick={() => setSelectedTrainer(trainer)}
-                  className="group relative w-full h-[270px] sm:h-[300px] rounded-2xl overflow-hidden border border-white/15 bg-black shadow-2xl hover:shadow-[0_20px_40px_rgba(255,255,255,0.12)] cursor-pointer transition-all duration-300"
+                  className="group relative w-full h-67.5 sm:h-75 rounded-2xl overflow-hidden border border-white/15 bg-black shadow-2xl hover:shadow-[0_20px_40px_rgba(255,255,255,0.12)] cursor-pointer transition-all duration-300"
                 >
                   <img
                     src={photoSrc}
                     alt={trainer.name}
                     className="w-full h-full object-cover object-top filter brightness-90 contrast-105 group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-95 transition-opacity" />
                   <div className="absolute bottom-0 left-0 right-0 p-5 flex justify-between items-end gap-2">
                     <div className="space-y-0.5 overflow-hidden">
                       <h4 className="text-base sm:text-lg font-black text-white uppercase tracking-wider truncate">
@@ -407,7 +413,7 @@ export default function MeetTrainers() {
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="w-full h-[270px] sm:h-[300px] bg-neutral-900 rounded-2xl border border-white/10"
+                className="w-full h-67.5 sm:h-75 bg-neutral-900 rounded-2xl border border-white/10"
               />
             ))}
           </div>
@@ -422,7 +428,7 @@ export default function MeetTrainers() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.3, delay: 0.1 } }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md overflow-hidden"
+            className="fixed inset-0 z-9999 flex items-center justify-center bg-black/90 backdrop-blur-md overflow-hidden"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 40 }}
@@ -454,7 +460,7 @@ export default function MeetTrainers() {
                     className="absolute inset-0 w-full h-full object-cover filter contrast-125 brightness-90"
                     alt={selectedTrainer.name}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-95" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent opacity-95" />
 
                   {/* Mobile Close Button */}
                   <button
@@ -511,12 +517,12 @@ export default function MeetTrainers() {
                         <span className="text-gray-400 text-[10px] uppercase font-bold flex items-center gap-1.5">
                           <Quote className="w-3 h-3" /> Quote
                         </span>
-                        <span className="text-white text-[10px] italic font-medium truncate max-w-[170px]">
-                          "
+                        <span className="text-white text-[10px] italic font-medium truncate max-w-42.5">
+                          &quot;
                           {selectedTrainer.philosophy?.trim() ||
                             TRAINER_QUOTES[selectedTrainer.name] ||
                             "Consistency and discipline build champions."}
-                          "
+                          &quot;
                         </span>
                       </div>
                     </div>
@@ -538,11 +544,11 @@ export default function MeetTrainers() {
                   </motion.div>
                   <div className="relative z-10 border-l-2 border-white/30 pl-4 py-2">
                     <p className="text-sm font-sans italic text-gray-300 leading-relaxed">
-                      "
+                      &quot;
                       {selectedTrainer.philosophy?.trim() ||
                         TRAINER_QUOTES[selectedTrainer.name] ||
                         "Consistency and discipline build champions."}
-                      "
+                      &quot;
                     </p>
                   </div>
                 </div>
@@ -604,8 +610,8 @@ export default function MeetTrainers() {
                           (selectedTrainer.careerHighlights?.length
                             ? selectedTrainer.careerHighlights
                             : selectedTrainer.achievements?.length
-                              ? selectedTrainer.achievements
-                              : TRAINER_HIGHLIGHTS[selectedTrainer.name]) || []
+                            ? selectedTrainer.achievements
+                            : TRAINER_HIGHLIGHTS[selectedTrainer.name]) || []
                         ).map((highlight, idx) => (
                           <li
                             key={idx}

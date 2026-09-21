@@ -77,7 +77,6 @@ apiRouter.use("/users", userRoutes);
 apiRouter.use("/dashboard/master", masterRoutes);
 apiRouter.use("/consultations", consultationRoutes);
 apiRouter.use("/branches", branchRoutes);
-apiRouter.use("/trainers", trainerRoutes);
 apiRouter.use("/newsletter", newsletterRoutes);
 apiRouter.use("/daily-plan", dailyMealPlanRoutes);
 apiRouter.use("/search", searchRoutes);

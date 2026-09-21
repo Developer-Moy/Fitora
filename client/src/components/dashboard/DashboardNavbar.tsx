@@ -14,7 +14,6 @@ import {
   LogOut,
   Menu,
   X,
-  Zap,
 } from "lucide-react";
 import { useDashboardRole, DashboardRole } from "@/hooks/useDashboardRole";
 import NotificationDropdown from "./NotificationDropdown";
@@ -81,8 +80,6 @@ export default function DashboardNavbar() {
     setIsMobileMenuOpen(false);
   }, [currentTab]);
 
-  const isAdmin = role === "master_admin" || role === "branch_admin";
-
   const adminNavItems = [
     {
       name: "Overview",
@@ -129,7 +126,7 @@ export default function DashboardNavbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-black/95 backdrop-blur-md">
-      <div className="mx-auto flex h-14 sm:h-16 w-full max-w-[1700px] items-center justify-between px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4">
+      <div className="mx-auto flex h-14 sm:h-16 w-full max-w-425 items-center justify-between px-4 sm:px-6 lg:px-8 gap-3 sm:gap-4">
         {/* ── Left: Brand & Mobile Trigger ── */}
         <div className="flex items-center gap-3 shrink-0">
           <button
@@ -208,7 +205,7 @@ export default function DashboardNavbar() {
                 <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-black" />
               </div>
 
-              <div className="hidden md:block text-left max-w-[110px] overflow-hidden">
+              <div className="hidden md:block text-left max-w-27.5 overflow-hidden">
                 <p className="truncate text-xs font-bold text-white leading-tight">
                   {userName ? userName.split(" ")[0] : "Athlete"}
                 </p>

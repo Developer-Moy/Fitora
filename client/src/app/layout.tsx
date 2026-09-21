@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MainContentWrapper from "@/components/MainContentWrapper";
 import { Providers } from "./providers";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -72,6 +73,7 @@ export default function RootLayout({
           <MainContentWrapper>{children}</MainContentWrapper>
           <Footer />
         </Providers>
+        <Analytics />
       </body>
     </html>
   );

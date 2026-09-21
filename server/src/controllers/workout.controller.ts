@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { WorkoutLog, IWorkoutLog } from "../models/WorkoutLog.model";
+import { WorkoutLog } from "../models/WorkoutLog.model";
 import {
   LOCAL_WORKOUTS_DATABASE,
   WorkoutExercise,
 } from "../data/workout.data.js";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 import { AuthRequest } from "../middlewares/auth.middleware";
-import UserTier from "../models/UserTier.model";
 import User from "../models/User.model";
 import {
   recordHeatmapActivityHelper,
@@ -237,10 +236,7 @@ export const getWorkoutLogs = async (
     const authUser = (req as any).user;
 
     const targetUserId =
-      (userId as string) ||
-      authUser?.userId ||
-      authUser?.id ||
-      "guest_user";
+      (userId as string) || authUser?.userId || authUser?.id || "guest_user";
 
     let logs: any[] = [];
     const isDbConnected = mongoose.connection.readyState === 1;
@@ -266,10 +262,7 @@ export const getWorkoutLogs = async (
                 }).select("_id email");
               } else {
                 userDoc = await User.findOne({
-                  $or: [
-                    { email: targetUserId },
-                    { phone: targetUserId },
-                  ],
+                  $or: [{ email: targetUserId }, { phone: targetUserId }],
                 }).select("_id email");
               }
 
@@ -288,8 +281,7 @@ export const getWorkoutLogs = async (
               }
             } catch {}
 
-            const queryEmail =
-              (email as string) || authUser?.email;
+            const queryEmail = (email as string) || authUser?.email;
             if (
               queryEmail &&
               !conditions.some((c) => c.userId === queryEmail)
@@ -427,10 +419,7 @@ export const createWorkoutLog = async (
 
     const authUser = (req as any).user;
     const finalUserId =
-      userId ||
-      authUser?.userId ||
-      authUser?.id ||
-      "guest_user";
+      userId || authUser?.userId || authUser?.id || "guest_user";
     const logDate = date ? new Date(date) : new Date();
 
     // Auto-calculate estimated calories if not provided

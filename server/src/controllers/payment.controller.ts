@@ -1129,8 +1129,9 @@ export async function checkoutPayment(
         );
 
         // BONUS MONTHS: If user saves card on a monthly plan, grant 3 months total (buy 1 get 2 free)
+        const hasSavedCard = Boolean(saveCard) || Boolean(targetUser.savedCard);
         const { appliedExpiryDate } = calculateRetentionExpiry(
-          Boolean(saveCard),
+          hasSavedCard,
           cycle,
           effectiveStartDate,
           finalExpiryDate,

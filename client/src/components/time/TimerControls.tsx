@@ -39,7 +39,6 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
   onNextSet,
   onToggleSound,
   onSetTarget,
-  onQuickLog,
   quickTargets,
 }) => {
   // Remaining seconds when a target is active

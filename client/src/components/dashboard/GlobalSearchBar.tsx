@@ -11,8 +11,6 @@ import {
   DollarSign,
   Activity,
   ArrowUpRight,
-  ChevronRight,
-  Shield,
   Zap,
 } from "lucide-react";
 import {
@@ -191,18 +189,16 @@ export default function GlobalSearchBar({
       {isOpen && searchQuery.trim().length > 0 && (
         <div
           className={`absolute top-full mt-2 bg-black/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.9)] overflow-hidden text-white animate-in fade-in slide-in-from-top-2 duration-150 max-h-[75vh] flex flex-col ${
-            compact
-              ? "right-0 w-[320px] sm:w-[420px] md:w-[460px]"
-              : "left-0 right-0"
+            compact ? "right-0 w-80 sm:w-105 md:w-115" : "left-0 right-0"
           }`}
         >
           {/* Header Bar */}
-          <div className="p-3 border-b border-white/10 flex items-center justify-between bg-white/[0.02] text-[11px]">
+          <div className="p-3 border-b border-white/10 flex items-center justify-between bg-white/2 text-[11px]">
             <div className="flex items-center gap-1.5 font-bold">
               <span className="text-white/50 uppercase tracking-wider">
                 Results for:
               </span>
-              <span className="text-white font-mono truncate max-w-[140px] sm:max-w-[200px]">
+              <span className="text-white font-mono truncate max-w-35 sm:max-w-50">
                 &quot;{searchQuery}&quot;
               </span>
             </div>
@@ -213,7 +209,7 @@ export default function GlobalSearchBar({
 
           {/* Category Filter Pills (if results found) */}
           {totalResults > 0 && !isLoading && (
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/10 overflow-x-auto text-[10px] font-bold uppercase no-scrollbar bg-white/[0.03]">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/10 overflow-x-auto text-[10px] font-bold uppercase no-scrollbar bg-white/3">
               <button
                 type="button"
                 onClick={() => setActiveCategory("all")}
