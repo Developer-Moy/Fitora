@@ -176,6 +176,20 @@ Upgraded the core AI coach engine to support next-generation Google AI Studio in
 
 ---
 
+## 12. Dynamic 1-on-1 Session Booking System
+
+Architected and built the complete end-to-end booking flow connecting athletes directly with elite trainers.
+
+### Key Implementation:
+
+- **Smart Frontend Form (`/book-session`)**: Built a highly responsive glassmorphic UI matching the Pure Black & White signature theme.
+- **Dynamic Overlap Prevention**: Engineered real-time slot checking (`GET /booked-slots`) that dynamically disables time options in the dropdown if they are already booked by someone else on the same day.
+- **Server-Authoritative Validation**: Created `SessionBooking.model.ts` and `sessionBooking.controller.ts` (`POST /`) to strictly prevent database-level double bookings.
+- **Automated Nodemailer Confirmation**: Integrated automated email dispatching (`sendTrainerSessionEmail`) to instantly notify trainers when their sessions are booked.
+- **Micro-Interactions**: Enhanced UI engagement by adding `animate-spin-slow` infinite rotations to the Hero AI button icon and the floating "Ask AI" sparkles icon.
+
+---
+
 ## Overview
 
 These components form the responsive header, hero section, pricing, callouts, contact form, footer, membership tracking, digital billing engine, dynamic member hub, AI coach studio, and robust full-stack data layer of **Fitora**.
@@ -694,3 +708,17 @@ Two bugs: (1) When `tsx watch` hot-reloads the server (kills old process), exerc
    - **`Navbar.tsx` & `AuthFlowContainer.tsx`**: Removed unused `FiSearch`, `FiSettings`, `clearAuthSession`, `Lock`, and `Toaster` imports.
    - **`workoutService.ts` & `stopwatchService.ts`**: Relocated mid-file `offlineQueueService` imports to the top of each file.
    - **`imageUploadService.ts` & `.env.local`**: Moved ImgBB API key to `NEXT_PUBLIC_IMGBB_API_KEY` in `.env.local` with clean local Base64 fallback.
+
+### 21-Sep-26 (Day 6)
+
+- **Dynamic Session Booking System (Book a Session)**:
+  - Built the `/book-session` route featuring a highly responsive, premium glassmorphic UI matching Fitora's Pure Black & White theme.
+  - Implemented real-time frontend validation utilizing `GET /booked-slots` to check for overlapping schedules upon selecting a trainer and date, dynamically disabling booked times.
+  - Form enhancements include proper loading states, custom dropdown chevrons, error handling, and sleek hover animations.
+- **Booking Backend & Automated Notifications**:
+  - Engineered the `SessionBooking.model.ts` to securely track bookings (user info, `trainerId`, `date`, `timeSlot`, and `status`).
+  - Added backend validation in `sessionBooking.controller.ts` (`POST /`) to actively prevent double-booking at the database level.
+  - Integrated `nodemailer` to dispatch automated confirmation emails to trainers the moment a session is successfully booked.
+- **UI/UX Animations Enhancements**:
+  - Implemented infinite spin (`animate-spin-slow`) micro-interactions on the Hero AI button icon to boost dynamic engagement.
+  - Applied the same infinite rotation to the floating "Ask AI" widget's sparkles icon to ensure unified brand micro-interactions.

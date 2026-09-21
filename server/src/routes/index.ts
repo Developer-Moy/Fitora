@@ -24,6 +24,7 @@ import notificationRoutes from "./notification.routes.js";
 import adminRoutes from "./admin.routes";
 import heatmapRoutes from "./heatmap.routes";
 import personalizedNutritionPlanRoutes from "./personalizedNutritionPlan.routes.js";
+import sessionBookingRoutes from "./sessionBooking.routes";
 import { successResponse, errorResponse } from "../utils/apiResponse";
 
 const apiRouter = Router();
@@ -85,5 +86,6 @@ apiRouter.use("/admin", adminRoutes);
 apiRouter.use("/notifications", notificationRoutes);
 apiRouter.use("/heatmap", heatmapRoutes);
 apiRouter.use("/personalized-nutrition-plan", personalizedNutritionPlanRoutes);
+apiRouter.use("/session-booking", sessionBookingRoutes);
 
 export default apiRouter;
