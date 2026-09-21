@@ -723,14 +723,14 @@ export default function FloatingAiWidget() {
               </span>
             </div>
           ) : (
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center animate-[spin_6s_linear_infinite]">
               <Image
                 src="/gemini-logo.png"
                 alt="Google Gemini"
                 width={36}
                 height={36}
                 className={`w-6 h-6 sm:w-7 sm:h-7 object-contain transition-transform duration-300 drop-shadow-[0_0_10px_rgba(66,133,244,0.5)] ${
-                  isOpen ? "rotate-45 scale-110" : "group-hover:rotate-12"
+                  isOpen ? "scale-110" : ""
                 }`}
                 priority
               />
