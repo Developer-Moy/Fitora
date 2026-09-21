@@ -226,7 +226,7 @@ export default function ContactInfoForm() {
         </div>
 
         {/* Right Column: Form Container — Light gray box, no rounded corners, matching fitora-homepage.png */}
-        <div className="lg:col-span-6 bg-[#F4F4F4] p-8 sm:p-12 space-y-6">
+        <div className="lg:col-span-6 bg-[#F4F4F4] p-8 sm:p-12 space-y-6 rounded-3xl">
           <div className="space-y-2">
             <h3 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
               Leave Us Your Info
@@ -256,7 +256,7 @@ export default function ContactInfoForm() {
                     setFormData({ ...formData, fullName: e.target.value })
                   }
                   placeholder="Full Name *"
-                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium placeholder-gray-400"
+                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium placeholder-gray-400 rounded-2xl"
                 />
               </div>
 
@@ -269,18 +269,18 @@ export default function ContactInfoForm() {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   placeholder="Email Address *"
-                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium placeholder-gray-400"
+                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium placeholder-gray-400 rounded-2xl"
                 />
               </div>
 
-              <div>
+              <div className="relative">
                 <select
                   required
                   value={formData.selectedClass}
                   onChange={(e) =>
                     setFormData({ ...formData, selectedClass: e.target.value })
                   }
-                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium cursor-pointer"
+                  className="w-full appearance-none px-4 py-3.5 pr-12 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium text-gray-600 cursor-pointer rounded-2xl"
                 >
                   <option value="">Select Class</option>
                   <option value="bodybuilding">
@@ -290,6 +290,22 @@ export default function ContactInfoForm() {
                   <option value="fitness">Personal Fitness Training</option>
                   <option value="yoga">Yoga & Mobility</option>
                 </select>
+
+                <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
+                  <svg
+                    className="w-4 h-4 text-gray-900"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                </div>
               </div>
 
               <div>
@@ -301,7 +317,7 @@ export default function ContactInfoForm() {
                     setFormData({ ...formData, comment: e.target.value })
                   }
                   placeholder="Comment"
-                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium placeholder-gray-400 resize-none"
+                  className="w-full px-4 py-3.5 bg-white border border-gray-200 text-black text-sm outline-none focus:border-black transition-colors font-medium placeholder-gray-400 resize-none rounded-2xl"
                 />
               </div>
 
