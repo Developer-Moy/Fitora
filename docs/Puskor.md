@@ -344,4 +344,31 @@ Architected and implemented a comprehensive offline-first telemetry caching and 
 
 ---
 
-<p align="right">Updated: 2026-09-16</p>
+## 12. Data Management Portal Improvements (2026-09-22)
+
+### 1. Chrome-Style Tab Navigation (`client/src/app/dashboard/data-management/page.tsx`)
+- The Trainers/Meals/Exercises tab buttons had **zero styling** and were invisible on the black theme.
+- Restyled as Chrome browser tabs: active tab gets white background, black text, elevated shadow, and connects directly into the content area; inactive tabs are flat dark with white/50 text; added a tab bar rail.
+- Added **role protection** (`useDashboardRole`): only `master_admin` and `branch_admin` can access the page, with loading, access-denied, and auth-guard states.
+
+### 2. ExerciseUploadForm Complete Build (`client/src/components/dashboard/data-management/ExerciseUploadForm.tsx`)
+- Was a **stub** with just a heading — no form fields, no button.
+- Built a complete form matching the TrainerUploadForm/MealUploadForm pattern:
+  - All `IExercise` fields: name, category, difficulty, duration, equipment, target muscle, YouTube video ID, description
+  - Dynamic tips chips (add/remove, Enter-to-add, duplicate prevention, count indicator)
+  - ImgBB image upload with preview, change/remove, loading state
+  - Submit button calling `POST /api/exercises` with auth headers
+  - Success/error/alert notifications
+
+### 3. Navbar Data Management Nav Item (`client/src/components/dashboard/DashboardNavbar.tsx`)
+- Added a **"Data Management"** item to the dashboard navbar with a `Database` icon.
+- Uses `pathMatch` + `usePathname` to correctly highlight as active when navigating to `/dashboard/data-management`.
+- Added `usePathname` and `Database` icon imports.
+
+### Verification
+- `npx tsc --noEmit` — passed with 0 errors
+- `npx eslint` on modified files — passed (no new errors introduced)
+
+---
+
+<p align="right">Updated: 2026-09-22</p>
