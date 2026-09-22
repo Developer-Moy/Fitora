@@ -82,14 +82,75 @@ export const getExerciseById = async (
 };
 
 /**
- * @task Backend Dev 1: Create Exercise Controller
+ * Create Exercise Controller
  * - Implement POST logic to save a new exercise.
  * - Generate unique numeric `id` dynamically.
- * - Check for duplicates by name or ID.
+ * - Check for duplicates by name.
  */
 export const createExercise = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  // DEV 1: Add your logic here
+  try {
+    const {
+      name,
+      category,
+      difficulty,
+      duration,
+      equipment,
+      muscle,
+      description,
+      tips,
+      videoId,
+      image,
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !category || !difficulty || !duration || !equipment || !muscle || !description || !videoId || !image) {
+      res.status(400).json(errorResponse("All required fields must be provided", "MISSING_FIELDS", 400));
+      return;
+    }
+
+    // Check for duplicate by name (case-insensitive)
+    const existingExercise = await Exercise.findOne({
+      name: { $regex: new RegExp(`^${name}$`, "i") },
+    });
+
+    if (existingExercise) {
+      res.status(409).json(errorResponse("An exercise with this name already exists", "DUPLICATE_NAME", 409));
+      return;
+    }
+
+    // Generate unique numeric ID
+    const lastExercise = await Exercise.findOne().sort({ id: -1 });
+    const newId = lastExercise ? lastExercise.id + 1 : 1;
+
+    // Create the exercise
+    const newExercise = new Exercise({
+      id: newId,
+      name,
+      category,
+      difficulty,
+      duration,
+      equipment,
+      muscle,
+      description,
+      tips: Array.isArray(tips) ? tips : [],
+      videoId,
+      image,
+    });
+
+    await newExercise.save();
+
+    res.status(201).json(successResponse("Exercise created successfully", newExercise));
+  } catch (error) {
+    console.error("Create exercise error:", error);
+    res.status(500).json(
+      errorResponse(
+        "Failed to create exercise",
+        error instanceof Error ? error.message : "Unknown error",
+        500
+      )
+    );
+  }
 };
