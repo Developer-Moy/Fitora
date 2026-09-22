@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
   Building2,
   TrendingUp,
   Activity,
+  Database,
   ChevronDown,
   Shield,
   LogOut,
@@ -55,6 +56,7 @@ export default function DashboardNavbar() {
   } = useDashboardRole();
 
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const currentTab = searchParams.get("tab") || "overview";
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -115,6 +117,13 @@ export default function DashboardNavbar() {
       icon: Activity,
       tabKey: "ai-telemetry",
     },
+    {
+      name: "Data Management",
+      href: "/dashboard/data-management",
+      icon: Database,
+      tabKey: "data-management",
+      pathMatch: "/dashboard/data-management",
+    },
   ];
 
   const navItems = adminNavItems;
@@ -168,7 +177,9 @@ export default function DashboardNavbar() {
         <nav className="hidden lg:flex items-center gap-1.5 xl:gap-2 transition-all duration-300">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = isTabActive(item.tabKey, currentTab);
+            const active = item.pathMatch
+              ? pathname.startsWith(item.pathMatch)
+              : isTabActive(item.tabKey, currentTab);
             return (
               <Link
                 key={item.tabKey}
@@ -186,8 +197,6 @@ export default function DashboardNavbar() {
             );
           })}
         </nav>
-
-        {/* ── Right: Notifications & Profile ── */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           {/* Notification Bell */}
           <NotificationDropdown />
@@ -317,7 +326,9 @@ export default function DashboardNavbar() {
           <nav className="grid grid-cols-1 gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const active = isTabActive(item.tabKey, currentTab);
+              const active = item.pathMatch
+                ? pathname.startsWith(item.pathMatch)
+                : isTabActive(item.tabKey, currentTab);
               return (
                 <Link
                   key={item.tabKey}
