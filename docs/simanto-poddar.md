@@ -249,3 +249,9 @@ Issues Resolved Today
 ## 21-Sep-26
 
 - Update footer social icons
+
+## 22-Sep-26
+
+- Add initial meal upload form UI for backend integration
+
+- Connected the `MealUploadForm` to the Fitora backend so that admin-submitted meal data is persisted into the **existing MongoDB `meals` collection** (same collection used by `GET /api/meals`).
