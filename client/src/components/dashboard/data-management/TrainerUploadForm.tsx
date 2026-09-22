@@ -1,13 +1,16 @@
 "use client";
 
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { uploadToImgBB } from "@/services/imageUploadService";
+import { fetchPublicBranches } from "@/services/dashboardService";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 
 interface TrainerFormData {
   name: string;
   email: string;
   designation: string;
+  branchName: string;
   bio: string;
   experienceYears: string;
   specializations: string;
@@ -18,6 +21,7 @@ const initialFormData: TrainerFormData = {
   name: "",
   email: "",
   designation: "",
+  branchName: "",
   bio: "",
   experienceYears: "",
   specializations: "",
@@ -28,6 +32,25 @@ export default function TrainerUploadForm() {
   const [formData, setFormData] = useState<TrainerFormData>(initialFormData);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [branches, setBranches] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadBranches = async () => {
+      try {
+        const result = await fetchPublicBranches();
+        if (result && result.length > 0) {
+          setBranches(result);
+          setFormData((prev) => ({
+            ...prev,
+            branchName: result[0].name,
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to load branches:", error);
+      }
+    };
+    loadBranches();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -87,6 +110,7 @@ export default function TrainerUploadForm() {
         email: formData.email.trim(),
         slug,
         designation: formData.designation.trim(),
+        branchName: formData.branchName,
         bio: formData.bio.trim(),
         about: formData.bio.trim(),
         photo: uploadResult.url,
@@ -199,6 +223,29 @@ export default function TrainerUploadForm() {
 
           <div>
             <label className="mb-2 block text-sm text-white/70">
+              Assigned Branch
+            </label>
+
+            <select
+              name="branchName"
+              value={formData.branchName}
+              onChange={handleChange as any}
+              className="w-full rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/30"
+            >
+              {branches.length > 0 ? (
+                branches.map((branch) => (
+                  <option key={branch._id || branch.name} value={branch.name}>
+                    {branch.name}
+                  </option>
+                ))
+              ) : (
+                <option value="">Loading branches...</option>
+              )}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm text-white/70">
               Experience (Years)
             </label>
 
@@ -279,11 +326,13 @@ export default function TrainerUploadForm() {
           disabled={isSubmitting}
           className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isUploading
-            ? "Uploading Image..."
-            : isSubmitting
-              ? "Creating Trainer..."
-              : "Upload Trainer"}
+          {isUploading ? (
+            <div className="flex items-center gap-2"><FitoraSpinner size="sm" showLogo={false} className="text-black" /> <span>Uploading Image...</span></div>
+          ) : isSubmitting ? (
+            <div className="flex items-center gap-2"><FitoraSpinner size="sm" showLogo={false} className="text-black" /> <span>Creating Trainer...</span></div>
+          ) : (
+            "Upload Trainer"
+          )}
         </button>
       </form>
     </div>

@@ -13,7 +13,9 @@ import {
   Mail,
   Shield,
   UserCheck,
+  Zap,
 } from "lucide-react";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -242,7 +244,11 @@ export default function DashboardLoginPage() {
             disabled={isLoading}
             className="w-full py-3.5 rounded-full bg-white text-black font-black text-sm uppercase tracking-wider hover:bg-gray-100 transition-all flex items-center justify-center gap-2 shadow-2xl cursor-pointer disabled:opacity-60"
           >
-            <span>{isLoading ? "Authenticating..." : "Enter Dashboard"}</span>
+            {isLoading ? (
+              <FitoraSpinner size="sm" label="Authenticating..." showLogo={false} className="text-black" />
+            ) : (
+              <span>Enter Dashboard</span>
+            )}
             <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
           </button>
         </form>
