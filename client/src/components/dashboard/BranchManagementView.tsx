@@ -27,6 +27,7 @@ import {
   MapPin,
   Search,
 } from "lucide-react";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 import { useCallback, useEffect, useState } from "react";
 
 // Fixed capacity (in people) for every gym branch.
@@ -101,7 +102,7 @@ export default function BranchManagementView() {
       {isLoading && (
         <div className="flex items-center justify-center py-12">
           <div className="flex flex-col items-center gap-2 text-white/40">
-            <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            <FitoraSpinner size="sm" showLogo={false} />
             <span className="text-xs font-bold uppercase tracking-wider">
               Loading branches from backend...
             </span>

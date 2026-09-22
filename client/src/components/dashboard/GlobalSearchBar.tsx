@@ -18,6 +18,7 @@ import {
   SearchResultItem,
   SearchResponseData,
 } from "@/services/searchService";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 
 interface GlobalSearchBarProps {
   compact?: boolean;
@@ -171,7 +172,7 @@ export default function GlobalSearchBar({
         {/* Clear Button or Spinner */}
         <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
           {isLoading ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-white/60" />
+            <FitoraSpinner size="sm" showLogo={false} className="text-white/60" />
           ) : searchQuery.length > 0 ? (
             <button
               type="button"
@@ -280,7 +281,7 @@ export default function GlobalSearchBar({
           <div className="overflow-y-auto p-2 space-y-3 flex-1">
             {isLoading ? (
               <div className="py-8 text-center space-y-2">
-                <Loader2 className="w-5 h-5 animate-spin mx-auto text-white/50" />
+                <FitoraSpinner size="sm" showLogo={false} className="mx-auto" />
                 <p className="text-xs text-white/50">
                   Scanning MongoDB database &amp; platform telemetry...
                 </p>

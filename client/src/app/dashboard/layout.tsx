@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 import {
   DashboardRoleProvider,
   useDashboardRole,
@@ -39,10 +40,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center space-y-4 select-none">
-        <div className="w-9 h-9 rounded-full border-2 border-white border-t-transparent animate-spin" />
-        <span className="text-xs font-black uppercase tracking-widest text-white/50">
-          Authenticating FITORA System...
-        </span>
+        <FitoraSpinner size="lg" label="Authenticating FITORA System..." />
       </div>
     );
   }

@@ -83,6 +83,7 @@ Traditional gym management software in Bangladesh is either outdated desktop spr
 - **Monthly Revenue Progression:** Clean BDT revenue volume charts across calendar months.
 - **Live Branch Occupancy:** Live member count vs. capacity threshold with real-time turnstile check-in feeds and CSV data export.
 - **User Management & Branch Directory:** Centralized CRUD controls across all 64 district branches in Bangladesh.
+- **Data Management Portal:** Secure multi-part upload forms (ImgBB) for Trainers, Meals, and Exercises with dynamic MongoDB branch assignment.
 
 ### 6. 📅 Dynamic 1-on-1 Session Booking
 - **Smart Time Slot Engine:** Real-time frontend validation utilizing `GET /booked-slots` to instantly disable booked schedules and prevent overlap.

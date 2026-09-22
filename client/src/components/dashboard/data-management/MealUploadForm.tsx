@@ -3,6 +3,7 @@
 import React, { FormEvent, useState } from "react";
 import { toast } from "react-hot-toast";
 import { uploadToImgBB } from "@/services/imageUploadService";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 
 interface MealFormData {
   name: string;
@@ -303,11 +304,13 @@ export default function MealUploadForm() {
           disabled={isSubmitting}
           className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isUploading
-            ? "Uploading Image..."
-            : isSubmitting
-              ? "Creating Meal..."
-              : "Upload Meal"}
+          {isUploading ? (
+            <div className="flex items-center gap-2"><FitoraSpinner size="sm" showLogo={false} className="text-black" /> <span>Uploading Image...</span></div>
+          ) : isSubmitting ? (
+            <div className="flex items-center gap-2"><FitoraSpinner size="sm" showLogo={false} className="text-black" /> <span>Creating Meal...</span></div>
+          ) : (
+            "Upload Meal"
+          )}
         </button>
       </form>
     </div>

@@ -20,6 +20,7 @@ import {
   type UserMembership,
   type UserRecord,
 } from "@/services/dashboardService";
+import FitoraSpinner from "@/components/ui/FitoraSpinner";
 import {
   Search,
   Edit3,
@@ -658,7 +659,7 @@ export default function UserManagementTable({
               <tr>
                 <td colSpan={10} className="py-12 text-center">
                   <div className="flex flex-col items-center gap-3 text-white/40">
-                    <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    <FitoraSpinner size="sm" showLogo={false} />
                     <span className="text-xs font-bold uppercase tracking-wider">
                       Loading members from backend...
                     </span>
@@ -1425,7 +1426,7 @@ export default function UserManagementTable({
                 disabled={isExtending}
                 className="px-6 py-2.5 rounded-full bg-white text-black font-black uppercase hover:bg-gray-100 transition shadow-md cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2"
               >
-                {isExtending && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isExtending && <FitoraSpinner size="sm" showLogo={false} />}
                 Extend
               </button>
             </div>
@@ -1495,7 +1496,7 @@ export default function UserManagementTable({
                 disabled={isUpdatingPlan}
                 className="px-6 py-2.5 rounded-full bg-white text-black font-black uppercase hover:bg-gray-100 transition shadow-md cursor-pointer disabled:opacity-50 disabled:pointer-events-none flex items-center gap-2"
               >
-                {isUpdatingPlan && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isUpdatingPlan && <FitoraSpinner size="sm" showLogo={false} />}
                 Update Plan
               </button>
             </div>
@@ -1526,7 +1527,7 @@ export default function UserManagementTable({
 
             {auditLoading ? (
               <div className="py-12 flex flex-col items-center justify-center gap-3">
-                <Loader2 className="w-6 h-6 animate-spin text-white/60" />
+                <FitoraSpinner size="sm" showLogo={false} />
                 <span className="text-xs font-black uppercase tracking-widest text-white/40">
                   Loading membership records...
                 </span>
