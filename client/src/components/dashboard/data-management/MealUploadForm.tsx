@@ -247,7 +247,7 @@ export default function MealUploadForm() {
             <button
               type="button"
               onClick={addIngredient}
-              className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+              className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
             >
               Add
             </button>
@@ -287,7 +287,7 @@ export default function MealUploadForm() {
             accept="image/*"
             onChange={handleImageChange}
             required
-            className="block w-full cursor-pointer rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white/60 file:mr-4 file:rounded-lg file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-black"
+            className="block w-full cursor-pointer rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white/60 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-black"
           />
 
           {formData.img && (

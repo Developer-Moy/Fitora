@@ -263,7 +263,7 @@ export default function TrainerUploadForm() {
             accept="image/*"
             onChange={handlePhotoChange}
             required
-            className="block w-full cursor-pointer rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white/60 file:mr-4 file:rounded-lg file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-black"
+            className="block w-full cursor-pointer rounded-xl border border-white/10 bg-black px-4 py-3 text-sm text-white/60 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-black"
           />
 
           {formData.photo && (

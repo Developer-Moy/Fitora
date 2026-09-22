@@ -34,7 +34,6 @@ const newsletterSchema = new Schema<INewsletter>(
   },
 );
 
-newsletterSchema.index({ email: 1 });
 newsletterSchema.index({ status: 1 });
 
 export const Newsletter =

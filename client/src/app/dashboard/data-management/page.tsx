@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import TrainerUploadForm from "@/components/dashboard/data-management/TrainerUploadForm";
 import MealUploadForm from "@/components/dashboard/data-management/MealUploadForm";
 import ExerciseUploadForm from "@/components/dashboard/data-management/ExerciseUploadForm";
-import { useDashboardRole } from "@/hooks/useDashboardRole";
 
 
 type Tab = "trainers" | "meals" | "exercises";
@@ -46,45 +45,23 @@ export default function DataManagementPage() {
   }
 
 
-  const tabs: { id: Tab; label: string }[] = [
+  const tabs = [
     {
-      id: "trainers",
+      id: "trainers" as Tab,
       label: "Trainers",
+      icon: UserRound,
     },
     {
-      id: "meals",
+      id: "meals" as Tab,
       label: "Meals",
+      icon: Utensils,
     },
     {
-      id: "exercises",
+      id: "exercises" as Tab,
       label: "Exercises",
+      icon: Dumbbell,
     },
   ];
-
-  return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-3xl font-bold mb-6">Data Management Portal</h1>
-      
-      {/* DEV 3: Build the Tab Navigation UI here */}
-      <div className="flex space-x-4 mb-8">
-        {tabs.map((tab) => (
-          <button
-          key={tab.id}
-          type="button"
-          onClick={() => setActiveTab(tab.id)}
-          className={`whitespace-nowrap rounded-xl px-5 py-3 text-sm font-medium transition ${
-                activeTab === tab.id
-                  ? "bg-white text-black"
-                  : "text-white/60 hover:bg-white/10 hover:text-white"
-              }`}>{tab.label}</button>
-        ))}
-      </div>
-    );
-  }
-
-  if (!hasAccess) {
-    return null;
-  }
 
 
   return (
