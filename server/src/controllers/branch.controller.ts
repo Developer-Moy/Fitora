@@ -1029,6 +1029,115 @@ export const getBranchOccupancy = async (req: AuthRequest, res: Response) => {
   }
 };
 
+/**
+ * Free VIP Pass Activation (`POST /api/branches/free-pass`)
+ * Authenticated user submits name, phone, branchId → activates 3-day free trial.
+ */
+export const activateFreePass = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res
+        .status(401)
+        .json(errorResponse("Authentication required", "Unauthorized", 401));
+    }
+
+    const { fullName, phone, branchId } = req.body;
+
+    if (!fullName || !phone || !branchId) {
+      return res
+        .status(400)
+        .json(
+          errorResponse(
+            "Full name, phone, and branch are required",
+            "VALIDATION_ERROR",
+            400,
+          ),
+        );
+    }
+
+    // Find the selected branch
+    let branch: IBranch | null = null;
+    if (mongoose.Types.ObjectId.isValid(branchId)) {
+      branch = await Branch.findById(branchId);
+    }
+    if (!branch) {
+      branch = await Branch.findOne({ slug: branchId });
+    }
+    if (!branch) {
+      branch = await Branch.findOne({
+        name: { $regex: new RegExp(branchId, "i") },
+      });
+    }
+
+    if (!branch) {
+      return res
+        .status(404)
+        .json(errorResponse("Branch not found", "BRANCH_NOT_FOUND", 404));
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json(errorResponse("User not found", "USER_NOT_FOUND", 404));
+    }
+
+    // Check if free pass was already used (trial already expired or active)
+    if (user.trialExpiresAt && new Date(user.trialExpiresAt) > new Date()) {
+      const daysLeft = Math.ceil(
+        (new Date(user.trialExpiresAt).getTime() - Date.now()) /
+          (1000 * 60 * 60 * 24),
+      );
+      return res.status(409).json(
+        errorResponse(
+          `Your 3-Day Free Pass is already active. ${daysLeft} day(s) remaining.`,
+          "TRIAL_ALREADY_ACTIVE",
+          409,
+        ),
+      );
+    }
+
+    // Activate 3-day free trial
+    const trialExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+
+    user.name = fullName.trim();
+    user.phone = phone.trim();
+    user.assignedBranch = branch.name;
+    user.assignedBranchSlug = branch.slug || branch.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    user.plan = "Free Pass";
+    user.trialExpiresAt = trialExpiresAt;
+
+    await user.save();
+
+    return res.status(200).json(
+      successResponse("🎉 Your 3-Day Free VIP Pass has been activated!", {
+        userId: user._id,
+        name: user.name,
+        phone: user.phone,
+        plan: user.plan,
+        assignedBranch: user.assignedBranch,
+        trialExpiresAt: trialExpiresAt.toISOString(),
+        isTrialActive: true,
+        daysRemaining: 3,
+      }),
+    );
+  } catch (error: any) {
+    console.error("Error activating free pass:", error);
+    return res
+      .status(500)
+      .json(
+        errorResponse(
+          "Internal server error while activating free pass.",
+          error.message,
+          500,
+        ),
+      );
+  }
+};
+
 export default {
   getPublicBranches,
   getAdminBranches,
@@ -1036,5 +1145,6 @@ export default {
   createBranchCheckin,
   checkoutBranchCheckin,
   getBranchOccupancy,
+  activateFreePass,
   BANGLADESH_64_DISTRICTS,
 };

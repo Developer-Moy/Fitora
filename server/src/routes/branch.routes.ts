@@ -6,6 +6,7 @@ import {
   getBranchCheckins,
   getBranchOccupancy,
   getPublicBranches,
+  activateFreePass,
 } from "../controllers/branch.controller";
 import {
   authMiddleware,
@@ -16,6 +17,9 @@ const router = Router();
 
 // Public: List 64 Nationwide Bangladesh Branches
 router.get("/public", getPublicBranches);
+
+// Protected: Activate 3-Day Free VIP Pass for authenticated users
+router.post("/free-pass", authMiddleware, activateFreePass);
 
 // Protected: Admin Comprehensive Branch Overview Grid
 router.get(
