@@ -56,28 +56,51 @@ export default function DataManagementPage() {
     <div className="min-h-screen bg-black text-white p-6">
       <h1 className="text-3xl font-bold mb-6">Data Management Portal</h1>
 
-      {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-2 mb-8 p-1.5 bg-white/[0.03] rounded-2xl border border-white/10">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border ${
-              activeTab === tab.key
-                ? "bg-white text-black border-white shadow-lg"
-                : "bg-transparent text-white/50 hover:text-white hover:bg-white/[0.06] border-transparent hover:border-white/10"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Chrome-style Tab Navigation */}
+      <div className="relative flex items-end mb-4 h-12">
+        {tabs.map((tab) =>
+          activeTab === tab.key ? (
+            // Active tab — appears "on top" (Chrome style): elevated, connected to content
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className="relative z-10 px-6 py-3 rounded-t-2xl rounded-b-none text-sm font-semibold text-black bg-white border-x-2 border-t-2 border-b-0 border-transparent shadow-xl"
+              style={{
+                borderLeftColor: "transparent",
+                borderRightColor: "transparent",
+                borderTopColor: "white",
+              }}
+            >
+              {tab.label}
+              {/* Bottom connector triangle — active tab merges into content area */}
+              <div className="absolute bottom-0 left-0 w-full h-px bg-transparent" />
+            </button>
+          ) : (
+            // Inactive tab — recessed, lower appearance
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className="relative z-10 px-6 py-3 rounded-t-2xl rounded-b-none text-sm font-semibold text-white/50 hover:text-white/70 hover:bg-white/[0.04] border-2 border-transparent transition-all"
+            >
+              {tab.label}
+            </button>
+          ),
+        )}
+
+        {/* Tab bar rail — horizontal line that active tab overlaps */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-white/20" />
       </div>
 
       {/* Render Active Form */}
-      <div className="p-6 border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md">
-        {activeTab === "trainers" && <TrainerUploadForm />}
-        {activeTab === "meals" && <MealUploadForm />}
-        {activeTab === "exercises" && <ExerciseUploadForm />}
+      <div className="relative pt-1">
+        {/* Content area starts right under the active tab — no gap between tabs and content */}
+        <div className="border border-white/10 rounded-b-2xl rounded-t-none bg-white/5 backdrop-blur-md">
+          <div className="p-6">
+            {activeTab === "trainers" && <TrainerUploadForm />}
+            {activeTab === "meals" && <MealUploadForm />}
+            {activeTab === "exercises" && <ExerciseUploadForm />}
+          </div>
+        </div>
       </div>
     </div>
   );
