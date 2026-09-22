@@ -116,6 +116,66 @@ export async function fetchBranchOverview(): Promise<Branch[]> {
   return [];
 }
 
+/**
+ * Fetch all public branches (no auth required) — used in VIP Free Pass modal.
+ */
+export async function fetchPublicBranches(): Promise<Branch[]> {
+  try {
+    const res = await fetch(`${API_URL}/branches/public`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const branches = data?.data?.branches || data?.data || [];
+    return Array.isArray(branches) ? branches : [];
+  } catch {
+    return [];
+  }
+}
+
+export type FreePassPayload = {
+  fullName: string;
+  phone: string;
+  branchId: string;
+};
+
+export type FreePassResult = {
+  success: boolean;
+  message: string;
+  data?: {
+    name: string;
+    assignedBranch: string;
+    trialExpiresAt: string;
+    daysRemaining: number;
+  };
+};
+
+/**
+ * Activate 3-Day Free VIP Pass — requires user to be logged in (JWT in localStorage).
+ */
+export async function activateFreePassApi(
+  payload: FreePassPayload,
+): Promise<FreePassResult> {
+  try {
+    const res = await fetch(`${API_URL}/branches/free-pass`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.success) {
+      return {
+        success: false,
+        message: data?.message || "Failed to activate free pass.",
+      };
+    }
+    return { success: true, message: data.message, data: data.data };
+  } catch {
+    return {
+      success: false,
+      message: "Network error. Please check your connection.",
+    };
+  }
+}
+
 export async function fetchBranchOccupancy(
   branchId: string,
 ): Promise<BranchOccupancy> {
