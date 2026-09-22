@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dumbbell,
   Utensils,
   UserRound,
 } from "lucide-react";
+import { useDashboardRole } from "@/hooks/useDashboardRole";
+import { useRouter } from "next/navigation";
 
 import TrainerUploadForm from "@/components/dashboard/data-management/TrainerUploadForm";
 import MealUploadForm from "@/components/dashboard/data-management/MealUploadForm";
@@ -39,9 +41,35 @@ const tabs = [
 ];
 
 export default function DataManagementPage() {
+  const router = useRouter();
+  const { role } = useDashboardRole();
+
   const [activeTab, setActiveTab] = useState<DataTab>("trainers");
 
-  // DEV 3: Role protection will be added in the next commit.
+
+  const hasAccess =
+    role === "master_admin" || role === "branch_admin";
+
+  useEffect(() => {
+    if (role && !hasAccess) {
+      router.replace("/dashboard");
+    }
+  }, [role, hasAccess, router]);
+
+  if (!role) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <p className="text-sm font-bold text-black/50">
+          Checking access...
+        </p>
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    return null;
+  }
+
 
   return (
     <div className="min-h-screen bg-black px-4 py-6 text-white sm:px-6 lg:px-8">
