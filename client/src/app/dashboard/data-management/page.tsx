@@ -4,17 +4,54 @@ import React, { useState } from "react";
 import TrainerUploadForm from "@/components/dashboard/data-management/TrainerUploadForm";
 import MealUploadForm from "@/components/dashboard/data-management/MealUploadForm";
 import ExerciseUploadForm from "@/components/dashboard/data-management/ExerciseUploadForm";
+import { useDashboardRole } from "@/hooks/useDashboardRole";
 
-/**
- * @task Frontend Dev 3: Data Management Page Layout
- * - Create a 3-tab navigation system (Trainers, Meals, Exercises).
- * - Only render this page for `master_admin` and `branch_admin` (use existing auth hooks).
- * - Add styling matching the Fitora Pure Black & White theme.
- */
+
+type Tab = "trainers" | "meals" | "exercises";
+
 export default function DataManagementPage() {
-  const [activeTab, setActiveTab] = useState<"trainers" | "meals" | "exercises">("trainers");
+  const [activeTab, setActiveTab] = useState<Tab>("trainers");
 
-  // DEV 3: Add Role protection logic here
+  const { isMasterAdmin, isBranchAdmin, isLoading } = useDashboardRole();
+
+  const hasAccess = isMasterAdmin || isBranchAdmin;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-white">
+        <div>
+          <h1 className="text-2xl font-bold">Access Denied</h1>
+          <p className="mt-2 text-white/50">
+            You do not have permission to access this page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+
+  const tabs: { id: Tab; label: string }[] = [
+    {
+      id: "trainers",
+      label: "Trainers",
+    },
+    {
+      id: "meals",
+      label: "Meals",
+    },
+    {
+      id: "exercises",
+      label: "Exercises",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-black text-white p-6">
@@ -22,9 +59,17 @@ export default function DataManagementPage() {
       
       {/* DEV 3: Build the Tab Navigation UI here */}
       <div className="flex space-x-4 mb-8">
-        <button onClick={() => setActiveTab("trainers")}>Trainers</button>
-        <button onClick={() => setActiveTab("meals")}>Meals</button>
-        <button onClick={() => setActiveTab("exercises")}>Exercises</button>
+        {tabs.map((tab) => (
+          <button
+          key={tab.id}
+          type="button"
+          onClick={() => setActiveTab(tab.id)}
+          className={`whitespace-nowrap rounded-xl px-5 py-3 text-sm font-medium transition ${
+                activeTab === tab.id
+                  ? "bg-white text-black"
+                  : "text-white/60 hover:bg-white/10 hover:text-white"
+              }`}>{tab.label}</button>
+        ))}
       </div>
 
       {/* Render Active Form */}
