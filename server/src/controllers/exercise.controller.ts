@@ -86,7 +86,6 @@ export const createExercise = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  // DEV 1: Add your logic here
   try {
     const {
       name,

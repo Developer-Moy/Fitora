@@ -117,13 +117,12 @@ const adminNavGroups: NavGroup[] = [
         icon: Activity,
         tabKey: "ai-telemetry",
       },
-      
-       {
-         name: "Data Management",
-         href: "/dashboard/data-management",
-         icon: Database,
-         tabKey: "data-management",
-       },
+      {
+        name: "Data Management",
+        href: "/dashboard/data-management",
+        icon: Database,
+        tabKey: "data-management",
+      },
     ],
   },
 ];

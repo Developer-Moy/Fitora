@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
   X,
+  Database,
 } from "lucide-react";
 import { useDashboardRole, DashboardRole } from "@/hooks/useDashboardRole";
 import NotificationDropdown from "./NotificationDropdown";
@@ -53,6 +54,8 @@ export default function DashboardNavbar() {
     isMasterAdmin,
     logout,
   } = useDashboardRole();
+
+  const pathname = usePathname();
 
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab") || "overview";
@@ -95,13 +98,13 @@ export default function DashboardNavbar() {
     },
     ...(isMasterAdmin
       ? [
-          {
-            name: "64 Branches",
-            href: "/dashboard?tab=branches",
-            icon: Building2,
-            tabKey: "branches",
-          },
-        ]
+        {
+          name: "64 Branches",
+          href: "/dashboard?tab=branches",
+          icon: Building2,
+          tabKey: "branches",
+        },
+      ]
       : []),
     {
       name: "Finances",
@@ -114,6 +117,12 @@ export default function DashboardNavbar() {
       href: "/dashboard?tab=ai-telemetry",
       icon: Activity,
       tabKey: "ai-telemetry",
+    },
+    {
+      name: "Data Management",
+      href: "/dashboard/data-management",
+      icon: Database,
+      tabKey: "data-management",
     },
   ];
 
@@ -168,17 +177,19 @@ export default function DashboardNavbar() {
         <nav className="hidden lg:flex items-center gap-1.5 xl:gap-2 transition-all duration-300">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = isTabActive(item.tabKey, currentTab);
+            const active =
+              item.href === "/dashboard/data-management"
+                ? pathname === "/dashboard/data-management"
+                : pathname === "/dashboard" && isTabActive(item.tabKey, currentTab);
             return (
               <Link
                 key={item.tabKey}
                 href={item.href}
                 title={item.name}
-                className={`flex items-center gap-1.5 px-3 py-1.5 xl:px-4 xl:py-2 rounded-xl text-xs uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  active
-                    ? "bg-white text-black font-black shadow-md shadow-white/10"
-                    : "text-white/60 hover:text-white hover:bg-white/10 font-bold"
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 xl:px-4 xl:py-2 rounded-xl text-xs uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${active
+                  ? "bg-white text-black font-black shadow-md shadow-white/10"
+                  : "text-white/60 hover:text-white hover:bg-white/10 font-bold"
+                  }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
                 <span>{item.name}</span>
@@ -215,9 +226,8 @@ export default function DashboardNavbar() {
               </div>
 
               <ChevronDown
-                className={`h-3.5 w-3.5 text-white/50 transition-transform duration-200 ${
-                  showProfileMenu ? "rotate-180 text-white" : ""
-                }`}
+                className={`h-3.5 w-3.5 text-white/50 transition-transform duration-200 ${showProfileMenu ? "rotate-180 text-white" : ""
+                  }`}
               />
             </button>
 
@@ -253,11 +263,10 @@ export default function DashboardNavbar() {
                         setRole("master_admin");
                         setShowProfileMenu(false);
                       }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                        role === "master_admin"
-                          ? "bg-white text-black"
-                          : "text-white/70 hover:bg-white/10 hover:text-white"
-                      }`}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${role === "master_admin"
+                        ? "bg-white text-black"
+                        : "text-white/70 hover:bg-white/10 hover:text-white"
+                        }`}
                     >
                       <div className="flex items-center gap-2">
                         <Shield className="w-3.5 h-3.5" />
@@ -274,11 +283,10 @@ export default function DashboardNavbar() {
                         setRole("branch_admin");
                         setShowProfileMenu(false);
                       }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                        role === "branch_admin"
-                          ? "bg-white text-black"
-                          : "text-white/70 hover:bg-white/10 hover:text-white"
-                      }`}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${role === "branch_admin"
+                        ? "bg-white text-black"
+                        : "text-white/70 hover:bg-white/10 hover:text-white"
+                        }`}
                     >
                       <div className="flex items-center gap-2">
                         <Building2 className="w-3.5 h-3.5" />
@@ -317,17 +325,19 @@ export default function DashboardNavbar() {
           <nav className="grid grid-cols-1 gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const active = isTabActive(item.tabKey, currentTab);
+              const active =
+                item.href === "/dashboard/data-management"
+                  ? pathname === "/dashboard/data-management"
+                  : pathname === "/dashboard" &&isTabActive(item.tabKey, currentTab);
               return (
                 <Link
                   key={item.tabKey}
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer ${
-                    active
-                      ? "bg-white text-black font-black"
-                      : "text-white/70 hover:bg-white/10 hover:text-white font-bold"
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer ${active
+                    ? "bg-white text-black font-black"
+                    : "text-white/70 hover:bg-white/10 hover:text-white font-bold"
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.name}</span>
