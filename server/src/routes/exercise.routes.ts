@@ -24,4 +24,10 @@ router.post(
   createExercise
 );
 
+router.post(
+  "/",
+  authMiddleware,
+  requireAdminOrBranchAdmin,
+  createExercise
+);
 export default router;

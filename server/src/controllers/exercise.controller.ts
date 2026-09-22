@@ -81,12 +81,7 @@ export const getExerciseById = async (
   }
 };
 
-/**
- * Create Exercise Controller
- * - Implement POST logic to save a new exercise.
- * - Generate unique numeric `id` dynamically.
- * - Check for duplicates by name.
- */
+
 export const createExercise = async (
   req: Request,
   res: Response
@@ -105,46 +100,124 @@ export const createExercise = async (
       image,
     } = req.body;
 
-    // Validate required fields
-    if (!name || !category || !difficulty || !duration || !equipment || !muscle || !description || !videoId || !image) {
-      res.status(400).json(errorResponse("All required fields must be provided", "MISSING_FIELDS", 400));
+    // 1. Validate required fields
+    if (
+      !name ||
+      !category ||
+      !difficulty ||
+      !duration ||
+      !equipment ||
+      !muscle ||
+      !description ||
+      !videoId ||
+      !image
+    ) {
+      res.status(400).json(
+        errorResponse(
+          "All required fields must be provided",
+          "VALIDATION_ERROR",
+          400
+        )
+      );
+
       return;
     }
 
-    // Check for duplicate by name (case-insensitive)
+    // 2. Validate difficulty
+    const allowedDifficulties = [
+      "BEGINNER",
+      "INTERMEDIATE",
+      "ADVANCED",
+    ];
+
+    if (!allowedDifficulties.includes(difficulty)) {
+      res.status(400).json(
+        errorResponse(
+          "Invalid difficulty. Use BEGINNER, INTERMEDIATE, or ADVANCED",
+          "INVALID_DIFFICULTY",
+          400
+        )
+      );
+
+      return;
+    }
+
+    // 3. Check duplicate exercise name
     const existingExercise = await Exercise.findOne({
-      name: { $regex: new RegExp(`^${name}$`, "i") },
+      name: {
+        $regex: `^${name.trim()}$`,
+        $options: "i",
+      },
     });
 
     if (existingExercise) {
-      res.status(409).json(errorResponse("An exercise with this name already exists", "DUPLICATE_NAME", 409));
+      res.status(409).json(
+        errorResponse(
+          "An exercise with this name already exists",
+          "EXERCISE_ALREADY_EXISTS",
+          409
+        )
+      );
+
       return;
     }
 
-    // Generate unique numeric ID
-    const lastExercise = await Exercise.findOne().sort({ id: -1 });
-    const newId = lastExercise ? lastExercise.id + 1 : 1;
+    // 4. Generate next numeric ID
+    const lastExercise = await Exercise.findOne()
+      .sort({ id: -1 })
+      .select("id");
 
-    // Create the exercise
-    const newExercise = new Exercise({
-      id: newId,
-      name,
-      category,
+    const nextId = lastExercise ? lastExercise.id + 1 : 1;
+
+    // 5. Prepare tips
+    const exerciseTips = Array.isArray(tips)
+      ? tips
+      : typeof tips === "string" && tips.trim()
+      ? [tips.trim()]
+      : [];
+
+    // 6. Create exercise
+    const exercise = await Exercise.create({
+      id: nextId,
+      name: name.trim(),
+      category: category.trim(),
       difficulty,
-      duration,
-      equipment,
-      muscle,
-      description,
-      tips: Array.isArray(tips) ? tips : [],
-      videoId,
-      image,
+      duration: duration.trim(),
+      equipment: equipment.trim(),
+      muscle: muscle.trim(),
+      description: description.trim(),
+      tips: exerciseTips,
+      videoId: videoId.trim(),
+      image: image.trim(),
     });
 
-    await newExercise.save();
-
-    res.status(201).json(successResponse("Exercise created successfully", newExercise));
+    // 7. Send response
+    res.status(201).json(
+      successResponse(
+        "Exercise created successfully",
+        exercise
+      )
+    );
   } catch (error) {
     console.error("Create exercise error:", error);
+
+    // Handle MongoDB duplicate key error
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as { code?: number }).code === 11000
+    ) {
+      res.status(409).json(
+        errorResponse(
+          "Exercise with this ID already exists",
+          "DUPLICATE_EXERCISE_ID",
+          409
+        )
+      );
+
+      return;
+    }
+
     res.status(500).json(
       errorResponse(
         "Failed to create exercise",

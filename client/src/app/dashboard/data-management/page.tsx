@@ -12,49 +12,72 @@ import { useRouter } from "next/navigation";
 import TrainerUploadForm from "@/components/dashboard/data-management/TrainerUploadForm";
 import MealUploadForm from "@/components/dashboard/data-management/MealUploadForm";
 import ExerciseUploadForm from "@/components/dashboard/data-management/ExerciseUploadForm";
+import { useDashboardRole } from "@/hooks/useDashboardRole";
 
-type DataTab = "trainers" | "meals" | "exercises";
 
-const tabs = [
-  {
-    id: "trainers" as const,
-    label: "Trainers",
-    icon: UserRound,
-  },
-  {
-    id: "meals" as const,
-    label: "Meals",
-    icon: Utensils,
-  },
-  {
-    id: "exercises" as const,
-    label: "Exercises",
-    icon: Dumbbell,
-  },
-];
+type Tab = "trainers" | "meals" | "exercises";
 
 export default function DataManagementPage() {
-  const router = useRouter();
-  const { role } = useDashboardRole();
+  const [activeTab, setActiveTab] = useState<Tab>("trainers");
 
-  const [activeTab, setActiveTab] = useState<DataTab>("trainers");
+  const { isMasterAdmin, isBranchAdmin, isLoading } = useDashboardRole();
 
+  const hasAccess = isMasterAdmin || isBranchAdmin;
 
-  const hasAccess =
-    role === "master_admin" || role === "branch_admin";
-
-  useEffect(() => {
-    if (role && !hasAccess) {
-      router.replace("/dashboard");
-    }
-  }, [role, hasAccess, router]);
-
-  if (!role) {
+  if (isLoading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-sm font-bold text-black/50">
-          Checking access...
-        </p>
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center text-white">
+        <div>
+          <h1 className="text-2xl font-bold">Access Denied</h1>
+          <p className="mt-2 text-white/50">
+            You do not have permission to access this page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+
+  const tabs: { id: Tab; label: string }[] = [
+    {
+      id: "trainers",
+      label: "Trainers",
+    },
+    {
+      id: "meals",
+      label: "Meals",
+    },
+    {
+      id: "exercises",
+      label: "Exercises",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-black text-white p-6">
+      <h1 className="text-3xl font-bold mb-6">Data Management Portal</h1>
+      
+      {/* DEV 3: Build the Tab Navigation UI here */}
+      <div className="flex space-x-4 mb-8">
+        {tabs.map((tab) => (
+          <button
+          key={tab.id}
+          type="button"
+          onClick={() => setActiveTab(tab.id)}
+          className={`whitespace-nowrap rounded-xl px-5 py-3 text-sm font-medium transition ${
+                activeTab === tab.id
+                  ? "bg-white text-black"
+                  : "text-white/60 hover:bg-white/10 hover:text-white"
+              }`}>{tab.label}</button>
+        ))}
       </div>
     );
   }
