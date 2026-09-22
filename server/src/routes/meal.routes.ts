@@ -16,10 +16,4 @@ router.get("/:id", getMealById);
 // POST /api/meals - create a new meal (admin / branch_admin only)
 router.post("/", authMiddleware, requireAdminOrBranchAdmin, createMeal);
 
-router.post(
-  "/",
-  authMiddleware,
-  requireAdminOrBranchAdmin,
-  createMeal
-);
 export default router;
