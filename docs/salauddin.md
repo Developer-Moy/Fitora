@@ -252,3 +252,6 @@ Monthly / Yearly billing toggle switch.
 
 ### 16-Sep-26
 * Build Wikipedia-style Trainer Details Modal & VIP Pass Component.
+
+### 22-Sep-26
+* Frontend - Exercise Upload Form & Error Handling
