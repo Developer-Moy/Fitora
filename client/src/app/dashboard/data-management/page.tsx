@@ -13,13 +13,6 @@ import TrainerUploadForm from "@/components/dashboard/data-management/TrainerUpl
 import MealUploadForm from "@/components/dashboard/data-management/MealUploadForm";
 import ExerciseUploadForm from "@/components/dashboard/data-management/ExerciseUploadForm";
 
-/**
- * @task Frontend Dev 3: Data Management Page Layout
- * - Create a 3-tab navigation system (Trainers, Meals, Exercises).
- * - Only render this page for `master_admin` and `branch_admin` (use existing auth hooks).
- * - Add styling matching the Fitora Pure Black & White theme.
- */
-
 type DataTab = "trainers" | "meals" | "exercises";
 
 const tabs = [
