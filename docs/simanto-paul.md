@@ -504,6 +504,14 @@ https://github.com/Developer-Moy/Fitora/tree/simanto-paul
 * Standardized the form field appearance with consistent spacing, borders, and rounded styling.
 * Verified the updated form UI for consistency and responsiveness.
 
+### **22-Sep-26**
+
+* Added the Data Management page with Trainers, Meals, and Exercises tabs.
+* Added role-based access protection for Master Admin and Branch Admin.
+* Added Data Management navigation route to the dashboard sidebar.
+* Fixed sidebar active-menu behavior so Data Management is active on `/dashboard/data-management` instead of Overview.
+* Verified the Data Management route is opening successfully.
+
 
 ---
 
