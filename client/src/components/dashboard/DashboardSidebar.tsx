@@ -24,6 +24,7 @@ import {
   HeartPulse,
   LogOut,
   MessageSquare,
+  Database,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -116,17 +117,12 @@ const adminNavGroups: NavGroup[] = [
         icon: Activity,
         tabKey: "ai-telemetry",
       },
-      /**
-       * @task Frontend Dev 3: Add link to the new route
-       * Link points to `/dashboard/data-management`
-       */
-      // DEV 3: Uncomment and adjust the link below once ready
-      // {
-      //   name: "Data Management",
-      //   href: "/dashboard/data-management",
-      //   icon: Database,
-      //   tabKey: "data-management",
-      // },
+      {
+        name: "Data Management",
+        href: "/dashboard/data-management",
+        icon: Database,
+        tabKey: "data-management",
+      },
     ],
   },
 ];
