@@ -114,12 +114,140 @@ export const getMealById = async (
   }
 };
 
-/**
- * @task Backend Dev 1: Create Meal Controller
- * - Implement POST logic to save a new meal.
- * - Generate unique `id` dynamically if not provided.
- * - Check for duplicates by name or ID.
- */
+
 export const createMeal = async (req: Request, res: Response): Promise<void> => {
-  // DEV 1: Add your logic here
+  try {
+    const {
+      name,
+      ingredients,
+      calories,
+      description,
+      img,
+      category,
+    } = req.body;
+
+    // 1. Validate required fields
+    if (
+      !name ||
+      !ingredients ||
+      calories === undefined ||
+      calories === null ||
+      !description ||
+      !img
+    ) {
+      res.status(400).json(
+        errorResponse(
+          "All required fields must be provided",
+          "VALIDATION_ERROR",
+          400
+        )
+      );
+
+      return;
+    }
+
+    // 2. Validate ingredients
+    if (!Array.isArray(ingredients) || ingredients.length === 0) {
+      res.status(400).json(
+        errorResponse(
+          "Ingredients must be a non-empty array",
+          "INVALID_INGREDIENTS",
+          400
+        )
+      );
+
+      return;
+    }
+
+    // 3. Validate calories
+    const calorieValue = Number(calories);
+
+    if (isNaN(calorieValue) || calorieValue < 0) {
+      res.status(400).json(
+        errorResponse(
+          "Calories must be a valid positive number",
+          "INVALID_CALORIES",
+          400
+        )
+      );
+
+      return;
+    }
+
+    // 4. Check duplicate meal name
+    const existingMeal = await Meal.findOne({
+      name: {
+        $regex: `^${name.trim()}$`,
+        $options: "i",
+      },
+    });
+
+    if (existingMeal) {
+      res.status(409).json(
+        errorResponse(
+          "A meal with this name already exists",
+          "MEAL_ALREADY_EXISTS",
+          409
+        )
+      );
+
+      return;
+    }
+
+    // 5. Generate unique string ID
+    let mealId = `meal-${Date.now()}`;
+
+    // Make sure generated ID does not already exist
+    while (await Meal.exists({ id: mealId })) {
+      mealId = `meal-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    }
+
+    // 6. Create meal
+    const meal = await Meal.create({
+      id: mealId,
+      name: name.trim(),
+      ingredients: ingredients
+        .map((ingredient: unknown) => String(ingredient).trim())
+        .filter((ingredient: string) => ingredient.length > 0),
+      calories: calorieValue,
+      description: description.trim(),
+      img: img.trim(),
+      category: category?.trim() || undefined,
+    });
+
+    // 7. Send response
+    res.status(201).json(
+      successResponse(
+        "Meal created successfully",
+        meal
+      )
+    );
+  } catch (error) {
+    console.error("Create meal error:", error);
+
+    // Handle MongoDB duplicate key error
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as { code?: number }).code === 11000
+    ) {
+      res.status(409).json(
+        errorResponse(
+          "Meal with this ID already exists",
+          "DUPLICATE_MEAL_ID",
+          409
+        )
+      );
+
+      return;
+    }
+
+    res.status(500).json(
+      errorResponse(
+        "Failed to create meal",
+        error instanceof Error ? error.message : "Unknown error",
+        500
+      )
+    );
+  }
 };
