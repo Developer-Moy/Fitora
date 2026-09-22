@@ -113,3 +113,13 @@ export const getMealById = async (
       );
   }
 };
+
+/**
+ * @task Backend Dev 1: Create Meal Controller
+ * - Implement POST logic to save a new meal.
+ * - Generate unique `id` dynamically if not provided.
+ * - Check for duplicates by name or ID.
+ */
+export const createMeal = async (req: Request, res: Response): Promise<void> => {
+  // DEV 1: Add your logic here
+};
