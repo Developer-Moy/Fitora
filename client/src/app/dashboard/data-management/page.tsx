@@ -73,24 +73,9 @@ export default function DataManagementPage() {
 
   return (
     <div className="min-h-screen bg-black px-4 py-6 text-white sm:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-7xl">
-        {/* Page Header */}
-        <div className="mb-8">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
-            Admin Portal
-          </p>
-
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Data Management
-          </h1>
-
-          <p className="mt-2 max-w-2xl text-sm text-white/50 sm:text-base">
-            Manage trainers, meals, and exercises from one central portal.
-          </p>
-        </div>
-
+      <div className="mx-auto w-full">
         {/* Tab Navigation */}
-        <div className="mb-8 flex justify-center">
+        <div className="mb-6 flex justify-center">
           <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-2 backdrop-blur-md">
             <div className="flex flex-wrap justify-center gap-2">
               {tabs.map((tab) => {
@@ -114,6 +99,20 @@ export default function DataManagementPage() {
               })}
             </div>
           </div>
+        </div>
+
+        <div className="mb-8">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
+            Admin Portal
+          </p>
+
+          <h1 className="text-2xl font-bold tracking-tight sm:text-2xl">
+            Data Management
+          </h1>
+
+          <p className="mt-2 max-w-2xl text-sm text-white/50 sm:text-base">
+            Manage trainers, meals, and exercises from one central portal.
+          </p>
         </div>
 
         {/* Active Tab Content */}
