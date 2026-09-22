@@ -80,3 +80,16 @@ export const getExerciseById = async (
     );
   }
 };
+
+/**
+ * @task Backend Dev 1: Create Exercise Controller
+ * - Implement POST logic to save a new exercise.
+ * - Generate unique numeric `id` dynamically.
+ * - Check for duplicates by name or ID.
+ */
+export const createExercise = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  // DEV 1: Add your logic here
+};
