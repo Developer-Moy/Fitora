@@ -3,6 +3,8 @@
 import React, { useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { uploadToImgBB } from "@/services/imageUploadService";
+import { createMealApi } from "@/services/mealService";
+import { getAuthSession } from "@/services/authService";
 import { X, Plus, UploadCloud } from "lucide-react";
 
 /**
@@ -119,7 +121,9 @@ export default function MealUploadForm() {
     setIsSubmitting(true);
 
     try {
-      const formData = {
+      const { token } = getAuthSession();
+
+      const payload = {
         name: trimmedName,
         ingredients,
         calories: Number(calories),
@@ -127,10 +131,25 @@ export default function MealUploadForm() {
         img: uploadedImageUrl,
       };
 
-      console.log(formData);
-      toast.success("Meal logged to console successfully!");
-    } catch (error) {
-      toast.error("An error occurred during submission");
+      await createMealApi(payload, token ?? null);
+
+      toast.success("Meal uploaded successfully!");
+
+      // Reset form to clean state
+      setName("");
+      setIngredients([]);
+      setIngredientInput("");
+      setCalories("");
+      setDescription("");
+      setImageFile(null);
+      setImagePreview(null);
+      setUploadedImageUrl(null);
+      setImageUploadError(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "An error occurred during submission";
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

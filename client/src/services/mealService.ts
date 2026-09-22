@@ -68,3 +68,42 @@ export async function fetchMealByIdApi(id: string): Promise<MealItem | null> {
     return null;
   }
 }
+
+export interface CreateMealPayload {
+  name: string;
+  ingredients: string[];
+  calories: number;
+  description: string;
+  img: string;
+  category?: string;
+}
+
+/**
+ * POST /api/meals
+ * Requires an admin or branch_admin auth token.
+ */
+export async function createMealApi(
+  payload: CreateMealPayload,
+  token?: string | null,
+): Promise<MealItem> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_URL}/meals`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(json?.message || `Failed to create meal (${res.status})`);
+  }
+
+  return json.data as MealItem;
+}

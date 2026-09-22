@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { getMeals, getMealById } from "../controllers/meal.controller";
+import { getMeals, getMealById, createMeal } from "../controllers/meal.controller";
+import {
+  authMiddleware,
+  requireAdminOrBranchAdmin,
+} from "../middlewares/auth.middleware";
 
 const router = Router();
 
@@ -9,12 +13,7 @@ router.get("/", getMeals);
 // GET /api/meals/:id - get single meal
 router.get("/:id", getMealById);
 
-/**
- * @task Backend Dev 2: Register POST route for creating meals
- * - Import `createMeal` from controller.
- * - Import `authMiddleware` and `requireAdminOrBranchAdmin` from auth middleware.
- * - Create POST `/` route using these middlewares and controller.
- */
-// DEV 2: Add router.post("/", ...) here
+// POST /api/meals - create a new meal (admin / branch_admin only)
+router.post("/", authMiddleware, requireAdminOrBranchAdmin, createMeal);
 
 export default router;

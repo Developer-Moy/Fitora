@@ -115,11 +115,90 @@ export const getMealById = async (
 };
 
 /**
- * @task Backend Dev 1: Create Meal Controller
- * - Implement POST logic to save a new meal.
- * - Generate unique `id` dynamically if not provided.
- * - Check for duplicates by name or ID.
+ * POST /api/meals
+ * Creates and persists a new meal into the existing MongoDB meals collection.
+ * Requires master_admin or branch_admin role (enforced by route middleware).
+ * Generates a unique string `id` server-side so the frontend never has to supply one.
  */
 export const createMeal = async (req: Request, res: Response): Promise<void> => {
-  // DEV 1: Add your logic here
+  try {
+    const { name, ingredients, calories, description, img, category } = req.body;
+
+    // --- Required field validation ---
+    if (!name || typeof name !== "string" || name.trim().length < 3) {
+      res
+        .status(400)
+        .json(errorResponse("Meal name must be at least 3 characters", "BAD_REQUEST", 400));
+      return;
+    }
+
+    if (!Array.isArray(ingredients) || ingredients.length === 0) {
+      res
+        .status(400)
+        .json(errorResponse("At least one ingredient is required", "BAD_REQUEST", 400));
+      return;
+    }
+
+    if (calories === undefined || calories === null || isNaN(Number(calories)) || Number(calories) < 0) {
+      res
+        .status(400)
+        .json(errorResponse("Calories must be a valid non-negative number", "BAD_REQUEST", 400));
+      return;
+    }
+
+    if (!description || typeof description !== "string" || description.trim().length < 1) {
+      res
+        .status(400)
+        .json(errorResponse("Description is required", "BAD_REQUEST", 400));
+      return;
+    }
+
+    if (!img || typeof img !== "string" || img.trim().length === 0) {
+      res
+        .status(400)
+        .json(errorResponse("Image URL is required", "BAD_REQUEST", 400));
+      return;
+    }
+
+    // --- Duplicate name guard (case-insensitive) ---
+    const existing = await Meal.findOne({
+      name: { $regex: new RegExp(`^${name.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+    });
+    if (existing) {
+      res
+        .status(409)
+        .json(errorResponse("A meal with this name already exists", "CONFLICT", 409));
+      return;
+    }
+
+    // --- Generate a unique string id ---
+    // Pattern mirrors the existing seed data ("meal-001", "meal-002", …)
+    const uniqueId = `meal-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+    // --- Persist to the existing meals collection ---
+    const newMeal = await Meal.create({
+      id: uniqueId,
+      name: name.trim(),
+      ingredients: ingredients.map((i: string) => String(i).trim()).filter(Boolean),
+      calories: Number(calories),
+      description: description.trim(),
+      img: img.trim(),
+      ...(category && typeof category === "string" && category.trim()
+        ? { category: category.trim() }
+        : {}),
+    });
+
+    res.status(201).json(successResponse("Meal created successfully", newMeal));
+  } catch (error) {
+    console.error("Error in createMeal controller:", error);
+    res
+      .status(500)
+      .json(
+        errorResponse(
+          "Failed to create meal",
+          error instanceof Error ? error.message : "Internal Server Error",
+          500,
+        ),
+      );
+  }
 };
