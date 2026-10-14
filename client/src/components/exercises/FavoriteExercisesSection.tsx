@@ -51,15 +51,15 @@ export default function FavoriteExercisesSection({
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-            <Heart className="w-4 h-4 fill-red-500" />
+          <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shadow-md shrink-0">
+            <Heart className="w-3.5 h-3.5 fill-black" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-white">
                 Favorite & Regular Exercises
               </h2>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-red-500/20 text-red-400 border border-red-500/30">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-white/10 text-white border border-white/15">
                 {favorites.length}
               </span>
             </div>
@@ -108,7 +108,7 @@ export default function FavoriteExercisesSection({
       {isLoading ? (
         <div className="h-44 rounded-2xl border border-white/10 bg-neutral-950/60 p-6 flex items-center justify-center">
           <div className="flex items-center gap-2 text-xs font-bold text-white/50">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
             <span>Loading your favorite exercises...</span>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function FavoriteExercisesSection({
               <div
                 key={exercise.exerciseId || exercise._id}
                 onClick={() => onSelectExercise(exercise)}
-                className="group relative shrink-0 w-64 sm:w-72 h-44 rounded-2xl bg-neutral-900 border border-white/15 hover:border-red-500/40 overflow-hidden shadow-lg transition-all duration-300 cursor-pointer snap-start flex flex-col justify-between"
+                className="group relative shrink-0 w-64 sm:w-72 h-44 rounded-2xl bg-neutral-900 border border-white/15 hover:border-white/35 overflow-hidden shadow-lg transition-all duration-300 cursor-pointer snap-start flex flex-col justify-between"
               >
                 {/* Background Image */}
                 <Image
@@ -142,44 +142,51 @@ export default function FavoriteExercisesSection({
                 {/* Dark Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30 pointer-events-none" />
 
-                {/* Top Badges & Action */}
+                {/* Top Badges */}
                 <div className="relative z-10 p-3.5 flex items-center justify-between">
                   <span className="px-2 py-0.5 rounded-full bg-white text-black text-[9px] font-black uppercase tracking-wider">
                     {exercise.category}
                   </span>
 
-                  <button
-                    type="button"
-                    onClick={(e) => onToggleFavorite(exercise, e)}
-                    className="w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center hover:scale-110 active:scale-95 transition shadow-[0_0_10px_rgba(239,68,68,0.5)] cursor-pointer"
-                    title="Remove from favorites"
-                    aria-label="Remove from favorites"
-                  >
-                    <Heart className="w-3.5 h-3.5 fill-white" />
-                  </button>
+                  <span className="px-2 py-0.5 rounded-full bg-black/60 border border-white/20 text-white/80 text-[9px] font-bold">
+                    {exercise.difficulty}
+                  </span>
                 </div>
 
-                {/* Bottom Content */}
+                {/* Bottom Content with Favorite Button at Bottom Right */}
                 <div className="relative z-10 p-3.5 space-y-1.5">
-                  <h3 className="text-sm font-black uppercase text-white truncate group-hover:text-red-400 transition">
+                  <h3 className="text-sm font-black uppercase text-white truncate group-hover:text-white transition">
                     {exercise.name}
                   </h3>
 
-                  <div className="flex items-center justify-between text-[10px] text-white/70 pt-1 border-t border-white/10 font-bold">
+                  <div className="flex items-center justify-between text-[10px] text-white/70 pt-1.5 border-t border-white/10 font-bold">
                     <span className="flex items-center gap-1">
                       <Clock3 className="w-3 h-3 text-white/40" />
                       {exercise.duration}
                     </span>
 
-                    <span className="flex items-center gap-1 text-white/50 truncate max-w-[120px]">
+                    <span className="flex items-center gap-1 text-white/50 truncate max-w-[80px]">
                       <Target className="w-3 h-3 text-white/40" />
                       {exercise.muscle}
                     </span>
 
-                    <span className="inline-flex items-center gap-1 text-[9px] font-black text-white group-hover:translate-x-0.5 transition">
-                      <span>START</span>
-                      <Play className="w-2.5 h-2.5 fill-white" />
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="hidden sm:inline-flex items-center gap-1 text-[9px] font-black text-white/80 group-hover:text-white transition">
+                        <span>START</span>
+                        <Play className="w-2.5 h-2.5 fill-white" />
+                      </span>
+
+                      {/* Favorite Button at Bottom Right */}
+                      <button
+                        type="button"
+                        onClick={(e) => onToggleFavorite(exercise, e)}
+                        className="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition cursor-pointer shadow-sm"
+                        title="Remove from favorites"
+                        aria-label="Remove from favorites"
+                      >
+                        <Heart className="w-3 h-3 fill-black text-black" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -189,9 +196,8 @@ export default function FavoriteExercisesSection({
       ) : !isLoggedIn ? (
         /* Guest prompt */
         <div className="rounded-2xl border border-white/10 bg-neutral-950/80 p-5 sm:p-6 text-center space-y-2.5 relative overflow-hidden">
-          <div className="absolute -top-12 -right-12 w-32 h-32 bg-red-500/10 rounded-full blur-2xl pointer-events-none" />
           <div className="w-10 h-10 rounded-full bg-neutral-900 border border-white/15 mx-auto flex items-center justify-center text-white/60">
-            <Heart className="w-5 h-5" />
+            <Heart className="w-5 h-5 text-white/70" />
           </div>
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-white">
@@ -212,14 +218,14 @@ export default function FavoriteExercisesSection({
       ) : (
         /* Logged in with 0 favorites */
         <div className="rounded-2xl border border-dashed border-white/15 bg-neutral-950/50 p-6 text-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-neutral-900 border border-white/10 mx-auto flex items-center justify-center text-red-500/80">
-            <Heart className="w-5 h-5 fill-red-500/20" />
+          <div className="w-10 h-10 rounded-full bg-neutral-900 border border-white/10 mx-auto flex items-center justify-center text-white/60">
+            <Heart className="w-5 h-5 text-white/50" />
           </div>
           <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white">
             No Favorite Exercises Added Yet
           </h3>
           <p className="text-xs text-white/45 max-w-md mx-auto">
-            Click the <Heart className="w-3 h-3 inline text-red-500 fill-red-500 mx-0.5" /> icon on any exercise card below to bookmark your regular training movements for instant access here!
+            Click the <Heart className="w-3 h-3 inline text-white fill-white mx-0.5" /> icon at the bottom right of any exercise card below to bookmark your regular training movements for instant access here!
           </p>
         </div>
       )}

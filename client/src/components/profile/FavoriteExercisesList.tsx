@@ -33,13 +33,13 @@ export default function FavoriteExercisesList({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/10 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-            <Heart className="w-4 h-4 fill-red-500" />
+          <div className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shadow-md shrink-0">
+            <Heart className="w-3.5 h-3.5 fill-black" />
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-black uppercase text-white tracking-wider flex items-center gap-2">
               Favorite Exercises
-              <span className="text-[10px] font-extrabold bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full border border-red-500/30">
+              <span className="text-[10px] font-extrabold bg-white/10 text-white px-2 py-0.5 rounded-full border border-white/15">
                 {favorites.length}
               </span>
             </h3>
@@ -51,7 +51,7 @@ export default function FavoriteExercisesList({
 
         <Link
           href="/exercises"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-white hover:text-red-400 transition"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-white/80 hover:text-white transition"
         >
           <span>Explore All</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
@@ -121,7 +121,7 @@ export default function FavoriteExercisesList({
                         </button>
                       )}
                     </div>
-                    <h4 className="text-xs font-black uppercase text-white truncate group-hover:text-red-400 transition">
+                    <h4 className="text-xs font-black uppercase text-white truncate group-hover:text-white transition">
                       {exercise.name}
                     </h4>
                   </div>
