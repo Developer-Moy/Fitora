@@ -30,6 +30,7 @@ import {
   type SavedFavoriteExercise,
 } from "@/services/exerciseService";
 import { getAuthSession } from "@/services/authService";
+import { useSession } from "@/lib/auth-client";
 import { createWorkoutLog } from "@/services/workoutService";
 import Image from "next/image";
 import FitoraSpinner from "@/components/ui/FitoraSpinner";
@@ -67,6 +68,7 @@ const categories = [
 
 
 export default function ExercisePage() {
+  const { data: authSession } = useSession();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -90,17 +92,28 @@ export default function ExercisePage() {
   const ITEMS_PER_PAGE = 9;
 
   // Load user favorites from backend profile database
+  // Re-runs when Better Auth session changes (e.g. after Google OAuth sign-in)
   useEffect(() => {
     let cancelled = false;
     async function loadFavorites() {
       try {
-        const session = getAuthSession();
-        const activeId =
-          session.user?.id ||
-          session.user?._id ||
-          (typeof window !== "undefined"
+        // 1. Try Better Auth session (covers Google OAuth & session-based auth)
+        const betterAuthId = authSession?.user?.id;
+        const betterAuthEmail = authSession?.user?.email;
+
+        // 2. Fallback to localStorage (covers custom JWT login)
+        const localSession = getAuthSession();
+        const localId =
+          localSession.user?.id ||
+          localSession.user?._id;
+        const localEmail =
+          typeof window !== "undefined"
             ? localStorage.getItem("fitora_user_email")
-            : null);
+            : null;
+
+        // Resolve: prefer MongoDB _id/id, then Better Auth id, then email
+        const activeId =
+          localId || betterAuthId || localEmail || betterAuthEmail || null;
 
         setUserId(activeId);
 
@@ -124,7 +137,7 @@ export default function ExercisePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [authSession?.user?.id, authSession?.user?.email]);
 
   const handleToggleFavorite = async (
     exercise: Exercise | SavedFavoriteExercise,
@@ -142,6 +155,8 @@ export default function ExercisePage() {
       activeUserId =
         session.user?.id ||
         session.user?._id ||
+        authSession?.user?.id ||
+        authSession?.user?.email ||
         (typeof window !== "undefined"
           ? localStorage.getItem("fitora_user_email")
           : null);
@@ -380,7 +395,7 @@ export default function ExercisePage() {
           <FavoriteExercisesSection
             favorites={favoriteExercises}
             isLoading={isLoadingFavorites}
-            isLoggedIn={Boolean(userId)}
+            isLoggedIn={Boolean(userId || authSession?.user?.id || authSession?.user?.email)}
             onSelectExercise={(fav) => {
               const matched = exercises.find(
                 (e) => e.id === (fav.exerciseId || fav._id)
