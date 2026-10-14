@@ -72,12 +72,12 @@ We utilize a modern, type-safe stack designed for speed and reliability.
    ```bash
    git clone https://github.com/Developer-Moy/Fitora.git
    cd Fitora
-   npm install && cd client && npm install && cd ../server && npm install && cd ..
+   pnpm install
    ```
 2. **Environment Setup:** Create `.env` files in `client/` and `server/` (See nested READMEs for required keys).
 3. **Launch Concurrent Servers:**
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
 ---
