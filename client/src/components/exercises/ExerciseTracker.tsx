@@ -11,6 +11,7 @@ import {
   Dumbbell,
   ExternalLink,
   Flame,
+  Heart,
   Lock,
   Pause,
   Play,
@@ -22,10 +23,17 @@ import {
   Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { fetchExercises } from "@/services/exerciseService";
+import {
+  fetchExercises,
+  fetchFavoriteExercises,
+  toggleFavoriteExerciseApi,
+  type SavedFavoriteExercise,
+} from "@/services/exerciseService";
+import { getAuthSession } from "@/services/authService";
 import { createWorkoutLog } from "@/services/workoutService";
 import Image from "next/image";
 import FitoraSpinner from "@/components/ui/FitoraSpinner";
+import FavoriteExercisesSection from "./FavoriteExercisesSection";
 
 type Exercise = {
   id: string;
@@ -43,6 +51,7 @@ type Exercise = {
 
 const categories = [
   "ALL",
+  "FAVORITES",
   "CHEST",
   "BACK",
   "LEGS",
@@ -56,10 +65,17 @@ const categories = [
   "GLUTES",
 ];
 
+
 export default function ExercisePage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Favorites state connected to profile database
+  const [favoriteExercises, setFavoriteExercises] = useState<SavedFavoriteExercise[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const [activeCategory, setActiveCategory] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,6 +88,128 @@ export default function ExercisePage() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
+
+  // Load user favorites from backend profile database
+  useEffect(() => {
+    let cancelled = false;
+    async function loadFavorites() {
+      try {
+        const session = getAuthSession();
+        const activeId =
+          session.user?.id ||
+          session.user?._id ||
+          (typeof window !== "undefined"
+            ? localStorage.getItem("fitora_user_email")
+            : null);
+
+        setUserId(activeId);
+
+        if (activeId) {
+          setIsLoadingFavorites(true);
+          const favs = await fetchFavoriteExercises(activeId);
+          if (!cancelled) {
+            setFavoriteExercises(favs);
+            setFavoriteIds(new Set(favs.map((f) => String(f.exerciseId || f._id))));
+            setIsLoadingFavorites(false);
+          }
+        } else {
+          if (!cancelled) setIsLoadingFavorites(false);
+        }
+      } catch {
+        if (!cancelled) setIsLoadingFavorites(false);
+      }
+    }
+
+    loadFavorites();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleToggleFavorite = async (
+    exercise: Exercise | SavedFavoriteExercise,
+    e?: React.MouseEvent
+  ) => {
+    if (e) e.stopPropagation();
+
+    const targetId = String(
+      (exercise as any).exerciseId || (exercise as any).id || (exercise as any)._id
+    );
+
+    let activeUserId = userId;
+    if (!activeUserId) {
+      const session = getAuthSession();
+      activeUserId =
+        session.user?.id ||
+        session.user?._id ||
+        (typeof window !== "undefined"
+          ? localStorage.getItem("fitora_user_email")
+          : null);
+      if (activeUserId) setUserId(activeUserId);
+    }
+
+    if (!activeUserId) {
+      toast.error("Please log in to save favorite exercises to your profile.", {
+        icon: "🔒",
+      });
+      return;
+    }
+
+    const isCurrentlyFavorited = favoriteIds.has(targetId);
+
+    // Optimistic UI update for instant feedback
+    const nextIds = new Set(favoriteIds);
+    if (isCurrentlyFavorited) {
+      nextIds.delete(targetId);
+      setFavoriteIds(nextIds);
+      setFavoriteExercises((prev) =>
+        prev.filter((f) => String(f.exerciseId || f._id) !== targetId)
+      );
+      toast.success(`${exercise.name} removed from favorites`);
+    } else {
+      nextIds.add(targetId);
+      setFavoriteIds(nextIds);
+      const newFavObj: SavedFavoriteExercise = {
+        _id: targetId,
+        userId: activeUserId,
+        exerciseId: targetId,
+        name: exercise.name,
+        category: (exercise.category || "FUNCTIONAL").toUpperCase() as any,
+        difficulty: (exercise.difficulty || "BEGINNER").toUpperCase() as any,
+        duration: exercise.duration || "10 MIN",
+        equipment: (exercise.equipment || "BODYWEIGHT").toUpperCase(),
+        muscle: (exercise.muscle || "FULL BODY").toUpperCase(),
+        description: exercise.description || "",
+        tips: exercise.tips || [],
+        videoId: exercise.videoId || "",
+        image: exercise.image || "",
+      };
+      setFavoriteExercises((prev) => [newFavObj, ...prev]);
+      toast.success(`${exercise.name} added to your favorites!`, {
+        icon: "❤️",
+      });
+    }
+
+    try {
+      const res = await toggleFavoriteExerciseApi({
+        userId: activeUserId,
+        exerciseId: targetId,
+        exerciseData: exercise,
+      });
+
+      if (!res.success) {
+        // Rollback state if server rejected
+        setFavoriteIds(favoriteIds);
+        toast.error(res.message || "Failed to update favorites");
+        const refreshed = await fetchFavoriteExercises(activeUserId);
+        setFavoriteExercises(refreshed);
+        setFavoriteIds(new Set(refreshed.map((f) => String(f.exerciseId || f._id))));
+      }
+    } catch {
+      setFavoriteIds(favoriteIds);
+      toast.error("Network error updating favorites");
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -117,7 +255,10 @@ export default function ExercisePage() {
   const filteredExercises = useMemo(() => {
     return exercises.filter((exercise) => {
       const matchesCategory =
-        activeCategory === "ALL" || exercise.category === activeCategory;
+        activeCategory === "ALL" ||
+        (activeCategory === "FAVORITES"
+          ? favoriteIds.has(exercise.id)
+          : exercise.category === activeCategory);
 
       const matchesSearch =
         exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -125,7 +266,7 @@ export default function ExercisePage() {
 
       return matchesCategory && matchesSearch;
     });
-  }, [exercises, activeCategory, searchQuery]);
+  }, [exercises, activeCategory, searchQuery, favoriteIds]);
 
   const totalPages = Math.ceil(filteredExercises.length / ITEMS_PER_PAGE);
 
@@ -133,6 +274,7 @@ export default function ExercisePage() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredExercises.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredExercises, currentPage]);
+
 
   useEffect(() => {
     const checkPremiumAccess = async () => {
@@ -234,10 +376,45 @@ export default function ExercisePage() {
             </div>
           </div>
 
+          {/* Favorite & Regular Exercises Section (Dynamic & connected to profile database) */}
+          <FavoriteExercisesSection
+            favorites={favoriteExercises}
+            isLoading={isLoadingFavorites}
+            isLoggedIn={Boolean(userId)}
+            onSelectExercise={(fav) => {
+              const matched = exercises.find(
+                (e) => e.id === (fav.exerciseId || fav._id)
+              );
+              if (matched) {
+                setSelectedExercise(matched);
+              } else {
+                setSelectedExercise({
+                  id: fav.exerciseId || fav._id,
+                  name: fav.name,
+                  category: fav.category,
+                  difficulty: fav.difficulty,
+                  duration: fav.duration,
+                  equipment: fav.equipment,
+                  muscle: fav.muscle,
+                  description: fav.description,
+                  tips: fav.tips || [],
+                  videoId: fav.videoId || "",
+                  image: fav.image || "",
+                });
+              }
+            }}
+            onToggleFavorite={handleToggleFavorite}
+            onViewAllInGrid={() => {
+              setActiveCategory("FAVORITES");
+              setCurrentPage(1);
+            }}
+          />
+
           {/* Categories */}
           <div className="flex gap-2 overflow-x-auto pt-3 pb-5 scrollbar-hide">
             {categories.map((category) => {
               const active = activeCategory === category;
+              const isFavoritesTab = category === "FAVORITES";
 
               return (
                 <button
@@ -246,13 +423,30 @@ export default function ExercisePage() {
                     setActiveCategory(category);
                     setCurrentPage(1);
                   }}
-                  className={`whitespace-nowrap px-5 py-3 rounded-full text-[10px] font-black tracking-wider transition-all duration-300 cursor-pointer ${
+                  className={`whitespace-nowrap px-5 py-3 rounded-full text-[10px] font-black tracking-wider transition-all duration-300 cursor-pointer flex items-center gap-1.5 ${
                     active
-                      ? "bg-white text-black border border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-[1.02]"
-                      : "bg-neutral-900 border border-white/10 text-gray-300 hover:text-white hover:border-white/30"
+                      ? isFavoritesTab
+                        ? "bg-red-600 text-white border border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] scale-[1.02]"
+                        : "bg-white text-black border border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-[1.02]"
+                      : isFavoritesTab
+                        ? "bg-red-950/40 border border-red-500/30 text-red-300 hover:text-white hover:border-red-400"
+                        : "bg-neutral-900 border border-white/10 text-gray-300 hover:text-white hover:border-white/30"
                   }`}
                 >
-                  {category}
+                  {isFavoritesTab && (
+                    <Heart
+                      className={`w-3 h-3 ${
+                        active
+                          ? "fill-white text-white"
+                          : "fill-red-500 text-red-500"
+                      }`}
+                    />
+                  )}
+                  <span>
+                    {isFavoritesTab
+                      ? `FAVORITES ${favoriteExercises.length > 0 ? `(${favoriteExercises.length})` : ""}`
+                      : category}
+                  </span>
                 </button>
               );
             })}
@@ -272,6 +466,8 @@ export default function ExercisePage() {
                     exercise={exercise}
                     index={(currentPage - 1) * ITEMS_PER_PAGE + index}
                     locked={exercise.difficulty === "ADVANCED" && !isPremium}
+                    isFavorited={favoriteIds.has(exercise.id)}
+                    onToggleFavorite={handleToggleFavorite}
                     onClick={() => {
                       if (exercise.difficulty === "ADVANCED" && !isPremium) {
                         setShowPremiumMessage(true);
@@ -362,6 +558,8 @@ export default function ExercisePage() {
         <ExerciseModal
           key={selectedExercise.id}
           exercise={selectedExercise}
+          isFavorited={favoriteIds.has(selectedExercise.id)}
+          onToggleFavorite={handleToggleFavorite}
           onClose={() => setSelectedExercise(null)}
         />
       )}
@@ -424,11 +622,15 @@ function ExerciseCard({
   exercise,
   index,
   locked,
+  isFavorited,
+  onToggleFavorite,
   onClick,
 }: {
   exercise: Exercise;
   index: number;
   locked: boolean;
+  isFavorited: boolean;
+  onToggleFavorite: (exercise: Exercise, e: React.MouseEvent) => void;
   onClick: () => void;
 }) {
   const validCategoryImages: Record<string, string> = {
@@ -585,6 +787,25 @@ function ExerciseCard({
         )}
       </div>
 
+      {/* Floating Favorite Heart Button */}
+      <button
+        type="button"
+        onClick={(e) => onToggleFavorite(exercise, e)}
+        className={`absolute top-4 right-14 sm:right-15 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all duration-300 shadow-md cursor-pointer ${
+          isFavorited
+            ? "bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.6)] hover:scale-110 active:scale-95"
+            : "bg-black/60 backdrop-blur-md border border-white/20 text-white/70 hover:text-white hover:border-white/50 hover:scale-105 active:scale-95"
+        }`}
+        title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+      >
+        <Heart
+          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 ${
+            isFavorited ? "fill-white text-white scale-110" : "text-white"
+          }`}
+        />
+      </button>
+
       {/* Play Button or Live Preview Status */}
       <div className="absolute top-4 right-4 z-10 pointer-events-none">
         <div
@@ -684,9 +905,13 @@ const API_BASE_URL =
 
 function ExerciseModal({
   exercise,
+  isFavorited,
+  onToggleFavorite,
   onClose,
 }: {
   exercise: Exercise;
+  isFavorited: boolean;
+  onToggleFavorite: (exercise: Exercise) => void;
   onClose: () => void;
 }) {
   const [history, setHistory] = useState<WorkoutLog[]>([]);
@@ -940,13 +1165,28 @@ function ExerciseModal({
             </span>
           </div>
 
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shrink-0"
-            aria-label="Close"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onToggleFavorite(exercise)}
+              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition cursor-pointer ${
+                isFavorited
+                  ? "bg-red-600 text-white shadow-[0_0_10px_rgba(239,68,68,0.5)]"
+                  : "bg-neutral-900 border border-white/20 text-white/70"
+              }`}
+              title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isFavorited ? "fill-white" : ""}`} />
+            </button>
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center shrink-0"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Desktop & Tablet Close Button */}
@@ -1184,6 +1424,18 @@ function ExerciseModal({
                       VIP ACCESS
                     </span>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => onToggleFavorite(exercise)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                      isFavorited
+                        ? "bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)] hover:bg-red-700"
+                        : "bg-neutral-900 border border-white/20 text-white/80 hover:text-white hover:border-white/40"
+                    }`}
+                  >
+                    <Heart className={`w-3 h-3 ${isFavorited ? "fill-white" : ""}`} />
+                    <span>{isFavorited ? "FAVORITED" : "ADD TO FAVORITES"}</span>
+                  </button>
                 </div>
 
                 {/* Exercise Title & Description */}

@@ -38,6 +38,12 @@ import {
 import { getWorkoutLogs } from "@/services/workoutService";
 import type { WorkoutLog } from "@/types/workout";
 import SavedMealPlan from "@/components/profile/SavedMealPlan";
+import FavoriteExercisesList from "@/components/profile/FavoriteExercisesList";
+import {
+  fetchFavoriteExercises,
+  removeFavoriteExerciseApi,
+  type SavedFavoriteExercise,
+} from "@/services/exerciseService";
 import {
   getDailyMealPlan,
   SavedMealPlanItem,
@@ -347,6 +353,8 @@ export default function ProfilePage() {
   // ── Data State ──
   const [workoutLogs, setWorkoutLogs] = useState<WorkoutLog[]>([]);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(true);
+  const [favoriteExercises, setFavoriteExercises] = useState<SavedFavoriteExercise[]>([]);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
   const [dailyPlanMeals, setDailyPlanMeals] = useState<SavedMealPlanItem[]>([]);
   const [isLoadingDailyPlan, setIsLoadingDailyPlan] = useState(true);
   const [bmiHistory, setBmiHistory] = useState<BMIHistory[]>([]);
@@ -546,6 +554,7 @@ export default function ProfilePage() {
 
       setIsLoadingWorkouts(true);
       setIsLoadingDailyPlan(true);
+      setIsLoadingFavorites(true);
       setBmiLoading(true);
       setActivityStreakLoading(true);
       setFitnessGoalLoading(true);
@@ -553,6 +562,7 @@ export default function ProfilePage() {
       const [
         workoutsRes,
         mealsRes,
+        favoritesRes,
         mealChartsRes,
         paymentsRes,
         bmiRes,
@@ -564,6 +574,7 @@ export default function ProfilePage() {
           success: false,
           data: [],
         })),
+        fetchFavoriteExercises(String(resolvedUserId)).catch(() => []),
         fetchMealCharts(String(resolvedUserId)).catch(() => []),
         fetch(
           `${apiUrl}/payments/me?userId=${encodeURIComponent(String(resolvedUserId))}&email=${encodeURIComponent(userEmail)}`,
@@ -597,6 +608,13 @@ export default function ProfilePage() {
         setDailyPlanMeals(d.success && Array.isArray(d.data) ? d.data : []);
       }
       setIsLoadingDailyPlan(false);
+
+      if (favoritesRes.status === "fulfilled") {
+        setFavoriteExercises(
+          Array.isArray(favoritesRes.value) ? favoritesRes.value : [],
+        );
+      }
+      setIsLoadingFavorites(false);
 
       if (
         mealChartsRes.status === "fulfilled" &&
@@ -1439,6 +1457,24 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
+
+            {/* Row 3: Favorite & Regular Exercises (Connected to Profile Database) */}
+            <FavoriteExercisesList
+              favorites={favoriteExercises}
+              isLoading={isLoadingFavorites}
+              onRemoveFavorite={async (exerciseId) => {
+                setFavoriteExercises((prev) =>
+                  prev.filter(
+                    (f) => String(f.exerciseId || f._id) !== exerciseId
+                  )
+                );
+                await removeFavoriteExerciseApi(
+                  exerciseId,
+                  String(resolvedUserId)
+                );
+                toast.success("Removed from favorite exercises");
+              }}
+            />
           </div>
         )}
 
