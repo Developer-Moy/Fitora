@@ -4,12 +4,12 @@
   "private": true,
   "description": "Fitora - AI-Powered Realtime Fitness Planner Platform",
   "scripts": {
-    "dev": "concurrently -n \"CLIENT,SERVER\" -c \"cyan,magenta\" \"npm run dev --prefix client\" \"npm run dev --prefix server\"",
-    "dev:client": "npm run dev --prefix client",
-    "dev:server": "npm run dev --prefix server",
-    "build:client": "npm run build --prefix client",
-    "build:server": "npm run build --prefix server",
-    "build": "npm run build:client && npm run build:server"
+    "dev": "concurrently -n \"CLIENT,SERVER\" -c \"cyan,magenta\" \"pnpm --filter client dev\" \"pnpm --filter fitora-server dev\"",
+    "dev:client": "pnpm --filter client dev",
+    "dev:server": "pnpm --filter fitora-server dev",
+    "build:client": "pnpm --filter client build",
+    "build:server": "pnpm --filter fitora-server build",
+    "build": "pnpm build:client && pnpm build:server"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

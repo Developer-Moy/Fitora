@@ -84,6 +84,9 @@ export interface IUser extends Document {
     savedAt: Date;
   };
 
+  // Favorite Exercises (saved to user profile in database)
+  favoriteExercises?: string[];
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -274,6 +277,12 @@ const userSchema = new Schema<IUser>(
       token: { type: String, trim: true },
       savedAt: { type: Date, default: Date.now },
     },
+
+    // Favorite & regular exercises connected to profile database
+    favoriteExercises: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -300,6 +309,7 @@ userSchema.index({ role: 1 });
 userSchema.index({ assignedBranchSlug: 1 });
 userSchema.index({ status: 1 });
 userSchema.index({ plan: 1 });
+userSchema.index({ favoriteExercises: 1 });
 
 // Guard against hot-reload model re-registration (prevents duplicate index warnings)
 const User = (mongoose.models.User as mongoose.Model<IUser>) || mongoose.model<IUser>("User", userSchema);

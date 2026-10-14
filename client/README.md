@@ -194,17 +194,17 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ```bash
 # 1. Start development server with Next.js Turbopack
-npm run dev
+pnpm dev
 
 # 2. Verify TypeScript typecheck (Zero-Error Policy)
-npx tsc --noEmit
+pnpm exec tsc --noEmit
 
 # 3. Create optimized production build
-npm run build
+pnpm build
 
 # 4. Start production server
-npm run start
+pnpm start
 
 # 5. Run ESLint code quality analysis
-npm run lint
+pnpm lint
 ```

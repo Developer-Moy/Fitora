@@ -258,11 +258,11 @@ STRIPE_SECRET_KEY=sk_test_51...
 
 ```bash
 # 1. Start development server with live watch (tsx)
-npm run dev
+pnpm dev
 
 # 2. Compile TypeScript to production dist/ (Zero-Error Policy)
-npm run build
+pnpm build
 
 # 3. Start production server
-npm run start
+pnpm start
 ```
