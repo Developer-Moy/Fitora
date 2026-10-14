@@ -440,20 +440,16 @@ export default function ExercisePage() {
                   }}
                   className={`whitespace-nowrap px-5 py-3 rounded-full text-[10px] font-black tracking-wider transition-all duration-300 cursor-pointer flex items-center gap-1.5 ${
                     active
-                      ? isFavoritesTab
-                        ? "bg-red-600 text-white border border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] scale-[1.02]"
-                        : "bg-white text-black border border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-[1.02]"
-                      : isFavoritesTab
-                        ? "bg-red-950/40 border border-red-500/30 text-red-300 hover:text-white hover:border-red-400"
-                        : "bg-neutral-900 border border-white/10 text-gray-300 hover:text-white hover:border-white/30"
+                      ? "bg-white text-black border border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-[1.02]"
+                      : "bg-neutral-900 border border-white/10 text-gray-300 hover:text-white hover:border-white/30"
                   }`}
                 >
                   {isFavoritesTab && (
                     <Heart
                       className={`w-3 h-3 ${
                         active
-                          ? "fill-white text-white"
-                          : "fill-red-500 text-red-500"
+                          ? "fill-black text-black"
+                          : "fill-white/60 text-white/60"
                       }`}
                     />
                   )}
@@ -802,25 +798,6 @@ function ExerciseCard({
         )}
       </div>
 
-      {/* Floating Favorite Heart Button */}
-      <button
-        type="button"
-        onClick={(e) => onToggleFavorite(exercise, e)}
-        className={`absolute top-4 right-14 sm:right-15 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all duration-300 shadow-md cursor-pointer ${
-          isFavorited
-            ? "bg-red-600 text-white shadow-[0_0_12px_rgba(239,68,68,0.6)] hover:scale-110 active:scale-95"
-            : "bg-black/60 backdrop-blur-md border border-white/20 text-white/70 hover:text-white hover:border-white/50 hover:scale-105 active:scale-95"
-        }`}
-        title={isFavorited ? "Remove from favorites" : "Add to favorites"}
-        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-      >
-        <Heart
-          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 ${
-            isFavorited ? "fill-white text-white scale-110" : "text-white"
-          }`}
-        />
-      </button>
-
       {/* Play Button or Live Preview Status */}
       <div className="absolute top-4 right-4 z-10 pointer-events-none">
         <div
@@ -836,9 +813,6 @@ function ExerciseCard({
                 <span className="w-0.75 bg-white rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
                 <span className="w-0.75 bg-white rounded-full animate-[pulse_0.4s_ease-in-out_infinite] h-3" />
                 <span className="w-0.75 bg-white rounded-full animate-[pulse_0.7s_ease-in-out_infinite] h-1.5" />
-              </span>
-              <span className="text-[9px] font-black uppercase tracking-wider">
-                LIVE
               </span>
               <span className="text-[9px] font-black uppercase tracking-wider">
                 LIVE
@@ -877,7 +851,7 @@ function ExerciseCard({
           {exercise.name}
         </h3>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/10">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
           <div className="flex flex-wrap items-center gap-3 text-white/60 text-[10px] font-bold">
             <span className="flex items-center gap-1">
               <Clock3 className="w-3.5 h-3.5" />
@@ -890,10 +864,32 @@ function ExerciseCard({
             </span>
           </div>
 
-          <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-white hover:underline">
-            TECHNIQUE
-            <ArrowUpRight className="w-3 h-3" />
-          </span>
+          {/* Bottom Right Actions: TECHNIQUE + Favorite Button */}
+          <div className="flex items-center gap-2 pointer-events-auto">
+            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-black uppercase text-white/80 group-hover:text-white transition">
+              TECHNIQUE
+              <ArrowUpRight className="w-3 h-3" />
+            </span>
+
+            {/* Favorite Button at Bottom Right */}
+            <button
+              type="button"
+              onClick={(e) => onToggleFavorite(exercise, e)}
+              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                isFavorited
+                  ? "bg-white text-black shadow-md hover:scale-105 active:scale-95"
+                  : "bg-black/60 border border-white/20 text-white/70 hover:text-white hover:border-white/50 hover:bg-neutral-800 active:scale-95"
+              }`}
+              title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+            >
+              <Heart
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  isFavorited ? "fill-black text-black" : "text-white"
+                }`}
+              />
+            </button>
+          </div>
         </div>
       </div>
     </article>
@@ -1186,13 +1182,13 @@ function ExerciseModal({
               onClick={() => onToggleFavorite(exercise)}
               className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition cursor-pointer ${
                 isFavorited
-                  ? "bg-red-600 text-white shadow-[0_0_10px_rgba(239,68,68,0.5)]"
-                  : "bg-neutral-900 border border-white/20 text-white/70"
+                  ? "bg-white text-black shadow-md hover:scale-105 active:scale-95"
+                  : "bg-neutral-900 border border-white/20 text-white/70 hover:text-white hover:border-white/40"
               }`}
               title={isFavorited ? "Remove from favorites" : "Add to favorites"}
               aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
             >
-              <Heart className={`w-3.5 h-3.5 ${isFavorited ? "fill-white" : ""}`} />
+              <Heart className={`w-3.5 h-3.5 ${isFavorited ? "fill-black text-black" : "text-white"}`} />
             </button>
             <button
               onClick={onClose}
@@ -1444,12 +1440,12 @@ function ExerciseModal({
                     onClick={() => onToggleFavorite(exercise)}
                     className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider transition-all duration-300 cursor-pointer ${
                       isFavorited
-                        ? "bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.4)] hover:bg-red-700"
+                        ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.25)] hover:bg-neutral-200"
                         : "bg-neutral-900 border border-white/20 text-white/80 hover:text-white hover:border-white/40"
                     }`}
                   >
-                    <Heart className={`w-3 h-3 ${isFavorited ? "fill-white" : ""}`} />
-                    <span>{isFavorited ? "FAVORITED" : "ADD TO FAVORITES"}</span>
+                    <Heart className={`w-3 h-3 ${isFavorited ? "fill-black text-black" : "text-white"}`} />
+                    <span>{isFavorited ? "SAVED TO FAVORITES" : "ADD TO FAVORITES"}</span>
                   </button>
                 </div>
 
